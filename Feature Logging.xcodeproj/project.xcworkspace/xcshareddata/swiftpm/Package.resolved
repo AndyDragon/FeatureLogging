@@ -1,0 +1,24 @@
+{
+  "originHash" : "268f15c89094d629650bb8e7ebf236fa8bd708b3f2266deb77efd159d1e24258",
+  "pins" : [
+    {
+      "identity" : "alerttoast",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/elai950/AlertToast.git",
+      "state" : {
+        "revision" : "b39252eacd159904afd7d718bba0afabb87f2f2f",
+        "version" : "1.3.9"
+      }
+    },
+    {
+      "identity" : "swiftui-system-colors",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/diniska/swiftui-system-colors",
+      "state" : {
+        "revision" : "5127afab23337699a714e036588f02d9481ae612",
+        "version" : "1.2.0"
+      }
+    }
+  ],
+  "version" : 3
+}
