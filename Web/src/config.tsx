@@ -18,7 +18,7 @@ export const versionLocation = "featurelogging/version.json";
 export const macDmgLocation = "featurelogging/macos/Feature%20Logging%20";
 export const macReleaseNotesLocation = "releaseNotes-mac.json";
 
-export const windowsInstallerLocation = "featuretracker/windows";
+export const windowsInstallerLocation = "featurelogging/windows";
 export const windowsReleaseNotesLocation = "releaseNotes-windows.json";
 
 export type Platform = "macOS" | "windows";
