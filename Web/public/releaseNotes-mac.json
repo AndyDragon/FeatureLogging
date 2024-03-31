@@ -31,5 +31,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.5",
+        "notes": [
+            {
+                "date": "Mar 31, 2024",
+                "notes": [
+                    "Added shared storage when launching Vero Scripts to populate from feature"
+                ]
+            }
+        ]
     }
 ]

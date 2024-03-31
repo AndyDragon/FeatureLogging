@@ -9,13 +9,14 @@ import SwiftUI
 import AlertToast
 
 struct ContentView: View {
+    // THEME
     @AppStorage(
         Constants.THEME_APP_STORE_KEY,
-        store: UserDefaults(suiteName: "com.andydragon.com.Post-Maker")
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var theme = Theme.notSet
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @State private var isDarkModeOn = true
-
+    
     @Environment(\.openURL) private var openURL
     @State private var page: String = UserDefaults.standard.string(forKey: "Page") ?? ""
     @State private var toastType: AlertToast.AlertType = .regular
@@ -139,7 +140,7 @@ struct ContentView: View {
                 ScrollViewReader { proxy in
                     List {
                         ForEach(sortedFeatures, id: \.self) { user in
-                            FeatureUserRow(user: user, loadedPage: loadedPage!)
+                            FeatureUserRow(user: user, loadedPage: loadedPage!, showToast: showToast)
                             .padding([.top, .bottom], 8)
                             .padding([.leading, .trailing])
                             .foregroundStyle(Color(nsColor: overUser == user 
@@ -349,11 +350,13 @@ struct ContentView: View {
             isShowingToast.toggle()
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(duration), execute: {
-            if (isShowingToast) {
-                isShowingToast.toggle()
-            }
-        })
+        if duration != 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(duration), execute: {
+                if (isShowingToast) {
+                    isShowingToast.toggle()
+                }
+            })
+        }
     }
     
     private func getVersionSubTitle() -> String {
@@ -575,8 +578,15 @@ struct ContentView: View {
 }
 
 struct FeatureUserRow: View {
+    // SHARED FEATURE
+    @AppStorage(
+        "feature",
+        store: UserDefaults(suiteName: "group.com.andydragon.VeroTools")
+    ) var sharedFeature = ""
+
     @ObservedObject var user: FeatureUser
     var loadedPage: LoadedPage
+    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
     @State var userName: String = ""
     @State var userAlias: String = ""
     @State var featureDescription: String = ""
@@ -652,18 +662,11 @@ struct FeatureUserRow: View {
                     Spacer()
                     
                     Button(action: {
-                        do {
-                            let encoder = JSONEncoder()
-                            encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-                            let json = try encoder.encode(CodableFeatureUser(using: loadedPage, from: user))
-                            copyToClipboard(String(decoding: json, as: UTF8.self))
-                        } catch {
-                            debugPrint(error)
-                        }
+                        launchVeroScripts()
                     }) {
                         HStack(alignment: .center) {
-                            Image(systemName: "pencil.and.list.clipboard")
-                            Text("Copy for Vero Scripts")
+                            Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                            Text("Open Vero Scripts")
                         }
                     }
                 }
@@ -692,6 +695,50 @@ struct FeatureUserRow: View {
         }
         .onChange(of: user.postLink) {
             postLink = user.postLink
+        }
+    }
+    
+    private func launchVeroScripts() {
+        if user.photoFeaturedOnPage {
+            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured", 0) { }
+            return
+        }
+        if TinEyeResults(rawValue: user.tinEyeResults) == .matchFound {
+            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo had a TinEye match", 0) { }
+            return
+        }
+        if AiCheckResults(rawValue: user.aiCheckResults) == .ai {
+            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo was flagged as AI", 0) { }
+            return
+        }
+        if user.tooSoonToFeatureUser {
+            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "The user has been featured too recently", 0) { }
+            return
+        }
+        if !user.isPicked {
+            showToast(.systemImage("exclamationmark.triangle.fill", .yellow), "Should not feature photo", "The photo is not marked as picked, mark the photo as picked and try again", 0) { }
+            return
+        }
+        do {
+            // Encode the feature for Vero Scripts and copy to the clipboard
+            let encoder = JSONEncoder()
+            let json = try encoder.encode(CodableFeatureUser(using: loadedPage, from: user))
+            let jsonString = String(decoding: json, as: UTF8.self)
+            copyToClipboard(jsonString)
+            
+            // Store the feature in the shared storage
+            sharedFeature = jsonString
+
+            // Launch the Vero Scripts app
+            guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.andydragon.Vero-Scripts") else { return }
+            let configuration = NSWorkspace.OpenConfiguration()
+            configuration.promptsUserIfNeeded = true
+            configuration.arguments = []
+            NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+            
+            showToast(.complete(.green), "Launched Vero Scripts", "The feature was copied to the clipboard", 3) { }
+        } catch {
+            debugPrint(error)
         }
     }
 }
