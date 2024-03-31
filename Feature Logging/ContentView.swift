@@ -29,8 +29,9 @@ struct ContentView: View {
     private var loadedPage: LoadedPage? {
         loadedPages.first(where: { $0.id == page })
     }
-    @State private var users = [FeatureUser]()
-    @State private var selectedUser: FeatureUser? = nil
+    @State private var featureUsersViewModel = FeatureUsersViewModel()
+    @State private var sortedFeatures = [FeatureUser]()
+    @State private var selectedFeature: FeatureUser? = nil
     private var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
         isShowingToast ||
@@ -53,8 +54,9 @@ struct ContentView: View {
                         .frame(width: 80, alignment: .trailing)
                     Picker("", selection: $page.onChange { value in
                         UserDefaults.standard.set(page, forKey: "Page")
-                        selectedUser = nil
-                        users = [FeatureUser]()
+                        selectedFeature = nil
+                        featureUsersViewModel = FeatureUsersViewModel()
+                        sortedFeatures = featureUsersViewModel.sortedFeatures
                     }) {
                         ForEach(loadedPages) { page in
                             if page.name != "default" {
@@ -69,8 +71,12 @@ struct ContentView: View {
                 }
                 
                 VStack {
-                    if let currentUser = selectedUser {
-                        FeatureEditor(user: currentUser, loadedPage: loadedPage)
+                    if let currentUser = selectedFeature {
+                        FeatureEditor(user: currentUser, loadedPage: loadedPage, close: {
+                            selectedFeature = nil
+                        }, updateList: {
+                            sortedFeatures = featureUsersViewModel.sortedFeatures
+                        })
                     } else {
                         Spacer()
                     }
@@ -87,8 +93,9 @@ struct ContentView: View {
                             user.postLink = linkText
                             user.userAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
                         }
-                        users.append(user)
-                        selectedUser = user
+                        featureUsersViewModel.features.append(user)
+                        sortedFeatures = featureUsersViewModel.sortedFeatures
+                        selectedFeature = user
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "person.fill.badge.plus")
@@ -101,9 +108,10 @@ struct ContentView: View {
                         .frame(width: 16)
                     
                     Button(action: {
-                        if let currentUser = selectedUser {
-                            selectedUser = nil
-                            users.removeAll(where: { $0.id == currentUser.id })
+                        if let currentUser = selectedFeature {
+                            selectedFeature = nil
+                            featureUsersViewModel.features.removeAll(where: { $0.id == currentUser.id })
+                            sortedFeatures = featureUsersViewModel.sortedFeatures
                         }
                     }) {
                         HStack(alignment: .center) {
@@ -111,25 +119,26 @@ struct ContentView: View {
                             Text("Remove feature")
                         }
                     }
-                    .disabled(isAnyToastShowing || selectedUser == nil)
+                    .disabled(isAnyToastShowing || selectedFeature == nil)
 
                     Spacer()
                         .frame(width: 16)
                     
                     Button(action: {
-                        selectedUser = nil
-                        users = [FeatureUser]()
+                        selectedFeature = nil
+                        featureUsersViewModel = FeatureUsersViewModel()
+                        sortedFeatures = featureUsersViewModel.sortedFeatures
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "trash")
                             Text("Remove all")
                         }
                     }
-                    .disabled(isAnyToastShowing || selectedUser == nil)
+                    .disabled(isAnyToastShowing)
                 }
                 ScrollViewReader { proxy in
                     List {
-                        ForEach(users, id: \.self) { user in
+                        ForEach(sortedFeatures, id: \.self) { user in
                             FeatureUserRow(user: user, loadedPage: loadedPage!)
                             .padding([.top, .bottom], 8)
                             .padding([.leading, .trailing])
@@ -138,7 +147,7 @@ struct ContentView: View {
                                                    : NSColor.labelColor), Color(nsColor: .labelColor))
                             .background(overUser == user
                                         ? Color.BackgroundColorListHover
-                                        : selectedUser == user
+                                        : selectedFeature == user
                                         ? Color.BackgroundColorListSelected
                                         : Color.BackgroundColorList)
                             .cornerRadius(4)
@@ -153,7 +162,7 @@ struct ContentView: View {
                             })
                             .onTapGesture {
                                 withAnimation {
-                                    selectedUser = user
+                                    selectedFeature = user
                                 }
                             }
                         }
@@ -168,7 +177,7 @@ struct ContentView: View {
                 .cornerRadius(4)
                 .onTapGesture {
                     withAnimation {
-                        selectedUser = nil
+                        selectedFeature = nil
                     }
                 }
                 .focusable()
@@ -368,32 +377,7 @@ struct ContentView: View {
         if loadedPage!.hub == "click" {
             lines.append("Picks for #\(loadedPage!.displayName) / #click_community / #click_hub")
             lines.append("")
-            for featureUser in users.sorted(by: {
-                let isFirstPicked = !$0.photoFeaturedOnPage &&
-                    !$0.tooSoonToFeatureUser &&
-                    $0.tinEyeResults != TinEyeResults.matchFound.rawValue &&
-                    $0.aiCheckResults != AiCheckResults.ai.rawValue &&
-                    $0.isPicked
-                let isSecondPicked = !$1.photoFeaturedOnPage &&
-                    !$1.tooSoonToFeatureUser &&
-                    $1.tinEyeResults != TinEyeResults.matchFound.rawValue &&
-                    $1.aiCheckResults != AiCheckResults.ai.rawValue &&
-                    $1.isPicked
-
-                if !isFirstPicked && !isSecondPicked {
-                    return $0.userName < $1.userName
-                }
-                
-                if !isSecondPicked {
-                    return true
-                }
-                
-                if !isFirstPicked {
-                    return false
-                }
-                
-                return $0.userName < $1.userName
-            }) {
+            for featureUser in sortedFeatures {
                 var isPicked = featureUser.isPicked
                 var indent = ""
                 var prefix = ""
@@ -454,32 +438,7 @@ struct ContentView: View {
         } else if loadedPage!.hub == "snap" {
             lines.append("Picks for #\(loadedPage!.displayName)")
             lines.append("")
-            for featureUser in users.sorted(by: {
-                let isFirstPicked = !$0.photoFeaturedOnPage &&
-                    !$0.tooSoonToFeatureUser &&
-                    $0.tinEyeResults != TinEyeResults.matchFound.rawValue &&
-                    $0.aiCheckResults != AiCheckResults.ai.rawValue &&
-                    $0.isPicked
-               let isSecondPicked = !$1.photoFeaturedOnPage &&
-                    !$1.tooSoonToFeatureUser &&
-                    $1.tinEyeResults != TinEyeResults.matchFound.rawValue &&
-                    $1.aiCheckResults != AiCheckResults.ai.rawValue &&
-                    $1.isPicked
-
-                if !isFirstPicked && !isSecondPicked {
-                    return $0.userName < $1.userName
-                }
-                
-                if !isSecondPicked {
-                    return true
-                }
-                
-                if !isFirstPicked {
-                    return false
-                }
-                
-                return $0.userName < $1.userName
-            }) {
+            for featureUser in sortedFeatures {
                 var isPicked = featureUser.isPicked
                 var indent = ""
                 var prefix = ""
@@ -548,32 +507,7 @@ struct ContentView: View {
         } else {
             lines.append("Picks for #\(loadedPage!.displayName) / #click_community / #click_hub")
             lines.append("")
-            for featureUser in users.sorted(by: {
-                let isFirstPicked = !$0.photoFeaturedOnPage && 
-                    !$0.tooSoonToFeatureUser &&
-                    $0.tinEyeResults != TinEyeResults.matchFound.rawValue &&
-                    $0.aiCheckResults != AiCheckResults.ai.rawValue && 
-                    $0.isPicked
-                let isSecondPicked = !$1.photoFeaturedOnPage && 
-                    !$1.tooSoonToFeatureUser &&
-                    $1.tinEyeResults != TinEyeResults.matchFound.rawValue &&
-                    $1.aiCheckResults != AiCheckResults.ai.rawValue &&
-                    $1.isPicked
-                
-                if !isFirstPicked && !isSecondPicked {
-                    return $0.userName < $1.userName
-                }
-                
-                if !isSecondPicked {
-                    return true
-                }
-                
-                if !isFirstPicked {
-                    return false
-                }
-                
-                return $0.userName < $1.userName
-            }) {
+            for featureUser in sortedFeatures {
                 var indent = ""
                 var prefix = ""
                 if featureUser.photoFeaturedOnPage {

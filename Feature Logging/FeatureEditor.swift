@@ -9,6 +9,9 @@ import SwiftUI
 
 struct FeatureEditor: View {
     @ObservedObject var user: FeatureUser
+    @State var loadedPage: LoadedPage?
+    var close: () -> Void
+    var updateList: () -> Void
 
     @State private var isPicked = false
     @State private var postLink = ""
@@ -31,7 +34,6 @@ struct FeatureEditor: View {
     @State private var tooSoonToFeatureUser = false
     @State private var tinEyeResults = TinEyeResults.zeroMatches
     @State private var aiCheckResults = AiCheckResults.human
-    @State var loadedPage: LoadedPage?
     
     var body: some View {
         VStack {
@@ -39,13 +41,21 @@ struct FeatureEditor: View {
             HStack(alignment: .center) {
                 Spacer()
                     .frame(width: 96, alignment: .trailing)
-                Toggle(isOn: $isPicked.onChange { value in user.isPicked = isPicked }) {
+                Toggle(isOn: $isPicked.onChange { value in 
+                    user.isPicked = isPicked
+                    updateList()
+                }) {
                     Text("Picked as feature")
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
                 .focusable()
                 Spacer()
+                Button(action: {
+                    close();
+                }) {
+                    Image(systemName: "xmark")
+                }
             }
             
             // Post link
@@ -120,7 +130,10 @@ struct FeatureEditor: View {
                     .frame(width: 80, alignment: .trailing)
                     .padding([.trailing], 8)
                     .foregroundStyle(userName.isEmpty ? Color.TextColorRequired : Color.TextColorPrimary, Color.TextColorSecondary)
-                TextField("enter the user name", text: $userName.onChange { value in user.userName = userName })
+                TextField("enter the user name", text: $userName.onChange { value in
+                    user.userName = userName
+                    updateList()
+                })
                     .focusable()
                     .autocorrectionDisabled(false)
                     .textFieldStyle(.plain)
@@ -199,7 +212,10 @@ struct FeatureEditor: View {
                 HStack(alignment: .center) {
                     Spacer()
                         .frame(width: 96, alignment: .trailing)
-                    Toggle(isOn: $photoFeaturedOnPage.onChange { value in user.photoFeaturedOnPage = photoFeaturedOnPage }) {
+                    Toggle(isOn: $photoFeaturedOnPage.onChange { value in
+                        user.photoFeaturedOnPage = photoFeaturedOnPage
+                        updateList()
+                    }) {
                         Text("Photo already featured on page")
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -404,7 +420,10 @@ struct FeatureEditor: View {
                 HStack(alignment: .center) {
                     Spacer()
                         .frame(width: 96, alignment: .trailing)
-                    Toggle(isOn: $tooSoonToFeatureUser.onChange { value in user.tooSoonToFeatureUser = tooSoonToFeatureUser }) {
+                    Toggle(isOn: $tooSoonToFeatureUser.onChange { value in
+                        user.tooSoonToFeatureUser = tooSoonToFeatureUser
+                        updateList()
+                    }) {
                         Text("Too soon to feature user")
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -421,26 +440,38 @@ struct FeatureEditor: View {
                         .padding([.trailing], 8)
 
                     Text("TinEye:")
-                    Picker("", selection: $tinEyeResults.onChange { value in user.tinEyeResults = tinEyeResults.rawValue }) {
+                    Picker("", selection: $tinEyeResults.onChange { value in
+                        user.tinEyeResults = tinEyeResults.rawValue
+                        updateList()
+                    }) {
                         ForEach(TinEyeResults.allCases) { source in
                             Text(source.rawValue)
                                 .tag(source)
                                 .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
                         }
                     }
+                    .tint(Color.AccentColor)
+                    .accentColor(Color.AccentColor)
+                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                     .focusable()
 
                     Text("|")
                         .padding([.leading, .trailing])
                     
                     Text("AI Check:")
-                    Picker("", selection: $aiCheckResults.onChange { value in user.aiCheckResults = aiCheckResults.rawValue }) {
+                    Picker("", selection: $aiCheckResults.onChange { value in 
+                        user.aiCheckResults = aiCheckResults.rawValue
+                        updateList()
+                    }) {
                         ForEach(AiCheckResults.allCases) { source in
                             Text(source.rawValue)
                                 .tag(source)
                                 .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
                         }
                     }
+                    .tint(Color.AccentColor)
+                    .accentColor(Color.AccentColor)
+                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                     .focusable()
                 }
             }

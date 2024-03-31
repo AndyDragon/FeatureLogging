@@ -231,6 +231,73 @@ enum NewMembershipCase: String, CaseIterable, Identifiable {
     }
 }
 
+class FeatureUsersViewModel: ObservableObject {
+    @Published var features = [FeatureUser]()
+    var sortedFeatures: [FeatureUser] {
+        return features.sorted(by: compareUsers)
+    }
+
+    init() {}
+    
+    private func compareUsers(_ lhs: FeatureUser, _ rhs: FeatureUser) -> Bool {
+        if lhs.photoFeaturedOnPage && rhs.photoFeaturedOnPage {
+            return lhs.userName < rhs.userName
+        }
+        if lhs.photoFeaturedOnPage {
+            return false
+        }
+        if rhs.photoFeaturedOnPage {
+            return true
+        }
+
+        let lhsTinEye = TinEyeResults(rawValue: lhs.tinEyeResults) == .matchFound
+        let rhsTinEye = TinEyeResults(rawValue: rhs.tinEyeResults) == .matchFound
+        if lhsTinEye && rhsTinEye {
+            return lhs.userName < rhs.userName
+        }
+        if lhsTinEye {
+            return false
+        }
+        if rhsTinEye {
+            return true
+        }
+        
+        let lhAiCheck = AiCheckResults(rawValue: lhs.aiCheckResults) == .ai
+        let rhAiCheck = AiCheckResults(rawValue: rhs.aiCheckResults) == .ai
+        if lhAiCheck && rhAiCheck {
+            return lhs.userName < rhs.userName
+        }
+        if lhAiCheck {
+            return false
+        }
+        if rhAiCheck {
+            return true
+        }
+
+        if lhs.tooSoonToFeatureUser && rhs.tooSoonToFeatureUser {
+            return lhs.userName < rhs.userName
+        }
+        if lhs.tooSoonToFeatureUser {
+            return false
+        }
+        if rhs.tooSoonToFeatureUser {
+            return true
+        }
+
+        if !lhs.isPicked && !rhs.isPicked {
+            return lhs.userName < rhs.userName
+        }
+        if !lhs.isPicked {
+            return false
+        }
+        if !rhs.isPicked {
+            return true
+        }
+
+        return lhs.userName < rhs.userName
+    }
+}
+
 class FeatureUser: Identifiable, Hashable, ObservableObject {
     var id = UUID()
     @Published var isPicked = false

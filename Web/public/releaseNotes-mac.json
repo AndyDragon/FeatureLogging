@@ -9,5 +9,27 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.2",
+        "notes": [
+            {
+                "date": "Mar 30, 2024",
+                "notes": [
+                    "Added label coloring for missing data and a close button to close the editor"
+                ]
+            }
+        ]
+    },
+    {
+        "version": "1.0.3",
+        "notes": [
+            {
+                "date": "Mar 31, 2024",
+                "notes": [
+                    "Added sorting in the list of features"
+                ]
+            }
+        ]
     }
 ]
