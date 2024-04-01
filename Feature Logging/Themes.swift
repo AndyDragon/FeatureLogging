@@ -41,7 +41,7 @@ var ThemeDetails: [Theme: (colorTheme: String, darkTheme: Bool)] = [
 ]
 
 extension Color {
-    @Environment(\.colorScheme) private static var colorScheme: ColorScheme
+    static var isDarkModeOn = false
     static var currentTheme = ""
     
     static var theme: Color  {
@@ -49,7 +49,7 @@ extension Color {
     }
     static var BackgroundColor: Color  {
         if currentTheme.isEmpty {
-            return colorScheme == .dark ? .underPageBackground : .windowBackground
+            return isDarkModeOn ? .underPageBackground : .windowBackground
         }
         return Color("\(currentTheme)/BackgroundColor")
     }

@@ -42,5 +42,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.5",
+        "notes": [
+            {
+                "date": "Apr 1, 2024",
+                "notes": [
+                    "Added save and load for the log file"
+                ]
+            }
+        ]
     }
 ]

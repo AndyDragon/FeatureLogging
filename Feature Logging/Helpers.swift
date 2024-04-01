@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CommonCrypto
+import Combine
 
 extension Binding {
     func onChange(_ handler: @escaping (Value) -> Void) -> Binding<Value> {

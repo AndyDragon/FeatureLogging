@@ -17,6 +17,8 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @State private var isDarkModeOn = true
     
+    @EnvironmentObject var commandModel: AppCommandModel
+
     @Environment(\.openURL) private var openURL
     @State private var page: String = UserDefaults.standard.string(forKey: "Page") ?? ""
     @State private var toastType: AlertToast.AlertType = .regular
@@ -33,11 +35,23 @@ struct ContentView: View {
     @State private var featureUsersViewModel = FeatureUsersViewModel()
     @State private var sortedFeatures = [FeatureUser]()
     @State private var selectedFeature: FeatureUser? = nil
+    @State private var showFileImporter = false
+    @State private var showFileExporter = false
+    @State private var logDocument = LogDocument()
+    @State private var logURL: URL? = nil
     private var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
         isShowingToast ||
         appState.isShowingVersionAvailableToast.wrappedValue ||
         appState.isShowingVersionRequiredToast.wrappedValue
+    }
+    private var fileNameDateFormatter: DateFormatter {
+        get {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.dateFormat = "yyyy-MM-dd"
+            return formatter
+        }
     }
     
     init(_ appState: VersionCheckAppState) {
@@ -55,6 +69,7 @@ struct ContentView: View {
                         .frame(width: 80, alignment: .trailing)
                     Picker("", selection: $page.onChange { value in
                         UserDefaults.standard.set(page, forKey: "Page")
+                        logURL = nil
                         selectedFeature = nil
                         featureUsersViewModel = FeatureUsersViewModel()
                         sortedFeatures = featureUsersViewModel.sortedFeatures
@@ -77,12 +92,12 @@ struct ContentView: View {
                             selectedFeature = nil
                         }, updateList: {
                             sortedFeatures = featureUsersViewModel.sortedFeatures
-                        })
+                        }, showToast: showToast)
                     } else {
                         Spacer()
                     }
                 }
-                .frame(height: 360)
+                .frame(height: 370)
 
                 HStack {
                     Spacer()
@@ -185,11 +200,71 @@ struct ContentView: View {
             }
             .toolbar {
                 Button(action: {
+                    showFileImporter.toggle()
+                }) {
+                    HStack {
+                        Image(systemName: "square.and.arrow.up.on.square")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Open log...")
+                            .font(.system(.body, design: .rounded).bold())
+                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                    }
+                    .padding(4)
+                    .buttonStyle(.plain)
+                }
+                .fileImporter(
+                    isPresented: $showFileImporter,
+                    allowedContentTypes: [.json]
+                ) { result in
+                    switch result {
+                    case .success(let file):
+                        loadLog(from: file)
+                    case .failure(let error):
+                        print(error)
+                    }
+                }
+                .disabled(isAnyToastShowing || loadedPage == nil)
+
+                Button(action: {
+                    logDocument = LogDocument(page: loadedPage!, featureUsers: featureUsersViewModel.features)
+                    if let file = logURL {
+                        saveLog(to: file)
+                    } else {
+                        showFileExporter.toggle()
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "square.and.arrow.down.on.square")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Save log...")
+                            .font(.system(.body, design: .rounded).bold())
+                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                    }
+                    .padding(4)
+                    .buttonStyle(.plain)
+                }
+                .fileExporter(
+                    isPresented: $showFileExporter,
+                    document: logDocument,
+                    contentType: .json,
+                    defaultFilename: "\(loadedPage?.hub ?? "hub")_\(loadedPage?.pageName ?? loadedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).json"
+                ) { result in
+                    switch result {
+                    case .success(let url):
+                        print("Saved to \(url)")
+                        logURL = url
+                    case .failure(let error):
+                        debugPrint(error)
+                    }
+                }
+                .disabled(isAnyToastShowing || loadedPage == nil)
+
+                Button(action: {
                     generateReport()
                 }) {
                     HStack {
                         Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                         Text("Generate report")
                             .font(.system(.body, design: .rounded).bold())
                             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
@@ -222,6 +297,23 @@ struct ContentView: View {
         .blur(radius: isAnyToastShowing ? 4 : 0)
         .frame(minWidth: 1024, minHeight: 720)
         .background(Color.BackgroundColor)
+        .onChange(of: commandModel.newLog) {
+            logURL = nil
+            selectedFeature = nil
+            featureUsersViewModel = FeatureUsersViewModel()
+            sortedFeatures = featureUsersViewModel.sortedFeatures
+        }
+        .onChange(of: commandModel.openLog) {
+            showFileImporter.toggle()
+        }
+        .onChange(of: commandModel.saveLog) {
+            logDocument = LogDocument(page: loadedPage!, featureUsers: featureUsersViewModel.features)
+            if let file = logURL {
+                saveLog(to: file)
+            } else {
+                showFileExporter.toggle()
+            }
+        }
         .toast(
             isPresenting: $isShowingToast,
             duration: 0,
@@ -326,10 +418,12 @@ struct ContentView: View {
     private func setTheme(_ newTheme: Theme) {
         if (newTheme == .notSet) {
             isDarkModeOn = colorScheme == .dark
+            Color.isDarkModeOn = colorScheme == .dark
         } else {
             if let details = ThemeDetails[newTheme] {
                 Color.currentTheme = details.colorTheme
                 isDarkModeOn = details.darkTheme
+                Color.isDarkModeOn = details.darkTheme
                 theme = newTheme
             }
         }
@@ -372,6 +466,50 @@ struct ContentView: View {
             "or ⌘ + Q to Quit"
         }
         return ""
+    }
+    
+    private func loadLog(from file: URL) {
+        let gotAccess = file.startAccessingSecurityScopedResource()
+        if (!gotAccess) {
+            print("No access?")
+            return
+        }
+
+        let fileContents = FileManager.default.contents(atPath: file.path)
+        if let json = fileContents {
+            let jsonString = String(String(decoding: json, as: UTF8.self)).replacingOccurrences(of: "\\/\\/.*", with: "", options: .regularExpression)
+            do {
+                let decoder = JSONDecoder()
+                let loadedLog = try decoder.decode(Log.self, from: jsonString.data(using: .utf8)!)
+                if let loadedPage = loadedPages.first(where: { $0.id == loadedLog.page }) {
+                    page = loadedPage.id
+                    featureUsersViewModel.features = loadedLog.getFeatureUsers()
+                    sortedFeatures = featureUsersViewModel.sortedFeatures
+                }
+                logURL = file
+            } catch {
+                debugPrint("Error parsing JSON: \(error.localizedDescription)")
+            }
+        }
+
+        file.stopAccessingSecurityScopedResource()
+    }
+
+    private func saveLog(to file: URL) {
+        let gotAccess = file.startAccessingSecurityScopedResource()
+        if (!gotAccess) {
+            print("No access?")
+            return
+        }
+
+        do {
+            let jsonData = Data(logDocument.text.utf8)
+            try jsonData.write(to: file)
+        } catch {
+            debugPrint(error)
+        }
+
+        file.stopAccessingSecurityScopedResource()
     }
     
     private func generateReport() {

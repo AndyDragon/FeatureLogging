@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import AlertToast
 
 struct FeatureEditor: View {
     @ObservedObject var user: FeatureUser
     @State var loadedPage: LoadedPage?
     var close: () -> Void
     var updateList: () -> Void
+    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
 
     @State private var isPicked = false
     @State private var postLink = ""
@@ -251,7 +253,7 @@ struct FeatureEditor: View {
                                 .truncationMode(.tail)
                         }
                         .focusable()
-
+                        
                         if userHasFeaturesOnPage {
                             Text("|")
                                 .padding([.leading, .trailing])
@@ -266,10 +268,10 @@ struct FeatureEditor: View {
                                 .background(Color.BackgroundColorEditor)
                                 .border(Color.gray.opacity(0.25))
                                 .cornerRadius(4)
-
+                            
                             Text("|")
                                 .padding([.leading, .trailing])
-
+                            
                             Text("Number of features on page:")
                             Picker("", selection: $featureCountOnPage.onChange { value in user.featureCountOnPage = featureCountOnPage }) {
                                 Text("many").tag("many")
@@ -284,9 +286,83 @@ struct FeatureEditor: View {
                         }
                         
                         Spacer()
+                        
+                        Button(action: {
+                            copyToClipboard("#click_\(selectedPage.name)_\(userAlias)")
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the page feature tag for the user to the clipboard", 3) { }
+                        }) {
+                            HStack(alignment: .center) {
+                                Image(systemName: "tag.fill")
+                                Text("Copy tag")
+                            }
+                        }
+                        .focusable()
                     }
                     
-                    // Eventually, add featured on hub
+                    // User featured on hub
+                    HStack(alignment: .center) {
+                        Spacer()
+                            .frame(width: 96, alignment: .trailing)
+                        Toggle(isOn: $userHasFeaturesOnHub.onChange { value in user.userHasFeaturesOnHub = userHasFeaturesOnHub }) {
+                            Text("User featured on Click")
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
+                        .focusable()
+                        
+                        if userHasFeaturesOnHub {
+                            Text("|")
+                                .padding([.leading, .trailing])
+                            
+                            Text("Last date featured:")
+                                .foregroundStyle(lastFeaturedOnHub.isEmpty ? Color.TextColorRequired : Color.TextColorPrimary, Color.TextColorSecondary)
+                            TextField("", text: $lastFeaturedOnHub.onChange { value in user.lastFeaturedOnHub = lastFeaturedOnHub })
+                                .focusable()
+                                .autocorrectionDisabled(false)
+                                .textFieldStyle(.plain)
+                                .padding(4)
+                                .background(Color.BackgroundColorEditor)
+                                .border(Color.gray.opacity(0.25))
+                                .cornerRadius(4)
+                            
+                            TextField("on page", text: $lastFeaturedPage.onChange { value in user.lastFeaturedPage = lastFeaturedPage })
+                                .focusable()
+                                .autocorrectionDisabled(false)
+                                .textFieldStyle(.plain)
+                                .padding(4)
+                                .background(Color.BackgroundColorEditor)
+                                .border(Color.gray.opacity(0.25))
+                                .cornerRadius(4)
+                            
+                            Text("|")
+                                .padding([.leading, .trailing])
+                            
+                            Text("Number of features on Click:")
+                            Picker("", selection: $featureCountOnSnap.onChange { value in user.featureCountOnSnap = featureCountOnSnap }) {
+                                Text("many").tag("many")
+                                ForEach(0 ..< 21) { value in
+                                    Text("\(value)").tag("\(value)")
+                                }
+                            }
+                            .tint(Color.AccentColor)
+                            .accentColor(Color.AccentColor)
+                            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                            .focusable()
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            copyToClipboard("#click_featured_\(userAlias)")
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the hub feature tag for the user to the clipboard", 3) { }
+                        }) {
+                            HStack(alignment: .center) {
+                                Image(systemName: "tag.fill")
+                                Text("Copy tag")
+                            }
+                        }
+                        .focusable()
+                    }
                 } else if selectedPage.hub == "snap" {
                     // User featured on page
                     HStack(alignment: .center) {
@@ -298,7 +374,7 @@ struct FeatureEditor: View {
                                 .truncationMode(.tail)
                         }
                         .focusable()
-
+                        
                         if userHasFeaturesOnPage {
                             Text("|")
                                 .padding([.leading, .trailing])
@@ -313,7 +389,7 @@ struct FeatureEditor: View {
                                 .background(Color.BackgroundColorEditor)
                                 .border(Color.gray.opacity(0.25))
                                 .cornerRadius(4)
-
+                            
                             Text("|")
                                 .padding([.leading, .trailing])
                             
@@ -328,7 +404,7 @@ struct FeatureEditor: View {
                             .accentColor(Color.AccentColor)
                             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                             .focusable()
-
+                            
                             Text("|")
                                 .padding([.leading, .trailing])
                             
@@ -344,7 +420,30 @@ struct FeatureEditor: View {
                             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                             .focusable()
                         }
+                        
                         Spacer()
+
+                        Button(action: {
+                            copyToClipboard("#snap_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard", 3) { }
+                        }) {
+                            HStack(alignment: .center) {
+                                Image(systemName: "tag.fill")
+                                Text("Copy tag")
+                            }
+                        }
+                        .focusable()
+                        
+                        Button(action: {
+                            copyToClipboard("#raw_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard", 3) { }
+                        }) {
+                            HStack(alignment: .center) {
+                                Image(systemName: "tag.fill")
+                                Text("Copy RAW tag")
+                            }
+                        }
+                        .focusable()
                     }
                     
                     // User featured on hub
@@ -357,7 +456,7 @@ struct FeatureEditor: View {
                                 .truncationMode(.tail)
                         }
                         .focusable()
-
+                        
                         if userHasFeaturesOnHub {
                             Text("|")
                                 .padding([.leading, .trailing])
@@ -372,7 +471,7 @@ struct FeatureEditor: View {
                                 .background(Color.BackgroundColorEditor)
                                 .border(Color.gray.opacity(0.25))
                                 .cornerRadius(4)
-
+                            
                             TextField("on page", text: $lastFeaturedPage.onChange { value in user.lastFeaturedPage = lastFeaturedPage })
                                 .focusable()
                                 .autocorrectionDisabled(false)
@@ -381,7 +480,7 @@ struct FeatureEditor: View {
                                 .background(Color.BackgroundColorEditor)
                                 .border(Color.gray.opacity(0.25))
                                 .cornerRadius(4)
-
+                            
                             Text("|")
                                 .padding([.leading, .trailing])
                             
@@ -412,7 +511,30 @@ struct FeatureEditor: View {
                             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                             .focusable()
                         }
+                        
                         Spacer()
+
+                        Button(action: {
+                            copyToClipboard("#snap_featured_\(userAlias)")
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard", 3) { }
+                        }) {
+                            HStack(alignment: .center) {
+                                Image(systemName: "tag.fill")
+                                Text("Copy tag")
+                            }
+                        }
+                        .focusable()
+                        
+                        Button(action: {
+                            copyToClipboard("#raw_featured_\(userAlias)")
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard", 3) { }
+                        }) {
+                            HStack(alignment: .center) {
+                                Image(systemName: "tag.fill")
+                                Text("Copy RAW tag")
+                            }
+                        }
+                        .focusable()
                     }
                 }
 

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import UniformTypeIdentifiers
 
 enum MembershipCase: String, CaseIterable, Identifiable {
     case none = "None",
@@ -295,6 +296,132 @@ class FeatureUsersViewModel: ObservableObject {
         }
 
         return lhs.userName < rhs.userName
+    }
+}
+
+struct LogFeature: Codable {
+    var isPicked: Bool
+    var postLink: String
+    var userName: String
+    var userAlias: String
+    var userLevel: String
+    var userIsTeammate: Bool
+    var tagSource: String
+    var photoFeaturedOnPage: Bool
+    var featureDescription: String
+    var userHasFeaturesOnPage: Bool
+    var lastFeaturedOnPage: String
+    var featureCountOnPage: String
+    var featureCountOnRawPage: String
+    var userHasFeaturesOnHub: Bool
+    var lastFeaturedOnHub: String
+    var lastFeaturedPage: String
+    var featureCountOnSnap: String
+    var featureCountOnRaw: String
+    var tooSoonToFeatureUser: Bool
+    var tinEyeResults: String
+    var aiCheckResults: String
+    
+    init(featureUser: FeatureUser) {
+        self.isPicked = featureUser.isPicked
+        self.postLink = featureUser.postLink
+        self.userName = featureUser.userName
+        self.userAlias = featureUser.userAlias
+        self.userLevel = featureUser.userLevel
+        self.userIsTeammate = featureUser.userIsTeammate
+        self.tagSource = featureUser.tagSource
+        self.photoFeaturedOnPage = featureUser.photoFeaturedOnPage
+        self.featureDescription = featureUser.featureDescription
+        self.userHasFeaturesOnPage = featureUser.userHasFeaturesOnPage
+        self.lastFeaturedOnPage = featureUser.lastFeaturedOnPage
+        self.featureCountOnPage = featureUser.featureCountOnPage
+        self.featureCountOnRawPage = featureUser.featureCountOnRawPage
+        self.userHasFeaturesOnHub = featureUser.userHasFeaturesOnHub
+        self.lastFeaturedOnHub = featureUser.lastFeaturedOnHub
+        self.lastFeaturedPage = featureUser.lastFeaturedPage
+        self.featureCountOnSnap = featureUser.featureCountOnSnap
+        self.featureCountOnRaw = featureUser.featureCountOnRaw
+        self.tooSoonToFeatureUser = featureUser.tooSoonToFeatureUser
+        self.tinEyeResults = featureUser.tinEyeResults
+        self.aiCheckResults = featureUser.aiCheckResults
+    }
+}
+
+struct Log: Codable {
+    var page: String
+    private var features: [LogFeature]
+    
+    init() {
+        page = ""
+        features = [LogFeature]()
+    }
+    
+    init(page: LoadedPage, featureUsers: [FeatureUser]) {
+        self.page = page.id
+        self.features = featureUsers.map({ featureUser in
+            LogFeature(featureUser: featureUser)
+        })
+    }
+    
+    func getFeatureUsers() -> [FeatureUser] {
+        var featureUsers = [FeatureUser]()
+        for feature in features {
+            let featureUser = FeatureUser()
+            featureUser.isPicked = feature.isPicked
+            featureUser.postLink = feature.postLink
+            featureUser.userName = feature.userName
+            featureUser.userAlias = feature.userAlias
+            featureUser.userLevel = feature.userLevel
+            featureUser.userIsTeammate = feature.userIsTeammate
+            featureUser.tagSource = feature.tagSource
+            featureUser.photoFeaturedOnPage = feature.photoFeaturedOnPage
+            featureUser.featureDescription = feature.featureDescription
+            featureUser.userHasFeaturesOnPage = feature.userHasFeaturesOnPage
+            featureUser.lastFeaturedOnPage = feature.lastFeaturedOnPage
+            featureUser.featureCountOnPage = feature.featureCountOnPage
+            featureUser.featureCountOnRawPage = feature.featureCountOnRawPage
+            featureUser.userHasFeaturesOnHub = feature.userHasFeaturesOnHub
+            featureUser.lastFeaturedOnHub = feature.lastFeaturedOnHub
+            featureUser.lastFeaturedPage = feature.lastFeaturedPage
+            featureUser.featureCountOnSnap = feature.featureCountOnSnap
+            featureUser.featureCountOnRaw = feature.featureCountOnRaw
+            featureUser.tooSoonToFeatureUser = feature.tooSoonToFeatureUser
+            featureUser.tinEyeResults = feature.tinEyeResults
+            featureUser.aiCheckResults = feature.aiCheckResults
+            featureUsers.append(featureUser)
+        }
+        return featureUsers
+    }
+}
+
+struct LogDocument: FileDocument {
+    static var readableContentTypes = [UTType.json]
+    var text = ""
+
+    init(initialText: String = "") {
+        text = initialText
+    }
+
+    init(page: LoadedPage, featureUsers: [FeatureUser]) {
+        let log = Log(page: page, featureUsers: featureUsers)
+        do {
+            let jsonEncoder = JSONEncoder()
+            let json = try jsonEncoder.encode(log)
+            text = String(decoding: json, as: UTF8.self)
+        } catch {
+            debugPrint(error)
+        }
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        if let data = configuration.file.regularFileContents {
+            text = String(decoding: data, as: UTF8.self)
+        }
+    }
+    
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        let data = Data(text.utf8)
+        return FileWrapper(regularFileWithContents: data)
     }
 }
 
