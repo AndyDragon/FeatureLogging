@@ -15,6 +15,11 @@ struct FeatureEditor: View {
     var updateList: () -> Void
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
 
+    @AppStorage(
+        "preference_includehash",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var includeHash = false
+    
     @State private var isPicked = false
     @State private var postLink = ""
     @State private var userName = ""
@@ -57,6 +62,7 @@ struct FeatureEditor: View {
                     close();
                 }) {
                     Image(systemName: "xmark")
+                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                 }
             }
             
@@ -88,6 +94,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "list.clipboard.fill")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                         Text("Paste")
                     }
                 }
@@ -120,6 +127,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "list.clipboard.fill")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                         Text("Paste")
                     }
                 }
@@ -136,14 +144,14 @@ struct FeatureEditor: View {
                     user.userName = userName
                     updateList()
                 })
-                    .focusable()
-                    .autocorrectionDisabled(false)
-                    .textFieldStyle(.plain)
-                    .padding(4)
-                    .background(Color.BackgroundColorEditor)
-                    .border(Color.gray.opacity(0.25))
-                    .cornerRadius(4)
-
+                .focusable()
+                .autocorrectionDisabled(false)
+                .textFieldStyle(.plain)
+                .padding(4)
+                .background(Color.BackgroundColorEditor)
+                .border(Color.gray.opacity(0.25))
+                .cornerRadius(4)
+                
                 Button(action: {
                     let userText = pasteFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
                     if userText.contains("@") {
@@ -157,6 +165,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "list.clipboard.fill")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                         Text("Paste")
                     }
                 }
@@ -288,11 +297,12 @@ struct FeatureEditor: View {
                         Spacer()
                         
                         Button(action: {
-                            copyToClipboard("#click_\(selectedPage.name)_\(userAlias)")
+                            copyToClipboard("\(includeHash ? "#" : "")click_\(selectedPage.name)_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the page feature tag for the user to the clipboard", 3) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                 Text("Copy tag")
                             }
                         }
@@ -353,11 +363,12 @@ struct FeatureEditor: View {
                         Spacer()
                         
                         Button(action: {
-                            copyToClipboard("#click_featured_\(userAlias)")
+                            copyToClipboard("\(includeHash ? "#" : "")click_featured_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the hub feature tag for the user to the clipboard", 3) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                 Text("Copy tag")
                             }
                         }
@@ -424,22 +435,24 @@ struct FeatureEditor: View {
                         Spacer()
 
                         Button(action: {
-                            copyToClipboard("#snap_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
+                            copyToClipboard("\(includeHash ? "#" : "")snap_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard", 3) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                 Text("Copy tag")
                             }
                         }
                         .focusable()
                         
                         Button(action: {
-                            copyToClipboard("#raw_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
+                            copyToClipboard("\(includeHash ? "#" : "")raw_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard", 3) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                 Text("Copy RAW tag")
                             }
                         }
@@ -515,22 +528,24 @@ struct FeatureEditor: View {
                         Spacer()
 
                         Button(action: {
-                            copyToClipboard("#snap_featured_\(userAlias)")
+                            copyToClipboard("\(includeHash ? "#" : "")snap_featured_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard", 3) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                 Text("Copy tag")
                             }
                         }
                         .focusable()
                         
                         Button(action: {
-                            copyToClipboard("#raw_featured_\(userAlias)")
+                            copyToClipboard("\(includeHash ? "#" : "")raw_featured_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard", 3) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                 Text("Copy RAW tag")
                             }
                         }

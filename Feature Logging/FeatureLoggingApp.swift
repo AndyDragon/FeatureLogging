@@ -60,6 +60,12 @@ struct Feature_LoggingApp: App {
                 .keyboardShortcut("s", modifiers: .command)
             }
         }
+
+#if os(macOS)
+        Settings {
+            SettingsPane()
+        }
+#endif
     }
 }
 

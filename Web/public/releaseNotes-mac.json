@@ -53,5 +53,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.6",
+        "notes": [
+            {
+                "date": "Apr 2, 2024",
+                "notes": [
+                    "Added tags for page / community / hub, added setting for 'include hash in tags'"
+                ]
+            }
+        ]
     }
 ]

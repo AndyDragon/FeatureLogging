@@ -17,6 +17,11 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @State private var isDarkModeOn = true
     
+    @AppStorage(
+        "preference_includehash",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var includeHash = false
+    
     @EnvironmentObject var commandModel: AppCommandModel
 
     @Environment(\.openURL) private var openURL
@@ -84,6 +89,54 @@ struct ContentView: View {
                     .accentColor(Color.AccentColor)
                     .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                     .focusable()
+                    Menu("Copy tag", systemImage: "tag.fill") {
+                        Button(action: {
+                            copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
+                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the page tag to the clipboard", duration: 3) { }
+                        }) {
+                            Text("Page tag")
+                        }
+                        if loadedPage?.hub == "snap" {
+                            Button(action: {
+                                copyToClipboard("\(includeHash ? "#" : "")raw_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW page tag to the clipboard", duration: 3) { }
+                            }) {
+                                Text("RAW page tag")
+                            }
+                        }
+                        Button(action: {
+                            copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_community")
+                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the community tag to the clipboard", duration: 3) { }
+                        }) {
+                            Text("Community tag")
+                        }
+                        if loadedPage?.hub == "snap" {
+                            Button(action: {
+                                copyToClipboard("\(includeHash ? "#" : "")raw_community")
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW community tag to the clipboard", duration: 3) { }
+                            }) {
+                                Text("RAW community tag")
+                            }
+                        }
+                        Button(action: {
+                            copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_hub")
+                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the hub tag to the clipboard", duration: 3) { }
+                        }) {
+                            Text("Hub tag")
+                        }
+                        if loadedPage?.hub == "snap" {
+                            Button(action: {
+                                copyToClipboard("\(includeHash ? "#" : "")raw_hub")
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW hub tag to the clipboard", duration: 3) { }
+                            }) {
+                                Text("RAW hub tag")
+                            }
+                        }
+                    }
+                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                    .disabled(isAnyToastShowing || (loadedPage?.hub != "click" && loadedPage?.hub != "snap"))
+                    .frame(maxWidth: 132)
+                    .focusable()
                 }
                 
                 VStack {
@@ -115,6 +168,7 @@ struct ContentView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "person.fill.badge.plus")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                             Text("Add feature")
                         }
                     }
@@ -132,7 +186,9 @@ struct ContentView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "person.fill.badge.minus")
+                                .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
                             Text("Remove feature")
+                                //.foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
                         }
                     }
                     .disabled(isAnyToastShowing || selectedFeature == nil)
@@ -147,10 +203,12 @@ struct ContentView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "trash")
+                                .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
                             Text("Remove all")
+                                //.foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
                         }
                     }
-                    .disabled(isAnyToastShowing)
+                    .disabled(isAnyToastShowing || featureUsersViewModel.features.isEmpty)
                 }
                 ScrollViewReader { proxy in
                     List {
@@ -518,6 +576,7 @@ struct ContentView: View {
         if loadedPage!.hub == "click" {
             lines.append("Picks for #\(loadedPage!.displayName) / #click_community / #click_hub")
             lines.append("")
+            var wasLastItemPicked = true
             for featureUser in sortedFeatures {
                 var isPicked = featureUser.isPicked
                 var indent = ""
@@ -540,6 +599,11 @@ struct ContentView: View {
                     prefix = "[not picked] "
                     indent = "    "
                 }
+                if !isPicked && wasLastItemPicked {
+                    lines.append("---------------")
+                    lines.append("")
+                }
+                wasLastItemPicked = isPicked
                 lines.append("\(indent)\(prefix)\(featureUser.postLink)")
                 lines.append("\(indent)user - \(featureUser.userName) @\(featureUser.userAlias)")
                 lines.append("\(indent)member level - \(featureUser.userLevel)")
@@ -579,6 +643,7 @@ struct ContentView: View {
         } else if loadedPage!.hub == "snap" {
             lines.append("Picks for #\(loadedPage!.displayName)")
             lines.append("")
+            var wasLastItemPicked = true
             for featureUser in sortedFeatures {
                 var isPicked = featureUser.isPicked
                 var indent = ""
@@ -601,6 +666,11 @@ struct ContentView: View {
                     prefix = "[not picked] "
                     indent = "    "
                 }
+                if !isPicked && wasLastItemPicked {
+                    lines.append("---------------")
+                    lines.append("")
+                }
+                wasLastItemPicked = isPicked
                 lines.append("\(indent)\(prefix)\(featureUser.postLink)")
                 lines.append("\(indent)user - \(featureUser.userName) @\(featureUser.userAlias)")
                 lines.append("\(indent)member level - \(featureUser.userLevel)")
@@ -648,25 +718,37 @@ struct ContentView: View {
         } else {
             lines.append("Picks for #\(loadedPage!.displayName) / #click_community / #click_hub")
             lines.append("")
+            var wasLastItemPicked = true
             for featureUser in sortedFeatures {
+                var isPicked = featureUser.isPicked
                 var indent = ""
                 var prefix = ""
                 if featureUser.photoFeaturedOnPage {
                     prefix = "[already featured] "
                     indent = "    "
+                    isPicked = false
                 } else if featureUser.tooSoonToFeatureUser {
                     prefix = "[too soon] "
                     indent = "    "
+                    isPicked = false
                 } else if featureUser.tinEyeResults == TinEyeResults.matchFound.rawValue {
                     prefix = "[tineye match] "
                     indent = "    "
+                    isPicked = false
                 } else if featureUser.aiCheckResults == AiCheckResults.ai.rawValue {
                     prefix = "[AI] "
                     indent = "    "
+                    isPicked = false
                 } else if !featureUser.isPicked {
                     prefix = "[not picked] "
                     indent = "    "
+                    isPicked = false
                 }
+                if !isPicked && wasLastItemPicked {
+                    lines.append("---------------")
+                    lines.append("")
+                }
+                wasLastItemPicked = isPicked
                 lines.append("\(indent)\(prefix)\(featureUser.postLink)")
                 lines.append("\(indent)user - \(featureUser.userName) @\(featureUser.userAlias)")
                 lines.append("\(indent)member level - \(featureUser.userLevel)")
