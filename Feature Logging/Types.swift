@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
 
-enum MembershipCase: String, CaseIterable, Identifiable {
+enum MembershipCase: String, CaseIterable, Identifiable, Codable {
     case none = "None",
 
          commonArtist = "Artist",
@@ -93,7 +93,7 @@ enum MembershipCase: String, CaseIterable, Identifiable {
     }
 }
 
-enum TagSourceCases: String, CaseIterable, Identifiable {
+enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
     case commonPageTag = "Page tag",
          
          // snap
@@ -108,7 +108,7 @@ enum TagSourceCases: String, CaseIterable, Identifiable {
     
     var id: Self { self }
     
-    static func casesFor(hub: String?) -> [TagSourceCases] {
+    static func casesFor(hub: String?) -> [TagSourceCase] {
         if hub == "snap" {
             return [
                 .commonPageTag,
@@ -130,7 +130,7 @@ enum TagSourceCases: String, CaseIterable, Identifiable {
         ]
     }
     
-    static func caseValidFor(hub: String?, _ value: TagSourceCases) -> Bool {
+    static func caseValidFor(hub: String?, _ value: TagSourceCase) -> Bool {
         if hub == "snap" {
             return [
                 commonPageTag,
@@ -153,7 +153,7 @@ enum TagSourceCases: String, CaseIterable, Identifiable {
     }
 }
 
-enum TinEyeResults: String, CaseIterable, Identifiable {
+enum TinEyeResults: String, CaseIterable, Identifiable, Codable {
     case zeroMatches = "0 matches",
          noMatches = "no matches",
          matchFound = "found match"
@@ -161,14 +161,14 @@ enum TinEyeResults: String, CaseIterable, Identifiable {
     var id: Self { self }
 }
 
-enum AiCheckResults: String, CaseIterable, Identifiable {
+enum AiCheckResults: String, CaseIterable, Identifiable, Codable {
     case human = "human",
          ai = "ai"
     
     var id: Self { self }
 }
 
-enum NewMembershipCase: String, CaseIterable, Identifiable {
+enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
     case none = "None",
 
          // common
@@ -232,7 +232,7 @@ enum NewMembershipCase: String, CaseIterable, Identifiable {
     }
 }
 
-class FeatureUsersViewModel: ObservableObject {
+class FeatureUsersViewModel: ObservableObject  {
     @Published var features = [FeatureUser]()
     var sortedFeatures: [FeatureUser] {
         return features.sorted(by: compareUsers)
@@ -251,8 +251,8 @@ class FeatureUsersViewModel: ObservableObject {
             return true
         }
 
-        let lhsTinEye = TinEyeResults(rawValue: lhs.tinEyeResults) == .matchFound
-        let rhsTinEye = TinEyeResults(rawValue: rhs.tinEyeResults) == .matchFound
+        let lhsTinEye = lhs.tinEyeResults == .matchFound
+        let rhsTinEye = rhs.tinEyeResults == .matchFound
         if lhsTinEye && rhsTinEye {
             return lhs.userName < rhs.userName
         }
@@ -263,8 +263,8 @@ class FeatureUsersViewModel: ObservableObject {
             return true
         }
         
-        let lhAiCheck = AiCheckResults(rawValue: lhs.aiCheckResults) == .ai
-        let rhAiCheck = AiCheckResults(rawValue: rhs.aiCheckResults) == .ai
+        let lhAiCheck = lhs.aiCheckResults == .ai
+        let rhAiCheck = rhs.aiCheckResults == .ai
         if lhAiCheck && rhAiCheck {
             return lhs.userName < rhs.userName
         }
@@ -304,9 +304,9 @@ struct LogFeature: Codable {
     var postLink: String
     var userName: String
     var userAlias: String
-    var userLevel: String
+    var userLevel: MembershipCase
     var userIsTeammate: Bool
-    var tagSource: String
+    var tagSource: TagSourceCase
     var photoFeaturedOnPage: Bool
     var featureDescription: String
     var userHasFeaturesOnPage: Bool
@@ -319,8 +319,8 @@ struct LogFeature: Codable {
     var featureCountOnSnap: String
     var featureCountOnRaw: String
     var tooSoonToFeatureUser: Bool
-    var tinEyeResults: String
-    var aiCheckResults: String
+    var tinEyeResults: TinEyeResults
+    var aiCheckResults: AiCheckResults
     
     init(featureUser: FeatureUser) {
         self.isPicked = featureUser.isPicked
@@ -431,9 +431,9 @@ class FeatureUser: Identifiable, Hashable, ObservableObject {
     @Published var postLink = ""
     @Published var userName = ""
     @Published var userAlias = ""
-    @Published var userLevel = MembershipCase.none.rawValue
+    @Published var userLevel = MembershipCase.none
     @Published var userIsTeammate = false
-    @Published var tagSource = TagSourceCases.commonPageTag.rawValue
+    @Published var tagSource = TagSourceCase.commonPageTag
     @Published var photoFeaturedOnPage = false
     @Published var featureDescription = ""
     @Published var userHasFeaturesOnPage = false
@@ -446,8 +446,8 @@ class FeatureUser: Identifiable, Hashable, ObservableObject {
     @Published var featureCountOnSnap = "many"
     @Published var featureCountOnRaw = "many"
     @Published var tooSoonToFeatureUser = false
-    @Published var tinEyeResults = TinEyeResults.zeroMatches.rawValue
-    @Published var aiCheckResults = AiCheckResults.human.rawValue
+    @Published var tinEyeResults = TinEyeResults.zeroMatches
+    @Published var aiCheckResults = AiCheckResults.human
     
     init() { }
     
@@ -464,10 +464,10 @@ struct CodableFeatureUser: Codable {
     var page: String
     var userName: String
     var userAlias: String
-    var userLevel: String
-    var tagSource: String
+    var userLevel: MembershipCase
+    var tagSource: TagSourceCase
     var firstFeature: Bool
-    var newLevel: String
+    var newLevel: NewMembershipCase
     
     init(using page: LoadedPage, from user: FeatureUser) {
         self.page = page.id;
@@ -476,26 +476,26 @@ struct CodableFeatureUser: Codable {
         self.userLevel = user.userLevel
         self.tagSource = user.tagSource
         self.firstFeature = !user.userHasFeaturesOnPage
-        self.newLevel = "None"
+        self.newLevel = NewMembershipCase.none
         if page.hub == "click" {
             let totalFeatures = Int(user.featureCountOnPage) ?? 0
             if totalFeatures + 1 == 5 {
-                self.newLevel = "Member"
+                self.newLevel = NewMembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
-                self.newLevel = "Bronze Member"
+                self.newLevel = NewMembershipCase.clickBronzeMember
             } else if totalFeatures + 1 == 30 {
-                self.newLevel = "Silver Member"
+                self.newLevel = NewMembershipCase.clickSilverMember
             } else if totalFeatures + 1 == 50 {
-                self.newLevel = "Gold Member"
+                self.newLevel = NewMembershipCase.clickGoldMember
             } else if totalFeatures + 1 == 75 {
-                self.newLevel = "Platinum Member"
+                self.newLevel = NewMembershipCase.clickPlatinumMember
             }
         } else if page.hub == "snap" {
             let totalFeatures = Int(user.featureCountOnPage) ?? 0
             if totalFeatures + 1 == 5 {
-                self.newLevel = "Member"
+                self.newLevel = NewMembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
-                self.newLevel = "VIP Member"
+                self.newLevel = NewMembershipCase.snapVipMember
             }
         }
     }

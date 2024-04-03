@@ -589,10 +589,10 @@ struct ContentView: View {
                     prefix = "[too soon] "
                     indent = "    "
                     isPicked = false
-                } else if featureUser.tinEyeResults == TinEyeResults.matchFound.rawValue {
+                } else if featureUser.tinEyeResults == .matchFound {
                     prefix = "[tineye match] "
                     indent = "    "
-                } else if featureUser.aiCheckResults == AiCheckResults.ai.rawValue {
+                } else if featureUser.aiCheckResults == .ai {
                     prefix = "[AI] "
                     indent = "    "
                 } else if !featureUser.isPicked {
@@ -614,14 +614,14 @@ struct ContentView: View {
                 }
                 lines.append("\(indent)feature - \(featureUser.featureDescription), featured - \(featureUser.photoFeaturedOnPage ? "YES" : "no")")
                 lines.append("\(indent)teammate - \(featureUser.userIsTeammate ? "yes" : "no")")
-                switch TagSourceCases(rawValue: featureUser.tagSource) ?? TagSourceCases.commonPageTag {
-                case TagSourceCases.commonPageTag:
+                switch featureUser.tagSource {
+                case .commonPageTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
                     break;
-                case TagSourceCases.clickCommunityTag:
+                case .clickCommunityTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_community")
                     break;
-                case TagSourceCases.clickHubTag:
+                case .clickHubTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_hub")
                     break;
                 default:
@@ -656,10 +656,10 @@ struct ContentView: View {
                     prefix = "[too soon] "
                     indent = "    "
                     isPicked = false
-                } else if featureUser.tinEyeResults == TinEyeResults.matchFound.rawValue {
+                } else if featureUser.tinEyeResults == .matchFound {
                     prefix = "[tineye match] "
                     indent = "    "
-                } else if featureUser.aiCheckResults == AiCheckResults.ai.rawValue {
+                } else if featureUser.aiCheckResults == .ai {
                     prefix = "[AI] "
                     indent = "    "
                 } else if !featureUser.isPicked {
@@ -686,17 +686,17 @@ struct ContentView: View {
                 }
                 lines.append("\(indent)feature - \(featureUser.featureDescription), featured - \(featureUser.photoFeaturedOnPage ? "YES" : "no")")
                 lines.append("\(indent)teammate - \(featureUser.userIsTeammate ? "yes" : "no")")
-                switch TagSourceCases(rawValue: featureUser.tagSource) ?? TagSourceCases.commonPageTag {
-                case TagSourceCases.commonPageTag:
+                switch featureUser.tagSource {
+                case .commonPageTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
                     break;
-                case TagSourceCases.snapRawPageTag:
+                case .snapRawPageTag:
                     lines.append("\(indent)hashtag = #raw_\(loadedPage!.pageName ?? loadedPage!.name)")
                     break;
-                case TagSourceCases.snapCommunityTag:
+                case .snapCommunityTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_community")
                     break;
-                case TagSourceCases.snapRawCommunityTag:
+                case .snapRawCommunityTag:
                     lines.append("\(indent)hashtag = #raw_community")
                     break;
                 default:
@@ -731,11 +731,11 @@ struct ContentView: View {
                     prefix = "[too soon] "
                     indent = "    "
                     isPicked = false
-                } else if featureUser.tinEyeResults == TinEyeResults.matchFound.rawValue {
+                } else if featureUser.tinEyeResults == .matchFound {
                     prefix = "[tineye match] "
                     indent = "    "
                     isPicked = false
-                } else if featureUser.aiCheckResults == AiCheckResults.ai.rawValue {
+                } else if featureUser.aiCheckResults == .ai {
                     prefix = "[AI] "
                     indent = "    "
                     isPicked = false
@@ -754,8 +754,8 @@ struct ContentView: View {
                 lines.append("\(indent)member level - \(featureUser.userLevel)")
                 lines.append("\(indent)feature - \(featureUser.featureDescription), featured - \(featureUser.photoFeaturedOnPage ? "YES" : "no")")
                 lines.append("\(indent)teammate - \(featureUser.userIsTeammate ? "yes" : "no")")
-                switch TagSourceCases(rawValue: featureUser.tagSource) ?? TagSourceCases.commonPageTag {
-                case TagSourceCases.commonPageTag:
+                switch featureUser.tagSource {
+                case .commonPageTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
                     break;
                 default:
@@ -824,12 +824,12 @@ struct FeatureUserRow: View {
                     .foregroundColor(.red)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
-            } else if user.tinEyeResults == TinEyeResults.matchFound.rawValue {
+            } else if user.tinEyeResults == .matchFound {
                 Image(systemName: "eye.trianglebadge.exclamationmark")
                     .foregroundColor(.red)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
-            } else if user.aiCheckResults == AiCheckResults.ai.rawValue {
+            } else if user.aiCheckResults == .ai {
                 Image(systemName: "gear.badge.xmark")
                     .foregroundColor(.red)
                     .font(.system(size: 20))
@@ -923,11 +923,11 @@ struct FeatureUserRow: View {
             showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured", 0) { }
             return
         }
-        if TinEyeResults(rawValue: user.tinEyeResults) == .matchFound {
+        if user.tinEyeResults == .matchFound {
             showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo had a TinEye match", 0) { }
             return
         }
-        if AiCheckResults(rawValue: user.aiCheckResults) == .ai {
+        if user.aiCheckResults == .ai {
             showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo was flagged as AI", 0) { }
             return
         }

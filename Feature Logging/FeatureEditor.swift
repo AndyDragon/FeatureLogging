@@ -24,9 +24,9 @@ struct FeatureEditor: View {
     @State private var postLink = ""
     @State private var userName = ""
     @State private var userAlias = ""
-    @State private var userLevel: MembershipCase = MembershipCase.none
+    @State private var userLevel = MembershipCase.none
     @State private var userIsTeammate = false
-    @State private var tagSource: TagSourceCases = TagSourceCases.commonPageTag
+    @State private var tagSource = TagSourceCase.commonPageTag
     @State private var photoFeaturedOnPage = false
     @State private var featureDescription = ""
     @State private var userHasFeaturesOnPage = false
@@ -178,7 +178,7 @@ struct FeatureEditor: View {
                     Text("User level:")
                         .frame(width: 80, alignment: .trailing)
                         .foregroundStyle(userLevel == MembershipCase.none ? Color.TextColorRequired : Color.TextColorPrimary, Color.TextColorSecondary)
-                    Picker("", selection: $userLevel.onChange { value in user.userLevel = userLevel.rawValue }) {
+                    Picker("", selection: $userLevel.onChange { value in user.userLevel = userLevel }) {
                         ForEach(MembershipCase.casesFor(hub: selectedPage.hub)) { level in
                             Text(level.rawValue)
                                 .tag(level)
@@ -208,8 +208,8 @@ struct FeatureEditor: View {
                 HStack(alignment: .center) {
                     Text("Found using:")
                         .frame(width: 80, alignment: .trailing)
-                    Picker("", selection: $tagSource.onChange { value in user.tagSource = tagSource.rawValue }) {
-                        ForEach(TagSourceCases.casesFor(hub: selectedPage.hub)) { source in
+                    Picker("", selection: $tagSource.onChange { value in user.tagSource = tagSource }) {
+                        ForEach(TagSourceCase.casesFor(hub: selectedPage.hub)) { source in
                             Text(source.rawValue)
                                 .tag(source)
                                 .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
@@ -578,7 +578,7 @@ struct FeatureEditor: View {
 
                     Text("TinEye:")
                     Picker("", selection: $tinEyeResults.onChange { value in
-                        user.tinEyeResults = tinEyeResults.rawValue
+                        user.tinEyeResults = tinEyeResults
                         updateList()
                     }) {
                         ForEach(TinEyeResults.allCases) { source in
@@ -597,7 +597,7 @@ struct FeatureEditor: View {
                     
                     Text("AI Check:")
                     Picker("", selection: $aiCheckResults.onChange { value in 
-                        user.aiCheckResults = aiCheckResults.rawValue
+                        user.aiCheckResults = aiCheckResults
                         updateList()
                     }) {
                         ForEach(AiCheckResults.allCases) { source in
@@ -620,9 +620,9 @@ struct FeatureEditor: View {
             postLink = user.postLink
             userName = user.userName
             userAlias = user.userAlias
-            userLevel = MembershipCase(rawValue: user.userLevel) ?? .none
+            userLevel = user.userLevel
             userIsTeammate = user.userIsTeammate
-            tagSource = TagSourceCases(rawValue: user.tagSource) ?? .commonPageTag
+            tagSource = user.tagSource
             photoFeaturedOnPage = user.photoFeaturedOnPage
             featureDescription = user.featureDescription
             userHasFeaturesOnPage = user.userHasFeaturesOnPage
@@ -634,8 +634,8 @@ struct FeatureEditor: View {
             featureCountOnSnap = user.featureCountOnSnap
             featureCountOnRaw = user.featureCountOnRaw
             tooSoonToFeatureUser = user.tooSoonToFeatureUser
-            tinEyeResults = TinEyeResults(rawValue: user.tinEyeResults) ?? .zeroMatches
-            aiCheckResults = AiCheckResults(rawValue: user.aiCheckResults) ?? .human
+            tinEyeResults = user.tinEyeResults
+            aiCheckResults = user.aiCheckResults
         }
     }
 }

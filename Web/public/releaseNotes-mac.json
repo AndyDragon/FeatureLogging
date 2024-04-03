@@ -64,5 +64,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.7",
+        "notes": [
+            {
+                "date": "Apr 3, 2024",
+                "notes": [
+                    "Code and type cleanup."
+                ]
+            }
+        ]
     }
 ]
