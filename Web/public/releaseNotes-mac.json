@@ -75,5 +75,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.8",
+        "notes": [
+            {
+                "date": "Apr 4, 2024",
+                "notes": [
+                    "Minor bug fixes."
+                ]
+            }
+        ]
     }
 ]
