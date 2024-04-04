@@ -653,7 +653,11 @@
                                         <TextBlock Text="link to post" FontStyle="Italic" FontSize="10" Visibility="{Binding PostLink, Converter={StaticResource valueVisibilityConverter}, ConverterParameter=false}" />
                                     </StackPanel>
                                 </StackPanel>
-                                <Button Grid.Column="2" HorizontalAlignment="Right" Command="{Binding OpenFeatureInVeroScriptsCommand}">
+                                <Button 
+                                    Grid.Column="2" 
+                                    HorizontalAlignment="Right" 
+                                    Command="{Binding OpenFeatureInVeroScriptsCommand}"
+                                    CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext}">
                                     <StackPanel Orientation="Horizontal">
                                         <iconPacks:PackIconMaterial 
                                             VerticalAlignment="Center"

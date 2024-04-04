@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using Notification.Wpf;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -85,12 +86,16 @@ namespace FeatureLogging
         public MainViewModel()
         {
             _ = LoadPages();
+
+            #region Command implementations
+
             NewFeaturesCommand = new Command(() => {
                 lastFilename = string.Empty;
                 SelectedFeature = null;
                 Features.Clear();
                 OnPropertyChanged(nameof(HasFeatures));
             });
+
             OpenFeaturesCommand = new Command(() =>
             {
                 OpenFileDialog dialog = new()
@@ -112,6 +117,8 @@ namespace FeatureLogging
                             var foundPage = LoadedPages.FirstOrDefault(page => page.Id == pageId);
                             if (foundPage != null)
                             {
+                                // Force the page to update.
+                                selectedPage = null;
                                 SelectedPage = foundPage;
                                 Features.Clear();
                                 foreach (var feature in file["features"])
@@ -163,6 +170,7 @@ namespace FeatureLogging
                     }
                 }
             });
+
             SaveFeaturesCommand = new Command(() =>
             {
                 if (SelectedPage != null)
@@ -232,7 +240,9 @@ namespace FeatureLogging
                     }
                 }
             });
+
             GenerateReportCommand = new Command(GenerateLogReport);
+
             CopyPageTagCommand = new CommandWithParameter((parameter) =>
             {
                 if (parameter is string pageTag)
@@ -279,6 +289,7 @@ namespace FeatureLogging
                     }
                 }
             });
+
             AddFeatureCommand = new Command(() =>
             {
                 var feature = new Feature();
@@ -292,6 +303,7 @@ namespace FeatureLogging
                 SelectedFeature = feature;
                 OnPropertyChanged(nameof(HasFeatures));
             });
+
             RemoveFeatureCommand = new Command(() =>
             {
                 if (SelectedFeature is Feature feature)
@@ -301,12 +313,14 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(HasFeatures));
                 }
             });
+
             RemoveAllFeaturesCommand = new Command(() =>
             {
                 SelectedFeature = null;
                 Features.Clear();
                 OnPropertyChanged(nameof(HasFeatures));
             });
+
             PastePostLinkCommand = new Command(() =>
             {
                 if (SelectedFeature != null)
@@ -323,6 +337,7 @@ namespace FeatureLogging
                     }
                 }
             });
+
             CopyPageFeatureTagCommand = new Command(() => 
             {
                 if (SelectedPage != null && SelectedFeature != null)
@@ -337,6 +352,7 @@ namespace FeatureLogging
                     }
                 }
             });
+
             CopyRawPageFeatureTagCommand = new Command(() =>
             {
                 if (SelectedPage != null && SelectedFeature != null)
@@ -347,6 +363,7 @@ namespace FeatureLogging
                     }
                 }
             });
+
             CopyHubFeatureTagCommand = new Command(() =>
             {
                 if (SelectedPage != null && SelectedFeature != null)
@@ -357,6 +374,7 @@ namespace FeatureLogging
                     }
                 }
             });
+
             CopyRawHubFeatureTagCommand = new Command(() =>
             {
                 if (SelectedPage != null && SelectedFeature != null)
@@ -367,6 +385,7 @@ namespace FeatureLogging
                     }
                 }
             });
+
             SetThemeCommand = new CommandWithParameter((parameter) =>
             {
                 if (parameter is Theme theme)
@@ -374,11 +393,13 @@ namespace FeatureLogging
                     Theme = theme;
                 }
             });
+
+            #endregion
         }
 
         #region User settings
 
-        private static string GetDataLocationPath(bool shared = false)
+        public static string GetDataLocationPath(bool shared = false)
         {
             var user = WindowsIdentity.GetCurrent();
             var dataLocationPath = Path.Combine(
@@ -577,6 +598,8 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(TagSources));
                     OnPropertyChanged(nameof(ClickHubVisibility));
                     OnPropertyChanged(nameof(SnapHubVisibility));
+                    OnPropertyChanged(nameof(SnapOrClickHubVisibility));
+                    OnPropertyChanged(nameof(HasSelectedPage));
                 }
             }
         }
@@ -753,15 +776,15 @@ namespace FeatureLogging
         private static string[] SnapTagSources => [
             "Page tag",
             "RAW page tag",
-            "Community tag",
+            "Snap community tag",
             "RAW community tag",
-            "Membership tag",
+            "Snap membership tag",
         ];
 
         private static string[] ClickTagSources => [
             "Page tag",
-            "Community tag",
-            "Hub tag",
+            "Click community tag",
+            "Click hub tag",
         ];
 
         private static string[] OtherTagSources => [
@@ -1119,6 +1142,16 @@ namespace FeatureLogging
                 areaName: "WindowArea",
                 expirationTime: TimeSpan.FromSeconds(2));
         }
+
+        internal void ShowToast(string title, string? message, NotificationType type, TimeSpan? expirationTime = null)
+        {
+            notificationManager.Show(
+                title,
+                message,
+                type: type,
+                areaName: "WindowArea",
+                expirationTime: expirationTime);
+        }
     }
 
     public class FeatureComparer : IComparer<Feature>
@@ -1226,9 +1259,97 @@ namespace FeatureLogging
     {
         public Feature()
         {
-            OpenFeatureInVeroScriptsCommand = new Command(() =>
+            OpenFeatureInVeroScriptsCommand = new CommandWithParameter((parameter) =>
             {
-                // TODO andydragon : implement this code
+                if (parameter is MainViewModel vm && vm.SelectedPage != null)
+                {
+                    try
+                    {
+                        void StoreFeatureInShared()
+                        {
+                            // We have debug location, let's use that for testing.
+                            var featureDictionary = new Dictionary<string, dynamic>
+                            {
+                                ["page"] = vm.SelectedPage.Id,
+                                ["userName"] = UserName,
+                                ["userAlias"] = UserAlias,
+                                ["userLevel"] = UserLevel,
+                                ["tagSource"] = TagSource,
+                                ["firstFeature"] = !UserHasFeaturesOnPage
+                            };
+                            if (vm.SelectedPage.HubName == "click")
+                            {
+                                if (int.TryParse(FeatureCountOnHub, out int featuresOnHub))
+                                {
+                                    var totalFeatures = featuresOnHub;
+                                    featureDictionary["newLevel"] = (totalFeatures + 1) switch
+                                    {
+                                        5 => "Member",
+                                        15 => "Bronze Member",
+                                        30 => "Silver Member",
+                                        50 => "Gold Member",
+                                        75 => "Platinum Member",
+                                        _ => "",
+                                    };
+                                }
+                                else
+                                {
+                                    featureDictionary["newLevel"] = "";
+                                }
+                            }
+                            else if (vm.SelectedPage.HubName == "snap")
+                            {
+                                if (int.TryParse(FeatureCountOnHub, out int featuresOnHub) && int.TryParse(FeatureCountOnRawHub, out int featuresOnRaw))
+                                {
+                                    var totalFeatures = featuresOnHub + featuresOnRaw;
+                                    featureDictionary["newLevel"] = (totalFeatures + 1) switch
+                                    {
+                                        5 => "Member",
+                                        15 => "VIP Member",
+                                        _ => "",
+                                    };
+                                }
+                                else
+                                {
+                                    featureDictionary["newLevel"] = "";
+                                }
+                            }
+                            else
+                            {
+                                featureDictionary["newLevel"] = "";
+                            }
+
+                            var sharedSettingsPath = MainViewModel.GetDataLocationPath(true);
+                            var featureFile = Path.Combine(sharedSettingsPath, "feature.json");
+                            File.WriteAllText(featureFile, JsonConvert.SerializeObject(featureDictionary));
+                        }
+
+#if DEBUG
+                        // For debugging, test locally
+                        var debugVeroScriptsLocation = UserSettings.Get("debugVeroScriptsLocation", "");
+                        if (!string.IsNullOrEmpty(debugVeroScriptsLocation))
+                        {
+                            StoreFeatureInShared();
+                            var applicationPath = Path.Combine(debugVeroScriptsLocation, "Vero Scripts.exe");
+                            var processStart = new ProcessStartInfo
+                            {
+                                FileName = applicationPath,
+                                WindowStyle = ProcessWindowStyle.Maximized,
+                            };
+                            Process.Start(processStart);
+                            return;
+                        }
+#endif
+                        // Launch from application deployment manifest on web.
+                        StoreFeatureInShared();
+                        var applicationDeploymentManifest = "https://vero.andydragon.com/app/veroscripts/windows/Vero%20Scripts.application";
+                        Process.Start("rundll32.exe", "dfshim.dll,ShOpenVerbApplication " + applicationDeploymentManifest);
+                    }
+                    catch (Exception ex)
+                    {
+                        vm.ShowToast("Failed to launch Vero Scripts", ex.Message, NotificationType.Error);
+                    }
+                }
             });
         }
 

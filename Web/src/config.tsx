@@ -1,15 +1,15 @@
 export const applicationName = "Feature Logging";
-export const applicationDescription = "Feature Logging is a small productivity app to log Vero features.";
+export const applicationDescription = "Feature Logging is a small productivity tool to log Vero features.";
 export const applicationDetails = (
     <>
-        This utility lets you collection and log Vero features and then copy the relevant data to paste in the
+        This tools lets you collection and log Vero features and then copy the relevant data to paste in the
         Vero scripts app.
     </>
 );
 export const macScreenshotWidth = 1416;
 export const macScreenshotHeight = 874;
-export const windowsScreenshotWidth = 940;
-export const windowsScreenshotHeight = 580;
+export const windowsScreenshotWidth = 1200;
+export const windowsScreenshotHeight = 800;
 
 export const deploymentWebLocation = "/app/featurelogging";
 
@@ -50,5 +50,21 @@ export const links: Record<Platform, Links | undefined> = {
             }
         ]
     },
-    windows: undefined,
+    windows: {
+        location: (_version, suffix) => `${windowsInstallerLocation}${suffix}`,
+        actions: [
+            {
+                name: "current",
+                action: "install",
+                target: "",
+                suffix: "/setup.exe",
+            },
+            {
+                name: "current",
+                action: "read more about",
+                target: "_blank",
+                suffix: "",
+            }
+        ]
+    },
 };

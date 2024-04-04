@@ -76,6 +76,17 @@ function App() {
                                     </Link>
                                 </div>
                             </div>
+                            <div style={{ display: "flex", flexDirection: "column", marginTop: "40px" }}>
+                                <Title3>Windows</Title3>
+                                <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
+                                    <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 8px 0" }} to="/windowsInstall">
+                                        Install
+                                    </Link>
+                                    <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 0 0" }} to="/windowsReleaseNotes">
+                                        Release notes
+                                    </Link>
+                                </div>
+                            </div>
                         </nav>
                     </DrawerBody>
                 </InlineDrawer>
