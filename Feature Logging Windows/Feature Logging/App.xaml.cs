@@ -17,7 +17,7 @@ namespace FeatureLogging
                 {
                     MessageBox.Show(ex.ToString(), "Fatal application exception, please report to AndyDragon", MessageBoxButton.OK);
                     // Danger! Trying to save a file in the middle of a crash, should work?
-                    File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Vero Scripts.crashlog"), ex.ToString());
+                    File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Feature Logging.crashlog"), ex.ToString());
                 }
                 catch
                 {
