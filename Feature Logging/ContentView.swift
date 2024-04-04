@@ -612,6 +612,11 @@ struct ContentView: View {
                 } else {
                     lines.append("\(indent)last feature on page - never (features on page 0)")
                 }
+                if featureUser.userHasFeaturesOnHub {
+                    lines.append("\(indent)last feature - \(featureUser.lastFeaturedOnHub) \(featureUser.lastFeaturedPage) (features \(featureUser.featureCountOnHub))")
+                } else {
+                    lines.append("\(indent)last feature - never (features 0)")
+                }
                 lines.append("\(indent)feature - \(featureUser.featureDescription), featured - \(featureUser.photoFeaturedOnPage ? "YES" : "no")")
                 lines.append("\(indent)teammate - \(featureUser.userIsTeammate ? "yes" : "no")")
                 switch featureUser.tagSource {
@@ -674,15 +679,15 @@ struct ContentView: View {
                 lines.append("\(indent)\(prefix)\(featureUser.postLink)")
                 lines.append("\(indent)user - \(featureUser.userName) @\(featureUser.userAlias)")
                 lines.append("\(indent)member level - \(featureUser.userLevel)")
-                if featureUser.userHasFeaturesOnHub {
-                    lines.append("\(indent)last feature - \(featureUser.lastFeaturedOnHub) \(featureUser.lastFeaturedPage) (features \(featureUser.featureCountOnSnap) Snap + \(featureUser.featureCountOnRaw) RAW)")
-                } else {
-                    lines.append("\(indent)last feature - never (features 0 Snap + 0 RAW)")
-                }
                 if featureUser.userHasFeaturesOnPage {
                     lines.append("\(indent)last feature on page - \(featureUser.lastFeaturedOnPage) (features on page \(featureUser.featureCountOnPage) Snap + \(featureUser.featureCountOnRawPage) RAW)")
                 } else {
                     lines.append("\(indent)last feature on page - never (features on page 0 Snap + 0 RAW)")
+                }
+                if featureUser.userHasFeaturesOnHub {
+                    lines.append("\(indent)last feature - \(featureUser.lastFeaturedOnHub) \(featureUser.lastFeaturedPage) (features \(featureUser.featureCountOnHub) Snap + \(featureUser.featureCountOnRawHub) RAW)")
+                } else {
+                    lines.append("\(indent)last feature - never (features 0 Snap + 0 RAW)")
                 }
                 lines.append("\(indent)feature - \(featureUser.featureDescription), featured - \(featureUser.photoFeaturedOnPage ? "YES" : "no")")
                 lines.append("\(indent)teammate - \(featureUser.userIsTeammate ? "yes" : "no")")
@@ -716,7 +721,7 @@ struct ContentView: View {
                 }
             }
         } else {
-            lines.append("Picks for #\(loadedPage!.displayName) / #click_community / #click_hub")
+            lines.append("Picks for #\(loadedPage!.displayName)")
             lines.append("")
             var wasLastItemPicked = true
             for featureUser in sortedFeatures {
@@ -762,7 +767,6 @@ struct ContentView: View {
                     lines.append("\(indent)hashtag = other")
                     break;
                 }
-                lines.append("\(indent)tineye - \(featureUser.tinEyeResults)")
                 lines.append("\(indent)tineye - \(featureUser.tinEyeResults)")
                 lines.append("\(indent)ai check - \(featureUser.aiCheckResults)")
                 lines.append("")
@@ -813,32 +817,37 @@ struct FeatureUserRow: View {
     @State var postLink: String = ""
     
     var body: some View {
-        HStack(alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/) {
+        HStack(alignment: .center) {
             if user.photoFeaturedOnPage {
                 Image(systemName: "exclamationmark.octagon.fill")
                     .foregroundColor(.red)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
+                    .help("Photo is already featured on this page")
             } else if user.tooSoonToFeatureUser {
                 Image(systemName: "stopwatch.fill")
                     .foregroundColor(.red)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
+                    .help("Too soon to feature this user")
             } else if user.tinEyeResults == .matchFound {
                 Image(systemName: "eye.trianglebadge.exclamationmark")
                     .foregroundColor(.red)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
+                    .help("TinEye matches found, possibly stolen photo")
             } else if user.aiCheckResults == .ai {
                 Image(systemName: "gear.badge.xmark")
                     .foregroundColor(.red)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
+                    .help("AI check verdict is image is AI generated")
             } else if user.isPicked {
                 Image(systemName: "star.fill")
                     .foregroundColor(.green)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
+                    .help("Photo is picked for feature")
             } else {
                 Image(systemName: "xmark")
                     .foregroundColor(.gray)

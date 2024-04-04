@@ -36,15 +36,15 @@ struct FeatureEditor: View {
     @State private var userHasFeaturesOnHub = false
     @State private var lastFeaturedOnHub = ""
     @State private var lastFeaturedPage = ""
-    @State private var featureCountOnSnap = "many"
-    @State private var featureCountOnRaw = "many"
+    @State private var featureCountOnHub = "many"
+    @State private var featureCountOnRawHub = "many"
     @State private var tooSoonToFeatureUser = false
     @State private var tinEyeResults = TinEyeResults.zeroMatches
     @State private var aiCheckResults = AiCheckResults.human
     
     var body: some View {
         VStack {
-            // Tag source
+            // Tag picked
             HStack(alignment: .center) {
                 Spacer()
                     .frame(width: 96, alignment: .trailing)
@@ -348,7 +348,7 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
                             
                             Text("Number of features on Click:")
-                            Picker("", selection: $featureCountOnSnap.onChange { value in user.featureCountOnSnap = featureCountOnSnap }) {
+                            Picker("", selection: $featureCountOnHub.onChange { value in user.featureCountOnHub = featureCountOnHub }) {
                                 Text("many").tag("many")
                                 ForEach(0 ..< 21) { value in
                                     Text("\(value)").tag("\(value)")
@@ -498,7 +498,7 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
                             
                             Text("Number of features on Snap:")
-                            Picker("", selection: $featureCountOnSnap.onChange { value in user.featureCountOnSnap = featureCountOnSnap }) {
+                            Picker("", selection: $featureCountOnHub.onChange { value in user.featureCountOnHub = featureCountOnHub }) {
                                 Text("many").tag("many")
                                 ForEach(0 ..< 21) { value in
                                     Text("\(value)").tag("\(value)")
@@ -513,7 +513,7 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
                             
                             Text("Number of features on RAW:")
-                            Picker("", selection: $featureCountOnRaw.onChange { value in user.featureCountOnRaw = featureCountOnRaw }) {
+                            Picker("", selection: $featureCountOnRawHub.onChange { value in user.featureCountOnRawHub = featureCountOnRawHub }) {
                                 Text("many").tag("many")
                                 ForEach(0 ..< 21) { value in
                                     Text("\(value)").tag("\(value)")
@@ -631,8 +631,8 @@ struct FeatureEditor: View {
             userHasFeaturesOnHub = user.userHasFeaturesOnHub
             lastFeaturedOnHub = user.lastFeaturedOnHub
             lastFeaturedPage = user.lastFeaturedPage
-            featureCountOnSnap = user.featureCountOnSnap
-            featureCountOnRaw = user.featureCountOnRaw
+            featureCountOnHub = user.featureCountOnHub
+            featureCountOnRawHub = user.featureCountOnRawHub
             tooSoonToFeatureUser = user.tooSoonToFeatureUser
             tinEyeResults = user.tinEyeResults
             aiCheckResults = user.aiCheckResults

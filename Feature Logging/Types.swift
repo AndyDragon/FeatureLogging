@@ -316,8 +316,8 @@ struct LogFeature: Codable {
     var userHasFeaturesOnHub: Bool
     var lastFeaturedOnHub: String
     var lastFeaturedPage: String
-    var featureCountOnSnap: String
-    var featureCountOnRaw: String
+    var featureCountOnHub: String
+    var featureCountOnRawHub: String
     var tooSoonToFeatureUser: Bool
     var tinEyeResults: TinEyeResults
     var aiCheckResults: AiCheckResults
@@ -339,8 +339,8 @@ struct LogFeature: Codable {
         self.userHasFeaturesOnHub = featureUser.userHasFeaturesOnHub
         self.lastFeaturedOnHub = featureUser.lastFeaturedOnHub
         self.lastFeaturedPage = featureUser.lastFeaturedPage
-        self.featureCountOnSnap = featureUser.featureCountOnSnap
-        self.featureCountOnRaw = featureUser.featureCountOnRaw
+        self.featureCountOnHub = featureUser.featureCountOnHub
+        self.featureCountOnRawHub = featureUser.featureCountOnRawHub
         self.tooSoonToFeatureUser = featureUser.tooSoonToFeatureUser
         self.tinEyeResults = featureUser.tinEyeResults
         self.aiCheckResults = featureUser.aiCheckResults
@@ -383,8 +383,8 @@ struct Log: Codable {
             featureUser.userHasFeaturesOnHub = feature.userHasFeaturesOnHub
             featureUser.lastFeaturedOnHub = feature.lastFeaturedOnHub
             featureUser.lastFeaturedPage = feature.lastFeaturedPage
-            featureUser.featureCountOnSnap = feature.featureCountOnSnap
-            featureUser.featureCountOnRaw = feature.featureCountOnRaw
+            featureUser.featureCountOnHub = feature.featureCountOnHub
+            featureUser.featureCountOnRawHub = feature.featureCountOnRawHub
             featureUser.tooSoonToFeatureUser = feature.tooSoonToFeatureUser
             featureUser.tinEyeResults = feature.tinEyeResults
             featureUser.aiCheckResults = feature.aiCheckResults
@@ -443,8 +443,8 @@ class FeatureUser: Identifiable, Hashable, ObservableObject {
     @Published var userHasFeaturesOnHub = false
     @Published var lastFeaturedOnHub = ""
     @Published var lastFeaturedPage = ""
-    @Published var featureCountOnSnap = "many"
-    @Published var featureCountOnRaw = "many"
+    @Published var featureCountOnHub = "many"
+    @Published var featureCountOnRawHub = "many"
     @Published var tooSoonToFeatureUser = false
     @Published var tinEyeResults = TinEyeResults.zeroMatches
     @Published var aiCheckResults = AiCheckResults.human

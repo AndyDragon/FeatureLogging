@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <RootNamespace>FeatureLogging</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>App.ico</ApplicationIcon>
+    <PackageId>FeatureLogging</PackageId>
+    <Title>Feature Logging</Title>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
+    <DelaySign>False</DelaySign>
+    <Copyright>Copyright (c) 2024 AndyDragon Software, all rights reserved</Copyright>
+    <Company>AndyDragon Software</Company>
+    <Authors>Andrew Forget</Authors>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="App.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MahApps.Metro" Version="2.4.10" />
+    <PackageReference Include="MahApps.Metro.IconPacks" Version="4.11.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Notification.Wpf" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>
