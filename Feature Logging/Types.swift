@@ -478,7 +478,7 @@ struct CodableFeatureUser: Codable {
         self.firstFeature = !user.userHasFeaturesOnPage
         self.newLevel = NewMembershipCase.none
         if page.hub == "click" {
-            let totalFeatures = Int(user.featureCountOnPage) ?? 0
+            let totalFeatures = Int(user.featureCountOnHub) ?? 0
             if totalFeatures + 1 == 5 {
                 self.newLevel = NewMembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
@@ -491,7 +491,7 @@ struct CodableFeatureUser: Codable {
                 self.newLevel = NewMembershipCase.clickPlatinumMember
             }
         } else if page.hub == "snap" {
-            let totalFeatures = Int(user.featureCountOnPage) ?? 0
+            let totalFeatures = (Int(user.featureCountOnHub) ?? 0) + (Int(user.featureCountOnRawHub) ?? 0)
             if totalFeatures + 1 == 5 {
                 self.newLevel = NewMembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
