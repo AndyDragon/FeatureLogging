@@ -3,5 +3,10 @@
         "current": "1.0.7",
         "link": "https://vero.andydragon.com/app/featurelogging/macInstall",
         "vital": false
+    },
+    "windows": {
+        "current": "1.0.0",
+        "link": "https://vero.andydragon.com/app/featurelogging/windowsInstall",
+        "vital": false
     }
 }
