@@ -120,7 +120,7 @@
             Margin="16,16,16,8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />                 <!-- Page -->
-                <RowDefinition Height="350" />                 <!-- Feature -->
+                <RowDefinition Height="350" />                  <!-- Feature -->
                 <RowDefinition Height="Auto" />                 <!-- Feature Buttons -->
                 <RowDefinition Height="*" />                    <!-- Feature List -->
             </Grid.RowDefinitions>
@@ -196,7 +196,7 @@
                 <!-- Is Picked -->
                 <Grid Grid.Row="0">
                     <StackPanel Orientation="Horizontal">
-                        <mah:ToggleSwitch OffContent="Not picked" OnContent="Picked" IsOn="{Binding SelectedFeature.IsPicked, Mode=TwoWay}" Margin="8,0,0,0" />
+                        <mah:ToggleSwitch Content="Is picked as feature" IsOn="{Binding SelectedFeature.IsPicked, Mode=TwoWay}" Margin="8,0,0,0" />
                     </StackPanel>
                 </Grid>
                 
@@ -295,16 +295,21 @@
                         </StackPanel>
                     </Label>
                     <ComboBox Grid.Column="5" ItemsSource="{Binding Memberships}" SelectedItem="{Binding SelectedFeature.UserLevel, Mode=TwoWay}" VerticalAlignment="Center" />
-                    <mah:ToggleSwitch Grid.Column="6" Margin="16,0,0,0" OffContent="Not teammate" OnContent="Teammate" IsOn="{Binding SelectedFeature.UserIsTeammate, Mode=TwoWay}" VerticalAlignment="Center" />
+                    <mah:ToggleSwitch Grid.Column="6" Margin="16,0,0,0" Content="Teammate" IsOn="{Binding SelectedFeature.UserIsTeammate, Mode=TwoWay}" VerticalAlignment="Center" />
                 </Grid>
                 
                 <!-- Tag source -->
                 <Grid Grid.Row="3" Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="200" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />               <!-- label -->
+                        <ColumnDefinition Width="200" />                <!-- tag source -->
+                        <ColumnDefinition Width="Auto" />               <!-- photo featured on page -->
+                        <ColumnDefinition Width="Auto" />               <!-- photo featured on hub -->
+                        <ColumnDefinition Width="Auto" />               <!-- label -->
+                        <ColumnDefinition Width="*" MaxWidth="200" />   <!-- photo featured date -->
+                        <ColumnDefinition Width="Auto" />               <!-- label -->
+                        <ColumnDefinition Width="*" MaxWidth="200" />   <!-- photo featured page -->
+                        <ColumnDefinition Width="*" />                  <!-- spacer -->
                     </Grid.ColumnDefinitions>
                     <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0, 0, 4, 0">
                         <StackPanel Orientation="Horizontal">
@@ -315,7 +320,59 @@
                         </StackPanel>
                     </Label>
                     <ComboBox Grid.Column="1" ItemsSource="{Binding TagSources}" SelectedItem="{Binding SelectedFeature.TagSource, Mode=TwoWay}" VerticalAlignment="Center" />
-                    <mah:ToggleSwitch Grid.Column="2" Margin="16,0,0,0" OffContent="Not featured" OnContent="Featured on page already" IsOn="{Binding SelectedFeature.PhotoFeaturedOnPage, Mode=TwoWay}" VerticalAlignment="Center" />
+                    <mah:ToggleSwitch Grid.Column="2" Margin="16,0,0,0" Content="Photo featured on page" IsOn="{Binding SelectedFeature.PhotoFeaturedOnPage, Mode=TwoWay}" VerticalAlignment="Center" />
+                    <mah:ToggleSwitch Grid.Column="3" Margin="16,0,0,0" Content="Photo featured on hub" IsOn="{Binding SelectedFeature.PhotoFeaturedOnHub, Mode=TwoWay}" VerticalAlignment="Center" />
+                    <Label 
+                        Grid.Column="4" 
+                        VerticalAlignment="Center" 
+                        FontSize="11" 
+                        Margin="10,0,4,0"
+                        Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.PhotoLastFeaturedOnHubValidation.Error}">
+                            <iconPacks:PackIconModern 
+                                    VerticalAlignment="Center"
+                                    Kind="Warning"
+                                    Margin="0,0,6,0"
+                                    Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
+                                    Visibility="{Binding SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
+                            <TextBlock 
+                                    Text="Last date featured:" 
+                                    FontWeight="Bold" 
+                                    VerticalAlignment="Center"
+                                    Foreground="{Binding SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource validationResultColorConverter}}" />
+                        </StackPanel>
+                    </Label>
+                    <TextBox 
+                        Grid.Column="5" 
+                        Text="{Binding SelectedFeature.PhotoLastFeaturedOnHub, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        VerticalAlignment="Center" 
+                        Height="20" />
+                    <Label 
+                        Grid.Column="6" 
+                        VerticalAlignment="Center" 
+                        FontSize="11" Margin="10,0,4,0" 
+                        Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.PhotoLastFeaturedPageValidation.Error}">
+                            <iconPacks:PackIconModern 
+                                    VerticalAlignment="Center"
+                                    Kind="Warning"
+                                    Margin="0,0,6,0"
+                                    Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
+                                    Visibility="{Binding SelectedFeature.PhotoLastFeaturedPageValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
+                            <TextBlock 
+                                    Text="on page:" 
+                                    FontWeight="Bold" 
+                                    VerticalAlignment="Center"
+                                    Foreground="{Binding SelectedFeature.PhotoLastFeaturedPageValidation, Converter={StaticResource validationResultColorConverter}}" />
+                        </StackPanel>
+                    </Label>
+                    <TextBox 
+                        Grid.Column="7" 
+                        Text="{Binding SelectedFeature.PhotoLastFeaturedPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        VerticalAlignment="Center" 
+                        Height="20" />
                 </Grid>
                 
                 <!-- Description -->
@@ -347,21 +404,21 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <mah:ToggleSwitch Grid.Column="0" OffContent="User not featured on page" OnContent="User featured on page" IsOn="{Binding SelectedFeature.UserHasFeaturesOnPage}" VerticalAlignment="Center" />
+                    <mah:ToggleSwitch Grid.Column="0" Content="User featured on page" IsOn="{Binding SelectedFeature.UserHasFeaturesOnPage}" VerticalAlignment="Center" />
                     <Grid
                         Grid.Column="1"
                         Visibility="{Binding SelectedFeature.UserHasFeaturesOnPage, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Margin="8,0,0,0"
                         VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />                   <!-- label -->
                             <ColumnDefinition Width="*" />                      <!-- last date featured -->
                             <ColumnDefinition Width="Auto" />                   <!-- label -->
-                            <ColumnDefinition Width="Auto" MaxWidth="100" />    <!-- features on page -->
+                            <ColumnDefinition Width="*" MaxWidth="120" />       <!-- features on page -->
                             <ColumnDefinition Width="Auto" />                   <!-- label -->
-                            <ColumnDefinition Width="Auto" MaxWidth="100" />    <!-- features on RAW page -->
-                            <ColumnDefinition Width="Auto" />                   <!-- copy page tag -->
-                            <ColumnDefinition Width="Auto" />                   <!-- copy RAW page tag -->
+                            <ColumnDefinition Width="*" MaxWidth="120" />       <!-- features on RAW page -->
                         </Grid.ColumnDefinitions>
                         <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.LastFeaturedOnPageValidation.Error}">
@@ -397,7 +454,15 @@
                             </StackPanel>
                         </Label>
                         <ComboBox Grid.Column="5" ItemsSource="{Binding FeaturedCounts}" SelectedItem="{Binding SelectedFeature.FeatureCountOnRawPage, Mode=TwoWay}" VerticalAlignment="Center" Visibility="{Binding SnapHubVisibility}" />
-                        <Button Grid.Column="6" Command="{Binding CopyPageFeatureTagCommand}" VerticalAlignment="Center" Height="26" Margin="8,0,0,0">
+                    </Grid>
+                    <Grid
+                        Grid.Column="2"
+                        VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />                   <!-- copy page tag -->
+                            <ColumnDefinition Width="Auto" />                   <!-- copy RAW page tag -->
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Command="{Binding CopyPageFeatureTagCommand}" VerticalAlignment="Center" Height="26" Margin="8,0,0,0">
                             <StackPanel Orientation="Horizontal" Margin="4,0">
                                 <iconPacks:PackIconFeatherIcons
                                     VerticalAlignment="Center"
@@ -408,7 +473,7 @@
                                 <TextBlock VerticalAlignment="Center">Copy tag</TextBlock>
                             </StackPanel>
                         </Button>
-                        <Button Grid.Column="7" Command="{Binding CopyRawPageFeatureTagCommand}" VerticalAlignment="Center" Height="26" Margin="8,0,0,0" Visibility="{Binding SnapHubVisibility}">
+                        <Button Grid.Column="1" Command="{Binding CopyRawPageFeatureTagCommand}" VerticalAlignment="Center" Height="26" Margin="8,0,0,0" Visibility="{Binding SnapHubVisibility}">
                             <StackPanel Orientation="Horizontal" Margin="4,0">
                                 <iconPacks:PackIconFeatherIcons
                                     VerticalAlignment="Center"
@@ -427,11 +492,13 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <mah:ToggleSwitch Grid.Column="0" OffContent="User not featured on hub" OnContent="User featured on hub" IsOn="{Binding SelectedFeature.UserHasFeaturesOnHub}" VerticalAlignment="Center" />
+                    <mah:ToggleSwitch Grid.Column="0" Content="User featured on hub" IsOn="{Binding SelectedFeature.UserHasFeaturesOnHub}" VerticalAlignment="Center" />
                     <Grid
                         Grid.Column="1"
                         Visibility="{Binding SelectedFeature.UserHasFeaturesOnHub, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Margin="8,0,0,0"
                         VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />                   <!-- label -->
@@ -439,11 +506,9 @@
                             <ColumnDefinition Width="Auto" />                   <!-- label -->
                             <ColumnDefinition Width="*" />                      <!-- last page -->
                             <ColumnDefinition Width="Auto" />                   <!-- label -->
-                            <ColumnDefinition Width="Auto" MaxWidth="100" />    <!-- features on hub -->
+                            <ColumnDefinition Width="*" MaxWidth="120" />       <!-- features on hub -->
                             <ColumnDefinition Width="Auto" />                   <!-- label -->
-                            <ColumnDefinition Width="Auto" MaxWidth="100" />    <!-- features on RAW hub -->
-                            <ColumnDefinition Width="Auto" />                   <!-- copy hub tag -->
-                            <ColumnDefinition Width="Auto" />                   <!-- copy RAW hub tag -->
+                            <ColumnDefinition Width="*" MaxWidth="120" />       <!-- features on RAW hub -->
                         </Grid.ColumnDefinitions>
                         <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.LastFeaturedOnHubValidation.Error}">
@@ -495,7 +560,15 @@
                             </StackPanel>
                         </Label>
                         <ComboBox Grid.Column="7" ItemsSource="{Binding FeaturedCounts}" SelectedItem="{Binding SelectedFeature.FeatureCountOnRawHub, Mode=TwoWay}" VerticalAlignment="Center" Visibility="{Binding SnapHubVisibility}" />
-                        <Button Grid.Column="8" Command="{Binding CopyHubFeatureTagCommand}" VerticalAlignment="Center" Height="26" Margin="8,0,0,0">
+                    </Grid>
+                    <Grid
+                        Grid.Column="2"
+                        VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />                   <!-- copy hub tag -->
+                            <ColumnDefinition Width="Auto" />                   <!-- copy RAW hub tag -->
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Command="{Binding CopyHubFeatureTagCommand}" VerticalAlignment="Center" Height="26" Margin="8,0,0,0">
                             <StackPanel Orientation="Horizontal" Margin="4,0">
                                 <iconPacks:PackIconFeatherIcons
                                     VerticalAlignment="Center"
@@ -506,7 +579,7 @@
                                 <TextBlock VerticalAlignment="Center">Copy tag</TextBlock>
                             </StackPanel>
                         </Button>
-                        <Button Grid.Column="9" Command="{Binding CopyRawHubFeatureTagCommand}" VerticalAlignment="Center" Height="26" Margin="8,0,0,0" Visibility="{Binding SnapHubVisibility}">
+                        <Button Grid.Column="1" Command="{Binding CopyRawHubFeatureTagCommand}" VerticalAlignment="Center" Height="26" Margin="8,0,0,0" Visibility="{Binding SnapHubVisibility}">
                             <StackPanel Orientation="Horizontal" Margin="4,0">
                                 <iconPacks:PackIconFeatherIcons
                                     VerticalAlignment="Center"
@@ -523,7 +596,7 @@
                 <!-- Too soon -->
                 <Grid Grid.Row="7" Margin="0,8,0,0">
                     <StackPanel Orientation="Horizontal">
-                        <mah:ToggleSwitch OffContent="Not too soon to feature user" OnContent="Too soon to feature user" IsOn="{Binding SelectedFeature.TooSoonToFeatureUser, Mode=TwoWay}" />
+                        <mah:ToggleSwitch Content="Too soon to feature user" IsOn="{Binding SelectedFeature.TooSoonToFeatureUser, Mode=TwoWay}" />
                     </StackPanel>
                 </Grid>
 

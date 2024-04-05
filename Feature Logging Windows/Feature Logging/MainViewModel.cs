@@ -9,6 +9,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
 using System.Windows;
@@ -133,6 +134,9 @@ namespace FeatureLogging
                                         UserIsTeammate = (bool)feature["userIsTeammate"],
                                         TagSource = new List<string>(TagSources).Contains((string)feature["tagSource"]) ? (string)feature["tagSource"] : TagSources[0],
                                         PhotoFeaturedOnPage = (bool)feature["photoFeaturedOnPage"],
+                                        PhotoFeaturedOnHub = feature.ContainsKey("photoFeaturedOnHub") ? (bool)feature["photoFeaturedOnHub"] : false,
+                                        PhotoLastFeaturedOnHub = feature.ContainsKey("photoLastFeaturedOnHub") ? (string)feature["photoLastFeaturedOnHub"] : "",
+                                        PhotoLastFeaturedPage = feature.ContainsKey("photoLastFeaturedPage") ? (string)feature["photoLastFeaturedPage"] : "",
                                         FeatureDescription = (string)feature["featureDescription"],
                                         UserHasFeaturesOnPage = (bool)feature["userHasFeaturesOnPage"],
                                         LastFeaturedOnPage = (string)feature["lastFeaturedOnPage"],
@@ -249,41 +253,30 @@ namespace FeatureLogging
                 {
                     if (SelectedPage != null)
                     {
-                        void ShowCopiedToast(string message)
+                        void CopyTag(string tag, string tagType)
                         {
-                            notificationManager.Show(
-                                "Copied tag",
-                                $"Copied the {message} to the clipboard",
-                                type: NotificationType.Information,
-                                areaName: "WindowArea",
-                                expirationTime: TimeSpan.FromSeconds(2));
+                            CopyTextToClipboard(tag, "Copy tag", $"Copied the {tagType} to the clipboard");
                         }
                         // TODO andydragon : add setting for include hash
                         switch (pageTag)
                         {
                             case "Page tag":
-                                Clipboard.SetText($"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}");
-                                ShowCopiedToast("page tag");
+                                CopyTag($"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}", "page tag");
                                 break;
                             case "RAW page tag":
-                                Clipboard.SetText($"raw_{SelectedPage.PageName ?? SelectedPage.Name}");
-                                ShowCopiedToast("RAW page tag");
+                                CopyTag($"raw_{SelectedPage.PageName ?? SelectedPage.Name}", "RAW page tag");
                                 break;
                             case "Community tag":
-                                Clipboard.SetText($"{SelectedPage.HubName}_community");
-                                ShowCopiedToast("community tag");
+                                CopyTag($"{SelectedPage.HubName}_community", "community tag");
                                 break;
                             case "RAW community tag":
-                                Clipboard.SetText($"raw_community");
-                                ShowCopiedToast("RAW community tag");
+                                CopyTag($"raw_community", "RAW community tag");
                                 break;
                             case "Hub tag":
-                                Clipboard.SetText($"{SelectedPage.HubName}_hub");
-                                ShowCopiedToast("hub tag");
+                                CopyTag($"{SelectedPage.HubName}_hub", "hub tag");
                                 break;
                             case "RAW hub tag":
-                                Clipboard.SetText($"raw_hub");
-                                ShowCopiedToast("RAW hub tag");
+                                CopyTag($"raw_hub", "RAW hub tag");
                                 break;
                         }
                     }
@@ -344,11 +337,11 @@ namespace FeatureLogging
                 {
                     if (SelectedPage.HubName == "other")
                     {
-                        Clipboard.SetText($"{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}");
+                        CopyTextToClipboard($"{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}", "Page feature tag", "Copied the page feature tag to the clipboard");
                     }
                     else
                     {
-                        Clipboard.SetText($"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}");
+                        CopyTextToClipboard($"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}", "Page feature tag", "Copied the page feature tag to the clipboard");
                     }
                 }
             });
@@ -359,7 +352,7 @@ namespace FeatureLogging
                 {
                     if (SelectedPage.HubName == "snap")
                     {
-                        Clipboard.SetText($"raw_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}");
+                        CopyTextToClipboard($"raw_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}", "RAW page feature tag", "Copied the RAW page feature tag to the clipboard");
                     }
                 }
             });
@@ -370,7 +363,7 @@ namespace FeatureLogging
                 {
                     if (SelectedPage.HubName != "other")
                     {
-                        Clipboard.SetText($"{SelectedPage.HubName}_featured_{SelectedFeature.UserAlias}");
+                        CopyTextToClipboard($"{SelectedPage.HubName}_featured_{SelectedFeature.UserAlias}", "Hub feature tag", "Copied the hub feature tag to the clipboard");
                     }
                 }
             });
@@ -381,7 +374,7 @@ namespace FeatureLogging
                 {
                     if (SelectedPage.HubName == "snap")
                     {
-                        Clipboard.SetText($"raw_featured_{SelectedFeature.UserAlias}");
+                        CopyTextToClipboard($"raw_featured_{SelectedFeature.UserAlias}", "RAW hub feature tag", "Copied the RAW hub feature tag to the clipboard");
                     }
                 }
             });
@@ -600,6 +593,7 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(SnapHubVisibility));
                     OnPropertyChanged(nameof(SnapOrClickHubVisibility));
                     OnPropertyChanged(nameof(HasSelectedPage));
+                    OnPropertyChanged(nameof(PageTags));
                 }
             }
         }
@@ -668,8 +662,6 @@ namespace FeatureLogging
             "RAW page tag",
             "Community tag",
             "RAW community tag",
-            "Hub tag",
-            "RAW hub tag",
         ];
 
         private static string[] ClickPageTags => [
@@ -907,7 +899,8 @@ namespace FeatureLogging
                         builder.AppendLine($"{indent}last feature - never (features 0)");
                     }
                     var alreadyFeatured = feature.PhotoFeaturedOnPage ? "YES" : "no";
-                    builder.AppendLine($"{indent}feature - {feature.FeatureDescription}, featured - {alreadyFeatured}");
+                    var alreadyFeaturedOnHub = feature.PhotoFeaturedOnHub ? $"{feature.PhotoLastFeaturedOnHub} {feature.PhotoLastFeaturedPage}" : "no";
+                    builder.AppendLine($"{indent}feature - {feature.FeatureDescription}, featured on page - {alreadyFeatured}, featured on hub - {alreadyFeaturedOnHub}");
                     var teammate = feature.UserIsTeammate ? "yes" : "no";
                     builder.AppendLine($"{indent}teammate - {teammate}");
                     switch (feature.TagSource)
@@ -1007,7 +1000,8 @@ namespace FeatureLogging
                         builder.AppendLine($"{indent}last feature - never (features 0 Snap + 0 RAW)");
                     }
                     var alreadyFeatured = feature.PhotoFeaturedOnPage ? "YES" : "no";
-                    builder.AppendLine($"{indent}feature - {feature.FeatureDescription}, featured - {alreadyFeatured}");
+                    var alreadyFeaturedOnHub = feature.PhotoFeaturedOnHub ? $"{feature.PhotoLastFeaturedOnHub} {feature.PhotoLastFeaturedPage}" : "no";
+                    builder.AppendLine($"{indent}feature - {feature.FeatureDescription}, featured on page - {alreadyFeatured}, featured on hub - {alreadyFeaturedOnHub}");
                     var teammate = feature.UserIsTeammate ? "yes" : "no";
                     builder.AppendLine($"{indent}teammate - {teammate}");
                     switch (feature.TagSource)
@@ -1095,7 +1089,7 @@ namespace FeatureLogging
                     builder.AppendLine($"{indent}user - {feature.UserName} @{feature.UserAlias}");
                     builder.AppendLine($"{indent}member level - {feature.UserLevel}");
                     var alreadyFeatured = feature.PhotoFeaturedOnPage ? "YES" : "no";
-                    builder.AppendLine($"{indent}feature - {feature.FeatureDescription}, featured - {alreadyFeatured}");
+                    builder.AppendLine($"{indent}feature - {feature.FeatureDescription}, featured on page - {alreadyFeatured}");
                     var teammate = feature.UserIsTeammate ? "yes" : "no";
                     builder.AppendLine($"{indent}teammate - {teammate}");
                     switch (feature.TagSource)
@@ -1133,14 +1127,53 @@ namespace FeatureLogging
                 completeText += "\n---------------\n";
             }
 
-            Clipboard.SetText(completeText);
+            CopyTextToClipboard(completeText, "Generated report", "Copied the report of features to the clipboard");
+        }
 
-            notificationManager.Show(
-                "Report generated!",
-                $"Copied the report of features to the clipboard",
-                type: NotificationType.Information,
-                areaName: "WindowArea",
-                expirationTime: TimeSpan.FromSeconds(2));
+        public void CopyTextToClipboard(string text, string title, string successMessage)
+        {
+            if (TrySetClipboardText(text))
+            {
+                notificationManager.Show(
+                    title,
+                    successMessage,
+                    type: NotificationType.Information,
+                    areaName: "WindowArea",
+                    expirationTime: TimeSpan.FromSeconds(3));
+            }
+            else
+            {
+                notificationManager.Show(
+                    title + " failed",
+                    "Could not copy text to the clipboard, if you have another clipping tool active, disable it and try again",
+                    type: NotificationType.Error,
+                    areaName: "WindowArea",
+                    expirationTime: TimeSpan.FromSeconds(12));
+            }
+        }
+
+        private bool TrySetClipboardText(string text)
+        {
+            var retriesLeft = 9;
+            while (retriesLeft != 0)
+            {
+                try
+                {
+                    Clipboard.Clear();
+                    Clipboard.SetText(text);
+                    return true;
+                }
+                catch (COMException ex)
+                {
+                    const uint CLIPBRD_E_CANT_OPEN = 0x800401D0;
+                    if ((uint)ex.ErrorCode != CLIPBRD_E_CANT_OPEN)
+                    {
+                        throw;
+                    }
+                    --retriesLeft;
+                }
+            }
+            return false;
         }
 
         internal void ShowToast(string title, string? message, NotificationType type, TimeSpan? expirationTime = null)
@@ -1263,6 +1296,31 @@ namespace FeatureLogging
             {
                 if (parameter is MainViewModel vm && vm.SelectedPage != null)
                 {
+                    if (PhotoFeaturedOnPage)
+                    {
+                        vm.ShowToast("Cannot feature photo", "That photo has already been featured on this page", NotificationType.Error, TimeSpan.FromSeconds(12));
+                        return;
+                    }
+                    if (TinEyeResults == "matches found")
+                    {
+                        vm.ShowToast("Cannot feature photo", "That photo has a TinEye match", NotificationType.Error, TimeSpan.FromSeconds(12));
+                        return;
+                    }
+                    if (AiCheckResults == "ai")
+                    {
+                        vm.ShowToast("Cannot feature photo", "This photo was flagged as AI", NotificationType.Error, TimeSpan.FromSeconds(12));
+                        return;
+                    }
+                    if (TooSoonToFeatureUser)
+                    {
+                        vm.ShowToast("Cannot feature photo", "The user has been featured too recently", NotificationType.Error, TimeSpan.FromSeconds(12));
+                        return;
+                    }
+                    if (!IsPicked)
+                    {
+                        vm.ShowToast("Cannot feature photo", "The photo is not marked as picked, mark the photo as picked and try again", NotificationType.Warning, TimeSpan.FromSeconds(8));
+                        return;
+                    }
                     try
                     {
                         void StoreFeatureInShared()
@@ -1427,6 +1485,34 @@ namespace FeatureLogging
             get => photoFeaturedOnPage;
             set => Set(ref photoFeaturedOnPage, value, [nameof(Icon), nameof(IconColor)]);
         }
+
+        private bool photoFeaturedOnHub = false;
+        [JsonProperty(PropertyName = "photoFeaturedOnHub")]
+        public bool PhotoFeaturedOnHub
+        {
+            get => photoFeaturedOnHub;
+            set => Set(ref photoFeaturedOnHub, value);
+        }
+
+        private string photoLastFeaturedOnHub = "";
+        [JsonProperty(PropertyName = "photoLastFeaturedOnHub")]
+        public string PhotoLastFeaturedOnHub
+        {
+            get => photoLastFeaturedOnHub;
+            set => Set(ref photoLastFeaturedOnHub, value, [nameof(PhotoLastFeaturedOnHubValidation)]);
+        }
+        [JsonIgnore]
+        public ValidationResult PhotoLastFeaturedOnHubValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedOnHub);
+
+        private string photoLastFeaturedPage = "";
+        [JsonProperty(PropertyName = "photoLastFeaturedPage")]
+        public string PhotoLastFeaturedPage
+        {
+            get => photoLastFeaturedPage;
+            set => Set(ref photoLastFeaturedPage, value, [nameof(PhotoLastFeaturedPageValidation)]);
+        }
+        [JsonIgnore]
+        public ValidationResult PhotoLastFeaturedPageValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedPage);
 
         private string featureDescription = "";
         [JsonProperty(PropertyName = "featureDescription")]
@@ -1637,6 +1723,8 @@ namespace FeatureLogging
             OnPropertyChanged(nameof(UserNameValidation));
             OnPropertyChanged(nameof(UserLevelValidation));
             OnPropertyChanged(nameof(FeatureDescriptionValidation));
+            OnPropertyChanged(nameof(PhotoLastFeaturedOnHubValidation));
+            OnPropertyChanged(nameof(PhotoLastFeaturedPageValidation));
             OnPropertyChanged(nameof(LastFeaturedOnPageValidation));
             OnPropertyChanged(nameof(LastFeaturedOnHubValidation));
             OnPropertyChanged(nameof(LastFeaturedPageValidation));

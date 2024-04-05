@@ -929,7 +929,7 @@ struct FeatureUserRow: View {
     
     private func launchVeroScripts() {
         if user.photoFeaturedOnPage {
-            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured", 0) { }
+            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured on this page", 0) { }
             return
         }
         if user.tinEyeResults == .matchFound {
