@@ -97,5 +97,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.10",
+        "notes": [
+            {
+                "date": "Apr 5, 2024",
+                "notes": [
+                    "Added support for photo featured on hub, fixed the log format to use sorted keys."
+                ]
+            }
+        ]
     }
 ]

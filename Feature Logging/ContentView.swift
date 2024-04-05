@@ -32,14 +32,14 @@ struct ContentView: View {
     @State private var toastDuration = 3.0
     @State private var toastTapAction: () -> Void = {}
     @State private var isShowingToast = false
-    @State private var overUser: FeatureUser? = nil
+    @State private var hoveredFeature: Feature? = nil
     @State private var loadedPages = [LoadedPage]()
     private var loadedPage: LoadedPage? {
         loadedPages.first(where: { $0.id == page })
     }
-    @State private var featureUsersViewModel = FeatureUsersViewModel()
-    @State private var sortedFeatures = [FeatureUser]()
-    @State private var selectedFeature: FeatureUser? = nil
+    @State private var featuresViewModel = FeaturesViewModel()
+    @State private var sortedFeatures = [Feature]()
+    @State private var selectedFeature: Feature? = nil
     @State private var showFileImporter = false
     @State private var showFileExporter = false
     @State private var logDocument = LogDocument()
@@ -71,13 +71,13 @@ struct ContentView: View {
                 // Page picker
                 HStack(alignment: .center) {
                     Text("Page:")
-                        .frame(width: 80, alignment: .trailing)
+                        .frame(width: 108, alignment: .trailing)
                     Picker("", selection: $page.onChange { value in
                         UserDefaults.standard.set(page, forKey: "Page")
                         logURL = nil
                         selectedFeature = nil
-                        featureUsersViewModel = FeatureUsersViewModel()
-                        sortedFeatures = featureUsersViewModel.sortedFeatures
+                        featuresViewModel = FeaturesViewModel()
+                        sortedFeatures = featuresViewModel.sortedFeatures
                     }) {
                         ForEach(loadedPages) { page in
                             if page.name != "default" {
@@ -139,32 +139,34 @@ struct ContentView: View {
                     .focusable()
                 }
                 
+                // Feature editor
                 VStack {
-                    if let currentUser = selectedFeature {
-                        FeatureEditor(user: currentUser, loadedPage: loadedPage, close: {
+                    if let currentFeature = selectedFeature {
+                        FeatureEditor(feature: currentFeature, loadedPage: loadedPage, close: {
                             selectedFeature = nil
                         }, updateList: {
-                            sortedFeatures = featureUsersViewModel.sortedFeatures
+                            sortedFeatures = featuresViewModel.sortedFeatures
                         }, showToast: showToast)
                     } else {
                         Spacer()
                     }
                 }
-                .frame(height: 370)
+                .frame(height: 380)
 
+                // Feature list buttons
                 HStack {
                     Spacer()
                     
                     Button(action: {
-                        let user = FeatureUser()
+                        let feature = Feature()
                         let linkText = pasteFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
                         if linkText.starts(with: "https://vero.co/") {
-                            user.postLink = linkText
-                            user.userAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
+                            feature.postLink = linkText
+                            feature.userAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
                         }
-                        featureUsersViewModel.features.append(user)
-                        sortedFeatures = featureUsersViewModel.sortedFeatures
-                        selectedFeature = user
+                        featuresViewModel.features.append(feature)
+                        sortedFeatures = featuresViewModel.sortedFeatures
+                        selectedFeature = feature
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "person.fill.badge.plus")
@@ -178,17 +180,16 @@ struct ContentView: View {
                         .frame(width: 16)
                     
                     Button(action: {
-                        if let currentUser = selectedFeature {
+                        if let currentFeature = selectedFeature {
                             selectedFeature = nil
-                            featureUsersViewModel.features.removeAll(where: { $0.id == currentUser.id })
-                            sortedFeatures = featureUsersViewModel.sortedFeatures
+                            featuresViewModel.features.removeAll(where: { $0.id == currentFeature.id })
+                            sortedFeatures = featuresViewModel.sortedFeatures
                         }
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "person.fill.badge.minus")
                                 .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
                             Text("Remove feature")
-                                //.foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
                         }
                     }
                     .disabled(isAnyToastShowing || selectedFeature == nil)
@@ -198,45 +199,46 @@ struct ContentView: View {
                     
                     Button(action: {
                         selectedFeature = nil
-                        featureUsersViewModel = FeatureUsersViewModel()
-                        sortedFeatures = featureUsersViewModel.sortedFeatures
+                        featuresViewModel = FeaturesViewModel()
+                        sortedFeatures = featuresViewModel.sortedFeatures
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "trash")
                                 .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
                             Text("Remove all")
-                                //.foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
                         }
                     }
-                    .disabled(isAnyToastShowing || featureUsersViewModel.features.isEmpty)
+                    .disabled(isAnyToastShowing || featuresViewModel.features.isEmpty)
                 }
+
+                // Feature list
                 ScrollViewReader { proxy in
                     List {
-                        ForEach(sortedFeatures, id: \.self) { user in
-                            FeatureUserRow(user: user, loadedPage: loadedPage!, showToast: showToast)
+                        ForEach(sortedFeatures, id: \.self) { feature in
+                            FeatureListRow(feature: feature, loadedPage: loadedPage!, showToast: showToast)
                             .padding([.top, .bottom], 8)
                             .padding([.leading, .trailing])
-                            .foregroundStyle(Color(nsColor: overUser == user 
+                            .foregroundStyle(Color(nsColor: hoveredFeature == feature
                                                    ? NSColor.selectedControlTextColor
                                                    : NSColor.labelColor), Color(nsColor: .labelColor))
-                            .background(overUser == user
+                            .background(hoveredFeature == feature
                                         ? Color.BackgroundColorListHover
-                                        : selectedFeature == user
+                                        : selectedFeature == feature
                                         ? Color.BackgroundColorListSelected
                                         : Color.BackgroundColorList)
                             .cornerRadius(4)
                             .onHover(perform: { hovering in
-                                if overUser == user {
+                                if hoveredFeature == feature {
                                     if !hovering {
-                                        overUser = nil
+                                        hoveredFeature = nil
                                     }
                                 } else if hovering {
-                                    overUser = user
+                                    hoveredFeature = feature
                                 }
                             })
                             .onTapGesture {
                                 withAnimation {
-                                    selectedFeature = user
+                                    selectedFeature = feature
                                 }
                             }
                         }
@@ -284,7 +286,7 @@ struct ContentView: View {
                 .disabled(isAnyToastShowing || loadedPage == nil)
 
                 Button(action: {
-                    logDocument = LogDocument(page: loadedPage!, featureUsers: featureUsersViewModel.features)
+                    logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
                     if let file = logURL {
                         saveLog(to: file)
                     } else {
@@ -358,14 +360,14 @@ struct ContentView: View {
         .onChange(of: commandModel.newLog) {
             logURL = nil
             selectedFeature = nil
-            featureUsersViewModel = FeatureUsersViewModel()
-            sortedFeatures = featureUsersViewModel.sortedFeatures
+            featuresViewModel = FeaturesViewModel()
+            sortedFeatures = featuresViewModel.sortedFeatures
         }
         .onChange(of: commandModel.openLog) {
             showFileImporter.toggle()
         }
         .onChange(of: commandModel.saveLog) {
-            logDocument = LogDocument(page: loadedPage!, featureUsers: featureUsersViewModel.features)
+            logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
             if let file = logURL {
                 saveLog(to: file)
             } else {
@@ -535,14 +537,15 @@ struct ContentView: View {
 
         let fileContents = FileManager.default.contents(atPath: file.path)
         if let json = fileContents {
-            let jsonString = String(String(decoding: json, as: UTF8.self)).replacingOccurrences(of: "\\/\\/.*", with: "", options: .regularExpression)
+            let jsonString = String(String(decoding: json, as: UTF8.self))
             do {
                 let decoder = JSONDecoder()
                 let loadedLog = try decoder.decode(Log.self, from: jsonString.data(using: .utf8)!)
                 if let loadedPage = loadedPages.first(where: { $0.id == loadedLog.page }) {
+                    selectedFeature = nil
                     page = loadedPage.id
-                    featureUsersViewModel.features = loadedLog.getFeatureUsers()
-                    sortedFeatures = featureUsersViewModel.sortedFeatures
+                    featuresViewModel.features = loadedLog.getFeatures()
+                    sortedFeatures = featuresViewModel.sortedFeatures
                 }
                 logURL = file
             } catch {
@@ -561,7 +564,7 @@ struct ContentView: View {
         }
 
         do {
-            let jsonData = Data(logDocument.text.utf8)
+            let jsonData = Data(logDocument.text.replacingOccurrences(of: "\\/", with: "/").utf8)
             try jsonData.write(to: file)
         } catch {
             debugPrint(error)
@@ -577,25 +580,25 @@ struct ContentView: View {
             lines.append("Picks for #\(loadedPage!.displayName) / #click_community / #click_hub")
             lines.append("")
             var wasLastItemPicked = true
-            for featureUser in sortedFeatures {
-                var isPicked = featureUser.isPicked
+            for feature in sortedFeatures {
+                var isPicked = feature.isPicked
                 var indent = ""
                 var prefix = ""
-                if featureUser.photoFeaturedOnPage {
+                if feature.photoFeaturedOnPage {
                     prefix = "[already featured] "
                     indent = "    "
                     isPicked = false
-                } else if featureUser.tooSoonToFeatureUser {
+                } else if feature.tooSoonToFeatureUser {
                     prefix = "[too soon] "
                     indent = "    "
                     isPicked = false
-                } else if featureUser.tinEyeResults == .matchFound {
+                } else if feature.tinEyeResults == .matchFound {
                     prefix = "[tineye match] "
                     indent = "    "
-                } else if featureUser.aiCheckResults == .ai {
+                } else if feature.aiCheckResults == .ai {
                     prefix = "[AI] "
                     indent = "    "
-                } else if !featureUser.isPicked {
+                } else if !feature.isPicked {
                     prefix = "[not picked] "
                     indent = "    "
                 }
@@ -604,22 +607,24 @@ struct ContentView: View {
                     lines.append("")
                 }
                 wasLastItemPicked = isPicked
-                lines.append("\(indent)\(prefix)\(featureUser.postLink)")
-                lines.append("\(indent)user - \(featureUser.userName) @\(featureUser.userAlias)")
-                lines.append("\(indent)member level - \(featureUser.userLevel)")
-                if featureUser.userHasFeaturesOnPage {
-                    lines.append("\(indent)last feature on page - \(featureUser.lastFeaturedOnPage) (features on page \(featureUser.featureCountOnPage))")
+                lines.append("\(indent)\(prefix)\(feature.postLink)")
+                lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
+                lines.append("\(indent)member level - \(feature.userLevel)")
+                if feature.userHasFeaturesOnPage {
+                    lines.append("\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage))")
                 } else {
                     lines.append("\(indent)last feature on page - never (features on page 0)")
                 }
-                if featureUser.userHasFeaturesOnHub {
-                    lines.append("\(indent)last feature - \(featureUser.lastFeaturedOnHub) \(featureUser.lastFeaturedPage) (features \(featureUser.featureCountOnHub))")
+                if feature.userHasFeaturesOnHub {
+                    lines.append("\(indent)last feature - \(feature.lastFeaturedOnHub) \(feature.lastFeaturedPage) (features \(feature.featureCountOnHub))")
                 } else {
                     lines.append("\(indent)last feature - never (features 0)")
                 }
-                lines.append("\(indent)feature - \(featureUser.featureDescription), featured - \(featureUser.photoFeaturedOnPage ? "YES" : "no")")
-                lines.append("\(indent)teammate - \(featureUser.userIsTeammate ? "yes" : "no")")
-                switch featureUser.tagSource {
+                let photoFeaturedOnPage = feature.photoFeaturedOnPage ? "YES" : "no"
+                let photoFeaturedOnHub = feature.photoFeaturedOnHub ? "\(feature.photoLastFeaturedOnHub) \(feature.photoLastFeaturedPage)" : "no"
+                lines.append("\(indent)feature - \(feature.featureDescription), featured on page - \(photoFeaturedOnPage), featured on hub - \(photoFeaturedOnHub)")
+                lines.append("\(indent)teammate - \(feature.userIsTeammate ? "yes" : "no")")
+                switch feature.tagSource {
                 case .commonPageTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
                     break;
@@ -633,15 +638,15 @@ struct ContentView: View {
                     lines.append("\(indent)hashtag = other")
                     break;
                 }
-                lines.append("\(indent)tineye: \(featureUser.tinEyeResults)")
-                lines.append("\(indent)ai check: \(featureUser.aiCheckResults)")
+                lines.append("\(indent)tineye: \(feature.tinEyeResults)")
+                lines.append("\(indent)ai check: \(feature.aiCheckResults)")
                 lines.append("")
                 
                 if isPicked {
-                    if featureUser.userHasFeaturesOnPage {
-                        personalLines.append("🎉💫 Congratulations on your @\(loadedPage!.displayName) feature \(featureUser.userName) @\(featureUser.userAlias), [PERSONALIZED MESSAGE]")
+                    if feature.userHasFeaturesOnPage {
+                        personalLines.append("🎉💫 Congratulations on your @\(loadedPage!.displayName) feature \(feature.userName) @\(feature.userAlias), [PERSONALIZED MESSAGE]")
                     } else {
-                        personalLines.append("🎉💫 Congratulations on your first @\(loadedPage!.displayName) feature \(featureUser.userName) @\(featureUser.userAlias), [PERSONALIZED MESSAGE]")
+                        personalLines.append("🎉💫 Congratulations on your first @\(loadedPage!.displayName) feature \(feature.userName) @\(feature.userAlias), [PERSONALIZED MESSAGE]")
                     }
                 }
             }
@@ -649,25 +654,25 @@ struct ContentView: View {
             lines.append("Picks for #\(loadedPage!.displayName)")
             lines.append("")
             var wasLastItemPicked = true
-            for featureUser in sortedFeatures {
-                var isPicked = featureUser.isPicked
+            for feature in sortedFeatures {
+                var isPicked = feature.isPicked
                 var indent = ""
                 var prefix = ""
-                if featureUser.photoFeaturedOnPage {
+                if feature.photoFeaturedOnPage {
                     prefix = "[already featured] "
                     indent = "    "
                     isPicked = false
-                } else if featureUser.tooSoonToFeatureUser {
+                } else if feature.tooSoonToFeatureUser {
                     prefix = "[too soon] "
                     indent = "    "
                     isPicked = false
-                } else if featureUser.tinEyeResults == .matchFound {
+                } else if feature.tinEyeResults == .matchFound {
                     prefix = "[tineye match] "
                     indent = "    "
-                } else if featureUser.aiCheckResults == .ai {
+                } else if feature.aiCheckResults == .ai {
                     prefix = "[AI] "
                     indent = "    "
-                } else if !featureUser.isPicked {
+                } else if !feature.isPicked {
                     prefix = "[not picked] "
                     indent = "    "
                 }
@@ -676,22 +681,24 @@ struct ContentView: View {
                     lines.append("")
                 }
                 wasLastItemPicked = isPicked
-                lines.append("\(indent)\(prefix)\(featureUser.postLink)")
-                lines.append("\(indent)user - \(featureUser.userName) @\(featureUser.userAlias)")
-                lines.append("\(indent)member level - \(featureUser.userLevel)")
-                if featureUser.userHasFeaturesOnPage {
-                    lines.append("\(indent)last feature on page - \(featureUser.lastFeaturedOnPage) (features on page \(featureUser.featureCountOnPage) Snap + \(featureUser.featureCountOnRawPage) RAW)")
+                lines.append("\(indent)\(prefix)\(feature.postLink)")
+                lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
+                lines.append("\(indent)member level - \(feature.userLevel)")
+                if feature.userHasFeaturesOnPage {
+                    lines.append("\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage) Snap + \(feature.featureCountOnRawPage) RAW)")
                 } else {
                     lines.append("\(indent)last feature on page - never (features on page 0 Snap + 0 RAW)")
                 }
-                if featureUser.userHasFeaturesOnHub {
-                    lines.append("\(indent)last feature - \(featureUser.lastFeaturedOnHub) \(featureUser.lastFeaturedPage) (features \(featureUser.featureCountOnHub) Snap + \(featureUser.featureCountOnRawHub) RAW)")
+                if feature.userHasFeaturesOnHub {
+                    lines.append("\(indent)last feature - \(feature.lastFeaturedOnHub) \(feature.lastFeaturedPage) (features \(feature.featureCountOnHub) Snap + \(feature.featureCountOnRawHub) RAW)")
                 } else {
                     lines.append("\(indent)last feature - never (features 0 Snap + 0 RAW)")
                 }
-                lines.append("\(indent)feature - \(featureUser.featureDescription), featured - \(featureUser.photoFeaturedOnPage ? "YES" : "no")")
-                lines.append("\(indent)teammate - \(featureUser.userIsTeammate ? "yes" : "no")")
-                switch featureUser.tagSource {
+                let photoFeaturedOnPage = feature.photoFeaturedOnPage ? "YES" : "no"
+                let photoFeaturedOnHub = feature.photoFeaturedOnHub ? "\(feature.photoLastFeaturedOnHub) \(feature.photoLastFeaturedPage)" : "no"
+                lines.append("\(indent)feature - \(feature.featureDescription), featured on page - \(photoFeaturedOnPage), featured on hub - \(photoFeaturedOnHub)")
+                lines.append("\(indent)teammate - \(feature.userIsTeammate ? "yes" : "no")")
+                switch feature.tagSource {
                 case .commonPageTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
                     break;
@@ -708,15 +715,15 @@ struct ContentView: View {
                     lines.append("\(indent)hashtag = other")
                     break;
                 }
-                lines.append("\(indent)tineye: \(featureUser.tinEyeResults)")
-                lines.append("\(indent)ai check: \(featureUser.aiCheckResults)")
+                lines.append("\(indent)tineye: \(feature.tinEyeResults)")
+                lines.append("\(indent)ai check: \(feature.aiCheckResults)")
                 lines.append("")
 
                 if isPicked {
-                    if featureUser.userHasFeaturesOnPage {
-                        personalLines.append("🎉💫 Congratulations on this feature \(featureUser.userName) @\(featureUser.userAlias), [PERSONALIZED MESSAGE]")
+                    if feature.userHasFeaturesOnPage {
+                        personalLines.append("🎉💫 Congratulations on this feature \(feature.userName) @\(feature.userAlias), [PERSONALIZED MESSAGE]")
                     } else {
-                        personalLines.append("🎉💫 Congratulations on your first @\(loadedPage!.displayName) feature \(featureUser.userName) @\(featureUser.userAlias), [PERSONALIZED MESSAGE]")
+                        personalLines.append("🎉💫 Congratulations on your first @\(loadedPage!.displayName) feature \(feature.userName) @\(feature.userAlias), [PERSONALIZED MESSAGE]")
                     }
                 }
             }
@@ -724,27 +731,27 @@ struct ContentView: View {
             lines.append("Picks for #\(loadedPage!.displayName)")
             lines.append("")
             var wasLastItemPicked = true
-            for featureUser in sortedFeatures {
-                var isPicked = featureUser.isPicked
+            for feature in sortedFeatures {
+                var isPicked = feature.isPicked
                 var indent = ""
                 var prefix = ""
-                if featureUser.photoFeaturedOnPage {
+                if feature.photoFeaturedOnPage {
                     prefix = "[already featured] "
                     indent = "    "
                     isPicked = false
-                } else if featureUser.tooSoonToFeatureUser {
+                } else if feature.tooSoonToFeatureUser {
                     prefix = "[too soon] "
                     indent = "    "
                     isPicked = false
-                } else if featureUser.tinEyeResults == .matchFound {
+                } else if feature.tinEyeResults == .matchFound {
                     prefix = "[tineye match] "
                     indent = "    "
                     isPicked = false
-                } else if featureUser.aiCheckResults == .ai {
+                } else if feature.aiCheckResults == .ai {
                     prefix = "[AI] "
                     indent = "    "
                     isPicked = false
-                } else if !featureUser.isPicked {
+                } else if !feature.isPicked {
                     prefix = "[not picked] "
                     indent = "    "
                     isPicked = false
@@ -754,12 +761,13 @@ struct ContentView: View {
                     lines.append("")
                 }
                 wasLastItemPicked = isPicked
-                lines.append("\(indent)\(prefix)\(featureUser.postLink)")
-                lines.append("\(indent)user - \(featureUser.userName) @\(featureUser.userAlias)")
-                lines.append("\(indent)member level - \(featureUser.userLevel)")
-                lines.append("\(indent)feature - \(featureUser.featureDescription), featured - \(featureUser.photoFeaturedOnPage ? "YES" : "no")")
-                lines.append("\(indent)teammate - \(featureUser.userIsTeammate ? "yes" : "no")")
-                switch featureUser.tagSource {
+                lines.append("\(indent)\(prefix)\(feature.postLink)")
+                lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
+                lines.append("\(indent)member level - \(feature.userLevel)")
+                let photoFeaturedOnPage = feature.photoFeaturedOnPage ? "YES" : "no"
+                lines.append("\(indent)feature - \(feature.featureDescription), featured on page - \(photoFeaturedOnPage)")
+                lines.append("\(indent)teammate - \(feature.userIsTeammate ? "yes" : "no")")
+                switch feature.tagSource {
                 case .commonPageTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
                     break;
@@ -767,8 +775,8 @@ struct ContentView: View {
                     lines.append("\(indent)hashtag = other")
                     break;
                 }
-                lines.append("\(indent)tineye - \(featureUser.tinEyeResults)")
-                lines.append("\(indent)ai check - \(featureUser.aiCheckResults)")
+                lines.append("\(indent)tineye - \(feature.tinEyeResults)")
+                lines.append("\(indent)ai check - \(feature.aiCheckResults)")
                 lines.append("")
             }
         }
@@ -801,14 +809,14 @@ struct ContentView: View {
     return ContentView(localAppState)
 }
 
-struct FeatureUserRow: View {
+struct FeatureListRow: View {
     // SHARED FEATURE
     @AppStorage(
         "feature",
         store: UserDefaults(suiteName: "group.com.andydragon.VeroTools")
     ) var sharedFeature = ""
 
-    @ObservedObject var user: FeatureUser
+    @ObservedObject var feature: Feature
     var loadedPage: LoadedPage
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
     @State var userName: String = ""
@@ -818,31 +826,31 @@ struct FeatureUserRow: View {
     
     var body: some View {
         HStack(alignment: .center) {
-            if user.photoFeaturedOnPage {
+            if feature.photoFeaturedOnPage {
                 Image(systemName: "exclamationmark.octagon.fill")
                     .foregroundColor(.red)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
                     .help("Photo is already featured on this page")
-            } else if user.tooSoonToFeatureUser {
+            } else if feature.tooSoonToFeatureUser {
                 Image(systemName: "stopwatch.fill")
                     .foregroundColor(.red)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
                     .help("Too soon to feature this user")
-            } else if user.tinEyeResults == .matchFound {
+            } else if feature.tinEyeResults == .matchFound {
                 Image(systemName: "eye.trianglebadge.exclamationmark")
                     .foregroundColor(.red)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
                     .help("TinEye matches found, possibly stolen photo")
-            } else if user.aiCheckResults == .ai {
+            } else if feature.aiCheckResults == .ai {
                 Image(systemName: "gear.badge.xmark")
                     .foregroundColor(.red)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
                     .help("AI check verdict is image is AI generated")
-            } else if user.isPicked {
+            } else if feature.isPicked {
                 Image(systemName: "star.fill")
                     .foregroundColor(.green)
                     .font(.system(size: 20))
@@ -907,51 +915,51 @@ struct FeatureUserRow: View {
                 }
             }
         }
-        .onChange(of: user, initial: true) {
-            userName = user.userName
-            userAlias = user.userAlias
-            featureDescription = user.featureDescription
-            postLink = user.postLink
+        .onChange(of: feature, initial: true) {
+            userName = feature.userName
+            userAlias = feature.userAlias
+            featureDescription = feature.featureDescription
+            postLink = feature.postLink
         }
-        .onChange(of: user.userName) {
-            userName = user.userName
+        .onChange(of: feature.userName) {
+            userName = feature.userName
         }
-        .onChange(of: user.userAlias) {
-            userAlias = user.userAlias
+        .onChange(of: feature.userAlias) {
+            userAlias = feature.userAlias
         }
-        .onChange(of: user.featureDescription) {
-            featureDescription = user.featureDescription
+        .onChange(of: feature.featureDescription) {
+            featureDescription = feature.featureDescription
         }
-        .onChange(of: user.postLink) {
-            postLink = user.postLink
+        .onChange(of: feature.postLink) {
+            postLink = feature.postLink
         }
     }
     
     private func launchVeroScripts() {
-        if user.photoFeaturedOnPage {
+        if feature.photoFeaturedOnPage {
             showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured on this page", 0) { }
             return
         }
-        if user.tinEyeResults == .matchFound {
+        if feature.tinEyeResults == .matchFound {
             showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo had a TinEye match", 0) { }
             return
         }
-        if user.aiCheckResults == .ai {
+        if feature.aiCheckResults == .ai {
             showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo was flagged as AI", 0) { }
             return
         }
-        if user.tooSoonToFeatureUser {
+        if feature.tooSoonToFeatureUser {
             showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "The user has been featured too recently", 0) { }
             return
         }
-        if !user.isPicked {
+        if !feature.isPicked {
             showToast(.systemImage("exclamationmark.triangle.fill", .yellow), "Should not feature photo", "The photo is not marked as picked, mark the photo as picked and try again", 0) { }
             return
         }
         do {
             // Encode the feature for Vero Scripts and copy to the clipboard
             let encoder = JSONEncoder()
-            let json = try encoder.encode(CodableFeatureUser(using: loadedPage, from: user))
+            let json = try encoder.encode(CodableFeature(using: loadedPage, from: feature))
             let jsonString = String(decoding: json, as: UTF8.self)
             copyToClipboard(jsonString)
             

@@ -156,7 +156,7 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
 enum TinEyeResults: String, CaseIterable, Identifiable, Codable {
     case zeroMatches = "0 matches",
          noMatches = "no matches",
-         matchFound = "found match"
+         matchFound = "matches found"
     
     var id: Self { self }
 }
@@ -232,15 +232,15 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
     }
 }
 
-class FeatureUsersViewModel: ObservableObject  {
-    @Published var features = [FeatureUser]()
-    var sortedFeatures: [FeatureUser] {
-        return features.sorted(by: compareUsers)
+class FeaturesViewModel: ObservableObject  {
+    @Published var features = [Feature]()
+    var sortedFeatures: [Feature] {
+        return features.sorted(by: compareFeatures)
     }
 
     init() {}
     
-    private func compareUsers(_ lhs: FeatureUser, _ rhs: FeatureUser) -> Bool {
+    private func compareFeatures(_ lhs: Feature, _ rhs: Feature) -> Bool {
         if lhs.photoFeaturedOnPage && rhs.photoFeaturedOnPage {
             return lhs.userName < rhs.userName
         }
@@ -308,6 +308,9 @@ struct LogFeature: Codable {
     var userIsTeammate: Bool
     var tagSource: TagSourceCase
     var photoFeaturedOnPage: Bool
+    var photoFeaturedOnHub: Bool
+    var photoLastFeaturedOnHub: String
+    var photoLastFeaturedPage: String
     var featureDescription: String
     var userHasFeaturesOnPage: Bool
     var lastFeaturedOnPage: String
@@ -322,28 +325,114 @@ struct LogFeature: Codable {
     var tinEyeResults: TinEyeResults
     var aiCheckResults: AiCheckResults
     
-    init(featureUser: FeatureUser) {
-        self.isPicked = featureUser.isPicked
-        self.postLink = featureUser.postLink
-        self.userName = featureUser.userName
-        self.userAlias = featureUser.userAlias
-        self.userLevel = featureUser.userLevel
-        self.userIsTeammate = featureUser.userIsTeammate
-        self.tagSource = featureUser.tagSource
-        self.photoFeaturedOnPage = featureUser.photoFeaturedOnPage
-        self.featureDescription = featureUser.featureDescription
-        self.userHasFeaturesOnPage = featureUser.userHasFeaturesOnPage
-        self.lastFeaturedOnPage = featureUser.lastFeaturedOnPage
-        self.featureCountOnPage = featureUser.featureCountOnPage
-        self.featureCountOnRawPage = featureUser.featureCountOnRawPage
-        self.userHasFeaturesOnHub = featureUser.userHasFeaturesOnHub
-        self.lastFeaturedOnHub = featureUser.lastFeaturedOnHub
-        self.lastFeaturedPage = featureUser.lastFeaturedPage
-        self.featureCountOnHub = featureUser.featureCountOnHub
-        self.featureCountOnRawHub = featureUser.featureCountOnRawHub
-        self.tooSoonToFeatureUser = featureUser.tooSoonToFeatureUser
-        self.tinEyeResults = featureUser.tinEyeResults
-        self.aiCheckResults = featureUser.aiCheckResults
+    init(feature: Feature) {
+        self.isPicked = feature.isPicked
+        self.postLink = feature.postLink
+        self.userName = feature.userName
+        self.userAlias = feature.userAlias
+        self.userLevel = feature.userLevel
+        self.userIsTeammate = feature.userIsTeammate
+        self.tagSource = feature.tagSource
+        self.photoFeaturedOnPage = feature.photoFeaturedOnPage
+        self.photoFeaturedOnHub = feature.photoFeaturedOnHub
+        self.photoLastFeaturedOnHub = feature.photoLastFeaturedOnHub
+        self.photoLastFeaturedPage = feature.photoLastFeaturedPage
+        self.featureDescription = feature.featureDescription
+        self.userHasFeaturesOnPage = feature.userHasFeaturesOnPage
+        self.lastFeaturedOnPage = feature.lastFeaturedOnPage
+        self.featureCountOnPage = feature.featureCountOnPage
+        self.featureCountOnRawPage = feature.featureCountOnRawPage
+        self.userHasFeaturesOnHub = feature.userHasFeaturesOnHub
+        self.lastFeaturedOnHub = feature.lastFeaturedOnHub
+        self.lastFeaturedPage = feature.lastFeaturedPage
+        self.featureCountOnHub = feature.featureCountOnHub
+        self.featureCountOnRawHub = feature.featureCountOnRawHub
+        self.tooSoonToFeatureUser = feature.tooSoonToFeatureUser
+        self.tinEyeResults = feature.tinEyeResults
+        self.aiCheckResults = feature.aiCheckResults
+    }
+    
+    enum CodingKeys: CodingKey {
+        case isPicked
+        case postLink
+        case userName
+        case userAlias
+        case userLevel
+        case userIsTeammate
+        case tagSource
+        case photoFeaturedOnPage
+        case photoFeaturedOnHub
+        case photoLastFeaturedOnHub
+        case photoLastFeaturedPage
+        case featureDescription
+        case userHasFeaturesOnPage
+        case lastFeaturedOnPage
+        case featureCountOnPage
+        case featureCountOnRawPage
+        case userHasFeaturesOnHub
+        case lastFeaturedOnHub
+        case lastFeaturedPage
+        case featureCountOnHub
+        case featureCountOnRawHub
+        case tooSoonToFeatureUser
+        case tinEyeResults
+        case aiCheckResults
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.isPicked = try container.decode(Bool.self, forKey: .isPicked)
+        self.postLink = try container.decode(String.self, forKey: .postLink)
+        self.userName = try container.decode(String.self, forKey: .userName)
+        self.userAlias = try container.decode(String.self, forKey: .userAlias)
+        self.userLevel = try container.decode(MembershipCase.self, forKey: .userLevel)
+        self.userIsTeammate = try container.decode(Bool.self, forKey: .userIsTeammate)
+        self.tagSource = try container.decode(TagSourceCase.self, forKey: .tagSource)
+        self.photoFeaturedOnPage = try container.decode(Bool.self, forKey: .photoFeaturedOnPage)
+        self.photoFeaturedOnHub = try container.decodeIfPresent(Bool.self, forKey: .photoFeaturedOnHub) ?? false
+        self.photoLastFeaturedOnHub = try container.decodeIfPresent(String.self, forKey: .photoLastFeaturedOnHub) ?? ""
+        self.photoLastFeaturedPage = try container.decodeIfPresent(String.self, forKey: .photoLastFeaturedPage) ?? ""
+        self.featureDescription = try container.decode(String.self, forKey: .featureDescription)
+        self.userHasFeaturesOnPage = try container.decode(Bool.self, forKey: .userHasFeaturesOnPage)
+        self.lastFeaturedOnPage = try container.decode(String.self, forKey: .lastFeaturedOnPage)
+        self.featureCountOnPage = try container.decode(String.self, forKey: .featureCountOnPage)
+        self.featureCountOnRawPage = try container.decode(String.self, forKey: .featureCountOnRawPage)
+        self.userHasFeaturesOnHub = try container.decode(Bool.self, forKey: .userHasFeaturesOnHub)
+        self.lastFeaturedOnHub = try container.decode(String.self, forKey: .lastFeaturedOnHub)
+        self.lastFeaturedPage = try container.decode(String.self, forKey: .lastFeaturedPage)
+        self.featureCountOnHub = try container.decode(String.self, forKey: .featureCountOnHub)
+        self.featureCountOnRawHub = try container.decode(String.self, forKey: .featureCountOnRawHub)
+        self.tooSoonToFeatureUser = try container.decode(Bool.self, forKey: .tooSoonToFeatureUser)
+        self.tinEyeResults = try container.decode(TinEyeResults.self, forKey: .tinEyeResults)
+        self.aiCheckResults = try container.decode(AiCheckResults.self, forKey: .aiCheckResults)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(isPicked, forKey: .isPicked)
+        try container.encode(postLink, forKey: .postLink)
+        try container.encode(userName, forKey: .userName)
+        try container.encode(userAlias, forKey: .userAlias)
+        try container.encode(userLevel, forKey: .userLevel)
+        try container.encode(userIsTeammate, forKey: .userIsTeammate)
+        try container.encode(tagSource, forKey: .tagSource)
+        try container.encode(photoFeaturedOnPage, forKey: .photoFeaturedOnPage)
+        try container.encode(photoFeaturedOnHub, forKey: .photoFeaturedOnHub)
+        try container.encode(photoLastFeaturedOnHub, forKey: .photoLastFeaturedOnHub)
+        try container.encode(photoLastFeaturedPage, forKey: .photoLastFeaturedPage)
+        try container.encode(featureDescription, forKey: .featureDescription)
+        try container.encode(userHasFeaturesOnPage, forKey: .userHasFeaturesOnPage)
+        try container.encode(lastFeaturedOnPage, forKey: .lastFeaturedOnPage)
+        try container.encode(featureCountOnPage, forKey: .featureCountOnPage)
+        try container.encode(featureCountOnRawPage, forKey: .featureCountOnRawPage)
+        try container.encode(userHasFeaturesOnHub, forKey: .userHasFeaturesOnHub)
+        try container.encode(lastFeaturedOnHub, forKey: .lastFeaturedOnHub)
+        try container.encode(lastFeaturedPage, forKey: .lastFeaturedPage)
+        try container.encode(featureCountOnHub, forKey: .featureCountOnHub)
+        try container.encode(featureCountOnRawHub, forKey: .featureCountOnRawHub)
+        try container.encode(tooSoonToFeatureUser, forKey: .tooSoonToFeatureUser)
+        try container.encode(tinEyeResults, forKey: .tinEyeResults)
+        try container.encode(aiCheckResults, forKey: .aiCheckResults)
     }
 }
 
@@ -356,41 +445,61 @@ struct Log: Codable {
         features = [LogFeature]()
     }
     
-    init(page: LoadedPage, featureUsers: [FeatureUser]) {
+    init(page: LoadedPage, features: [Feature]) {
         self.page = page.id
-        self.features = featureUsers.map({ featureUser in
-            LogFeature(featureUser: featureUser)
+        self.features = features.map({ feature in
+            LogFeature(feature: feature)
         })
     }
     
-    func getFeatureUsers() -> [FeatureUser] {
-        var featureUsers = [FeatureUser]()
-        for feature in features {
-            let featureUser = FeatureUser()
-            featureUser.isPicked = feature.isPicked
-            featureUser.postLink = feature.postLink
-            featureUser.userName = feature.userName
-            featureUser.userAlias = feature.userAlias
-            featureUser.userLevel = feature.userLevel
-            featureUser.userIsTeammate = feature.userIsTeammate
-            featureUser.tagSource = feature.tagSource
-            featureUser.photoFeaturedOnPage = feature.photoFeaturedOnPage
-            featureUser.featureDescription = feature.featureDescription
-            featureUser.userHasFeaturesOnPage = feature.userHasFeaturesOnPage
-            featureUser.lastFeaturedOnPage = feature.lastFeaturedOnPage
-            featureUser.featureCountOnPage = feature.featureCountOnPage
-            featureUser.featureCountOnRawPage = feature.featureCountOnRawPage
-            featureUser.userHasFeaturesOnHub = feature.userHasFeaturesOnHub
-            featureUser.lastFeaturedOnHub = feature.lastFeaturedOnHub
-            featureUser.lastFeaturedPage = feature.lastFeaturedPage
-            featureUser.featureCountOnHub = feature.featureCountOnHub
-            featureUser.featureCountOnRawHub = feature.featureCountOnRawHub
-            featureUser.tooSoonToFeatureUser = feature.tooSoonToFeatureUser
-            featureUser.tinEyeResults = feature.tinEyeResults
-            featureUser.aiCheckResults = feature.aiCheckResults
-            featureUsers.append(featureUser)
+    enum CodingKeys: CodingKey {
+        case page
+        case features
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.page = try container.decode(String.self, forKey: .page)
+        self.features = try container.decode([LogFeature].self, forKey: .features)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(page, forKey: .page)
+        try container.encode(features, forKey: .features)
+    }
+    
+    func getFeatures() -> [Feature] {
+        var featuresFromLog = [Feature]()
+        for logFeature in features {
+            let feature = Feature()
+            feature.isPicked = logFeature.isPicked
+            feature.postLink = logFeature.postLink
+            feature.userName = logFeature.userName
+            feature.userAlias = logFeature.userAlias
+            feature.userLevel = logFeature.userLevel
+            feature.userIsTeammate = logFeature.userIsTeammate
+            feature.tagSource = logFeature.tagSource
+            feature.photoFeaturedOnPage = logFeature.photoFeaturedOnPage
+            feature.photoFeaturedOnHub = logFeature.photoFeaturedOnHub
+            feature.photoLastFeaturedOnHub = logFeature.photoLastFeaturedOnHub
+            feature.photoLastFeaturedPage = logFeature.photoLastFeaturedPage
+            feature.featureDescription = logFeature.featureDescription
+            feature.userHasFeaturesOnPage = logFeature.userHasFeaturesOnPage
+            feature.lastFeaturedOnPage = logFeature.lastFeaturedOnPage
+            feature.featureCountOnPage = logFeature.featureCountOnPage
+            feature.featureCountOnRawPage = logFeature.featureCountOnRawPage
+            feature.userHasFeaturesOnHub = logFeature.userHasFeaturesOnHub
+            feature.lastFeaturedOnHub = logFeature.lastFeaturedOnHub
+            feature.lastFeaturedPage = logFeature.lastFeaturedPage
+            feature.featureCountOnHub = logFeature.featureCountOnHub
+            feature.featureCountOnRawHub = logFeature.featureCountOnRawHub
+            feature.tooSoonToFeatureUser = logFeature.tooSoonToFeatureUser
+            feature.tinEyeResults = logFeature.tinEyeResults
+            feature.aiCheckResults = logFeature.aiCheckResults
+            featuresFromLog.append(feature)
         }
-        return featureUsers
+        return featuresFromLog
     }
 }
 
@@ -402,10 +511,11 @@ struct LogDocument: FileDocument {
         text = initialText
     }
 
-    init(page: LoadedPage, featureUsers: [FeatureUser]) {
-        let log = Log(page: page, featureUsers: featureUsers)
+    init(page: LoadedPage, features: [Feature]) {
+        let log = Log(page: page, features: features)
         do {
             let jsonEncoder = JSONEncoder()
+            jsonEncoder.outputFormatting = [.sortedKeys, .prettyPrinted]
             let json = try jsonEncoder.encode(log)
             text = String(decoding: json, as: UTF8.self)
         } catch {
@@ -425,7 +535,7 @@ struct LogDocument: FileDocument {
     }
 }
 
-class FeatureUser: Identifiable, Hashable, ObservableObject {
+class Feature: Identifiable, Hashable, ObservableObject {
     var id = UUID()
     @Published var isPicked = false
     @Published var postLink = ""
@@ -435,6 +545,9 @@ class FeatureUser: Identifiable, Hashable, ObservableObject {
     @Published var userIsTeammate = false
     @Published var tagSource = TagSourceCase.commonPageTag
     @Published var photoFeaturedOnPage = false
+    @Published var photoFeaturedOnHub = false
+    @Published var photoLastFeaturedOnHub = ""
+    @Published var photoLastFeaturedPage = ""
     @Published var featureDescription = ""
     @Published var userHasFeaturesOnPage = false
     @Published var lastFeaturedOnPage = ""
@@ -451,7 +564,7 @@ class FeatureUser: Identifiable, Hashable, ObservableObject {
     
     init() { }
     
-    static func == (lhs: FeatureUser, rhs: FeatureUser) -> Bool {
+    static func == (lhs: Feature, rhs: Feature) -> Bool {
         return lhs.id == rhs.id
     }
     
@@ -460,7 +573,7 @@ class FeatureUser: Identifiable, Hashable, ObservableObject {
     }
 }
 
-struct CodableFeatureUser: Codable {
+struct CodableFeature: Codable {
     var page: String
     var userName: String
     var userAlias: String
@@ -469,16 +582,16 @@ struct CodableFeatureUser: Codable {
     var firstFeature: Bool
     var newLevel: NewMembershipCase
     
-    init(using page: LoadedPage, from user: FeatureUser) {
+    init(using page: LoadedPage, from feature: Feature) {
         self.page = page.id;
-        self.userName = user.userName
-        self.userAlias = user.userAlias
-        self.userLevel = user.userLevel
-        self.tagSource = user.tagSource
-        self.firstFeature = !user.userHasFeaturesOnPage
+        self.userName = feature.userName
+        self.userAlias = feature.userAlias
+        self.userLevel = feature.userLevel
+        self.tagSource = feature.tagSource
+        self.firstFeature = !feature.userHasFeaturesOnPage
         self.newLevel = NewMembershipCase.none
         if page.hub == "click" {
-            let totalFeatures = Int(user.featureCountOnHub) ?? 0
+            let totalFeatures = Int(feature.featureCountOnHub) ?? 0
             if totalFeatures + 1 == 5 {
                 self.newLevel = NewMembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
@@ -491,13 +604,34 @@ struct CodableFeatureUser: Codable {
                 self.newLevel = NewMembershipCase.clickPlatinumMember
             }
         } else if page.hub == "snap" {
-            let totalFeatures = (Int(user.featureCountOnHub) ?? 0) + (Int(user.featureCountOnRawHub) ?? 0)
+            let totalFeatures = (Int(feature.featureCountOnHub) ?? 0) + (Int(feature.featureCountOnRawHub) ?? 0)
             if totalFeatures + 1 == 5 {
                 self.newLevel = NewMembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
                 self.newLevel = NewMembershipCase.snapVipMember
             }
         }
+    }
+    
+    enum CodingKeys: CodingKey {
+        case page
+        case userName
+        case userAlias
+        case userLevel
+        case tagSource
+        case firstFeature
+        case newLevel
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(page, forKey: .page)
+        try container.encode(userName, forKey: .userName)
+        try container.encode(userAlias, forKey: .userAlias)
+        try container.encode(userLevel, forKey: .userLevel)
+        try container.encode(tagSource, forKey: .tagSource)
+        try container.encode(firstFeature, forKey: .firstFeature)
+        try container.encode(newLevel, forKey: .newLevel)
     }
 }
 

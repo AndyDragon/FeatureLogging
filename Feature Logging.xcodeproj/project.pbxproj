@@ -20,6 +20,7 @@
 		49D8280B2BB7327000153786 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D8280A2BB7327000153786 /* ContentView.swift */; };
 		49D8280D2BB7327200153786 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49D8280C2BB7327200153786 /* Assets.xcassets */; };
 		49D828102BB7327200153786 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49D8280F2BB7327200153786 /* Preview Assets.xcassets */; };
+		49EBB9D52BC0944300D2AE04 /* ValidationLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EBB9D42BC0944300D2AE04 /* ValidationLabel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		49D8280C2BB7327200153786 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		49D8280F2BB7327200153786 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		49D828112BB7327200153786 /* Feature_Logging.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Feature_Logging.entitlements; sourceTree = "<group>"; };
+		49EBB9D42BC0944300D2AE04 /* ValidationLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationLabel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +76,7 @@
 				49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */,
 				49D8280A2BB7327000153786 /* ContentView.swift */,
 				4930AB9C2BB74F1500C72CA9 /* FeatureEditor.swift */,
+				49EBB9D42BC0944300D2AE04 /* ValidationLabel.swift */,
 				4930AB8E2BB7348F00C72CA9 /* Helpers.swift */,
 				4930AB8D2BB7348F00C72CA9 /* Themes.swift */,
 				4930AB9A2BB73B3700C72CA9 /* ToastDismissShield.swift */,
@@ -175,6 +178,7 @@
 				49D8280B2BB7327000153786 /* ContentView.swift in Sources */,
 				4930AB9D2BB74F1500C72CA9 /* FeatureEditor.swift in Sources */,
 				4930AB912BB7348F00C72CA9 /* Themes.swift in Sources */,
+				49EBB9D52BC0944300D2AE04 /* ValidationLabel.swift in Sources */,
 				49D22C5B2BBC97BD005ECE84 /* SettingsPane.swift in Sources */,
 				4930AB902BB7348F00C72CA9 /* VersionCheckAppState.swift in Sources */,
 				4930AB932BB7348F00C72CA9 /* Types.swift in Sources */,
@@ -314,7 +318,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -345,7 +349,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
 				ENABLE_HARDENED_RUNTIME = YES;
