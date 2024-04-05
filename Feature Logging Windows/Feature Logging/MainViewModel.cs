@@ -2,6 +2,7 @@
 using MahApps.Metro.IconPacks;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Notification.Wpf;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -181,29 +182,7 @@ namespace FeatureLogging
                 {
                     if (!string.IsNullOrEmpty(lastFilename))
                     {
-                        try
-                        {
-                            Dictionary<string, dynamic> file = new()
-                            {
-                                ["page"] = SelectedPage.Id,
-                                ["features"] = Features
-                            };
-                            File.WriteAllText(lastFilename, JsonConvert.SerializeObject(file));
-                            notificationManager.Show(
-                                "Saved the feature log",
-                                $"Saved {Features.Count} features for the {SelectedPage.DisplayName} page",
-                                NotificationType.Success,
-                                areaName: "WindowArea",
-                                expirationTime: TimeSpan.FromSeconds(3));
-                        }
-                        catch (Exception ex)
-                        {
-                            notificationManager.Show(
-                                "Failed to save the feature log:",
-                                ex.Message,
-                                NotificationType.Error,
-                                areaName: "WindowArea");
-                        }
+                        SaveLog(lastFilename);
                     }
                     else
                     {
@@ -216,31 +195,40 @@ namespace FeatureLogging
                         };
                         if (dialog.ShowDialog() == true)
                         {
-                            try
-                            {
-                                Dictionary<string, dynamic> file = new()
-                                {
-                                    ["page"] = SelectedPage.Id,
-                                    ["features"] = Features
-                                };
-                                File.WriteAllText(dialog.FileName, JsonConvert.SerializeObject(file));
-                                lastFilename = dialog.FileName;
-                                notificationManager.Show(
-                                    "Saved the feature log",
-                                    $"Saved {Features.Count} features for the {SelectedPage.DisplayName} page",
-                                    NotificationType.Success,
-                                    areaName: "WindowArea",
-                                    expirationTime: TimeSpan.FromSeconds(3));
-                            }
-                            catch (Exception ex)
-                            {
-                                notificationManager.Show(
-                                    "Failed to save the feature log:",
-                                    ex.Message,
-                                    NotificationType.Error,
-                                    areaName: "WindowArea");
-                            }
+                            SaveLog(dialog.FileName);
                         }
+                    }
+                }
+
+                void SaveLog(string fileName)
+                {
+                    try
+                    {
+                        Dictionary<string, dynamic> file = new()
+                        {
+                            ["features"] = Features,
+                            ["page"] = SelectedPage.Id,
+                        };
+                        var jsonSettings = new JsonSerializerSettings
+                        {
+                            ContractResolver = new OrderedContractResolver(),
+                        };
+                        File.WriteAllText(fileName, JsonConvert.SerializeObject(file, Formatting.Indented, jsonSettings).Replace("\": ", "\" : "));
+                        lastFilename = fileName;
+                        notificationManager.Show(
+                            "Saved the feature log",
+                            $"Saved {Features.Count} features for the {SelectedPage.DisplayName} page",
+                            NotificationType.Success,
+                            areaName: "WindowArea",
+                            expirationTime: TimeSpan.FromSeconds(3));
+                    }
+                    catch (Exception ex)
+                    {
+                        notificationManager.Show(
+                            "Failed to save the feature log:",
+                            ex.Message,
+                            NotificationType.Error,
+                            areaName: "WindowArea");
                     }
                 }
             });
@@ -1152,7 +1140,7 @@ namespace FeatureLogging
             }
         }
 
-        private bool TrySetClipboardText(string text)
+        private static bool TrySetClipboardText(string text)
         {
             var retriesLeft = 9;
             while (retriesLeft != 0)
@@ -1728,6 +1716,19 @@ namespace FeatureLogging
             OnPropertyChanged(nameof(LastFeaturedOnPageValidation));
             OnPropertyChanged(nameof(LastFeaturedOnHubValidation));
             OnPropertyChanged(nameof(LastFeaturedPageValidation));
+        }
+    }
+
+    public class OrderedContractResolver : DefaultContractResolver
+    {
+        protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
+        {
+            var @base = base.CreateProperties(type, memberSerialization);
+            var ordered = @base
+                .OrderBy(p => p.Order ?? int.MaxValue)
+                .ThenBy(p => p.PropertyName)
+                .ToList();
+            return ordered;
         }
     }
 }
