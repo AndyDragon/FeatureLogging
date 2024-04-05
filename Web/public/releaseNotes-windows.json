@@ -9,5 +9,17 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.1",
+        "notes": [
+            {
+                "date": "April 5, 2024",
+                "notes": [
+                    "Fixed crash caused by copy to clipboard failure.",
+                    "Fixed visibility of copy feature tag buttons."
+                ]
+            }
+        ]
     }
 ]
