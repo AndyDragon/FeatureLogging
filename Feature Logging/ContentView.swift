@@ -92,42 +92,42 @@ struct ContentView: View {
                     Menu("Copy tag", systemImage: "tag.fill") {
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
-                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the page tag to the clipboard", duration: 3) { }
+                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the page tag to the clipboard", duration: 2) { }
                         }) {
                             Text("Page tag")
                         }
                         if loadedPage?.hub == "snap" {
                             Button(action: {
                                 copyToClipboard("\(includeHash ? "#" : "")raw_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW page tag to the clipboard", duration: 3) { }
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW page tag to the clipboard", duration: 2) { }
                             }) {
                                 Text("RAW page tag")
                             }
                         }
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_community")
-                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the community tag to the clipboard", duration: 3) { }
+                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the community tag to the clipboard", duration: 2) { }
                         }) {
                             Text("Community tag")
                         }
                         if loadedPage?.hub == "snap" {
                             Button(action: {
                                 copyToClipboard("\(includeHash ? "#" : "")raw_community")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW community tag to the clipboard", duration: 3) { }
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW community tag to the clipboard", duration: 2) { }
                             }) {
                                 Text("RAW community tag")
                             }
                         }
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_hub")
-                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the hub tag to the clipboard", duration: 3) { }
+                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the hub tag to the clipboard", duration: 2) { }
                         }) {
                             Text("Hub tag")
                         }
                         if loadedPage?.hub == "snap" {
                             Button(action: {
                                 copyToClipboard("\(includeHash ? "#" : "")raw_hub")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW hub tag to the clipboard", duration: 3) { }
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW hub tag to the clipboard", duration: 2) { }
                             }) {
                                 Text("RAW hub tag")
                             }
@@ -548,6 +548,11 @@ struct ContentView: View {
                     sortedFeatures = featuresViewModel.sortedFeatures
                 }
                 logURL = file
+                showToast(
+                    .complete(.green),
+                    "Loaded features",
+                    subTitle: "Loaded \(sortedFeatures.count) features from the log file",
+                    duration: 2)
             } catch {
                 debugPrint("Error parsing JSON: \(error.localizedDescription)")
             }
@@ -566,6 +571,11 @@ struct ContentView: View {
         do {
             let jsonData = Data(logDocument.text.replacingOccurrences(of: "\\/", with: "/").utf8)
             try jsonData.write(to: file)
+            showToast(
+                .complete(.green),
+                "Saved features",
+                subTitle: "Saved \(sortedFeatures.count) features to the log file",
+                duration: 2)
         } catch {
             debugPrint(error)
         }
@@ -788,7 +798,11 @@ struct ContentView: View {
             text = text + "\n---------------\n"
         }
         copyToClipboard(text)
-        showToast(.complete(.green), "Report generated!", subTitle: "Copied the report of features to the clipboard")
+        showToast(
+            .complete(.green),
+            "Report generated!",
+            subTitle: "Copied the report of features to the clipboard",
+            duration: 2)
     }
 }
 
@@ -973,7 +987,7 @@ struct FeatureListRow: View {
             configuration.arguments = []
             NSWorkspace.shared.openApplication(at: url, configuration: configuration)
             
-            showToast(.complete(.green), "Launched Vero Scripts", "The feature was copied to the clipboard", 3) { }
+            showToast(.complete(.green), "Launched Vero Scripts", "The feature was copied to the clipboard", 2) { }
         } catch {
             debugPrint(error)
         }

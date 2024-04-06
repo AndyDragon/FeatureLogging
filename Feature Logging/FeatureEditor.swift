@@ -328,7 +328,7 @@ struct FeatureEditor: View {
                         
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")click_\(selectedPage.name)_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the page feature tag for the user to the clipboard", 3) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the page feature tag for the user to the clipboard", 2) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
@@ -394,7 +394,7 @@ struct FeatureEditor: View {
                         
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")click_featured_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the hub feature tag for the user to the clipboard", 3) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the hub feature tag for the user to the clipboard", 2) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
@@ -465,7 +465,7 @@ struct FeatureEditor: View {
 
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")snap_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard", 3) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard", 2) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
@@ -477,7 +477,7 @@ struct FeatureEditor: View {
                         
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")raw_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard", 3) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard", 2) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
@@ -557,7 +557,7 @@ struct FeatureEditor: View {
 
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")snap_featured_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard", 3) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard", 2) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
@@ -569,7 +569,7 @@ struct FeatureEditor: View {
                         
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")raw_featured_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard", 3) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard", 2) { }
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
