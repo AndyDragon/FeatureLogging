@@ -324,6 +324,7 @@ struct LogFeature: Codable {
     var tooSoonToFeatureUser: Bool
     var tinEyeResults: TinEyeResults
     var aiCheckResults: AiCheckResults
+    var personalMessage: String
     
     init(feature: Feature) {
         self.isPicked = feature.isPicked
@@ -350,6 +351,7 @@ struct LogFeature: Codable {
         self.tooSoonToFeatureUser = feature.tooSoonToFeatureUser
         self.tinEyeResults = feature.tinEyeResults
         self.aiCheckResults = feature.aiCheckResults
+        self.personalMessage = feature.personalMessage
     }
     
     enum CodingKeys: CodingKey {
@@ -377,6 +379,7 @@ struct LogFeature: Codable {
         case tooSoonToFeatureUser
         case tinEyeResults
         case aiCheckResults
+        case personalMessage
     }
     
     init(from decoder: Decoder) throws {
@@ -405,6 +408,7 @@ struct LogFeature: Codable {
         self.tooSoonToFeatureUser = try container.decode(Bool.self, forKey: .tooSoonToFeatureUser)
         self.tinEyeResults = try container.decode(TinEyeResults.self, forKey: .tinEyeResults)
         self.aiCheckResults = try container.decode(AiCheckResults.self, forKey: .aiCheckResults)
+        self.personalMessage = try container.decodeIfPresent(String.self, forKey: .personalMessage) ?? ""
     }
 
     func encode(to encoder: Encoder) throws {
@@ -433,6 +437,7 @@ struct LogFeature: Codable {
         try container.encode(tooSoonToFeatureUser, forKey: .tooSoonToFeatureUser)
         try container.encode(tinEyeResults, forKey: .tinEyeResults)
         try container.encode(aiCheckResults, forKey: .aiCheckResults)
+        try container.encode(personalMessage, forKey: .personalMessage)
     }
 }
 
@@ -497,6 +502,7 @@ struct Log: Codable {
             feature.tooSoonToFeatureUser = logFeature.tooSoonToFeatureUser
             feature.tinEyeResults = logFeature.tinEyeResults
             feature.aiCheckResults = logFeature.aiCheckResults
+            feature.personalMessage = logFeature.personalMessage
             featuresFromLog.append(feature)
         }
         return featuresFromLog
@@ -535,6 +541,30 @@ struct LogDocument: FileDocument {
     }
 }
 
+extension UTType {
+    static let features = UTType(exportedAs: "com.andydragon.features-report", conformingTo: .plainText)
+}
+
+struct ReportDocument: FileDocument {
+    static var readableContentTypes = [UTType.features]
+    var text = ""
+    
+    init(initialText: String = "") {
+        text = initialText
+    }
+    
+    init(configuration: ReadConfiguration) throws {
+        if let data = configuration.file.regularFileContents {
+            text = String(decoding: data, as: UTF8.self)
+        }
+    }
+    
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        let data = Data(text.utf8)
+        return FileWrapper(regularFileWithContents: data)
+    }
+}
+
 class Feature: Identifiable, Hashable, ObservableObject {
     var id = UUID()
     @Published var isPicked = false
@@ -561,6 +591,11 @@ class Feature: Identifiable, Hashable, ObservableObject {
     @Published var tooSoonToFeatureUser = false
     @Published var tinEyeResults = TinEyeResults.zeroMatches
     @Published var aiCheckResults = AiCheckResults.human
+    @Published var personalMessage = ""
+    
+    var isPickedAndAllowed: Bool {
+        isPicked && !tooSoonToFeatureUser && !photoFeaturedOnPage && tinEyeResults != .matchFound && aiCheckResults != .ai
+    }
     
     init() { }
     
@@ -621,6 +656,17 @@ struct CodableFeature: Codable {
         case tagSource
         case firstFeature
         case newLevel
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.page = try container.decode(String.self, forKey: .page)
+        self.userName = try container.decode(String.self, forKey: .userName)
+        self.userAlias = try container.decode(String.self, forKey: .userAlias)
+        self.userLevel = try container.decode(MembershipCase.self, forKey: .userLevel)
+        self.tagSource = try container.decode(TagSourceCase.self, forKey: .tagSource)
+        self.firstFeature = try container.decode(Bool.self, forKey: .firstFeature)
+        self.newLevel = try container.decode(NewMembershipCase.self, forKey: .newLevel)
     }
     
     func encode(to encoder: Encoder) throws {

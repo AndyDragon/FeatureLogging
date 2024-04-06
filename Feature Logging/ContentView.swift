@@ -6,7 +6,12 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 import AlertToast
+
+enum FocusedField {
+    case pagePicker
+}
 
 struct ContentView: View {
     // THEME
@@ -21,7 +26,15 @@ struct ContentView: View {
         "preference_includehash",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var includeHash = false
-    
+    @AppStorage(
+        "preference_personalMessage",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var personalMessageFormat = "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+    @AppStorage(
+        "preference_personalMessageFirst",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+
     @EnvironmentObject var commandModel: AppCommandModel
 
     @Environment(\.openURL) private var openURL
@@ -44,6 +57,9 @@ struct ContentView: View {
     @State private var showFileExporter = false
     @State private var logDocument = LogDocument()
     @State private var logURL: URL? = nil
+    @State private var showReportFileExporter = false
+    @State private var reportDocument = ReportDocument()
+    @FocusState private var focusedField: FocusedField?
     private var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
         isShowingToast ||
@@ -89,6 +105,7 @@ struct ContentView: View {
                     .accentColor(Color.AccentColor)
                     .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                     .focusable()
+                    .focused($focusedField, equals: .pagePicker)
                     Menu("Copy tag", systemImage: "tag.fill") {
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
@@ -320,7 +337,7 @@ struct ContentView: View {
                 .disabled(isAnyToastShowing || loadedPage == nil)
 
                 Button(action: {
-                    generateReport()
+                    copyReportToClipboard()
                 }) {
                     HStack {
                         Image(systemName: "pencil.and.list.clipboard")
@@ -331,6 +348,38 @@ struct ContentView: View {
                     }
                     .padding(4)
                     .buttonStyle(.plain)
+                }
+                .disabled(isAnyToastShowing || loadedPage == nil)
+
+                Button(action: {
+                    reportDocument = ReportDocument(initialText: generateReport())
+                    showReportFileExporter.toggle()
+                }) {
+                    HStack {
+                        Image(systemName: "square.and.arrow.down.on.square")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Save report...")
+                            .font(.system(.body, design: .rounded).bold())
+                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                    }
+                    .padding(4)
+                    .buttonStyle(.plain)
+                }
+                .fileExporter(
+                    isPresented: $showReportFileExporter,
+                    document: reportDocument,
+                    contentType: UTType.features,
+                    defaultFilename: logURL != nil ? 
+                        "\(logURL!.deletingPathExtension().lastPathComponent).features" :
+                        "\(loadedPage?.hub ?? "hub")_\(loadedPage?.pageName ?? loadedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).features"
+                ) { result in
+                    switch result {
+                    case .success(let url):
+                        print("Saved to \(url)")
+                        logURL = url
+                    case .failure(let error):
+                        debugPrint(error)
+                    }
                 }
                 .disabled(isAnyToastShowing || loadedPage == nil)
 
@@ -430,6 +479,7 @@ struct ContentView: View {
             })
         .onAppear(perform: {
             setTheme(theme)
+            focusedField = .pagePicker
         })
         .task {
             do {
@@ -496,11 +546,13 @@ struct ContentView: View {
         duration: Int = 3,
         onTap: @escaping () -> Void = {}
     ) {
+        let savedfocusedField = focusedField
         withAnimation {
             toastType = type
             toastText = text
             toastSubTitle = subTitle
             toastTapAction = onTap
+            focusedField = nil
             isShowingToast.toggle()
         }
         
@@ -508,6 +560,7 @@ struct ContentView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(duration), execute: {
                 if (isShowingToast) {
                     isShowingToast.toggle()
+                    focusedField = savedfocusedField
                 }
             })
         }
@@ -583,11 +636,11 @@ struct ContentView: View {
         file.stopAccessingSecurityScopedResource()
     }
     
-    private func generateReport() {
+    private func generateReport() -> String {
         var lines = [String]()
         var personalLines = [String]()
         if loadedPage!.hub == "click" {
-            lines.append("Picks for #\(loadedPage!.displayName) / #click_community / #click_hub")
+            lines.append("Picks for #\(loadedPage!.displayName)")
             lines.append("")
             var wasLastItemPicked = true
             for feature in sortedFeatures {
@@ -619,7 +672,7 @@ struct ContentView: View {
                 wasLastItemPicked = isPicked
                 lines.append("\(indent)\(prefix)\(feature.postLink)")
                 lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
-                lines.append("\(indent)member level - \(feature.userLevel)")
+                lines.append("\(indent)member level - \(feature.userLevel.rawValue)")
                 if feature.userHasFeaturesOnPage {
                     lines.append("\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage))")
                 } else {
@@ -648,16 +701,20 @@ struct ContentView: View {
                     lines.append("\(indent)hashtag = other")
                     break;
                 }
-                lines.append("\(indent)tineye: \(feature.tinEyeResults)")
-                lines.append("\(indent)ai check: \(feature.aiCheckResults)")
+                lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
+                lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
                 lines.append("")
                 
                 if isPicked {
-                    if feature.userHasFeaturesOnPage {
-                        personalLines.append("🎉💫 Congratulations on your @\(loadedPage!.displayName) feature \(feature.userName) @\(feature.userAlias), [PERSONALIZED MESSAGE]")
-                    } else {
-                        personalLines.append("🎉💫 Congratulations on your first @\(loadedPage!.displayName) feature \(feature.userName) @\(feature.userAlias), [PERSONALIZED MESSAGE]")
-                    }
+                    let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
+                    let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
+                    let fullPersonalMessage = personalMessageTemplate
+                        .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage!.displayName)
+                        .replacingOccurrences(of: "%%HUBNAME%%", with: loadedPage!.hub)
+                        .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                        .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                        .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+                    personalLines.append(fullPersonalMessage)
                 }
             }
         } else if loadedPage!.hub == "snap" {
@@ -693,7 +750,7 @@ struct ContentView: View {
                 wasLastItemPicked = isPicked
                 lines.append("\(indent)\(prefix)\(feature.postLink)")
                 lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
-                lines.append("\(indent)member level - \(feature.userLevel)")
+                lines.append("\(indent)member level - \(feature.userLevel.rawValue)")
                 if feature.userHasFeaturesOnPage {
                     lines.append("\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage) Snap + \(feature.featureCountOnRawPage) RAW)")
                 } else {
@@ -725,16 +782,20 @@ struct ContentView: View {
                     lines.append("\(indent)hashtag = other")
                     break;
                 }
-                lines.append("\(indent)tineye: \(feature.tinEyeResults)")
-                lines.append("\(indent)ai check: \(feature.aiCheckResults)")
+                lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
+                lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
                 lines.append("")
-
+                
                 if isPicked {
-                    if feature.userHasFeaturesOnPage {
-                        personalLines.append("🎉💫 Congratulations on this feature \(feature.userName) @\(feature.userAlias), [PERSONALIZED MESSAGE]")
-                    } else {
-                        personalLines.append("🎉💫 Congratulations on your first @\(loadedPage!.displayName) feature \(feature.userName) @\(feature.userAlias), [PERSONALIZED MESSAGE]")
-                    }
+                    let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
+                    let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
+                    let fullPersonalMessage = personalMessageTemplate
+                        .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage!.displayName)
+                        .replacingOccurrences(of: "%%HUBNAME%%", with: loadedPage!.hub)
+                        .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                        .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                        .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+                    personalLines.append(fullPersonalMessage)
                 }
             }
         } else {
@@ -773,7 +834,7 @@ struct ContentView: View {
                 wasLastItemPicked = isPicked
                 lines.append("\(indent)\(prefix)\(feature.postLink)")
                 lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
-                lines.append("\(indent)member level - \(feature.userLevel)")
+                lines.append("\(indent)member level - \(feature.userLevel.rawValue)")
                 let photoFeaturedOnPage = feature.photoFeaturedOnPage ? "YES" : "no"
                 lines.append("\(indent)feature - \(feature.featureDescription), featured on page - \(photoFeaturedOnPage)")
                 lines.append("\(indent)teammate - \(feature.userIsTeammate ? "yes" : "no")")
@@ -785,9 +846,21 @@ struct ContentView: View {
                     lines.append("\(indent)hashtag = other")
                     break;
                 }
-                lines.append("\(indent)tineye - \(feature.tinEyeResults)")
-                lines.append("\(indent)ai check - \(feature.aiCheckResults)")
+                lines.append("\(indent)tineye - \(feature.tinEyeResults.rawValue)")
+                lines.append("\(indent)ai check - \(feature.aiCheckResults.rawValue)")
                 lines.append("")
+                
+                if isPicked {
+                    let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
+                    let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
+                    let fullPersonalMessage = personalMessageTemplate
+                        .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage!.displayName)
+                        .replacingOccurrences(of: "%%HUBNAME%%", with: "")
+                        .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                        .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                        .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+                    personalLines.append(fullPersonalMessage)
+                }
             }
         }
         var text = ""
@@ -797,6 +870,11 @@ struct ContentView: View {
             for line in personalLines { text = text + line + "\n" }
             text = text + "\n---------------\n"
         }
+        return text
+    }
+
+    private func copyReportToClipboard() {
+        let text = generateReport()
         copyToClipboard(text)
         showToast(
             .complete(.green),
@@ -833,11 +911,22 @@ struct FeatureListRow: View {
     @ObservedObject var feature: Feature
     var loadedPage: LoadedPage
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
-    @State var userName: String = ""
-    @State var userAlias: String = ""
-    @State var featureDescription: String = ""
-    @State var postLink: String = ""
     
+    @State var userName = ""
+    @State var userAlias = ""
+    @State var featureDescription = ""
+    @State var postLink = ""
+    @State var showingMessageEditor = false
+
+    @AppStorage(
+        "preference_personalMessage",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var personalMessageFormat = "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+    @AppStorage(
+        "preference_personalMessageFirst",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+
     var body: some View {
         HStack(alignment: .center) {
             if feature.photoFeaturedOnPage {
@@ -912,11 +1001,28 @@ struct FeatureListRow: View {
                     
                     Spacer()
                     
+                    if feature.isPickedAndAllowed {
+                        Button(action: {
+                            showingMessageEditor.toggle()
+                        }) {
+                            HStack(alignment: .center) {
+                                Image(systemName: "square.and.pencil.circle")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                Text("Edit personal message")
+                            }
+                        }
+                        .disabled(!feature.isPickedAndAllowed)
+                        
+                        Spacer()
+                            .frame(width: 8)
+                    }
+                    
                     Button(action: {
                         launchVeroScripts()
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                             Text("Open Vero Scripts")
                         }
                     }
@@ -928,6 +1034,66 @@ struct FeatureListRow: View {
                     Spacer()
                 }
             }
+            .sheet(isPresented: $showingMessageEditor, content: {
+                ZStack {
+                    Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+                    
+                    VStack(alignment: .leading)  {
+                        Text("Person message for feature:  \(feature.userName) - \(feature.featureDescription)")
+                        
+                        Spacer()
+                            .frame(height: 8)
+                        
+                        HStack(alignment: .center) {
+                            Text("Personal message (from your account): ")
+                            TextField("", text: $feature.personalMessage)
+                                .focusable()
+                                .autocorrectionDisabled(false)
+                                .textFieldStyle(.plain)
+                                .padding(4)
+                                .background(Color.BackgroundColorEditor)
+                                .border(Color.gray.opacity(0.25))
+                                .cornerRadius(4)
+                        }
+                        
+                        Spacer()
+                        
+                        HStack(alignment: .center)  {
+                            Spacer()
+                            Button(action: {
+                                let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
+                                let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
+                                let fullPersonalMessage = personalMessageTemplate
+                                    .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage.displayName)
+                                    .replacingOccurrences(of: "%%HUBNAME%%", with: loadedPage.hub == "other" ? "" : loadedPage.hub)
+                                    .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                                    .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                                    .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+                                copyToClipboard(fullPersonalMessage)
+                                showToast(.complete(.green), "Copied to clipboard", "The personal message was copied to the clipboard", 2) { }
+                            }) {
+                                HStack(alignment: .center) {
+                                    Image(systemName: "pencil.and.list.clipboard")
+                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                    Text("Copy full text")
+                                }
+                            }
+                            Button(action: {
+                                showingMessageEditor.toggle()
+                            }) {
+                                HStack(alignment: .center) {
+                                    Image(systemName: "xmark")
+                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                    Text("Close")
+                                }
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
+                }
+                .frame(width: 800, height: 160)
+            })
         }
         .onChange(of: feature, initial: true) {
             userName = feature.userName

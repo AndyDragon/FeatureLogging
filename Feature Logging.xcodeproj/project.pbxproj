@@ -24,6 +24,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		490DF5C72BC1E70B005E0F93 /* Feature-Logging-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Feature-Logging-Info.plist"; sourceTree = SOURCE_ROOT; };
 		4930AB8C2BB7348F00C72CA9 /* VersionCheckAppState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VersionCheckAppState.swift; sourceTree = "<group>"; };
 		4930AB8D2BB7348F00C72CA9 /* Themes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Themes.swift; sourceTree = "<group>"; };
 		4930AB8E2BB7348F00C72CA9 /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
@@ -72,6 +73,7 @@
 		49D828072BB7327000153786 /* Feature Logging */ = {
 			isa = PBXGroup;
 			children = (
+				490DF5C72BC1E70B005E0F93 /* Feature-Logging-Info.plist */,
 				49D828082BB7327000153786 /* FeatureLoggingApp.swift */,
 				49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */,
 				49D8280A2BB7327000153786 /* ContentView.swift */,
@@ -318,12 +320,13 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Feature-Logging-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Feature Logging";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -349,12 +352,13 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 12;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Feature-Logging-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Feature Logging";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
