@@ -1039,7 +1039,7 @@ struct FeatureListRow: View {
                     Color.BackgroundColor.edgesIgnoringSafeArea(.all)
                     
                     VStack(alignment: .leading)  {
-                        Text("Person message for feature:  \(feature.userName) - \(feature.featureDescription)")
+                        Text("Person message for feature: \(feature.userName) - \(feature.featureDescription)")
                         
                         Spacer()
                             .frame(height: 8)

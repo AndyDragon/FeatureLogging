@@ -1,0 +1,58 @@
+﻿<mah:MetroWindow 
+    x:Class="FeatureLogging.PersonalMessageDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:FeatureLogging"
+    xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
+    Title="Personal message" Height="160" Width="960"
+    GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
+    ResizeMode="NoResize">
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Vertical" Grid.ColumnSpan="2">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="For feature: " />
+                <TextBlock Text="{Binding SelectedFeature.UserName}" />
+                <TextBlock Text=" - " />
+                <TextBlock Text="{Binding SelectedFeature.FeatureDescription}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,4">
+                <TextBlock Text="Personal message (from your account): " VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBox Text="{Binding SelectedFeature.PersonalMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Width="700" Height="20" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Margin="0,0,12,0" Padding="8,0" Command="{Binding CopyPersonalMessageCommand}">
+                <StackPanel Orientation="Horizontal" Margin="4,0">
+                    <iconPacks:PackIconFeatherIcons
+                        VerticalAlignment="Center"
+                        Kind="Clipboard"
+                        Margin="0,0,6,0"
+                        Height="11"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                    <TextBlock VerticalAlignment="Center">Copy full text</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button IsDefault="True" Padding="8,0" Click="CloseButton_Click">
+                <StackPanel Orientation="Horizontal" Margin="4,0">
+                    <iconPacks:PackIconFeatherIcons
+                        VerticalAlignment="Center"
+                        Kind="X"
+                        Margin="0,0,6,0"
+                        Height="11"
+                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                    <TextBlock VerticalAlignment="Center">Close</TextBlock>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</mah:MetroWindow>

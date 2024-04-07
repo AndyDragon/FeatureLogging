@@ -1,4 +1,5 @@
 ﻿using ControlzEx.Theming;
+using FeatureLogging;
 using MahApps.Metro.IconPacks;
 using Microsoft.Win32;
 using Newtonsoft.Json;
@@ -150,7 +151,8 @@ namespace FeatureLogging
                                         FeatureCountOnRawHub = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnRawHub"]) ? (string)feature["featureCountOnRawHub"] : FeaturedCounts[0],
                                         TooSoonToFeatureUser = (bool)feature["tooSoonToFeatureUser"],
                                         TinEyeResults = new List<string>(TinEyeResults).Contains((string)feature["tinEyeResults"]) ? (string)feature["tinEyeResults"] : TinEyeResults[0],
-                                        AiCheckResults = new List<string>(AiCheckResults).Contains((string)feature["aiCheckResults"]) ? (string)feature["aiCheckResults"] : AiCheckResults[0]
+                                        AiCheckResults = new List<string>(AiCheckResults).Contains((string)feature["aiCheckResults"]) ? (string)feature["aiCheckResults"] : AiCheckResults[0],
+                                        PersonalMessage = feature.ContainsKey("personalMessage") ? (string)feature["personalMessage"] : "",
                                     };
                                     Features.Add(loadedFeature);
                                 }
@@ -233,7 +235,55 @@ namespace FeatureLogging
                 }
             });
 
-            GenerateReportCommand = new Command(GenerateLogReport);
+            GenerateReportCommand = new Command(() =>
+            {
+                if (SelectedPage == null)
+                {
+                    return;
+                }
+
+                CopyTextToClipboard(GenerateLogReport(), "Generated report", "Copied the report of features to the clipboard");
+            });
+
+            SaveReportCommand = new Command(() => 
+            {
+                if (SelectedPage == null)
+                {
+                    return;
+                }
+
+                string initialFileName;
+                if (!string.IsNullOrEmpty(lastFilename))
+                {
+                    initialFileName = Path.ChangeExtension(lastFilename, ".features");
+                }
+                else
+                {
+                    initialFileName = $"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name} - {DateTime.Now:yyyy-MM-dd}";
+                }
+                SaveFileDialog dialog = new()
+                {
+                    Filter = "Feature report files (*.features)|*.features|All files (*.*)|*.*",
+                    Title = "Save the features to a report file",
+                    OverwritePrompt = true,
+                    FileName = initialFileName,
+                };
+                if (dialog.ShowDialog() == true)
+                {
+                    File.WriteAllText(dialog.FileName, GenerateLogReport());
+                }
+            });
+
+            LaunchSettingsCommand = new Command(() =>
+            {
+                var panel = new SettingsDialog
+                {
+                    DataContext = Settings,
+                    Owner = Application.Current.MainWindow,
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner
+                };
+                panel.ShowDialog();
+            });
 
             CopyPageTagCommand = new CommandWithParameter((parameter) =>
             {
@@ -245,26 +295,26 @@ namespace FeatureLogging
                         {
                             CopyTextToClipboard(tag, "Copy tag", $"Copied the {tagType} to the clipboard");
                         }
-                        // TODO andydragon : add setting for include hash
+                        var prefix = Settings.IncludeHash ? "#" : "";
                         switch (pageTag)
                         {
                             case "Page tag":
-                                CopyTag($"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}", "page tag");
+                                CopyTag($"{prefix}{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}", "page tag");
                                 break;
                             case "RAW page tag":
-                                CopyTag($"raw_{SelectedPage.PageName ?? SelectedPage.Name}", "RAW page tag");
+                                CopyTag($"{prefix}raw_{SelectedPage.PageName ?? SelectedPage.Name}", "RAW page tag");
                                 break;
                             case "Community tag":
-                                CopyTag($"{SelectedPage.HubName}_community", "community tag");
+                                CopyTag($"{prefix}{SelectedPage.HubName}_community", "community tag");
                                 break;
                             case "RAW community tag":
-                                CopyTag($"raw_community", "RAW community tag");
+                                CopyTag($"{prefix}raw_community", "RAW community tag");
                                 break;
                             case "Hub tag":
-                                CopyTag($"{SelectedPage.HubName}_hub", "hub tag");
+                                CopyTag($"{prefix}{SelectedPage.HubName}_hub", "hub tag");
                                 break;
                             case "RAW hub tag":
-                                CopyTag($"raw_hub", "RAW hub tag");
+                                CopyTag($"{prefix}raw_hub", "RAW hub tag");
                                 break;
                         }
                     }
@@ -323,13 +373,14 @@ namespace FeatureLogging
             {
                 if (SelectedPage != null && SelectedFeature != null)
                 {
+                    var prefix = Settings.IncludeHash ? "#" : "";
                     if (SelectedPage.HubName == "other")
                     {
-                        CopyTextToClipboard($"{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}", "Page feature tag", "Copied the page feature tag to the clipboard");
+                        CopyTextToClipboard($"{prefix}{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}", "Page feature tag", "Copied the page feature tag to the clipboard");
                     }
                     else
                     {
-                        CopyTextToClipboard($"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}", "Page feature tag", "Copied the page feature tag to the clipboard");
+                        CopyTextToClipboard($"{prefix}{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}", "Page feature tag", "Copied the page feature tag to the clipboard");
                     }
                 }
             });
@@ -338,9 +389,10 @@ namespace FeatureLogging
             {
                 if (SelectedPage != null && SelectedFeature != null)
                 {
+                    var prefix = Settings.IncludeHash ? "#" : "";
                     if (SelectedPage.HubName == "snap")
                     {
-                        CopyTextToClipboard($"raw_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}", "RAW page feature tag", "Copied the RAW page feature tag to the clipboard");
+                        CopyTextToClipboard($"{prefix}raw_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}", "RAW page feature tag", "Copied the RAW page feature tag to the clipboard");
                     }
                 }
             });
@@ -349,9 +401,10 @@ namespace FeatureLogging
             {
                 if (SelectedPage != null && SelectedFeature != null)
                 {
+                    var prefix = Settings.IncludeHash ? "#" : "";
                     if (SelectedPage.HubName != "other")
                     {
-                        CopyTextToClipboard($"{SelectedPage.HubName}_featured_{SelectedFeature.UserAlias}", "Hub feature tag", "Copied the hub feature tag to the clipboard");
+                        CopyTextToClipboard($"{prefix}{SelectedPage.HubName}_featured_{SelectedFeature.UserAlias}", "Hub feature tag", "Copied the hub feature tag to the clipboard");
                     }
                 }
             });
@@ -360,10 +413,32 @@ namespace FeatureLogging
             {
                 if (SelectedPage != null && SelectedFeature != null)
                 {
+                    var prefix = Settings.IncludeHash ? "#" : "";
                     if (SelectedPage.HubName == "snap")
                     {
-                        CopyTextToClipboard($"raw_featured_{SelectedFeature.UserAlias}", "RAW hub feature tag", "Copied the RAW hub feature tag to the clipboard");
+                        CopyTextToClipboard($"{prefix}raw_featured_{SelectedFeature.UserAlias}", "RAW hub feature tag", "Copied the RAW hub feature tag to the clipboard");
                     }
+                }
+            });
+
+            CopyPersonalMessageCommand = new Command(() =>
+            {
+                if (SelectedPage != null && SelectedFeature != null)
+                {
+                    var personalMessageTemplate = SelectedFeature.UserHasFeaturesOnPage
+                        ? (string.IsNullOrEmpty(Settings.PersonalMessage)
+                            ? "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+                            : Settings.PersonalMessage)
+                        : (string.IsNullOrEmpty(Settings.PersonalMessageFirst)
+                            ? "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+                            : Settings.PersonalMessageFirst);
+                    var fullMessage = personalMessageTemplate
+                        .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
+                        .Replace("%%HUBNAME%%", SelectedPage.HubName)
+                        .Replace("%%USERNAME%%", SelectedFeature.UserName)
+                        .Replace("%%USERALIAS%%", SelectedFeature.UserAlias)
+                        .Replace("%%PERSONALMESSAGE%%", string.IsNullOrEmpty(SelectedFeature.PersonalMessage) ? "[PERSONAL MESSAGE]" : SelectedFeature.PersonalMessage);
+                    CopyTextToClipboard(fullMessage, "Copied to clipboard", "The personal message was copied to the clipboard");
                 }
             });
 
@@ -400,6 +475,8 @@ namespace FeatureLogging
             var dataLocationPath = GetDataLocationPath(shared);
             return Path.Combine(dataLocationPath, "settings.json");
         }
+
+        public static Settings Settings => new();
 
         #endregion
 
@@ -487,6 +564,10 @@ namespace FeatureLogging
 
         public ICommand GenerateReportCommand { get; }
 
+        public ICommand SaveReportCommand { get; }
+
+        public ICommand LaunchSettingsCommand { get; }
+
         public ICommand CopyPageTagCommand { get; }
 
         public ICommand AddFeatureCommand { get; }
@@ -504,6 +585,8 @@ namespace FeatureLogging
         public ICommand CopyHubFeatureTagCommand { get; }
 
         public ICommand CopyRawHubFeatureTagCommand { get; }
+
+        public ICommand CopyPersonalMessageCommand { get; }
 
         public ICommand SetThemeCommand { get; }
 
@@ -811,12 +894,14 @@ namespace FeatureLogging
         public static string[] AiCheckResults => ["human", "ai"];
 
         #endregion
-    
-        private void GenerateLogReport()
+
+        #region Report generation
+
+        private string GenerateLogReport()
         {
             if (SelectedPage == null)
             {
-                return;
+                return "";
             }
 
             var builder = new StringBuilder();
@@ -896,10 +981,10 @@ namespace FeatureLogging
                         case "Page tag":
                             builder.AppendLine($"{indent}hashtag = #{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}");
                             break;
-                        case "Community tag":
+                        case "Click community tag":
                             builder.AppendLine($"{indent}hashtag = #{SelectedPage.HubName}_community");
                             break;
-                        case "Hub tag":
+                        case "Click hub tag":
                             builder.AppendLine($"{indent}hashtag = #{SelectedPage.HubName}_hub");
                             break;
                         default:
@@ -911,14 +996,20 @@ namespace FeatureLogging
                     builder.AppendLine();
 
                     if (isPicked) {
-                        if (feature.UserHasFeaturesOnPage)
-                        {
-                            personalMessagesBuilder.AppendLine($"🎉💫 Congratulations on your @{SelectedPage.DisplayName} feature {feature.UserName} @{feature.UserAlias}, [PERSONALIZED MESSAGE]");
-                        }
-                        else
-                        {
-                            personalMessagesBuilder.AppendLine($"🎉💫 Congratulations on your first @{SelectedPage.DisplayName} feature {feature.UserName} @{feature.UserAlias}, [PERSONALIZED MESSAGE]");
-                        }
+                        var personalMessageTemplate = feature.UserHasFeaturesOnPage
+                            ? (string.IsNullOrEmpty(Settings.PersonalMessage)
+                                ? "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+                                : Settings.PersonalMessage)
+                            : (string.IsNullOrEmpty(Settings.PersonalMessageFirst)
+                                ? "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+                                : Settings.PersonalMessageFirst);
+                        var fullMessage = personalMessageTemplate
+                            .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
+                            .Replace("%%HUBNAME%%", SelectedPage.HubName)
+                            .Replace("%%USERNAME%%", feature.UserName)
+                            .Replace("%%USERALIAS%%", feature.UserAlias)
+                            .Replace("%%PERSONALMESSAGE%%", string.IsNullOrEmpty(feature.PersonalMessage) ? "[PERSONAL MESSAGE]" : feature.PersonalMessage);
+                        personalMessagesBuilder.AppendLine(fullMessage);
                     }
                 }
             }
@@ -1000,10 +1091,10 @@ namespace FeatureLogging
                         case "RAW page tag":
                             builder.AppendLine($"{indent}hashtag = #raw_{SelectedPage.PageName ?? SelectedPage.Name}");
                             break;
-                        case "Community tag":
+                        case "Snap community tag":
                             builder.AppendLine($"{indent}hashtag = #{SelectedPage.HubName}_community");
                             break;
-                        case "RAW Community tag":
+                        case "RAW community tag":
                             builder.AppendLine($"{indent}hashtag = #raw_community");
                             break;
                         default:
@@ -1016,14 +1107,20 @@ namespace FeatureLogging
 
                     if (isPicked)
                     {
-                        if (feature.UserHasFeaturesOnPage)
-                        {
-                            personalMessagesBuilder.AppendLine($"🎉💫 Congratulations on this feature {feature.UserName} @{feature.UserAlias}, [PERSONALIZED MESSAGE]");
-                        }
-                        else
-                        {
-                            personalMessagesBuilder.AppendLine($"🎉💫 Congratulations on your first @{SelectedPage.DisplayName} feature {feature.UserName} @{feature.UserAlias}, [PERSONALIZED MESSAGE]");
-                        }
+                        var personalMessageTemplate = feature.UserHasFeaturesOnPage
+                            ? (string.IsNullOrEmpty(Settings.PersonalMessage)
+                                ? "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+                                : Settings.PersonalMessage)
+                            : (string.IsNullOrEmpty(Settings.PersonalMessageFirst)
+                                ? "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+                                : Settings.PersonalMessageFirst);
+                        var fullMessage = personalMessageTemplate
+                            .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
+                            .Replace("%%HUBNAME%%", SelectedPage.HubName)
+                            .Replace("%%USERNAME%%", feature.UserName)
+                            .Replace("%%USERALIAS%%", feature.UserAlias)
+                            .Replace("%%PERSONALMESSAGE%%", string.IsNullOrEmpty(feature.PersonalMessage) ? "[PERSONAL MESSAGE]" : feature.PersonalMessage);
+                        personalMessagesBuilder.AppendLine(fullMessage);
                     }
                 }
             }
@@ -1095,14 +1192,20 @@ namespace FeatureLogging
 
                     if (isPicked)
                     {
-                        if (feature.UserHasFeaturesOnPage)
-                        {
-                            personalMessagesBuilder.AppendLine($"🎉💫 Congratulations on this feature {feature.UserName} @{feature.UserAlias}, [PERSONALIZED MESSAGE]");
-                        }
-                        else
-                        {
-                            personalMessagesBuilder.AppendLine($"🎉💫 Congratulations on your first @{SelectedPage.DisplayName} feature {feature.UserName} @{feature.UserAlias}, [PERSONALIZED MESSAGE]");
-                        }
+                        var personalMessageTemplate = feature.UserHasFeaturesOnPage
+                            ? (string.IsNullOrEmpty(Settings.PersonalMessage)
+                                ? "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+                                : Settings.PersonalMessage)
+                            : (string.IsNullOrEmpty(Settings.PersonalMessageFirst)
+                                ? "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+                                : Settings.PersonalMessageFirst);
+                        var fullMessage = personalMessageTemplate
+                            .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
+                            .Replace("%%HUBNAME%%", "")
+                            .Replace("%%USERNAME%%", feature.UserName)
+                            .Replace("%%USERALIAS%%", feature.UserAlias)
+                            .Replace("%%PERSONALMESSAGE%%", string.IsNullOrEmpty(feature.PersonalMessage) ? "[PERSONAL MESSAGE]" : feature.PersonalMessage);
+                        personalMessagesBuilder.AppendLine(fullMessage);
                     }
                 }
             }
@@ -1115,8 +1218,12 @@ namespace FeatureLogging
                 completeText += "\n---------------\n";
             }
 
-            CopyTextToClipboard(completeText, "Generated report", "Copied the report of features to the clipboard");
+            return completeText;
         }
+
+        #endregion
+
+        #region Clipboard support
 
         public void CopyTextToClipboard(string text, string title, string successMessage)
         {
@@ -1142,8 +1249,9 @@ namespace FeatureLogging
 
         private static bool TrySetClipboardText(string text)
         {
+            const uint CLIPBRD_E_CANT_OPEN = 0x800401D0;
             var retriesLeft = 9;
-            while (retriesLeft != 0)
+            while (retriesLeft >= 0)
             {
                 try
                 {
@@ -1153,16 +1261,18 @@ namespace FeatureLogging
                 }
                 catch (COMException ex)
                 {
-                    const uint CLIPBRD_E_CANT_OPEN = 0x800401D0;
                     if ((uint)ex.ErrorCode != CLIPBRD_E_CANT_OPEN)
                     {
                         throw;
                     }
                     --retriesLeft;
+                    Thread.Sleep((9 - retriesLeft) * 10);
                 }
             }
             return false;
         }
+
+        #endregion
 
         internal void ShowToast(string title, string? message, NotificationType type, TimeSpan? expirationTime = null)
         {
@@ -1280,6 +1390,19 @@ namespace FeatureLogging
     {
         public Feature()
         {
+            EditPersonalMessageCommand = new CommandWithParameter((parameter) => {
+                if (parameter is MainViewModel vm && vm.SelectedPage != null)
+                {
+                    vm.SelectedFeature = this;
+                    PersonalMessageDialog dialog = new()
+                    {
+                        DataContext = vm,
+                        Owner = Application.Current.MainWindow,
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                    };
+                    dialog.ShowDialog();
+                }
+            });
             OpenFeatureInVeroScriptsCommand = new CommandWithParameter((parameter) =>
             {
                 if (parameter is MainViewModel vm && vm.SelectedPage != null)
@@ -1402,12 +1525,18 @@ namespace FeatureLogging
         [JsonIgnore]
         public readonly string Id = Guid.NewGuid().ToString();
 
+        [JsonIgnore]
+        public bool IsPickedAndAllowed
+        {
+            get => IsPicked && !TooSoonToFeatureUser && !PhotoFeaturedOnPage && TinEyeResults != "matches found" && AiCheckResults != "ai";
+        }
+
         private bool isPicked = false;
         [JsonProperty(PropertyName = "isPicked")]
         public bool IsPicked
         {
             get => isPicked;
-            set => Set(ref isPicked, value, [nameof(Icon), nameof(IconColor)]);
+            set => Set(ref isPicked, value, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
         }
 
         private string postLink = "";
@@ -1471,7 +1600,7 @@ namespace FeatureLogging
         public bool PhotoFeaturedOnPage
         {
             get => photoFeaturedOnPage;
-            set => Set(ref photoFeaturedOnPage, value, [nameof(Icon), nameof(IconColor)]);
+            set => Set(ref photoFeaturedOnPage, value, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
         }
 
         private bool photoFeaturedOnHub = false;
@@ -1595,7 +1724,7 @@ namespace FeatureLogging
         public bool TooSoonToFeatureUser
         {
             get => tooSoonToFeatureUser;
-            set => Set(ref tooSoonToFeatureUser, value, [nameof(Icon), nameof(IconColor)]);
+            set => Set(ref tooSoonToFeatureUser, value, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
         }
 
         private string tinEyeResults = "0 matches";
@@ -1603,7 +1732,7 @@ namespace FeatureLogging
         public string TinEyeResults
         {
             get => tinEyeResults;
-            set => Set(ref tinEyeResults, value, [nameof(Icon), nameof(IconColor)]);
+            set => Set(ref tinEyeResults, value, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
         }
 
         private string aiCheckResults = "human";
@@ -1611,7 +1740,15 @@ namespace FeatureLogging
         public string AiCheckResults
         {
             get => aiCheckResults;
-            set => Set(ref aiCheckResults, value, [nameof(Icon), nameof(IconColor)]);
+            set => Set(ref aiCheckResults, value, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
+        }
+
+        private string personalMessage = "";
+        [JsonProperty(PropertyName = "personalMessage")]
+        public string PersonalMessage
+        {
+            get => personalMessage;
+            set => Set(ref personalMessage, value);
         }
 
         [JsonIgnore]
@@ -1704,6 +1841,9 @@ namespace FeatureLogging
         [JsonIgnore]
         public ICommand OpenFeatureInVeroScriptsCommand { get;  }
 
+        [JsonIgnore]
+        public ICommand EditPersonalMessageCommand { get; }
+
         internal void TriggerThemeChanged()
         {
             OnPropertyChanged(nameof(PostLinkValidation));
@@ -1729,6 +1869,53 @@ namespace FeatureLogging
                 .ThenBy(p => p.PropertyName)
                 .ToList();
             return ordered;
+        }
+    }
+
+    public class Settings : NotifyPropertyChanged
+    {
+        private bool includeHash = UserSettings.Get(
+            nameof(IncludeHash), 
+            false);
+        public bool IncludeHash {
+            get => includeHash;
+            set
+            {
+                if (Set(ref includeHash, value))
+                {
+                    UserSettings.Store(nameof(IncludeHash), value);
+                }
+            }
+        }
+
+        private string personalMessage = UserSettings.Get(
+            nameof(PersonalMessage),
+            "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉");
+        public string PersonalMessage
+        {
+            get => personalMessage;
+            set
+            {
+                if (Set(ref personalMessage, value))
+                {
+                    UserSettings.Store(nameof(PersonalMessage), value);
+                }
+            }
+        }
+
+        private string personalMessageFirst = UserSettings.Get(
+            nameof(PersonalMessageFirst), 
+            "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉");
+        public string PersonalMessageFirst
+        {
+            get => personalMessageFirst;
+            set
+            {
+                if (Set(ref personalMessageFirst, value))
+                {
+                    UserSettings.Store(nameof(PersonalMessageFirst), value);
+                }
+            }
         }
     }
 }

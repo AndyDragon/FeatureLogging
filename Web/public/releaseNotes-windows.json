@@ -32,5 +32,19 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.3",
+        "notes": [
+            {
+                "date": "April 6, 2024",
+                "notes": [
+                    "Added support for editing and copying the personal messages right in the app.",
+                    "Added settings dialog.",
+                    "Added personal messages to picked features and added to LOG .json file.",
+                    "Added ability to save the report as a .features file."
+                ]
+            }
+        ]
     }
 ]
