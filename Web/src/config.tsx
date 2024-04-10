@@ -21,6 +21,8 @@ export const macReleaseNotesLocation = "releaseNotes-mac.json";
 export const windowsInstallerLocation = "featurelogging/windows";
 export const windowsReleaseNotesLocation = "releaseNotes-windows.json";
 
+export const hasTutorial = true;
+
 export type Platform = "macOS" | "windows";
 
 export const platformString: Record<Platform, string> = {

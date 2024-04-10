@@ -14,11 +14,12 @@ import {
     teamsDarkTheme,
 } from "@fluentui/react-components";
 import { Dismiss24Regular, PanelLeftExpand24Regular } from "@fluentui/react-icons";
-import { applicationName, deploymentWebLocation, macReleaseNotesLocation, versionLocation, windowsReleaseNotesLocation } from "./config";
+import { applicationName, deploymentWebLocation, hasTutorial, macReleaseNotesLocation, versionLocation, windowsReleaseNotesLocation } from "./config";
 import About from "./About";
 import General from "./General";
 import ReleaseNotes from "./ReleaseNotes";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import Tutorial from "./Tutorial";
 
 const useStyles = makeStyles({
     cleanLink: {
@@ -87,6 +88,13 @@ function App() {
                                     </Link>
                                 </div>
                             </div>
+                            {hasTutorial && (
+                                <div style={{ display: "flex", flexDirection: "column", marginTop: "40px" }}>
+                                    <Link className={styles.cleanLink} style={{ fontSize: "20pt" }} to="/tutorial">
+                                        Tutorial
+                                    </Link>
+                                </div>
+                            )}
                         </nav>
                     </DrawerBody>
                 </InlineDrawer>
@@ -154,6 +162,18 @@ function App() {
                                     applicationName={applicationName}
                                     platform="windows"
                                     location={windowsReleaseNotesLocation}
+                                    versionLocation={versionLocation}
+                                />
+                            )} />
+                            <Route path="/tutorial" element={(
+                                <Tutorial
+                                    applicationName={applicationName}
+                                    versionLocation={versionLocation}
+                                />
+                            )} />
+                            <Route path="/tutorial/:page" element={(
+                                <Tutorial
+                                    applicationName={applicationName}
                                     versionLocation={versionLocation}
                                 />
                             )} />
