@@ -61,6 +61,8 @@ struct FeatureEditor: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
+                .tint(Color.AccentColor)
+                .accentColor(Color.AccentColor)
                 .focusable()
                 Spacer()
                 Button(action: {
@@ -194,6 +196,8 @@ struct FeatureEditor: View {
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
+                    .tint(Color.AccentColor)
+                    .accentColor(Color.AccentColor)
                     .focusable()
                     Spacer()
                 }
@@ -226,6 +230,8 @@ struct FeatureEditor: View {
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
+                    .tint(Color.AccentColor)
+                    .accentColor(Color.AccentColor)
                     .focusable()
                     
                     Text("|")
@@ -240,6 +246,8 @@ struct FeatureEditor: View {
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
+                    .tint(Color.AccentColor)
+                    .accentColor(Color.AccentColor)
                     .focusable()
                     if photoFeaturedOnHub {
                         Text("|")
@@ -291,6 +299,8 @@ struct FeatureEditor: View {
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                         }
+                        .tint(Color.AccentColor)
+                        .accentColor(Color.AccentColor)
                         .focusable()
                         
                         if userHasFeaturesOnPage {
@@ -348,6 +358,8 @@ struct FeatureEditor: View {
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                         }
+                        .tint(Color.AccentColor)
+                        .accentColor(Color.AccentColor)
                         .focusable()
                         
                         if userHasFeaturesOnHub {
@@ -414,6 +426,8 @@ struct FeatureEditor: View {
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                         }
+                        .tint(Color.AccentColor)
+                        .accentColor(Color.AccentColor)
                         .focusable()
                         
                         if userHasFeaturesOnPage {
@@ -497,6 +511,8 @@ struct FeatureEditor: View {
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                         }
+                        .tint(Color.AccentColor)
+                        .accentColor(Color.AccentColor)
                         .focusable()
                         
                         if userHasFeaturesOnHub {
@@ -593,6 +609,8 @@ struct FeatureEditor: View {
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
+                    .tint(Color.AccentColor)
+                    .accentColor(Color.AccentColor)
                     .focusable()
 
                     Spacer()

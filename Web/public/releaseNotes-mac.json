@@ -143,5 +143,17 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.14",
+        "notes": [
+            {
+                "date": "Apr 10, 2024",
+                "notes": [
+                    "Fixed bug where saving the report would incorrectly assign the report name to the log file and saving the log file after would overwrite the report.",
+                    "Minor tweaks of the feature list (hover color) and fixed some theming issues."
+                ]
+            }
+        ]
     }
 ]

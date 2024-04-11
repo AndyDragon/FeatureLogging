@@ -53,6 +53,7 @@ struct ContentView: View {
     @State private var featuresViewModel = FeaturesViewModel()
     @State private var sortedFeatures = [Feature]()
     @State private var selectedFeature: Feature? = nil
+    @State private var shouldScrollFeatureListToSelection = false
     @State private var showFileImporter = false
     @State private var showFileExporter = false
     @State private var logDocument = LogDocument()
@@ -151,6 +152,8 @@ struct ContentView: View {
                         }
                     }
                     .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                    .tint(Color.AccentColor)
+                    .accentColor(Color.AccentColor)
                     .disabled(isAnyToastShowing || (loadedPage?.hub != "click" && loadedPage?.hub != "snap"))
                     .frame(maxWidth: 132)
                     .focusable()
@@ -163,17 +166,19 @@ struct ContentView: View {
                             selectedFeature = nil
                         }, updateList: {
                             sortedFeatures = featuresViewModel.sortedFeatures
+                            shouldScrollFeatureListToSelection.toggle()
                         }, showToast: showToast)
                     } else {
                         Spacer()
                     }
                 }
                 .frame(height: 380)
-
+                
                 // Feature list buttons
                 HStack {
                     Spacer()
                     
+                    // Add feature
                     Button(action: {
                         let feature = Feature()
                         let linkText = pasteFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
@@ -184,6 +189,7 @@ struct ContentView: View {
                         featuresViewModel.features.append(feature)
                         sortedFeatures = featuresViewModel.sortedFeatures
                         selectedFeature = feature
+                        shouldScrollFeatureListToSelection.toggle()
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "person.fill.badge.plus")
@@ -192,10 +198,11 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isAnyToastShowing)
-
+                    
                     Spacer()
                         .frame(width: 16)
                     
+                    // Remove feature
                     Button(action: {
                         if let currentFeature = selectedFeature {
                             selectedFeature = nil
@@ -210,10 +217,11 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isAnyToastShowing || selectedFeature == nil)
-
+                    
                     Spacer()
                         .frame(width: 16)
                     
+                    // Remove all
                     Button(action: {
                         selectedFeature = nil
                         featuresViewModel = FeaturesViewModel()
@@ -227,53 +235,58 @@ struct ContentView: View {
                     }
                     .disabled(isAnyToastShowing || featuresViewModel.features.isEmpty)
                 }
-
+                
                 // Feature list
                 ScrollViewReader { proxy in
                     List {
                         ForEach(sortedFeatures, id: \.self) { feature in
                             FeatureListRow(feature: feature, loadedPage: loadedPage!, showToast: showToast)
-                            .padding([.top, .bottom], 8)
-                            .padding([.leading, .trailing])
-                            .foregroundStyle(Color(nsColor: hoveredFeature == feature
-                                                   ? NSColor.selectedControlTextColor
-                                                   : NSColor.labelColor), Color(nsColor: .labelColor))
-                            .background(hoveredFeature == feature
-                                        ? Color.BackgroundColorListHover
-                                        : selectedFeature == feature
-                                        ? Color.BackgroundColorListSelected
-                                        : Color.BackgroundColorList)
-                            .cornerRadius(4)
-                            .onHover(perform: { hovering in
-                                if hoveredFeature == feature {
-                                    if !hovering {
-                                        hoveredFeature = nil
+                                .padding([.top, .bottom], 8)
+                                .padding([.leading, .trailing])
+                                .foregroundStyle(Color(nsColor: hoveredFeature == feature
+                                                       ? NSColor.selectedControlTextColor
+                                                       : NSColor.labelColor), Color(nsColor: .labelColor))
+                                .background(selectedFeature == feature
+                                            ? Color.BackgroundColorListSelected
+                                            : hoveredFeature == feature
+                                            ? Color.BackgroundColorListSelected.opacity(0.33)
+                                            : Color.BackgroundColorList)
+                                .cornerRadius(4)
+                                .onHover(perform: { hovering in
+                                    if hoveredFeature == feature {
+                                        if !hovering {
+                                            hoveredFeature = nil
+                                        }
+                                    } else if hovering {
+                                        hoveredFeature = feature
                                     }
-                                } else if hovering {
-                                    hoveredFeature = feature
+                                })
+                                .onTapGesture {
+                                    withAnimation {
+                                        selectedFeature = feature
+                                    }
                                 }
-                            })
-                            .onTapGesture {
-                                withAnimation {
-                                    selectedFeature = feature
-                                }
-                            }
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(4)
                     .presentationBackground(.clear)
+                    .onChange(of: shouldScrollFeatureListToSelection, {
+                        withAnimation {
+                            proxy.scrollTo(selectedFeature)
+                        }
+                    })
+                    .onTapGesture {
+                        withAnimation {
+                            selectedFeature = nil
+                        }
+                    }
+                    .focusable()
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color.BackgroundColorList)
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                .onTapGesture {
-                    withAnimation {
-                        selectedFeature = nil
-                    }
-                }
-                .focusable()
             }
             .toolbar {
                 Button(action: {
@@ -375,8 +388,7 @@ struct ContentView: View {
                 ) { result in
                     switch result {
                     case .success(let url):
-                        print("Saved to \(url)")
-                        logURL = url
+                        print("Exported to \(url)")
                     case .failure(let error):
                         debugPrint(error)
                     }
@@ -1015,15 +1027,15 @@ struct FeatureListRow: View {
                         
                         Spacer()
                             .frame(width: 8)
-                    }
-                    
-                    Button(action: {
-                        launchVeroScripts()
-                    }) {
-                        HStack(alignment: .center) {
-                            Image(systemName: "gearshape.arrow.triangle.2.circlepath")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Open Vero Scripts")
+                        
+                        Button(action: {
+                            launchVeroScripts()
+                        }) {
+                            HStack(alignment: .center) {
+                                Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                Text("Open Vero Scripts")
+                            }
                         }
                     }
                 }

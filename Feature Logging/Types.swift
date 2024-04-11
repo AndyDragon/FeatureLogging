@@ -241,6 +241,14 @@ class FeaturesViewModel: ObservableObject  {
     init() {}
     
     private func compareFeatures(_ lhs: Feature, _ rhs: Feature) -> Bool {
+        // Empty names always at the bottom
+        if lhs.userName.isEmpty {
+            return false
+        }
+        if rhs.userName.isEmpty {
+            return true
+        }
+
         if lhs.photoFeaturedOnPage && rhs.photoFeaturedOnPage {
             return lhs.userName < rhs.userName
         }

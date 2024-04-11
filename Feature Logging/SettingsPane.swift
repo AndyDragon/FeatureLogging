@@ -40,7 +40,9 @@ struct SettingsPane: View {
                 Toggle(isOn: $includeHash) {
                     Text("Include '#' when copying tags to the clipboard:")
                 }
-                
+                .tint(Color.AccentColor)
+                .accentColor(Color.AccentColor)
+
                 Spacer()
                     .frame(height: 8)
                 
