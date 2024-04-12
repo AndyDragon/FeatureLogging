@@ -677,6 +677,7 @@ struct FeatureEditor: View {
             userHasFeaturesOnPage = feature.userHasFeaturesOnPage
             lastFeaturedOnPage = feature.lastFeaturedOnPage
             featureCountOnPage = feature.featureCountOnPage
+            featureCountOnRawPage = feature.featureCountOnRawPage
             userHasFeaturesOnHub = feature.userHasFeaturesOnHub
             lastFeaturedOnHub = feature.lastFeaturedOnHub
             lastFeaturedPage = feature.lastFeaturedPage

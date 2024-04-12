@@ -166,5 +166,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.16",
+        "notes": [
+            {
+                "date": "Apr 12, 2024",
+                "notes": [
+                    "Fixed bug where feature editor was not populating feature count on RAW page properly."
+                ]
+            }
+        ]
     }
 ]
