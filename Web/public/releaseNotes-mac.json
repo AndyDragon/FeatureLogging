@@ -155,5 +155,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.15",
+        "notes": [
+            {
+                "date": "Apr 12, 2024",
+                "notes": [
+                    "[URB] Added a warning toast and prevent adding feature for a post link which already exists."
+                ]
+            }
+        ]
     }
 ]
