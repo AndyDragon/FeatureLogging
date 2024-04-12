@@ -323,8 +323,19 @@ namespace FeatureLogging
 
             AddFeatureCommand = new Command(() =>
             {
-                var feature = new Feature();
                 var clipboardText = Clipboard.ContainsText() ? Clipboard.GetText().Trim() : "";
+                var duplicateFeature = Features.FirstOrDefault(feature => feature.PostLink == clipboardText);
+                if (duplicateFeature != null)
+                {
+                    ShowToast(
+                        "Found duplicate post link", 
+                        "There is already a feature in the list with that post link, selected the existing feature", 
+                        NotificationType.Error, 
+                        TimeSpan.FromSeconds(3));
+                    SelectedFeature = duplicateFeature;
+                    return;
+                }
+                var feature = new Feature();
                 if (clipboardText.StartsWith("https://vero.co/"))
                 {
                     feature.PostLink = clipboardText;

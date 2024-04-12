@@ -34,13 +34,17 @@
         <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding GenerateReportCommand}" />
         <KeyBinding Key="R" Modifiers="Ctrl" Command="{Binding SaveReportCommand}" />
         <KeyBinding Key="OemComma" Modifiers="Ctrl" Command="{Binding LaunchSettingsCommand}" />
+        <KeyBinding Key="OemPlus" Modifiers="Ctrl" Command="{Binding AddFeatureCommand}" />
+        <KeyBinding Key="OemMinus" Modifiers="Ctrl" Command="{Binding RemoveFeatureCommand}" />
+        <KeyBinding Key="Backspace" Modifiers="Ctrl" Command="{Binding RemoveAllFeaturesCommand}" />
     </Window.InputBindings>
     
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands>
             <Button 
                 Command="{Binding NewFeaturesCommand}" 
-                Content="New log" ToolTip="Creates a new feature log">
+                Content="New log" 
+                ToolTip="Creates a new feature log (Ctrl+N)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -58,7 +62,8 @@
             </Button>
             <Button 
                 Command="{Binding OpenFeaturesCommand}" 
-                Content="Open log..." ToolTip="Opens a saved log">
+                Content="Open log..." 
+                ToolTip="Opens a saved log (Ctrl+O)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -76,7 +81,8 @@
             </Button>
             <Button 
                 Command="{Binding SaveFeaturesCommand}" 
-                Content="Save log..." ToolTip="Opens a saved log">
+                Content="Save log..." 
+                ToolTip="Opens a saved log (Ctrl+S)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -94,7 +100,8 @@
             </Button>
             <Button 
                 Command="{Binding SaveReportCommand}" 
-                Content="Save report..." ToolTip="Saves a report of the features to a file">
+                Content="Save report..." 
+                ToolTip="Saves a report of the features to a file (Ctrl+R)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -111,7 +118,7 @@
             </Button>
             <Button 
                 Command="{Binding LaunchSettingsCommand}" 
-                Content="Settings" ToolTip="Opens the application settings">
+                Content="Settings" ToolTip="Opens the application settings (Ctrl+comma)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -766,7 +773,8 @@
                                     Grid.Column="3" 
                                     HorizontalAlignment="Right" 
                                     Command="{Binding OpenFeatureInVeroScriptsCommand}"
-                                    CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext}">
+                                    CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext}"
+                                    Visibility="{Binding IsPickedAndAllowed, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <StackPanel Orientation="Horizontal">
                                         <iconPacks:PackIconMaterial 
                                             VerticalAlignment="Center"

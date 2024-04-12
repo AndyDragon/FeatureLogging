@@ -46,5 +46,18 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.4",
+        "notes": [
+            {
+                "date": "April 12, 2024",
+                "notes": [
+                    "[URB] Added a warning toast and prevent adding feature for a post link which already exists.",
+                    "Updated the keyboard shortcuts to match the macOS app.",
+                    "Hide 'Open in Vero Scripts' button in list for non-picked features."
+                ]
+            }
+        ]
     }
 ]
