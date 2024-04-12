@@ -180,8 +180,18 @@ struct ContentView: View {
                     
                     // Add feature
                     Button(action: {
-                        let feature = Feature()
                         let linkText = pasteFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
+                        let existingFeature = featuresViewModel.features.first(where: { $0.postLink.lowercased() == linkText.lowercased() })
+                        if existingFeature != nil {
+                            showToast(
+                                .systemImage("exclamationmark.triangle.fill", .orange),
+                                "Found duplicate post link",
+                                subTitle: "There is already a feature in the list with that post link, selected the existing feature",
+                                duration: 3)
+                            selectedFeature = existingFeature
+                            return
+                        }
+                        let feature = Feature()
                         if linkText.starts(with: "https://vero.co/") {
                             feature.postLink = linkText
                             feature.userAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
@@ -198,6 +208,7 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isAnyToastShowing)
+                    .keyboardShortcut("+", modifiers: .command)
                     
                     Spacer()
                         .frame(width: 16)
@@ -217,7 +228,8 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isAnyToastShowing || selectedFeature == nil)
-                    
+                    .keyboardShortcut("-", modifiers: .command)
+
                     Spacer()
                         .frame(width: 16)
                     
@@ -234,6 +246,7 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isAnyToastShowing || featuresViewModel.features.isEmpty)
+                    .keyboardShortcut(.delete, modifiers: .command)
                 }
                 
                 // Feature list
