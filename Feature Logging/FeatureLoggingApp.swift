@@ -15,6 +15,7 @@ struct Feature_LoggingApp: App {
     @State var versionCheckToast = VersionCheckToast()
     @ObservedObject var commandModel = AppCommandModel()
 
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     var body: some Scene {
         let appState = VersionCheckAppState(
             isCheckingForUpdates: $checkingForUpdates,
@@ -35,14 +36,14 @@ struct Feature_LoggingApp: App {
                 })
                 .disabled(checkingForUpdates)
             })
-            CommandGroup(replacing: CommandGroupPlacement.newItem) { 
+            CommandGroup(replacing: CommandGroupPlacement.newItem) {
                 Button(action: {
                     commandModel.newLog.toggle()
                 }, label: {
                     Text("New log")
                 })
                 .keyboardShortcut("n", modifiers: .command)
-
+                
                 Button(action: {
                     commandModel.openLog.toggle()
                 }, label: {
@@ -51,7 +52,7 @@ struct Feature_LoggingApp: App {
                 .keyboardShortcut("o", modifiers: .command)
                 
                 Divider()
-
+                
                 Button(action: {
                     commandModel.saveLog.toggle()
                 }, label: {
@@ -60,12 +61,29 @@ struct Feature_LoggingApp: App {
                 .keyboardShortcut("s", modifiers: .command)
             }
         }
-
+        
 #if os(macOS)
         Settings {
             SettingsPane()
         }
 #endif
+    }
+    
+    class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+        @EnvironmentObject var commandModel: AppCommandModel
+        
+        func applicationDidFinishLaunching(_ notification: Notification) {
+            let mainWindow = NSApp.windows[0]
+            mainWindow.delegate = self
+        }
+        
+        func windowShouldClose(_ sender: NSWindow) -> Bool {
+            return false
+        }
+        
+        func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+            return DocumentManager.default.canTerminate() ? .terminateNow : .terminateCancel
+        }
     }
 }
 
@@ -73,4 +91,28 @@ class AppCommandModel: ObservableObject {
     @Published var newLog: Bool = false
     @Published var openLog: Bool = false
     @Published var saveLog: Bool = false
+    @Published var isDirty: Bool = false
+}
+
+protocol DocumentManagerDelegate {
+    func onCanTerminate() -> Bool
+}
+
+class DocumentManager {
+    static var `default` = DocumentManager()
+    
+    private var receivers: [DocumentManagerDelegate] = []
+    
+    func registerReceiver(receiver: DocumentManagerDelegate) {
+        receivers.append(receiver)
+    }
+    
+    func canTerminate() -> Bool {
+        for receiver in receivers {
+            if !receiver.onCanTerminate() {
+                return false
+            }
+        }
+        return true
+    }
 }

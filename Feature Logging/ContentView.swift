@@ -34,9 +34,9 @@ struct ContentView: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-
+    
     @EnvironmentObject var commandModel: AppCommandModel
-
+    
     @Environment(\.openURL) private var openURL
     @State private var page: String = UserDefaults.standard.string(forKey: "Page") ?? ""
     @State private var toastType: AlertToast.AlertType = .regular
@@ -54,8 +54,13 @@ struct ContentView: View {
     @State private var sortedFeatures = [Feature]()
     @State private var selectedFeature: Feature? = nil
     @State private var shouldScrollFeatureListToSelection = false
+    @State private var isShowingDocumentDirtyAlert = false
+    @State private var documentDirtyAlertConfirmation = "Would you like to save this log file?"
+    @State private var documentDirtyAfterSaveAction: () -> Void = {}
+    @State private var documentDirtyAfterDismissAction: () -> Void = {}
     @State private var showFileImporter = false
     @State private var showFileExporter = false
+    @State private var isDirty = false
     @State private var logDocument = LogDocument()
     @State private var logURL: URL? = nil
     @State private var showReportFileExporter = false
@@ -89,8 +94,10 @@ struct ContentView: View {
                 HStack(alignment: .center) {
                     Text("Page:")
                         .frame(width: 108, alignment: .trailing)
+                    
                     Picker("", selection: $page.onChange { value in
                         UserDefaults.standard.set(page, forKey: "Page")
+                        isDirty = true
                         logURL = nil
                         selectedFeature = nil
                         featuresViewModel = FeaturesViewModel()
@@ -107,6 +114,7 @@ struct ContentView: View {
                     .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                     .focusable()
                     .focused($focusedField, equals: .pagePicker)
+                    
                     Menu("Copy tag", systemImage: "tag.fill") {
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
@@ -167,6 +175,8 @@ struct ContentView: View {
                         }, updateList: {
                             sortedFeatures = featuresViewModel.sortedFeatures
                             shouldScrollFeatureListToSelection.toggle()
+                        }, markDocumentDirty: {
+                            isDirty = true
                         }, showToast: showToast)
                     } else {
                         Spacer()
@@ -199,6 +209,7 @@ struct ContentView: View {
                         featuresViewModel.features.append(feature)
                         sortedFeatures = featuresViewModel.sortedFeatures
                         selectedFeature = feature
+                        isDirty = true
                         shouldScrollFeatureListToSelection.toggle()
                     }) {
                         HStack(alignment: .center) {
@@ -219,6 +230,7 @@ struct ContentView: View {
                             selectedFeature = nil
                             featuresViewModel.features.removeAll(where: { $0.id == currentFeature.id })
                             sortedFeatures = featuresViewModel.sortedFeatures
+                            isDirty = true
                         }
                     }) {
                         HStack(alignment: .center) {
@@ -229,7 +241,7 @@ struct ContentView: View {
                     }
                     .disabled(isAnyToastShowing || selectedFeature == nil)
                     .keyboardShortcut("-", modifiers: .command)
-
+                    
                     Spacer()
                         .frame(width: 16)
                     
@@ -238,6 +250,7 @@ struct ContentView: View {
                         selectedFeature = nil
                         featuresViewModel = FeaturesViewModel()
                         sortedFeatures = featuresViewModel.sortedFeatures
+                        isDirty = true
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "trash")
@@ -253,32 +266,34 @@ struct ContentView: View {
                 ScrollViewReader { proxy in
                     List {
                         ForEach(sortedFeatures, id: \.self) { feature in
-                            FeatureListRow(feature: feature, loadedPage: loadedPage!, showToast: showToast)
-                                .padding([.top, .bottom], 8)
-                                .padding([.leading, .trailing])
-                                .foregroundStyle(Color(nsColor: hoveredFeature == feature
-                                                       ? NSColor.selectedControlTextColor
-                                                       : NSColor.labelColor), Color(nsColor: .labelColor))
-                                .background(selectedFeature == feature
-                                            ? Color.BackgroundColorListSelected
-                                            : hoveredFeature == feature
-                                            ? Color.BackgroundColorListSelected.opacity(0.33)
-                                            : Color.BackgroundColorList)
-                                .cornerRadius(4)
-                                .onHover(perform: { hovering in
-                                    if hoveredFeature == feature {
-                                        if !hovering {
-                                            hoveredFeature = nil
-                                        }
-                                    } else if hovering {
-                                        hoveredFeature = feature
+                            FeatureListRow(feature: feature, loadedPage: loadedPage!, markDocumentDirty: {
+                                isDirty = true
+                            }, showToast: showToast)
+                            .padding([.top, .bottom], 8)
+                            .padding([.leading, .trailing])
+                            .foregroundStyle(Color(nsColor: hoveredFeature == feature
+                                                   ? NSColor.selectedControlTextColor
+                                                   : NSColor.labelColor), Color(nsColor: .labelColor))
+                            .background(selectedFeature == feature
+                                        ? Color.BackgroundColorListSelected
+                                        : hoveredFeature == feature
+                                        ? Color.BackgroundColorListSelected.opacity(0.33)
+                                        : Color.BackgroundColorList)
+                            .cornerRadius(4)
+                            .onHover(perform: { hovering in
+                                if hoveredFeature == feature {
+                                    if !hovering {
+                                        hoveredFeature = nil
                                     }
-                                })
-                                .onTapGesture {
-                                    withAnimation {
-                                        selectedFeature = feature
-                                    }
+                                } else if hovering {
+                                    hoveredFeature = feature
                                 }
+                            })
+                            .onTapGesture {
+                                withAnimation {
+                                    selectedFeature = feature
+                                }
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -302,8 +317,20 @@ struct ContentView: View {
                 .cornerRadius(4)
             }
             .toolbar {
+                // Open log
                 Button(action: {
-                    showFileImporter.toggle()
+                    if isDirty {
+                        documentDirtyAfterSaveAction = {
+                            showFileImporter.toggle()
+                        }
+                        documentDirtyAfterDismissAction = {
+                            showFileImporter.toggle()
+                        }
+                        documentDirtyAlertConfirmation = "Would you like to save this log file before opening another log?"
+                        isShowingDocumentDirtyAlert.toggle()
+                    } else {
+                        showFileImporter.toggle()
+                    }
                 }) {
                     HStack {
                         Image(systemName: "square.and.arrow.up.on.square")
@@ -322,16 +349,19 @@ struct ContentView: View {
                     switch result {
                     case .success(let file):
                         loadLog(from: file)
+                        isDirty = false
                     case .failure(let error):
                         print(error)
                     }
                 }
                 .disabled(isAnyToastShowing || loadedPage == nil)
-
+                
+                // Save log
                 Button(action: {
                     logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
                     if let file = logURL {
                         saveLog(to: file)
+                        isDirty = false
                     } else {
                         showFileExporter.toggle()
                     }
@@ -356,12 +386,17 @@ struct ContentView: View {
                     case .success(let url):
                         print("Saved to \(url)")
                         logURL = url
+                        isDirty = false
+                        documentDirtyAfterSaveAction()
+                        documentDirtyAfterSaveAction = {}
+                        documentDirtyAfterDismissAction = {}
                     case .failure(let error):
                         debugPrint(error)
                     }
                 }
                 .disabled(isAnyToastShowing || loadedPage == nil)
-
+                
+                // Copy report
                 Button(action: {
                     copyReportToClipboard()
                 }) {
@@ -376,7 +411,8 @@ struct ContentView: View {
                     .buttonStyle(.plain)
                 }
                 .disabled(isAnyToastShowing || loadedPage == nil)
-
+                
+                // Save report
                 Button(action: {
                     reportDocument = ReportDocument(initialText: generateReport())
                     showReportFileExporter.toggle()
@@ -395,8 +431,8 @@ struct ContentView: View {
                     isPresented: $showReportFileExporter,
                     document: reportDocument,
                     contentType: UTType.features,
-                    defaultFilename: logURL != nil ? 
-                        "\(logURL!.deletingPathExtension().lastPathComponent).features" :
+                    defaultFilename: logURL != nil ?
+                    "\(logURL!.deletingPathExtension().lastPathComponent).features" :
                         "\(loadedPage?.hub ?? "hub")_\(loadedPage?.pageName ?? loadedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).features"
                 ) { result in
                     switch result {
@@ -407,7 +443,8 @@ struct ContentView: View {
                     }
                 }
                 .disabled(isAnyToastShowing || loadedPage == nil)
-
+                
+                // Theme
                 Menu("Theme", systemImage: "paintpalette") {
                     Picker("Theme:", selection: $theme.onChange(setTheme)) {
                         ForEach(Theme.allCases) { itemTheme in
@@ -444,9 +481,29 @@ struct ContentView: View {
             logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
             if let file = logURL {
                 saveLog(to: file)
+                documentDirtyAfterSaveAction()
+                documentDirtyAfterSaveAction = {}
+                documentDirtyAfterDismissAction = {}
             } else {
                 showFileExporter.toggle()
             }
+        }
+        .sheet(isPresented: $isShowingDocumentDirtyAlert) {
+            DocumentDirtySheet(
+                isShowing: $isShowingDocumentDirtyAlert,
+                confirmationText: $documentDirtyAlertConfirmation,
+                saveAction: {
+                    commandModel.saveLog.toggle()
+                },
+                dismissAction: {
+                    documentDirtyAfterDismissAction()
+                    documentDirtyAfterSaveAction = {}
+                    documentDirtyAfterDismissAction = {}
+                },
+                cancelAction: {
+                    documentDirtyAfterSaveAction = {}
+                    documentDirtyAfterDismissAction = {}
+                })
         }
         .toast(
             isPresenting: $isShowingToast,
@@ -505,7 +562,9 @@ struct ContentView: View {
         .onAppear(perform: {
             setTheme(theme)
             focusedField = .pagePicker
+            DocumentManager.default.registerReceiver(receiver: self)
         })
+        .navigationSubtitle(isDirty ? "edited" : "")
         .task {
             do {
                 let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
@@ -548,6 +607,13 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
+    }
+    
+    private func delayAndTerminate() {
+        isDirty = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: {
+            NSApplication.shared.terminate(nil)
+        })
     }
     
     private func setTheme(_ newTheme: Theme) {
@@ -612,7 +678,7 @@ struct ContentView: View {
             print("No access?")
             return
         }
-
+        
         let fileContents = FileManager.default.contents(atPath: file.path)
         if let json = fileContents {
             let jsonString = String(String(decoding: json, as: UTF8.self))
@@ -635,17 +701,17 @@ struct ContentView: View {
                 debugPrint("Error parsing JSON: \(error.localizedDescription)")
             }
         }
-
+        
         file.stopAccessingSecurityScopedResource()
     }
-
+    
     private func saveLog(to file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
         if (!gotAccess) {
             print("No access?")
             return
         }
-
+        
         do {
             let jsonData = Data(logDocument.text.replacingOccurrences(of: "\\/", with: "/").utf8)
             try jsonData.write(to: file)
@@ -657,7 +723,7 @@ struct ContentView: View {
         } catch {
             debugPrint(error)
         }
-
+        
         file.stopAccessingSecurityScopedResource()
     }
     
@@ -897,7 +963,7 @@ struct ContentView: View {
         }
         return text
     }
-
+    
     private func copyReportToClipboard() {
         let text = generateReport()
         copyToClipboard(text)
@@ -909,12 +975,28 @@ struct ContentView: View {
     }
 }
 
+extension ContentView: DocumentManagerDelegate {
+    func onCanTerminate() -> Bool {
+        if isDirty {
+            documentDirtyAfterDismissAction = {
+                delayAndTerminate()
+            }
+            documentDirtyAfterSaveAction = {
+                delayAndTerminate()
+            }
+            documentDirtyAlertConfirmation = "Would you like to save this log file before leaving the app?"
+            isShowingDocumentDirtyAlert.toggle()
+        }
+        return !isDirty
+    }
+}
+
 #Preview {
     @State var checkingForUpdates = false
     @State var isShowingVersionAvailableToast = false
     @State var isShowingVersionRequiredToast = false
     @State var versionCheckToast = VersionCheckToast()
-
+    
     var localAppState = VersionCheckAppState(
         isCheckingForUpdates: $checkingForUpdates,
         isShowingVersionAvailableToast: $isShowingVersionAvailableToast,
@@ -922,8 +1004,57 @@ struct ContentView: View {
         versionCheckToast: $versionCheckToast,
         versionLocation: "https://vero.andydragon.com/static/data/trackingtags/version.json")
     localAppState.isPreviewMode = true
-
+    
     return ContentView(localAppState)
+}
+
+struct DocumentDirtySheet: View {
+    @Binding var isShowing: Bool
+    @Binding var confirmationText: String
+    var saveAction: () -> Void
+    var dismissAction: () -> Void
+    var cancelAction: () -> Void
+    
+    var body: some View {
+        VStack {
+            HStack(alignment: .center) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(Color.black, Color.yellow)
+                    .font(.largeTitle)
+                Spacer()
+                    .frame(width: 16)
+                Text("The log file has been edited and not saved")
+                    .font(.title)
+                Spacer()
+            }
+            Spacer()
+                .frame(height: 16)
+            Text(confirmationText)
+            Spacer()
+                .frame(height: 16)
+            HStack(alignment: .bottom) {
+                Spacer()
+                Button("Yes", action: {
+                    isShowing.toggle()
+                    saveAction()
+                })
+                Spacer()
+                    .frame(width: 8)
+                Button("No", role: .destructive, action: {
+                    isShowing.toggle()
+                    dismissAction()
+                })
+                Spacer()
+                    .frame(width: 8)
+                Button("Cancel", role: .cancel, action: {
+                    isShowing.toggle()
+                    cancelAction()
+                })
+                Spacer()
+            }
+        }
+        .padding(24)
+    }
 }
 
 struct FeatureListRow: View {
@@ -932,9 +1063,10 @@ struct FeatureListRow: View {
         "feature",
         store: UserDefaults(suiteName: "group.com.andydragon.VeroTools")
     ) var sharedFeature = ""
-
+    
     @ObservedObject var feature: Feature
     var loadedPage: LoadedPage
+    var markDocumentDirty: () -> Void
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
     
     @State var userName = ""
@@ -942,7 +1074,7 @@ struct FeatureListRow: View {
     @State var featureDescription = ""
     @State var postLink = ""
     @State var showingMessageEditor = false
-
+    
     @AppStorage(
         "preference_personalMessage",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -951,7 +1083,7 @@ struct FeatureListRow: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-
+    
     var body: some View {
         HStack(alignment: .center) {
             if feature.photoFeaturedOnPage {
@@ -1071,20 +1203,23 @@ struct FeatureListRow: View {
                         
                         HStack(alignment: .center) {
                             Text("Personal message (from your account): ")
-                            TextField("", text: $feature.personalMessage)
-                                .focusable()
-                                .autocorrectionDisabled(false)
-                                .textFieldStyle(.plain)
-                                .padding(4)
-                                .background(Color.BackgroundColorEditor)
-                                .border(Color.gray.opacity(0.25))
-                                .cornerRadius(4)
+                            TextField("", text: $feature.personalMessage.onChange { value in
+                                markDocumentDirty()
+                            })
+                            .focusable()
+                            .autocorrectionDisabled(false)
+                            .textFieldStyle(.plain)
+                            .padding(4)
+                            .background(Color.BackgroundColorEditor)
+                            .border(Color.gray.opacity(0.25))
+                            .cornerRadius(4)
                         }
                         
                         Spacer()
                         
                         HStack(alignment: .center)  {
                             Spacer()
+                            
                             Button(action: {
                                 let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                                 let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -1095,6 +1230,7 @@ struct FeatureListRow: View {
                                     .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
                                     .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
                                 copyToClipboard(fullPersonalMessage)
+                                showingMessageEditor.toggle()
                                 showToast(.complete(.green), "Copied to clipboard", "The personal message was copied to the clipboard", 2) { }
                             }) {
                                 HStack(alignment: .center) {
@@ -1103,6 +1239,7 @@ struct FeatureListRow: View {
                                     Text("Copy full text")
                                 }
                             }
+                            
                             Button(action: {
                                 showingMessageEditor.toggle()
                             }) {
@@ -1170,7 +1307,7 @@ struct FeatureListRow: View {
             
             // Store the feature in the shared storage
             sharedFeature = jsonString
-
+            
             // Launch the Vero Scripts app
             guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.andydragon.Vero-Scripts") else { return }
             let configuration = NSWorkspace.OpenConfiguration()

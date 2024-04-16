@@ -177,5 +177,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.17",
+        "notes": [
+            {
+                "date": "Apr 15, 2024",
+                "notes": [
+                    "Added dirty state handling for the log to prevent closing the app without saving."
+                ]
+            }
+        ]
     }
 ]
