@@ -1,11 +1,13 @@
 ﻿using ControlzEx.Theming;
-using FeatureLogging;
+using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.IconPacks;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Notification.Wpf;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -92,15 +94,35 @@ namespace FeatureLogging
 
             #region Command implementations
 
-            NewFeaturesCommand = new Command(() => {
+            NewFeaturesCommand = new CommandWithParameter((ignoreDirty) =>
+            {
+                if (IsDirty && ignoreDirty == null)
+                {
+                    HandleDirtyAction("creating a new log", (completed) =>
+                    {
+                        NewFeaturesCommand?.Execute(true);
+                    });
+                    return;
+                }
+
                 lastFilename = string.Empty;
                 SelectedFeature = null;
                 Features.Clear();
                 OnPropertyChanged(nameof(HasFeatures));
+                IsDirty = false;
             });
 
-            OpenFeaturesCommand = new Command(() =>
+            OpenFeaturesCommand = new CommandWithParameter((ignoreDirty) =>
             {
+                if (IsDirty && ignoreDirty == null)
+                {
+                    HandleDirtyAction("opening a different log", (completed) =>
+                    {
+                        OpenFeaturesCommand?.Execute(true);
+                    });
+                    return;
+                }
+
                 OpenFileDialog dialog = new()
                 {
                     Filter = "Log files (*.json)|*.json|All files (*.*)|*.*",
@@ -158,6 +180,11 @@ namespace FeatureLogging
                                 }
                                 OnPropertyChanged(nameof(HasFeatures));
                                 lastFilename = dialog.FileName;
+                                IsDirty = false;
+                                foreach (var feature in Features)
+                                {
+                                    feature.IsDirty = false;
+                                }
                                 notificationManager.Show(
                                     "Loaded the feature log",
                                     $"Loaded {Features.Count} features for the {SelectedPage.DisplayName} page",
@@ -217,6 +244,11 @@ namespace FeatureLogging
                         };
                         File.WriteAllText(fileName, JsonConvert.SerializeObject(file, Formatting.Indented, jsonSettings).Replace("\": ", "\" : "));
                         lastFilename = fileName;
+                        IsDirty = false;
+                        foreach (var feature in Features)
+                        {
+                            feature.IsDirty = false;
+                        }
                         notificationManager.Show(
                             "Saved the feature log",
                             $"Saved {Features.Count} features for the {SelectedPage.DisplayName} page",
@@ -462,6 +494,37 @@ namespace FeatureLogging
             });
 
             #endregion
+
+            #region Dirty state management
+
+            void ItemChanged(object? sender, PropertyChangedEventArgs e)
+            {
+                if (sender is Feature feature && e.PropertyName == nameof(feature.IsDirty))
+                {
+                    IsDirty |= feature.IsDirty;
+                }
+            }
+
+            Features.CollectionChanged += (sender, e) =>
+            {
+                if (e.OldItems != null)
+                {
+                    foreach (INotifyPropertyChanged item in e.OldItems)
+                    {
+                        item.PropertyChanged -= ItemChanged;
+                    }
+                }
+                if (e.NewItems != null)
+                {
+                    foreach (INotifyPropertyChanged item in e.NewItems)
+                    {
+                        item.PropertyChanged += ItemChanged;
+                    }
+                }
+                IsDirty = true;
+            };
+
+            #endregion
         }
 
         #region User settings
@@ -532,6 +595,7 @@ namespace FeatureLogging
                 }
                 SelectedPage = LoadedPages.FirstOrDefault(page => page.Id == Page);
                 _ = LoadDisallowList();
+                IsDirty = false;
             }
             catch (Exception ex)
             {
@@ -600,6 +664,45 @@ namespace FeatureLogging
         public ICommand CopyPersonalMessageCommand { get; }
 
         public ICommand SetThemeCommand { get; }
+
+        #endregion
+
+        #region Dirty state
+
+        private bool isDirty = false;
+        public bool IsDirty
+        {
+            get => isDirty;
+            set => Set(ref isDirty, value, [nameof(Title)]);
+        }
+
+        public string Title => $"Feature Logging {(IsDirty ? " - edited" : string.Empty)}";
+
+        public void HandleDirtyAction(string action, Action<bool> onConfirmAction)
+        {
+            switch (MessageBox.Show(
+                Application.Current.MainWindow,
+                "The current log document has been edited. Would you like to save the log before " + action + "?", 
+                "Log not saved", 
+                MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Question))
+            {
+                case MessageBoxResult.Yes:
+                    SaveFeaturesCommand.Execute(null);
+                    if (!IsDirty)
+                    {
+                        onConfirmAction(true);
+                    }
+                    break;
+
+                case MessageBoxResult.No:
+                    onConfirmAction(false);
+                    break;
+
+                case MessageBoxResult.Cancel:
+                    break;
+            }
+        }
 
         #endregion
 
@@ -718,6 +821,7 @@ namespace FeatureLogging
                 {
                     UserSettings.Store(nameof(Page), Page);
                     PageValidation = CalculatePageValidation(Page);
+                    IsDirty = true;
                 }
             }
         }
@@ -1542,12 +1646,21 @@ namespace FeatureLogging
             get => IsPicked && !TooSoonToFeatureUser && !PhotoFeaturedOnPage && TinEyeResults != "matches found" && AiCheckResults != "ai";
         }
 
+        [JsonIgnore]
+        private bool isDirty = false;
+        [JsonIgnore]
+        public bool IsDirty
+        {
+            get => isDirty;
+            set => Set(ref isDirty, value);
+        }
+
         private bool isPicked = false;
         [JsonProperty(PropertyName = "isPicked")]
         public bool IsPicked
         {
             get => isPicked;
-            set => Set(ref isPicked, value, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
+            set => SetWithDirtyCallback(ref isPicked, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
         }
 
         private string postLink = "";
@@ -1555,7 +1668,7 @@ namespace FeatureLogging
         public string PostLink
         {
             get => postLink;
-            set => Set(ref postLink, value, [nameof(PostLinkValidation)]);
+            set => SetWithDirtyCallback(ref postLink, value, () => IsDirty = true, [nameof(PostLinkValidation)]);
         }
         [JsonIgnore]
         public ValidationResult PostLinkValidation => Validation.ValidateValueNotEmpty(postLink);
@@ -1565,7 +1678,7 @@ namespace FeatureLogging
         public string UserName
         {
             get => userName;
-            set => Set(ref userName, value, [nameof(UserNameValidation)]);
+            set => SetWithDirtyCallback(ref userName, value, () => IsDirty = true, [nameof(UserNameValidation)]);
         }
         [JsonIgnore]
         public ValidationResult UserNameValidation => Validation.ValidateValueNotEmpty(userName);
@@ -1575,7 +1688,7 @@ namespace FeatureLogging
         public string UserAlias
         {
             get => userAlias;
-            set => Set(ref userAlias, value, [nameof(UserAliasValidation)]);
+            set => SetWithDirtyCallback(ref userAlias, value, () => IsDirty = true, [nameof(UserAliasValidation)]);
         }
         [JsonIgnore]
         public ValidationResult UserAliasValidation => Validation.ValidateUserName(userAlias);
@@ -1585,7 +1698,7 @@ namespace FeatureLogging
         public string UserLevel
         {
             get => userLevel;
-            set => Set(ref userLevel, value, [nameof(UserLevelValidation)]);
+            set => SetWithDirtyCallback(ref userLevel, value, () => IsDirty = true, [nameof(UserLevelValidation)]);
         }
         [JsonIgnore]
         public ValidationResult UserLevelValidation => Validation.ValidateValueNotDefault(userLevel, "None");
@@ -1595,7 +1708,7 @@ namespace FeatureLogging
         public bool UserIsTeammate
         {
             get => userIsTeammate;
-            set => Set(ref userIsTeammate, value);
+            set => SetWithDirtyCallback(ref userIsTeammate, value, () => IsDirty = true);
         }
 
         private string tagSource = "Page tag";
@@ -1603,7 +1716,7 @@ namespace FeatureLogging
         public string TagSource
         {
             get => tagSource;
-            set => Set(ref tagSource, value);
+            set => SetWithDirtyCallback(ref tagSource, value, () => IsDirty = true);
         }
 
         private bool photoFeaturedOnPage = false;
@@ -1611,7 +1724,7 @@ namespace FeatureLogging
         public bool PhotoFeaturedOnPage
         {
             get => photoFeaturedOnPage;
-            set => Set(ref photoFeaturedOnPage, value, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
+            set => SetWithDirtyCallback(ref photoFeaturedOnPage, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
         }
 
         private bool photoFeaturedOnHub = false;
@@ -1619,7 +1732,7 @@ namespace FeatureLogging
         public bool PhotoFeaturedOnHub
         {
             get => photoFeaturedOnHub;
-            set => Set(ref photoFeaturedOnHub, value);
+            set => SetWithDirtyCallback(ref photoFeaturedOnHub, value, () => IsDirty = true);
         }
 
         private string photoLastFeaturedOnHub = "";
@@ -1627,7 +1740,7 @@ namespace FeatureLogging
         public string PhotoLastFeaturedOnHub
         {
             get => photoLastFeaturedOnHub;
-            set => Set(ref photoLastFeaturedOnHub, value, [nameof(PhotoLastFeaturedOnHubValidation)]);
+            set => SetWithDirtyCallback(ref photoLastFeaturedOnHub, value, () => IsDirty = true, [nameof(PhotoLastFeaturedOnHubValidation)]);
         }
         [JsonIgnore]
         public ValidationResult PhotoLastFeaturedOnHubValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedOnHub);
@@ -1637,7 +1750,7 @@ namespace FeatureLogging
         public string PhotoLastFeaturedPage
         {
             get => photoLastFeaturedPage;
-            set => Set(ref photoLastFeaturedPage, value, [nameof(PhotoLastFeaturedPageValidation)]);
+            set => SetWithDirtyCallback(ref photoLastFeaturedPage, value, () => IsDirty = true, [nameof(PhotoLastFeaturedPageValidation)]);
         }
         [JsonIgnore]
         public ValidationResult PhotoLastFeaturedPageValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedPage);
@@ -1647,7 +1760,7 @@ namespace FeatureLogging
         public string FeatureDescription
         {
             get => featureDescription;
-            set => Set(ref featureDescription, value, [nameof(FeatureDescriptionValidation)]);
+            set => SetWithDirtyCallback(ref featureDescription, value, () => IsDirty = true, [nameof(FeatureDescriptionValidation)]);
         }
         [JsonIgnore]
         public ValidationResult FeatureDescriptionValidation => Validation.ValidateValueNotEmpty(featureDescription);
@@ -1657,7 +1770,7 @@ namespace FeatureLogging
         public bool UserHasFeaturesOnPage
         {
             get => userHasFeaturesOnPage;
-            set => Set(ref userHasFeaturesOnPage, value);
+            set => SetWithDirtyCallback(ref userHasFeaturesOnPage, value, () => IsDirty = true);
         }
 
         private string lastFeaturedOnPage = "";
@@ -1665,7 +1778,7 @@ namespace FeatureLogging
         public string LastFeaturedOnPage
         {
             get => lastFeaturedOnPage;
-            set => Set(ref lastFeaturedOnPage, value, [nameof(LastFeaturedOnPageValidation)]);
+            set => SetWithDirtyCallback(ref lastFeaturedOnPage, value, () => IsDirty = true, [nameof(LastFeaturedOnPageValidation)]);
         }
         [JsonIgnore]
         public ValidationResult LastFeaturedOnPageValidation => Validation.ValidateValueNotEmpty(lastFeaturedOnPage);
@@ -1675,7 +1788,7 @@ namespace FeatureLogging
         public string FeatureCountOnPage
         {
             get => featureCountOnPage;
-            set => Set(ref featureCountOnPage, value);
+            set => SetWithDirtyCallback(ref featureCountOnPage, value, () => IsDirty = true);
         }
 
         private string featureCountOnRawPage = "many";
@@ -1683,7 +1796,7 @@ namespace FeatureLogging
         public string FeatureCountOnRawPage
         {
             get => featureCountOnRawPage;
-            set => Set(ref featureCountOnRawPage, value);
+            set => SetWithDirtyCallback(ref featureCountOnRawPage, value, () => IsDirty = true);
         }
 
         private bool userHasFeaturesOnHub = false;
@@ -1691,7 +1804,7 @@ namespace FeatureLogging
         public bool UserHasFeaturesOnHub
         {
             get => userHasFeaturesOnHub;
-            set => Set(ref userHasFeaturesOnHub, value);
+            set => SetWithDirtyCallback(ref userHasFeaturesOnHub, value, () => IsDirty = true);
         }
 
         private string lastFeaturedOnHub = "";
@@ -1699,7 +1812,7 @@ namespace FeatureLogging
         public string LastFeaturedOnHub
         {
             get => lastFeaturedOnHub;
-            set => Set(ref lastFeaturedOnHub, value, [nameof(LastFeaturedOnHubValidation)]);
+            set => SetWithDirtyCallback(ref lastFeaturedOnHub, value, () => IsDirty = true, [nameof(LastFeaturedOnHubValidation)]);
         }
         [JsonIgnore]
         public ValidationResult LastFeaturedOnHubValidation => Validation.ValidateValueNotEmpty(lastFeaturedOnHub);
@@ -1709,7 +1822,7 @@ namespace FeatureLogging
         public string LastFeaturedPage
         {
             get => lastFeaturedPage;
-            set => Set(ref lastFeaturedPage, value, [nameof(LastFeaturedPageValidation)]);
+            set => SetWithDirtyCallback(ref lastFeaturedPage, value, () => IsDirty = true, [nameof(LastFeaturedPageValidation)]);
         }
         [JsonIgnore]
         public ValidationResult LastFeaturedPageValidation => Validation.ValidateValueNotEmpty(lastFeaturedPage);
@@ -1719,7 +1832,7 @@ namespace FeatureLogging
         public string FeatureCountOnHub
         {
             get => featureCountOnHub;
-            set => Set(ref featureCountOnHub, value);
+            set => SetWithDirtyCallback(ref featureCountOnHub, value, () => IsDirty = true);
         }
 
         private string featureCountOnRawHub = "many";
@@ -1727,7 +1840,7 @@ namespace FeatureLogging
         public string FeatureCountOnRawHub
         {
             get => featureCountOnRawHub;
-            set => Set(ref featureCountOnRawHub, value);
+            set => SetWithDirtyCallback(ref featureCountOnRawHub, value, () => IsDirty = true);
         }
 
         private bool tooSoonToFeatureUser = false;
@@ -1735,7 +1848,7 @@ namespace FeatureLogging
         public bool TooSoonToFeatureUser
         {
             get => tooSoonToFeatureUser;
-            set => Set(ref tooSoonToFeatureUser, value, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
+            set => SetWithDirtyCallback(ref tooSoonToFeatureUser, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
         }
 
         private string tinEyeResults = "0 matches";
@@ -1743,7 +1856,7 @@ namespace FeatureLogging
         public string TinEyeResults
         {
             get => tinEyeResults;
-            set => Set(ref tinEyeResults, value, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
+            set => SetWithDirtyCallback(ref tinEyeResults, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
         }
 
         private string aiCheckResults = "human";
@@ -1751,7 +1864,7 @@ namespace FeatureLogging
         public string AiCheckResults
         {
             get => aiCheckResults;
-            set => Set(ref aiCheckResults, value, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
+            set => SetWithDirtyCallback(ref aiCheckResults, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
         }
 
         private string personalMessage = "";
@@ -1759,7 +1872,7 @@ namespace FeatureLogging
         public string PersonalMessage
         {
             get => personalMessage;
-            set => Set(ref personalMessage, value);
+            set => SetWithDirtyCallback(ref personalMessage, value, () => IsDirty = true);
         }
 
         [JsonIgnore]

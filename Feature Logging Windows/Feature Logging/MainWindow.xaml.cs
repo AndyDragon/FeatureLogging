@@ -1,4 +1,6 @@
-﻿namespace FeatureLogging
+﻿using System.ComponentModel;
+
+namespace FeatureLogging
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -15,6 +17,19 @@
             if (this.DataContext is MainViewModel viewModel)
             {
                 viewModel.WindowActive = IsActive;
+            }
+        }
+
+        private void OnClosing(object sender, CancelEventArgs e)
+        {
+            if (this.DataContext is MainViewModel viewModel && viewModel.IsDirty)
+            {
+                e.Cancel = true;
+                viewModel.HandleDirtyAction("closing the app", (completed) =>
+                {
+                    viewModel.IsDirty = false;
+                    e.Cancel = false;
+                });
             }
         }
     }

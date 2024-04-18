@@ -29,5 +29,24 @@ namespace FeatureLogging
             }
             return false;
         }
+
+        public bool SetWithDirtyCallback<T>(ref T storage, T value, Action setDirty, string[]? associatedPropertyNames = null, [CallerMemberName()] string? propertyName = null)
+        {
+            if (!object.Equals(storage, value))
+            {
+                storage = value;
+                OnPropertyChanged(propertyName);
+                if (associatedPropertyNames != null)
+                {
+                    foreach (var associatedProperty in associatedPropertyNames)
+                    {
+                        OnPropertyChanged(associatedProperty);
+                    }
+                }
+                setDirty();
+                return true;
+            }
+            return false;
+        }
     }
 }
