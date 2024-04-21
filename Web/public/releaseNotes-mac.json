@@ -188,5 +188,18 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.18",
+        "notes": [
+            {
+                "date": "Apr 21, 2024",
+                "notes": [
+                    "Fixed bug where 'many' features was treated as zero.",
+                    "When opening Vero Scripts or editing personal message, select feature row.",
+                    "Added settings to pick culling tool (default Bridge 2024) and AI check tool (default internal tool)."
+                ]
+            }
+        ]
     }
 ]

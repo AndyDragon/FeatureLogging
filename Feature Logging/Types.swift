@@ -22,14 +22,14 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
          snapEliteMember = "Elite Member",
          snapHallOfFameMember = "Hall of Fame Member",
          snapDiamondMember = "Diamond Member",
-    
+
          // click
          clickBronzeMember = "Bronze Member",
          clickSilverMember = "Silver Member",
          clickGoldMember = "Gold Member"
 
     var id: Self { self }
-    
+
     static func casesFor(hub: String?) -> [MembershipCase] {
         if hub == "snap" {
             return [
@@ -60,7 +60,7 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
             .commonArtist
         ]
     }
-    
+
     static func caseValidFor(hub: String?, _ value: MembershipCase) -> Bool {
         if hub == "snap" {
             return [
@@ -95,7 +95,7 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
 
 enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
     case commonPageTag = "Page tag",
-         
+
          // snap
          snapRawPageTag = "RAW page tag",
          snapCommunityTag = "Snap community tag",
@@ -105,9 +105,9 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
          // click
          clickCommunityTag = "Click community tag",
          clickHubTag = "Click hub tag"
-    
+
     var id: Self { self }
-    
+
     static func casesFor(hub: String?) -> [TagSourceCase] {
         if hub == "snap" {
             return [
@@ -129,7 +129,7 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
             .commonPageTag
         ]
     }
-    
+
     static func caseValidFor(hub: String?, _ value: TagSourceCase) -> Bool {
         if hub == "snap" {
             return [
@@ -157,14 +157,14 @@ enum TinEyeResults: String, CaseIterable, Identifiable, Codable {
     case zeroMatches = "0 matches",
          noMatches = "no matches",
          matchFound = "matches found"
-    
+
     var id: Self { self }
 }
 
 enum AiCheckResults: String, CaseIterable, Identifiable, Codable {
     case human = "human",
          ai = "ai"
-    
+
     var id: Self { self }
 }
 
@@ -173,18 +173,18 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
 
          // common
          commonMember = "Member",
-         
+
          // snap
          snapVipMember = "VIP Member",
-    
+
          // click
          clickBronzeMember = "Bronze Member",
          clickSilverMember = "Silver Member",
          clickGoldMember = "Gold Member",
          clickPlatinumMember = "Platinum Member"
-    
+
     var id: Self { self }
-    
+
     static func casesFor(hub: String?) -> [NewMembershipCase] {
         if hub == "snap" {
             return [
@@ -207,7 +207,7 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
             .none
         ]
     }
-    
+
     static func caseValidFor(hub: String?, _ value: NewMembershipCase) -> Bool {
         if hub == "snap" {
             return [
@@ -215,7 +215,7 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
                 commonMember,
                 snapVipMember
             ].contains(value)
-        } 
+        }
         if hub == "click" {
             return [
                 none,
@@ -239,7 +239,7 @@ class FeaturesViewModel: ObservableObject  {
     }
 
     init() {}
-    
+
     private func compareFeatures(_ lhs: Feature, _ rhs: Feature) -> Bool {
         // Empty names always at the bottom
         if lhs.userName.isEmpty {
@@ -270,7 +270,7 @@ class FeaturesViewModel: ObservableObject  {
         if rhsTinEye {
             return true
         }
-        
+
         let lhAiCheck = lhs.aiCheckResults == .ai
         let rhAiCheck = rhs.aiCheckResults == .ai
         if lhAiCheck && rhAiCheck {
@@ -333,7 +333,7 @@ struct LogFeature: Codable {
     var tinEyeResults: TinEyeResults
     var aiCheckResults: AiCheckResults
     var personalMessage: String
-    
+
     init(feature: Feature) {
         self.isPicked = feature.isPicked
         self.postLink = feature.postLink
@@ -361,7 +361,7 @@ struct LogFeature: Codable {
         self.aiCheckResults = feature.aiCheckResults
         self.personalMessage = feature.personalMessage
     }
-    
+
     enum CodingKeys: CodingKey {
         case isPicked
         case postLink
@@ -389,7 +389,7 @@ struct LogFeature: Codable {
         case aiCheckResults
         case personalMessage
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.isPicked = try container.decode(Bool.self, forKey: .isPicked)
@@ -452,36 +452,36 @@ struct LogFeature: Codable {
 struct Log: Codable {
     var page: String
     private var features: [LogFeature]
-    
+
     init() {
         page = ""
         features = [LogFeature]()
     }
-    
+
     init(page: LoadedPage, features: [Feature]) {
         self.page = page.id
         self.features = features.map({ feature in
             LogFeature(feature: feature)
         })
     }
-    
+
     enum CodingKeys: CodingKey {
         case page
         case features
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.page = try container.decode(String.self, forKey: .page)
         self.features = try container.decode([LogFeature].self, forKey: .features)
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(page, forKey: .page)
         try container.encode(features, forKey: .features)
     }
-    
+
     func getFeatures() -> [Feature] {
         var featuresFromLog = [Feature]()
         for logFeature in features {
@@ -542,7 +542,7 @@ struct LogDocument: FileDocument {
             text = String(decoding: data, as: UTF8.self)
         }
     }
-    
+
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
         let data = Data(text.utf8)
         return FileWrapper(regularFileWithContents: data)
@@ -556,17 +556,17 @@ extension UTType {
 struct ReportDocument: FileDocument {
     static var readableContentTypes = [UTType.features]
     var text = ""
-    
+
     init(initialText: String = "") {
         text = initialText
     }
-    
+
     init(configuration: ReadConfiguration) throws {
         if let data = configuration.file.regularFileContents {
             text = String(decoding: data, as: UTF8.self)
         }
     }
-    
+
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
         let data = Data(text.utf8)
         return FileWrapper(regularFileWithContents: data)
@@ -590,27 +590,27 @@ class Feature: Identifiable, Hashable, ObservableObject {
     @Published var userHasFeaturesOnPage = false
     @Published var lastFeaturedOnPage = ""
     @Published var featureCountOnPage = "many"
-    @Published var featureCountOnRawPage = "many"
+    @Published var featureCountOnRawPage = "0"
     @Published var userHasFeaturesOnHub = false
     @Published var lastFeaturedOnHub = ""
     @Published var lastFeaturedPage = ""
     @Published var featureCountOnHub = "many"
-    @Published var featureCountOnRawHub = "many"
+    @Published var featureCountOnRawHub = "0"
     @Published var tooSoonToFeatureUser = false
     @Published var tinEyeResults = TinEyeResults.zeroMatches
     @Published var aiCheckResults = AiCheckResults.human
     @Published var personalMessage = ""
-    
+
     var isPickedAndAllowed: Bool {
         isPicked && !tooSoonToFeatureUser && !photoFeaturedOnPage && tinEyeResults != .matchFound && aiCheckResults != .ai
     }
-    
+
     init() { }
-    
+
     static func == (lhs: Feature, rhs: Feature) -> Bool {
         return lhs.id == rhs.id
     }
-    
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
@@ -624,7 +624,7 @@ struct CodableFeature: Codable {
     var tagSource: TagSourceCase
     var firstFeature: Bool
     var newLevel: NewMembershipCase
-    
+
     init(using page: LoadedPage, from feature: Feature) {
         self.page = page.id;
         self.userName = feature.userName
@@ -634,7 +634,7 @@ struct CodableFeature: Codable {
         self.firstFeature = !feature.userHasFeaturesOnPage
         self.newLevel = NewMembershipCase.none
         if page.hub == "click" {
-            let totalFeatures = Int(feature.featureCountOnHub) ?? 0
+            let totalFeatures = calculateFeatureCount(feature.featureCountOnHub)
             if totalFeatures + 1 == 5 {
                 self.newLevel = NewMembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
@@ -647,7 +647,7 @@ struct CodableFeature: Codable {
                 self.newLevel = NewMembershipCase.clickPlatinumMember
             }
         } else if page.hub == "snap" {
-            let totalFeatures = (Int(feature.featureCountOnHub) ?? 0) + (Int(feature.featureCountOnRawHub) ?? 0)
+            let totalFeatures = calculateFeatureCount(feature.featureCountOnHub) + calculateFeatureCount(feature.featureCountOnRawHub)
             if totalFeatures + 1 == 5 {
                 self.newLevel = NewMembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
@@ -655,7 +655,14 @@ struct CodableFeature: Codable {
             }
         }
     }
-    
+
+    func calculateFeatureCount(_ count: String) -> Int {
+        if count == "many" {
+            return 99999
+        }
+        return Int(count) ?? 0
+    }
+
     enum CodingKeys: CodingKey {
         case page
         case userName
@@ -665,7 +672,7 @@ struct CodableFeature: Codable {
         case firstFeature
         case newLevel
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.page = try container.decode(String.self, forKey: .page)
@@ -676,7 +683,7 @@ struct CodableFeature: Codable {
         self.firstFeature = try container.decode(Bool.self, forKey: .firstFeature)
         self.newLevel = try container.decode(NewMembershipCase.self, forKey: .newLevel)
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(page, forKey: .page)

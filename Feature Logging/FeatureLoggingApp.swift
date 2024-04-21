@@ -14,6 +14,22 @@ struct Feature_LoggingApp: App {
     @State var isShowingVersionRequiredToast: Bool = false
     @State var versionCheckToast = VersionCheckToast()
     @ObservedObject var commandModel = AppCommandModel()
+    @AppStorage(
+        "preference_cullingApp",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var cullingApp = "com.adobe.bridge14"
+    @AppStorage(
+        "preference_cullingAppName",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var cullingAppName = "Adobe Bridge"
+    @AppStorage(
+        "preference_aiCheckApp",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var aiCheckApp = "com.andydragon.AI-Check-Tool"
+    @AppStorage(
+        "preference_aiCheckAppName",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var aiCheckAppName = "AI Check Tool"
 
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     var body: some Scene {
@@ -59,6 +75,34 @@ struct Feature_LoggingApp: App {
                     Text("Save log...")
                 })
                 .keyboardShortcut("s", modifiers: .command)
+
+                Divider()
+
+                Button(action: {
+                    if cullingApp.isEmpty {
+                        return
+                    }
+                    guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: cullingApp) else { return }
+                    let configuration = NSWorkspace.OpenConfiguration()
+                    NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+                }, label: {
+                    Text("Launch \(!cullingAppName.isEmpty ? cullingAppName : "culling app")...")
+                })
+                .keyboardShortcut("c", modifiers: [.command, .shift])
+                .disabled(cullingApp.isEmpty)
+
+                Button(action: {
+                    if aiCheckApp.isEmpty {
+                        return
+                    }
+                    guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: aiCheckApp) else { return }
+                    let configuration = NSWorkspace.OpenConfiguration()
+                    NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+                }, label: {
+                    Text("Launch \(!aiCheckAppName.isEmpty ? aiCheckAppName : "AI check tool")...")
+                })
+                .keyboardShortcut("a", modifiers: [.command, .shift])
+                .disabled(aiCheckApp.isEmpty)
             }
         }
         
@@ -91,6 +135,8 @@ class AppCommandModel: ObservableObject {
     @Published var newLog: Bool = false
     @Published var openLog: Bool = false
     @Published var saveLog: Bool = false
+//    @Published var launchCullingApp: Bool = false
+//    @Published var launchAiCheckApp: Bool = false
     @Published var isDirty: Bool = false
 }
 

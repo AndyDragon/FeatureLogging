@@ -268,6 +268,8 @@ struct ContentView: View {
                         ForEach(sortedFeatures, id: \.self) { feature in
                             FeatureListRow(feature: feature, loadedPage: loadedPage!, markDocumentDirty: {
                                 isDirty = true
+                            }, ensureSelected: {
+                                selectedFeature = feature
                             }, showToast: showToast)
                             .padding([.top, .bottom], 8)
                             .padding([.leading, .trailing])
@@ -1067,6 +1069,7 @@ struct FeatureListRow: View {
     @ObservedObject var feature: Feature
     var loadedPage: LoadedPage
     var markDocumentDirty: () -> Void
+    var ensureSelected: () -> Void
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
     
     @State var userName = ""
@@ -1160,6 +1163,7 @@ struct FeatureListRow: View {
                     
                     if feature.isPickedAndAllowed {
                         Button(action: {
+                            ensureSelected()
                             showingMessageEditor.toggle()
                         }) {
                             HStack(alignment: .center) {
@@ -1174,6 +1178,7 @@ struct FeatureListRow: View {
                             .frame(width: 8)
                         
                         Button(action: {
+                            ensureSelected()
                             launchVeroScripts()
                         }) {
                             HStack(alignment: .center) {
