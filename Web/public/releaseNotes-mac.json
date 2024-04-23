@@ -201,5 +201,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.19",
+        "notes": [
+            {
+                "date": "Apr 22, 2024",
+                "notes": [
+                    "Added buttons in the settings pane to pick a culling and AI check tool."
+                ]
+            }
+        ]
     }
 ]

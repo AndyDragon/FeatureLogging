@@ -15,7 +15,9 @@ struct SettingsPane: View {
     ) var theme = Theme.notSet
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @State private var isDarkModeOn = true
-    
+    @State private var showingCullingAppFileImporter = false
+    @State private var showingAiCheckAppFileImporter = false
+
     @Environment(\.dismiss) private var dismiss
     
     @AppStorage(
@@ -164,6 +166,23 @@ struct SettingsPane: View {
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
+                                Button(action: {
+                                    showingCullingAppFileImporter.toggle()
+                                }, label: {
+                                    Text("Pick app...")
+                                        .padding([.leading, .trailing], 12)
+                                })
+                                .fileImporter(isPresented: $showingCullingAppFileImporter, allowedContentTypes: [.application]) { result in
+                                    switch (result) {
+                                    case .success(let file):
+                                        if let appBundle = getBundleIdentifier(from: file) {
+                                            cullingApp = (appBundle["id"] ?? "") ?? ""
+                                            cullingAppName = (appBundle["name"] ?? "") ?? ""
+                                        }
+                                    case .failure(let error):
+                                        print(error)
+                                    }
+                                }
                             }
                             
                             Spacer()
@@ -190,6 +209,23 @@ struct SettingsPane: View {
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
+                                Button(action: {
+                                    showingAiCheckAppFileImporter.toggle()
+                                }, label: {
+                                    Text("Pick app...")
+                                        .padding([.leading, .trailing], 12)
+                                })
+                                .fileImporter(isPresented: $showingAiCheckAppFileImporter, allowedContentTypes: [.application]) { result in
+                                    switch (result) {
+                                    case .success(let file):
+                                        if let appBundle = getBundleIdentifier(from: file) {
+                                            aiCheckApp = (appBundle["id"] ?? "") ?? ""
+                                            aiCheckAppName = (appBundle["name"] ?? "") ?? ""
+                                        }
+                                    case .failure(let error):
+                                        print(error)
+                                    }
+                                }
                             }
                         } header: {
                             Text("External apps:")
@@ -209,10 +245,8 @@ struct SettingsPane: View {
                     Button(action: {
                         dismiss()
                     }, label: {
-                        HStack {
-                            Text("Close")
-                                .padding([.leading, .trailing], 12)
-                        }
+                        Text("Close")
+                            .padding([.leading, .trailing], 12)
                     })
                 }
             }
@@ -240,6 +274,17 @@ struct SettingsPane: View {
                 theme = newTheme
             }
         }
+    }
+
+    private func getBundleIdentifier(from: URL) -> [String: String?]? {
+        if let appBundle = Bundle(url: from) {
+            return [
+                "id": appBundle.bundleIdentifier,
+                "name": appBundle.displayName ?? from.lastPathComponentWithoutExtension
+            ]
+        }
+        debugPrint("Could not load the bundle")
+        return nil
     }
 }
 
