@@ -70,5 +70,18 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.6",
+        "notes": [
+            {
+                "date": "Apr 24, 2024",
+                "notes": [
+                    "Fixed bug where 'many' features was treated as zero.",
+                    "Added settings to pick culling tool (default Bridge 2024) and AI check tool (default internal tool).",
+                    "Added buttons in the settings pane to pick a culling and AI check tool."
+                ]
+            }
+        ]
     }
 ]

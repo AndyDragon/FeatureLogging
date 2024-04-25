@@ -8,36 +8,86 @@
     xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=local:Settings}"
-    Title="Settings" Height="300" Width="960"
+    Title="Settings" Height="480" Width="960"
     GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
     ResizeMode="NoResize">
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Vertical" Grid.ColumnSpan="2">
-            <mah:ToggleSwitch Content="Include '#' in tags" IsOn="{Binding IncludeHash, Mode=TwoWay}" Margin="20,0,0,4" />
-            <StackPanel Orientation="Horizontal" Margin="0,4">
-                <TextBlock Text="Personal message: " VerticalAlignment="Center" Margin="0,0,8,0" />
-                <TextBox Text="{Binding PersonalMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Width="805" Height="20" />
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Background="{DynamicResource MahApps.Brushes.Accent4}" Margin="0,0,0,8" CornerRadius="8">
+            <StackPanel Orientation="Vertical" Margin="8,4,8,8">
+                <TextBlock FontWeight="Bold" Foreground="{DynamicResource MahApps.Brushes.Accent}">Options:</TextBlock>
+                <mah:ToggleSwitch Content="Include '#' in tags" IsOn="{Binding IncludeHash, Mode=TwoWay}" Margin="8,0,0,0" />
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,4">
-                <TextBlock Text="Personal message (first feature): " VerticalAlignment="Center" Margin="0,0,8,0" />
-                <TextBox Text="{Binding PersonalMessageFirst, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Width="734" Height="20" />
+        </Border>
+        <Border Grid.Row="1" Grid.ColumnSpan="2" Background="{DynamicResource MahApps.Brushes.Accent4}" Margin="0,0,0,8" CornerRadius="8">
+            <StackPanel Orientation="Vertical" Margin="8,4,8,8">
+                <TextBlock FontWeight="Bold" Foreground="{DynamicResource MahApps.Brushes.Accent}">Messages:</TextBlock>
+                <Grid Margin="0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Personal message: " VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="1" Text="{Binding PersonalMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" />
+                </Grid>
+                <Grid Margin="0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Personal message (first feature): " VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="1" Text="{Binding PersonalMessageFirst, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" />
+                </Grid>
+                <TextBlock Margin="20,0,0,0">For personal message templates, use these placeholders:</TextBlock>
+                <TextBlock Margin="80,0,0,0">%%PAGENAME%% - populated with the page name, ie clickk_machines or snap_longexposure</TextBlock>
+                <TextBlock Margin="80,0,0,0">%%HUBNAME%% - populated with the hub name, ie click or snap</TextBlock>
+                <TextBlock Margin="80,0,0,0">%%USERNAME%% - populated with the user's full name</TextBlock>
+                <TextBlock Margin="80,0,0,0">%%USERALIAS%% - populated with the user's alias (username)</TextBlock>
+                <TextBlock Margin="80,0,0,0">%%PERSONALMESSAGE%% - populated with your personal message for each feature</TextBlock>
             </StackPanel>
-            <TextBlock Margin="20,0,0,0">For personal message templates, use these placeholders:</TextBlock>
-            <TextBlock Margin="80,0,0,0">%%PAGENAME%% - populated with the page name, ie clickk_machines or snap_longexposure</TextBlock>
-            <TextBlock Margin="80,0,0,0">%%HUBNAME%% - populated with the hub name, ie click or snap</TextBlock>
-            <TextBlock Margin="80,0,0,0">%%USERNAME%% - populated with the user's full name</TextBlock>
-            <TextBlock Margin="80,0,0,0">%%USERALIAS%% - populated with the user's alias (username)</TextBlock>
-            <TextBlock Margin="80,0,0,0">%%PERSONALMESSAGE%% - populated with your personal message for each feature</TextBlock>
-        </StackPanel>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button IsDefault="True" Padding="8,0" Click="CloseButton_Click">
-                Close
-            </Button>
+        </Border>
+        <Border Grid.Row="2" Grid.ColumnSpan="2" Background="{DynamicResource MahApps.Brushes.Accent4}" Margin="0,0,0,8" CornerRadius="8">
+            <StackPanel Orientation="Vertical" Margin="8,4,8,8">
+                <TextBlock FontWeight="Bold" Foreground="{DynamicResource MahApps.Brushes.Accent}">External apps:</TextBlock>
+                <Grid Margin="0,8,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Culling app: " VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="1" Text="{Binding CullingAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" Margin="0,0,8,0" />
+                    <TextBlock Grid.Column="2" Text="Path: " VerticalAlignment="Center" Margin="8,0,8,0" />
+                    <TextBox Grid.Column="3" Text="{Binding CullingApp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" Margin="0,0,8,0" />
+                    <Button Grid.Column="4" Padding="20,0" Click="PickCullingApp_Click">Pick app...</Button>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="AI Check tool: " VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBox Grid.Column="1" Text="{Binding AiCheckAppName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" Margin="0,0,8,0" />
+                    <TextBlock Grid.Column="2" Text="Path: " VerticalAlignment="Center" Margin="8,0,8,0" />
+                    <TextBox Grid.Column="3" Text="{Binding AiCheckApp, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" Margin="0,0,8,0" />
+                    <Button Grid.Column="4" Padding="20,0" Click="PickAiCheckApp_Click">Pick app...</Button>
+                </Grid>
+            </StackPanel>
+        </Border>
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button IsDefault="True" Padding="20,0" Click="CloseButton_Click">Close</Button>
         </StackPanel>
     </Grid>
 </mah:MetroWindow>

@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace FeatureLogging
 {
@@ -30,6 +32,26 @@ namespace FeatureLogging
                     viewModel.IsDirty = false;
                     e.Cancel = false;
                 });
+            }
+        }
+
+        private void Exit_Clicked(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void MenuItem_SubmenuOpened(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem)
+            {
+                foreach (var childItem in menuItem.Items)
+                {
+                    if (childItem is MenuItem childMenuItem)
+                    {
+                        childMenuItem.GetBindingExpression(MenuItem.HeaderProperty)?.UpdateTarget();
+                        childMenuItem.GetBindingExpression(MenuItem.CommandProperty)?.UpdateTarget();
+                    }
+                }
             }
         }
     }

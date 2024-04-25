@@ -1,6 +1,4 @@
 ﻿using ControlzEx.Theming;
-using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.IconPacks;
 using Microsoft.Win32;
 using Newtonsoft.Json;
@@ -277,7 +275,7 @@ namespace FeatureLogging
                 CopyTextToClipboard(GenerateLogReport(), "Generated report", "Copied the report of features to the clipboard");
             });
 
-            SaveReportCommand = new Command(() => 
+            SaveReportCommand = new Command(() =>
             {
                 if (SelectedPage == null)
                 {
@@ -315,6 +313,10 @@ namespace FeatureLogging
                     WindowStartupLocation = WindowStartupLocation.CenterOwner
                 };
                 panel.ShowDialog();
+                OnPropertyChanged(nameof(CullingAppLaunch));
+                (LaunchCullingAppCommand as Command)?.OnCanExecuteChanged();
+                OnPropertyChanged(nameof(AiCheckAppLaunch));
+                (LaunchAiCheckAppCommand as Command)?.OnCanExecuteChanged();
             });
 
             CopyPageTagCommand = new CommandWithParameter((parameter) =>
@@ -360,9 +362,9 @@ namespace FeatureLogging
                 if (duplicateFeature != null)
                 {
                     ShowToast(
-                        "Found duplicate post link", 
-                        "There is already a feature in the list with that post link, selected the existing feature", 
-                        NotificationType.Error, 
+                        "Found duplicate post link",
+                        "There is already a feature in the list with that post link, selected the existing feature",
+                        NotificationType.Error,
                         TimeSpan.FromSeconds(3));
                     SelectedFeature = duplicateFeature;
                     return;
@@ -412,7 +414,7 @@ namespace FeatureLogging
                 }
             });
 
-            CopyPageFeatureTagCommand = new Command(() => 
+            CopyPageFeatureTagCommand = new Command(() =>
             {
                 if (SelectedPage != null && SelectedFeature != null)
                 {
@@ -492,6 +494,32 @@ namespace FeatureLogging
                     Theme = theme;
                 }
             });
+
+            LaunchCullingAppCommand = new Command(
+                () =>
+                {
+                    if (!string.IsNullOrEmpty(Settings.CullingApp) && File.Exists(Settings.CullingApp))
+                    {
+                        Process.Start(Settings.CullingApp);
+                    }
+                },
+                () =>
+                {
+                    return !string.IsNullOrEmpty(Settings.CullingApp) && File.Exists(Settings.CullingApp);
+                });
+
+            LaunchAiCheckAppCommand = new Command(
+                () =>
+                {
+                    if (!string.IsNullOrEmpty(Settings.AiCheckApp) && File.Exists(Settings.AiCheckApp))
+                    {
+                        Process.Start(Settings.AiCheckApp);
+                    }
+                },
+                () =>
+                {
+                    return !string.IsNullOrEmpty(Settings.AiCheckApp) && File.Exists(Settings.AiCheckApp);
+                });
 
             #endregion
 
@@ -665,6 +693,10 @@ namespace FeatureLogging
 
         public ICommand SetThemeCommand { get; }
 
+        public ICommand LaunchCullingAppCommand { get; }
+
+        public ICommand LaunchAiCheckAppCommand { get; }
+
         #endregion
 
         #region Dirty state
@@ -749,6 +781,14 @@ namespace FeatureLogging
         public Brush? StatusBarBrush => WindowActive
             ? Theme?.Resources["MahApps.Brushes.Accent2"] as Brush
             : Theme?.Resources["MahApps.Brushes.WindowTitle.NonActive"] as Brush;
+
+        #endregion
+
+        #region External app menu
+
+        public static string CullingAppLaunch => "Launch " + (!string.IsNullOrEmpty(Settings.CullingApp) ? Settings.CullingAppName : "Culling app") + "...";
+
+        public static string AiCheckAppLaunch => "Launch " + (!string.IsNullOrEmpty(Settings.AiCheckApp) ? Settings.AiCheckAppName : "AI Check tool") + "...";
 
         #endregion
 
@@ -1561,9 +1601,18 @@ namespace FeatureLogging
                                 ["tagSource"] = TagSource,
                                 ["firstFeature"] = !UserHasFeaturesOnPage
                             };
+                            bool GetFeatureCount(string featureCountString, out int featureCount)
+                            {
+                                if (featureCountString == "many")
+                                {
+                                    featureCount = 99999;
+                                    return true;
+                                }
+                                return int.TryParse(featureCountString, out featureCount);
+                            }
                             if (vm.SelectedPage.HubName == "click")
                             {
-                                if (int.TryParse(FeatureCountOnHub, out int featuresOnHub))
+                                if (GetFeatureCount(FeatureCountOnHub, out int featuresOnHub))
                                 {
                                     var totalFeatures = featuresOnHub;
                                     featureDictionary["newLevel"] = (totalFeatures + 1) switch
@@ -1583,7 +1632,7 @@ namespace FeatureLogging
                             }
                             else if (vm.SelectedPage.HubName == "snap")
                             {
-                                if (int.TryParse(FeatureCountOnHub, out int featuresOnHub) && int.TryParse(FeatureCountOnRawHub, out int featuresOnRaw))
+                                if (GetFeatureCount(FeatureCountOnHub, out int featuresOnHub) && GetFeatureCount(FeatureCountOnRawHub, out int featuresOnRaw))
                                 {
                                     var totalFeatures = featuresOnHub + featuresOnRaw;
                                     featureDictionary["newLevel"] = (totalFeatures + 1) switch
@@ -1791,7 +1840,7 @@ namespace FeatureLogging
             set => SetWithDirtyCallback(ref featureCountOnPage, value, () => IsDirty = true);
         }
 
-        private string featureCountOnRawPage = "many";
+        private string featureCountOnRawPage = "0";
         [JsonProperty(PropertyName = "featureCountOnRawPage")]
         public string FeatureCountOnRawPage
         {
@@ -1835,7 +1884,7 @@ namespace FeatureLogging
             set => SetWithDirtyCallback(ref featureCountOnHub, value, () => IsDirty = true);
         }
 
-        private string featureCountOnRawHub = "many";
+        private string featureCountOnRawHub = "0";
         [JsonProperty(PropertyName = "featureCountOnRawHub")]
         public string FeatureCountOnRawHub
         {
@@ -1963,7 +2012,7 @@ namespace FeatureLogging
         }
 
         [JsonIgnore]
-        public ICommand OpenFeatureInVeroScriptsCommand { get;  }
+        public ICommand OpenFeatureInVeroScriptsCommand { get; }
 
         [JsonIgnore]
         public ICommand EditPersonalMessageCommand { get; }
@@ -2038,6 +2087,66 @@ namespace FeatureLogging
                 if (Set(ref personalMessageFirst, value))
                 {
                     UserSettings.Store(nameof(PersonalMessageFirst), value);
+                }
+            }
+        }
+
+        private string cullingApp = UserSettings.Get(
+            nameof(CullingApp),
+            string.Empty);
+        public string CullingApp
+        {
+            get => cullingApp;
+            set
+            {
+                if (Set(ref cullingApp, value))
+                {
+                    UserSettings.Store(nameof(CullingApp), value);
+                }
+            }
+        }
+
+        private string cullingAppName = UserSettings.Get(
+            nameof(CullingAppName),
+            string.Empty);
+        public string CullingAppName
+        {
+            get => cullingAppName;
+            set
+            {
+                if (Set(ref cullingAppName, value))
+                {
+                    UserSettings.Store(nameof(CullingAppName), value);
+                }
+            }
+        }
+
+        private string aiCheckApp = UserSettings.Get(
+            nameof(AiCheckApp),
+            string.Empty);
+        public string AiCheckApp
+        {
+            get => aiCheckApp;
+            set
+            {
+                if (Set(ref aiCheckApp, value))
+                {
+                    UserSettings.Store(nameof(AiCheckApp), value);
+                }
+            }
+        }
+
+        private string aiCheckAppName = UserSettings.Get(
+            nameof(AiCheckAppName),
+            string.Empty);
+        public string AiCheckAppName
+        {
+            get => aiCheckAppName;
+            set
+            {
+                if (Set(ref aiCheckAppName, value))
+                {
+                    UserSettings.Store(nameof(AiCheckAppName), value);
                 }
             }
         }

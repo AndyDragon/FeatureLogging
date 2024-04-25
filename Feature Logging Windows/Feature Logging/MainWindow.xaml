@@ -39,6 +39,8 @@
         <KeyBinding Key="OemPlus" Modifiers="Ctrl" Command="{Binding AddFeatureCommand}" />
         <KeyBinding Key="OemMinus" Modifiers="Ctrl" Command="{Binding RemoveFeatureCommand}" />
         <KeyBinding Key="Backspace" Modifiers="Ctrl" Command="{Binding RemoveAllFeaturesCommand}" />
+        <KeyBinding Key="C" Modifiers="Ctrl+Alt" Command="{Binding LaunchCullingAppCommand}" />
+        <KeyBinding Key="A" Modifiers="Ctrl+Alt" Command="{Binding LaunchAiCheckAppCommand}" />
     </Window.InputBindings>
     
     <mah:MetroWindow.RightWindowCommands>
@@ -140,12 +142,33 @@
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
+        <Menu Grid.Row="0"
+              Margin="8,0,8,0"
+              HorizontalAlignment="Left"
+              VerticalAlignment="Stretch">
+            <MenuItem Header="File" SubmenuOpened="MenuItem_SubmenuOpened">
+                <MenuItem Header="New log" Command="{Binding NewFeaturesCommand}" InputGestureText="Ctrl+N" />
+                <MenuItem Header="Open log..." Command="{Binding OpenFeaturesCommand}" InputGestureText="Ctrl+O" />
+                <Separator />
+                <MenuItem Header="Save log..." Command="{Binding SaveFeaturesCommand}" InputGestureText="Ctrl+S" />
+                <MenuItem Header="Save report..." Command="{Binding SaveReportCommand}" InputGestureText="Ctrl+R" />
+                <Separator />
+                <MenuItem Header="{Binding CullingAppLaunch}" Command="{Binding LaunchCullingAppCommand}" InputGestureText="Ctrl+Alt+C" />
+                <MenuItem Header="{Binding AiCheckAppLaunch}" Command="{Binding LaunchAiCheckAppCommand}" InputGestureText="Ctrl+Alt+A" />
+                <Separator />
+                <MenuItem Header="Exit" Click="Exit_Clicked" InputGestureText="Alt+F4" />
+            </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="Settings..." Command="{Binding LaunchSettingsCommand}" InputGestureText="Ctrl+," />
+            </MenuItem>
+        </Menu>
         <Grid 
-            Grid.Row="0" 
-            Margin="16,16,16,8">
+            Grid.Row="1" 
+            Margin="16,8,16,8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />                 <!-- Page -->
                 <RowDefinition Height="350" />                  <!-- Feature -->
@@ -796,7 +819,7 @@
         </Grid>
 
         <!-- Footer -->
-        <Grid Margin="0,8,0,0" Grid.Row="1" Background="{Binding StatusBarBrush}">
+        <Grid Margin="0,8,0,0" Grid.Row="2" Background="{Binding StatusBarBrush}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
