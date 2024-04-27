@@ -69,7 +69,7 @@ func copyToClipboard(_ text: String) -> Void {
     pasteBoard.writeObjects([text as NSString])
 }
 
-func pasteFromClipboard() -> String {
+func stringFromClipboard() -> String {
     let pasteBoard = NSPasteboard.general
     return pasteBoard.string(forType: .string) ?? ""
 }

@@ -21,7 +21,7 @@ struct ContentView: View {
     ) var theme = Theme.notSet
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @State private var isDarkModeOn = true
-    
+
     @AppStorage(
         "preference_includehash",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -34,9 +34,9 @@ struct ContentView: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-    
+
     @EnvironmentObject var commandModel: AppCommandModel
-    
+
     @Environment(\.openURL) private var openURL
     @State private var page: String = UserDefaults.standard.string(forKey: "Page") ?? ""
     @State private var toastType: AlertToast.AlertType = .regular
@@ -80,21 +80,21 @@ struct ContentView: View {
             return formatter
         }
     }
-    
+
     init(_ appState: VersionCheckAppState) {
         self.appState = appState
     }
-    
+
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-            
+
             VStack {
                 // Page picker
                 HStack(alignment: .center) {
                     Text("Page:")
                         .frame(width: 108, alignment: .trailing)
-                    
+
                     Picker("", selection: $page.onChange { value in
                         UserDefaults.standard.set(page, forKey: "Page")
                         isDirty = true
@@ -114,7 +114,7 @@ struct ContentView: View {
                     .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                     .focusable()
                     .focused($focusedField, equals: .pagePicker)
-                    
+
                     Menu("Copy tag", systemImage: "tag.fill") {
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
@@ -166,7 +166,7 @@ struct ContentView: View {
                     .frame(maxWidth: 132)
                     .focusable()
                 }
-                
+
                 // Feature editor
                 VStack {
                     if let currentFeature = selectedFeature {
@@ -183,14 +183,14 @@ struct ContentView: View {
                     }
                 }
                 .frame(height: 380)
-                
+
                 // Feature list buttons
                 HStack {
                     Spacer()
-                    
+
                     // Add feature
                     Button(action: {
-                        let linkText = pasteFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
+                        let linkText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
                         let existingFeature = featuresViewModel.features.first(where: { $0.postLink.lowercased() == linkText.lowercased() })
                         if existingFeature != nil {
                             showToast(
@@ -204,7 +204,11 @@ struct ContentView: View {
                         let feature = Feature()
                         if linkText.starts(with: "https://vero.co/") {
                             feature.postLink = linkText
-                            feature.userAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
+                            let possibleUserAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
+                            // If the user doesn't have an alias, the link will have a single letter, often 'p'
+                            if possibleUserAlias.count > 1 {
+                                feature.userAlias = possibleUserAlias
+                            }
                         }
                         featuresViewModel.features.append(feature)
                         sortedFeatures = featuresViewModel.sortedFeatures
@@ -220,10 +224,10 @@ struct ContentView: View {
                     }
                     .disabled(isAnyToastShowing)
                     .keyboardShortcut("+", modifiers: .command)
-                    
+
                     Spacer()
                         .frame(width: 16)
-                    
+
                     // Remove feature
                     Button(action: {
                         if let currentFeature = selectedFeature {
@@ -241,10 +245,10 @@ struct ContentView: View {
                     }
                     .disabled(isAnyToastShowing || selectedFeature == nil)
                     .keyboardShortcut("-", modifiers: .command)
-                    
+
                     Spacer()
                         .frame(width: 16)
-                    
+
                     // Remove all
                     Button(action: {
                         selectedFeature = nil
@@ -261,7 +265,7 @@ struct ContentView: View {
                     .disabled(isAnyToastShowing || featuresViewModel.features.isEmpty)
                     .keyboardShortcut(.delete, modifiers: .command)
                 }
-                
+
                 // Feature list
                 ScrollViewReader { proxy in
                     List {
@@ -357,7 +361,7 @@ struct ContentView: View {
                     }
                 }
                 .disabled(isAnyToastShowing || loadedPage == nil)
-                
+
                 // Save log
                 Button(action: {
                     logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
@@ -397,7 +401,7 @@ struct ContentView: View {
                     }
                 }
                 .disabled(isAnyToastShowing || loadedPage == nil)
-                
+
                 // Copy report
                 Button(action: {
                     copyReportToClipboard()
@@ -413,7 +417,7 @@ struct ContentView: View {
                     .buttonStyle(.plain)
                 }
                 .disabled(isAnyToastShowing || loadedPage == nil)
-                
+
                 // Save report
                 Button(action: {
                     reportDocument = ReportDocument(initialText: generateReport())
@@ -445,7 +449,7 @@ struct ContentView: View {
                     }
                 }
                 .disabled(isAnyToastShowing || loadedPage == nil)
-                
+
                 // Theme
                 Menu("Theme", systemImage: "paintpalette") {
                     Picker("Theme:", selection: $theme.onChange(setTheme)) {
@@ -593,11 +597,11 @@ struct ContentView: View {
                 if page.isEmpty {
                     page = loadedPages.first?.id ?? ""
                 }
-                
+
                 do {
                     // Delay the start of the disallowed list download so the window can be ready faster
                     try await Task.sleep(nanoseconds: 100_000_000)
-                    
+
                     appState.checkForUpdates()
                 } catch {
                     // do nothing, the version check is not critical
@@ -610,14 +614,14 @@ struct ContentView: View {
         }
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
     }
-    
+
     private func delayAndTerminate() {
         isDirty = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: {
             NSApplication.shared.terminate(nil)
         })
     }
-    
+
     private func setTheme(_ newTheme: Theme) {
         if (newTheme == .notSet) {
             isDarkModeOn = colorScheme == .dark
@@ -631,7 +635,7 @@ struct ContentView: View {
             }
         }
     }
-    
+
     private func showToast(
         _ type: AlertToast.AlertType,
         _ text: String,
@@ -648,7 +652,7 @@ struct ContentView: View {
             focusedField = nil
             isShowingToast.toggle()
         }
-        
+
         if duration != 0 {
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(duration), execute: {
                 if (isShowingToast) {
@@ -658,7 +662,7 @@ struct ContentView: View {
             })
         }
     }
-    
+
     private func getVersionSubTitle() -> String {
         if appState.isShowingVersionAvailableToast.wrappedValue {
             return "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) " +
@@ -673,14 +677,14 @@ struct ContentView: View {
         }
         return ""
     }
-    
+
     private func loadLog(from file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
         if (!gotAccess) {
             print("No access?")
             return
         }
-        
+
         let fileContents = FileManager.default.contents(atPath: file.path)
         if let json = fileContents {
             let jsonString = String(String(decoding: json, as: UTF8.self))
@@ -703,17 +707,17 @@ struct ContentView: View {
                 debugPrint("Error parsing JSON: \(error.localizedDescription)")
             }
         }
-        
+
         file.stopAccessingSecurityScopedResource()
     }
-    
+
     private func saveLog(to file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
         if (!gotAccess) {
             print("No access?")
             return
         }
-        
+
         do {
             let jsonData = Data(logDocument.text.replacingOccurrences(of: "\\/", with: "/").utf8)
             try jsonData.write(to: file)
@@ -725,10 +729,10 @@ struct ContentView: View {
         } catch {
             debugPrint(error)
         }
-        
+
         file.stopAccessingSecurityScopedResource()
     }
-    
+
     private func generateReport() -> String {
         var lines = [String]()
         var personalLines = [String]()
@@ -797,7 +801,7 @@ struct ContentView: View {
                 lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
                 lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
                 lines.append("")
-                
+
                 if isPicked {
                     let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                     let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -878,7 +882,7 @@ struct ContentView: View {
                 lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
                 lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
                 lines.append("")
-                
+
                 if isPicked {
                     let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                     let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -942,7 +946,7 @@ struct ContentView: View {
                 lines.append("\(indent)tineye - \(feature.tinEyeResults.rawValue)")
                 lines.append("\(indent)ai check - \(feature.aiCheckResults.rawValue)")
                 lines.append("")
-                
+
                 if isPicked {
                     let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                     let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -965,7 +969,7 @@ struct ContentView: View {
         }
         return text
     }
-    
+
     private func copyReportToClipboard() {
         let text = generateReport()
         copyToClipboard(text)
@@ -998,7 +1002,7 @@ extension ContentView: DocumentManagerDelegate {
     @State var isShowingVersionAvailableToast = false
     @State var isShowingVersionRequiredToast = false
     @State var versionCheckToast = VersionCheckToast()
-    
+
     var localAppState = VersionCheckAppState(
         isCheckingForUpdates: $checkingForUpdates,
         isShowingVersionAvailableToast: $isShowingVersionAvailableToast,
@@ -1006,7 +1010,7 @@ extension ContentView: DocumentManagerDelegate {
         versionCheckToast: $versionCheckToast,
         versionLocation: "https://vero.andydragon.com/static/data/trackingtags/version.json")
     localAppState.isPreviewMode = true
-    
+
     return ContentView(localAppState)
 }
 
@@ -1016,7 +1020,7 @@ struct DocumentDirtySheet: View {
     var saveAction: () -> Void
     var dismissAction: () -> Void
     var cancelAction: () -> Void
-    
+
     var body: some View {
         VStack {
             HStack(alignment: .center) {
@@ -1065,19 +1069,19 @@ struct FeatureListRow: View {
         "feature",
         store: UserDefaults(suiteName: "group.com.andydragon.VeroTools")
     ) var sharedFeature = ""
-    
+
     @ObservedObject var feature: Feature
     var loadedPage: LoadedPage
     var markDocumentDirty: () -> Void
     var ensureSelected: () -> Void
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
-    
+
     @State var userName = ""
     @State var userAlias = ""
     @State var featureDescription = ""
     @State var postLink = ""
     @State var showingMessageEditor = false
-    
+
     @AppStorage(
         "preference_personalMessage",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -1086,7 +1090,7 @@ struct FeatureListRow: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-    
+
     var body: some View {
         HStack(alignment: .center) {
             if feature.photoFeaturedOnPage {
@@ -1126,11 +1130,11 @@ struct FeatureListRow: View {
                     .frame(width: 32, height: 32)
                     .opacity(0.0000001)
             }
-            
+
             VStack {
                 HStack {
                     Text("Feature: ")
-                    
+
                     if !userName.isEmpty {
                         Text(userName)
                     } else {
@@ -1138,9 +1142,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-                    
+
                     Text(" | ")
-                    
+
                     if !userAlias.isEmpty {
                         Text("@\(userAlias)")
                     } else {
@@ -1148,9 +1152,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-                    
+
                     Text(" | ")
-                    
+
                     if !featureDescription.isEmpty {
                         Text(featureDescription)
                     } else {
@@ -1158,9 +1162,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-                    
+
                     Spacer()
-                    
+
                     if feature.isPickedAndAllowed {
                         Button(action: {
                             ensureSelected()
@@ -1173,10 +1177,10 @@ struct FeatureListRow: View {
                             }
                         }
                         .disabled(!feature.isPickedAndAllowed)
-                        
+
                         Spacer()
                             .frame(width: 8)
-                        
+
                         Button(action: {
                             ensureSelected()
                             launchVeroScripts()
@@ -1192,20 +1196,20 @@ struct FeatureListRow: View {
                 HStack {
                     Text(postLink)
                         .font(.footnote)
-                    
+
                     Spacer()
                 }
             }
             .sheet(isPresented: $showingMessageEditor, content: {
                 ZStack {
                     Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-                    
+
                     VStack(alignment: .leading)  {
                         Text("Person message for feature: \(feature.userName) - \(feature.featureDescription)")
-                        
+
                         Spacer()
                             .frame(height: 8)
-                        
+
                         HStack(alignment: .center) {
                             Text("Personal message (from your account): ")
                             TextField("", text: $feature.personalMessage.onChange { value in
@@ -1219,12 +1223,12 @@ struct FeatureListRow: View {
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
                         }
-                        
+
                         Spacer()
-                        
+
                         HStack(alignment: .center)  {
                             Spacer()
-                            
+
                             Button(action: {
                                 let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                                 let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -1244,7 +1248,7 @@ struct FeatureListRow: View {
                                     Text("Copy full text")
                                 }
                             }
-                            
+
                             Button(action: {
                                 showingMessageEditor.toggle()
                             }) {
@@ -1281,7 +1285,7 @@ struct FeatureListRow: View {
             postLink = feature.postLink
         }
     }
-    
+
     private func launchVeroScripts() {
         if feature.photoFeaturedOnPage {
             showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured on this page", 0) { }
@@ -1309,17 +1313,17 @@ struct FeatureListRow: View {
             let json = try encoder.encode(CodableFeature(using: loadedPage, from: feature))
             let jsonString = String(decoding: json, as: UTF8.self)
             copyToClipboard(jsonString)
-            
+
             // Store the feature in the shared storage
             sharedFeature = jsonString
-            
+
             // Launch the Vero Scripts app
             guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.andydragon.Vero-Scripts") else { return }
             let configuration = NSWorkspace.OpenConfiguration()
             configuration.promptsUserIfNeeded = true
             configuration.arguments = []
             NSWorkspace.shared.openApplication(at: url, configuration: configuration)
-            
+
             showToast(.complete(.green), "Launched Vero Scripts", "The feature was copied to the clipboard", 2) { }
         } catch {
             debugPrint(error)

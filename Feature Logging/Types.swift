@@ -637,21 +637,28 @@ struct CodableFeature: Codable {
             let totalFeatures = calculateFeatureCount(feature.featureCountOnHub)
             if totalFeatures + 1 == 5 {
                 self.newLevel = NewMembershipCase.commonMember
+                self.userLevel = MembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
                 self.newLevel = NewMembershipCase.clickBronzeMember
+                self.userLevel = MembershipCase.clickBronzeMember
             } else if totalFeatures + 1 == 30 {
                 self.newLevel = NewMembershipCase.clickSilverMember
+                self.userLevel = MembershipCase.clickSilverMember
             } else if totalFeatures + 1 == 50 {
                 self.newLevel = NewMembershipCase.clickGoldMember
+                self.userLevel = MembershipCase.clickGoldMember
             } else if totalFeatures + 1 == 75 {
                 self.newLevel = NewMembershipCase.clickPlatinumMember
+                self.userLevel = MembershipCase.commonPlatinumMember
             }
         } else if page.hub == "snap" {
             let totalFeatures = calculateFeatureCount(feature.featureCountOnHub) + calculateFeatureCount(feature.featureCountOnRawHub)
             if totalFeatures + 1 == 5 {
                 self.newLevel = NewMembershipCase.commonMember
+                self.userLevel = MembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
                 self.newLevel = NewMembershipCase.snapVipMember
+                self.userLevel = MembershipCase.snapVipMember
             }
         }
     }

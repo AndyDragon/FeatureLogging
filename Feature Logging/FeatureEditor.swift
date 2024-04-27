@@ -15,12 +15,12 @@ struct FeatureEditor: View {
     var updateList: () -> Void
     var markDocumentDirty: () -> Void
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
-    
+
     @AppStorage(
         "preference_includehash",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var includeHash = false
-    
+
     @State private var isPicked = false
     @State private var postLink = ""
     @State private var userName = ""
@@ -45,16 +45,16 @@ struct FeatureEditor: View {
     @State private var tooSoonToFeatureUser = false
     @State private var tinEyeResults = TinEyeResults.zeroMatches
     @State private var aiCheckResults = AiCheckResults.human
-    
+
     private let labelWidth: CGFloat = 108
-    
+
     var body: some View {
         VStack {
             // Is picked
             HStack(alignment: .center) {
                 Spacer()
                     .frame(width: labelWidth + 16, alignment: .trailing)
-                
+
                 Toggle(isOn: $isPicked.onChange { value in
                     feature.isPicked = isPicked
                     updateList()
@@ -67,9 +67,9 @@ struct FeatureEditor: View {
                 .tint(Color.AccentColor)
                 .accentColor(Color.AccentColor)
                 .focusable()
-                
+
                 Spacer()
-                
+
                 Button(action: {
                     close()
                 }) {
@@ -77,10 +77,10 @@ struct FeatureEditor: View {
                         .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                 }
             }
-            
+
             // Post link
             HStack(alignment: .center) {
-                ValidationLabel("Post link:", labelWidth: labelWidth, validation: !postLink.isEmpty)
+                ValidationLabel("Post link:", labelWidth: labelWidth, validation: !postLink.isEmpty && !postLink.contains(where: \.isNewline))
                 TextField("enter the post link", text: $postLink.onChange { value in
                     feature.postLink = postLink
                     markDocumentDirty()
@@ -92,12 +92,16 @@ struct FeatureEditor: View {
                 .background(Color.BackgroundColorEditor)
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
+
                 Button(action: {
-                    let linkText = pasteFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
+                    let linkText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
                     if linkText.starts(with: "https://vero.co/") {
                         postLink = linkText
-                        userAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
+                        let possibleUserAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
+                        // If the user doesn't have an alias, the link will have a single letter, often 'p'
+                        if possibleUserAlias.count > 1 {
+                            userAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
+                        }
                     } else {
                         // TODO andydragon : show toast, invalid clipboard text, not a VERO link
                     }
@@ -112,11 +116,11 @@ struct FeatureEditor: View {
                 }
                 .focusable()
             }
-            
+
             // User alias
             HStack(alignment: .center) {
-                ValidationLabel("User alias:", labelWidth: labelWidth, validation: !(userAlias.isEmpty || userAlias.starts(with: "@")))
-                TextField("enter the user alias", text: $userAlias.onChange { value in 
+                ValidationLabel("User alias:", labelWidth: labelWidth, validation: !(userAlias.isEmpty || userAlias.starts(with: "@") || userAlias.count <= 1) && !userAlias.contains(where: \.isNewline))
+                TextField("enter the user alias", text: $userAlias.onChange { value in
                     feature.userAlias = userAlias
                     markDocumentDirty()
                 })
@@ -127,9 +131,9 @@ struct FeatureEditor: View {
                 .background(Color.BackgroundColorEditor)
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
+
                 Button(action: {
-                    let aliasText = pasteFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
+                    let aliasText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
                     if aliasText.starts(with: "@") {
                         userAlias = String(aliasText.dropFirst(1))
                     } else {
@@ -146,10 +150,10 @@ struct FeatureEditor: View {
                 }
                 .focusable()
             }
-            
+
             // User name
             HStack(alignment: .center) {
-                ValidationLabel("User name:", labelWidth: labelWidth, validation: !userName.isEmpty)
+                ValidationLabel("User name:", labelWidth: labelWidth, validation: !userName.isEmpty && !userName.contains(where: \.isNewline))
                 TextField("enter the user name", text: $userName.onChange { value in
                     feature.userName = userName
                     updateList()
@@ -162,9 +166,9 @@ struct FeatureEditor: View {
                 .background(Color.BackgroundColorEditor)
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
+
                 Button(action: {
-                    let userText = pasteFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
+                    let userText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
                     if userText.contains("@") {
                         userName = (userText.split(separator: "@").first ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
                         userAlias = (userText.split(separator: "@").last ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -183,7 +187,7 @@ struct FeatureEditor: View {
                 }
                 .focusable()
             }
-            
+
             if let selectedPage = loadedPage {
                 // Member level
                 HStack(alignment: .center) {
@@ -203,7 +207,7 @@ struct FeatureEditor: View {
                     .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                     .focusable()
                 }
-                
+
                 // Team mate
                 HStack(alignment: .center) {
                     Spacer()
@@ -221,7 +225,7 @@ struct FeatureEditor: View {
                     .focusable()
                     Spacer()
                 }
-                
+
                 // Tag source
                 HStack(alignment: .center) {
                     Text("Found using:")
@@ -239,12 +243,12 @@ struct FeatureEditor: View {
                     .focusable()
                     .pickerStyle(.segmented)
                 }
-                
+
                 HStack(alignment: .center) {
                     // Photo featured on page
                     Spacer()
                         .frame(width: labelWidth + 16, alignment: .trailing)
-                    
+
                     Toggle(isOn: $photoFeaturedOnPage.onChange { value in
                         feature.photoFeaturedOnPage = photoFeaturedOnPage
                         updateList()
@@ -257,10 +261,10 @@ struct FeatureEditor: View {
                     .tint(Color.AccentColor)
                     .accentColor(Color.AccentColor)
                     .focusable()
-                    
+
                     Text("|")
                         .padding([.leading, .trailing])
-                    
+
                     // Photo featured on hub
                     Toggle(isOn: $photoFeaturedOnHub.onChange { value in
                         feature.photoFeaturedOnHub = photoFeaturedOnHub
@@ -274,11 +278,11 @@ struct FeatureEditor: View {
                     .tint(Color.AccentColor)
                     .accentColor(Color.AccentColor)
                     .focusable()
-                    
+
                     if photoFeaturedOnHub {
                         Text("|")
                             .padding([.leading, .trailing])
-                        
+
                         ValidationLabel("Last date featured:", validation: !(photoLastFeaturedOnHub.isEmpty || photoLastFeaturedPage.isEmpty))
                         TextField("", text: $photoLastFeaturedOnHub.onChange { value in
                             feature.photoLastFeaturedOnHub = photoLastFeaturedOnHub
@@ -291,7 +295,7 @@ struct FeatureEditor: View {
                         .background(Color.BackgroundColorEditor)
                         .border(Color.gray.opacity(0.25))
                         .cornerRadius(4)
-                        
+
                         TextField("on page", text: $photoLastFeaturedPage.onChange { value in
                             feature.photoLastFeaturedPage = photoLastFeaturedPage
                             markDocumentDirty()
@@ -304,10 +308,10 @@ struct FeatureEditor: View {
                         .border(Color.gray.opacity(0.25))
                         .cornerRadius(4)
                     }
-                    
+
                     Spacer()
                 }
-                
+
                 // Feature description
                 HStack(alignment: .center) {
                     ValidationLabel("Description:", labelWidth: labelWidth, validation: !featureDescription.isEmpty)
@@ -323,13 +327,13 @@ struct FeatureEditor: View {
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                 }
-                
+
                 if selectedPage.hub == "click" {
                     // User featured on page
                     HStack(alignment: .center) {
                         Spacer()
                             .frame(width: labelWidth + 16, alignment: .trailing)
-                        
+
                         Toggle(isOn: $userHasFeaturesOnPage.onChange { value in
                             feature.userHasFeaturesOnPage = userHasFeaturesOnPage
                             markDocumentDirty()
@@ -341,11 +345,11 @@ struct FeatureEditor: View {
                         .tint(Color.AccentColor)
                         .accentColor(Color.AccentColor)
                         .focusable()
-                        
+
                         if userHasFeaturesOnPage {
                             Text("|")
                                 .padding([.leading, .trailing])
-                            
+
                             ValidationLabel("Last date featured:", validation: !lastFeaturedOnPage.isEmpty)
                             TextField("", text: $lastFeaturedOnPage.onChange { value in
                                 feature.lastFeaturedOnPage = lastFeaturedOnPage
@@ -358,10 +362,10 @@ struct FeatureEditor: View {
                             .background(Color.BackgroundColorEditor)
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
-                            
+
                             Text("|")
                                 .padding([.leading, .trailing])
-                            
+
                             Text("Number of features on page:")
                             Picker("", selection: $featureCountOnPage.onChange { value in
                                 feature.featureCountOnPage = featureCountOnPage
@@ -378,9 +382,9 @@ struct FeatureEditor: View {
                             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                             .focusable()
                         }
-                        
+
                         Spacer()
-                        
+
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")click_\(selectedPage.name)_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the page feature tag for the user to the clipboard", 2) { }
@@ -393,12 +397,12 @@ struct FeatureEditor: View {
                         }
                         .focusable()
                     }
-                    
+
                     // User featured on hub
                     HStack(alignment: .center) {
                         Spacer()
                             .frame(width: labelWidth + 16, alignment: .trailing)
-                        
+
                         Toggle(isOn: $userHasFeaturesOnHub.onChange { value in
                             feature.userHasFeaturesOnHub = userHasFeaturesOnHub
                             markDocumentDirty()
@@ -410,11 +414,11 @@ struct FeatureEditor: View {
                         .tint(Color.AccentColor)
                         .accentColor(Color.AccentColor)
                         .focusable()
-                        
+
                         if userHasFeaturesOnHub {
                             Text("|")
                                 .padding([.leading, .trailing])
-                            
+
                             ValidationLabel("Last date featured:", validation: !(lastFeaturedOnHub.isEmpty || lastFeaturedPage.isEmpty))
                             TextField("", text: $lastFeaturedOnHub.onChange { value in
                                 feature.lastFeaturedOnHub = lastFeaturedOnHub
@@ -427,7 +431,7 @@ struct FeatureEditor: View {
                             .background(Color.BackgroundColorEditor)
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
-                            
+
                             TextField("on page", text: $lastFeaturedPage.onChange { value in
                                 feature.lastFeaturedPage = lastFeaturedPage
                                 markDocumentDirty()
@@ -439,10 +443,10 @@ struct FeatureEditor: View {
                             .background(Color.BackgroundColorEditor)
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
-                            
+
                             Text("|")
                                 .padding([.leading, .trailing])
-                            
+
                             Text("Number of features on Click:")
                             Picker("", selection: $featureCountOnHub.onChange { value in
                                 feature.featureCountOnHub = featureCountOnHub
@@ -459,9 +463,9 @@ struct FeatureEditor: View {
                             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                             .focusable()
                         }
-                        
+
                         Spacer()
-                        
+
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")click_featured_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the hub feature tag for the user to the clipboard", 2) { }
@@ -490,11 +494,11 @@ struct FeatureEditor: View {
                         .tint(Color.AccentColor)
                         .accentColor(Color.AccentColor)
                         .focusable()
-                        
+
                         if userHasFeaturesOnPage {
                             Text("|")
                                 .padding([.leading, .trailing])
-                            
+
                             ValidationLabel("Last date featured:", validation: !lastFeaturedOnPage.isEmpty)
                             TextField("", text: $lastFeaturedOnPage.onChange { value in
                                 feature.lastFeaturedOnPage = lastFeaturedOnPage
@@ -507,10 +511,10 @@ struct FeatureEditor: View {
                             .background(Color.BackgroundColorEditor)
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
-                            
+
                             Text("|")
                                 .padding([.leading, .trailing])
-                            
+
                             Text("Number of features on Snap page:")
                             Picker("", selection: $featureCountOnPage.onChange { value in
                                 feature.featureCountOnPage = featureCountOnPage
@@ -525,10 +529,10 @@ struct FeatureEditor: View {
                             .accentColor(Color.AccentColor)
                             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                             .focusable()
-                            
+
                             Text("|")
                                 .padding([.leading, .trailing])
-                            
+
                             Text("Number of features on RAW page:")
                             Picker("", selection: $featureCountOnRawPage.onChange { value in
                                 feature.featureCountOnRawPage = featureCountOnRawPage
@@ -544,9 +548,9 @@ struct FeatureEditor: View {
                             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                             .focusable()
                         }
-                        
+
                         Spacer()
-                        
+
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")snap_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard", 2) { }
@@ -558,7 +562,7 @@ struct FeatureEditor: View {
                             }
                         }
                         .focusable()
-                        
+
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")raw_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard", 2) { }
@@ -571,12 +575,12 @@ struct FeatureEditor: View {
                         }
                         .focusable()
                     }
-                    
+
                     // User featured on hub
                     HStack(alignment: .center) {
                         Spacer()
                             .frame(width: labelWidth + 16, alignment: .trailing)
-                        
+
                         Toggle(isOn: $userHasFeaturesOnHub.onChange { value in
                             feature.userHasFeaturesOnHub = userHasFeaturesOnHub
                             markDocumentDirty()
@@ -588,11 +592,11 @@ struct FeatureEditor: View {
                         .tint(Color.AccentColor)
                         .accentColor(Color.AccentColor)
                         .focusable()
-                        
+
                         if userHasFeaturesOnHub {
                             Text("|")
                                 .padding([.leading, .trailing])
-                            
+
                             ValidationLabel("Last date featured:", validation: !(lastFeaturedOnHub.isEmpty || lastFeaturedPage.isEmpty))
                             TextField("", text: $lastFeaturedOnHub.onChange { value in
                                 feature.lastFeaturedOnHub = lastFeaturedOnHub
@@ -605,7 +609,7 @@ struct FeatureEditor: View {
                             .background(Color.BackgroundColorEditor)
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
-                            
+
                             TextField("on page", text: $lastFeaturedPage.onChange { value in
                                 feature.lastFeaturedPage = lastFeaturedPage
                                 markDocumentDirty()
@@ -617,10 +621,10 @@ struct FeatureEditor: View {
                             .background(Color.BackgroundColorEditor)
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
-                            
+
                             Text("|")
                                 .padding([.leading, .trailing])
-                            
+
                             Text("Number of features on Snap:")
                             Picker("", selection: $featureCountOnHub.onChange { value in
                                 feature.featureCountOnHub = featureCountOnHub
@@ -635,10 +639,10 @@ struct FeatureEditor: View {
                             .accentColor(Color.AccentColor)
                             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                             .focusable()
-                            
+
                             Text("|")
                                 .padding([.leading, .trailing])
-                            
+
                             Text("Number of features on RAW:")
                             Picker("", selection: $featureCountOnRawHub.onChange { value in
                                 feature.featureCountOnRawHub = featureCountOnRawHub
@@ -654,9 +658,9 @@ struct FeatureEditor: View {
                             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                             .focusable()
                         }
-                        
+
                         Spacer()
-                        
+
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")snap_featured_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard", 2) { }
@@ -668,7 +672,7 @@ struct FeatureEditor: View {
                             }
                         }
                         .focusable()
-                        
+
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")raw_featured_\(userAlias)")
                             showToast(.complete(.green), "Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard", 2) { }
@@ -682,12 +686,12 @@ struct FeatureEditor: View {
                         .focusable()
                     }
                 }
-                
+
                 // Too soon?
                 HStack(alignment: .center) {
                     Spacer()
                         .frame(width: labelWidth + 16, alignment: .trailing)
-                    
+
                     Toggle(isOn: $tooSoonToFeatureUser.onChange { value in
                         feature.tooSoonToFeatureUser = tooSoonToFeatureUser
                         updateList()
@@ -700,16 +704,16 @@ struct FeatureEditor: View {
                     .tint(Color.AccentColor)
                     .accentColor(Color.AccentColor)
                     .focusable()
-                    
+
                     Spacer()
                 }
-                
+
                 // Verification results
                 HStack(alignment: .center) {
                     Text("Validation:")
                         .frame(width: labelWidth, alignment: .trailing)
                         .padding([.trailing], 8)
-                    
+
                     Text("TinEye:")
                     Picker("", selection: $tinEyeResults.onChange { value in
                         feature.tinEyeResults = tinEyeResults
@@ -726,12 +730,12 @@ struct FeatureEditor: View {
                     .accentColor(Color.AccentColor)
                     .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                     .focusable()
-                    
+
                     Text("|")
                         .padding([.leading, .trailing])
-                    
+
                     Text("AI Check:")
-                    Picker("", selection: $aiCheckResults.onChange { value in 
+                    Picker("", selection: $aiCheckResults.onChange { value in
                         feature.aiCheckResults = aiCheckResults
                         updateList()
                         markDocumentDirty()
@@ -748,7 +752,7 @@ struct FeatureEditor: View {
                     .focusable()
                 }
             }
-            
+
             Spacer()
         }
         .onChange(of: feature, initial: true) {
