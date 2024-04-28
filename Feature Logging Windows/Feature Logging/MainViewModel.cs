@@ -2,6 +2,7 @@
 using MahApps.Metro.IconPacks;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Notification.Wpf;
 using System.Collections.ObjectModel;
@@ -73,6 +74,27 @@ namespace FeatureLogging
             if (userName.StartsWith('@'))
             {
                 return new ValidationResult(false, "Don't include the '@' in user names");
+            }
+            if (userName.Length <= 1)
+            {
+                return new ValidationResult(false, "User name should be more than 1 character long");
+            }
+            return new ValidationResult(true);
+        }
+
+        internal static ValidationResult ValidateValueNotEmptyAndContainsNoNewlines(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return new ValidationResult(false, "Required value");
+            }
+            if (value.Contains('\n'))
+            {
+                return new ValidationResult(false, "Value cannot contain newline");
+            }
+            if (value.Contains('\r'))
+            {
+                return new ValidationResult(false, "Value cannot contain newline");
             }
             return new ValidationResult(true);
         }
@@ -373,7 +395,11 @@ namespace FeatureLogging
                 if (clipboardText.StartsWith("https://vero.co/"))
                 {
                     feature.PostLink = clipboardText;
-                    feature.UserAlias = clipboardText[16..].Split('/').FirstOrDefault() ?? "";
+                    var possibleUserAlias = clipboardText[16..].Split('/').FirstOrDefault() ?? "";
+                    if (possibleUserAlias.Length > 1)
+                    {
+                        feature.UserAlias = possibleUserAlias;
+                    }
                 }
                 Features.Add(feature);
                 SelectedFeature = feature;
@@ -405,7 +431,11 @@ namespace FeatureLogging
                     if (clipboardText.StartsWith("https://vero.co/"))
                     {
                         SelectedFeature.PostLink = clipboardText;
-                        SelectedFeature.UserAlias = clipboardText[16..].Split('/').FirstOrDefault() ?? "";
+                        var possibleUserAlias = clipboardText[16..].Split('/').FirstOrDefault() ?? "";
+                        if (possibleUserAlias.Length > 1)
+                        {
+                            SelectedFeature.UserAlias = possibleUserAlias;
+                        }
                     }
                     else
                     {
@@ -1624,6 +1654,15 @@ namespace FeatureLogging
                                         75 => "Platinum Member",
                                         _ => "",
                                     };
+                                    featureDictionary["userLevel"] = (totalFeatures + 1) switch
+                                    {
+                                        5 => "Member",
+                                        15 => "Bronze Member",
+                                        30 => "Silver Member",
+                                        50 => "Gold Member",
+                                        75 => "Platinum Member",
+                                        _ => featureDictionary["userLevel"],
+                                    };
                                 }
                                 else
                                 {
@@ -1640,6 +1679,12 @@ namespace FeatureLogging
                                         5 => "Member",
                                         15 => "VIP Member",
                                         _ => "",
+                                    };
+                                    featureDictionary["userLevel"] = (totalFeatures + 1) switch
+                                    {
+                                        5 => "Member",
+                                        15 => "VIP Member",
+                                        _ => featureDictionary["userLevel"],
                                     };
                                 }
                                 else
@@ -1730,7 +1775,7 @@ namespace FeatureLogging
             set => SetWithDirtyCallback(ref userName, value, () => IsDirty = true, [nameof(UserNameValidation)]);
         }
         [JsonIgnore]
-        public ValidationResult UserNameValidation => Validation.ValidateValueNotEmpty(userName);
+        public ValidationResult UserNameValidation => Validation.ValidateValueNotEmptyAndContainsNoNewlines(userName);
 
         private string userAlias = "";
         [JsonProperty(PropertyName = "userAlias")]

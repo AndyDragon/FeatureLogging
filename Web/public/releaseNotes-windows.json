@@ -83,5 +83,18 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "1.0.7",
+        "notes": [
+            {
+                "date": "Apr 28, 2024",
+                "notes": [
+                    "When artist is moving level, open Vero Scripts with new level.",
+                    "Check for single-letter user alias (means user has no alias).",
+                    "Validate user name has no spaces or newlines in the string."
+                ]
+            }
+        ]
     }
 ]
