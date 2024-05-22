@@ -608,8 +608,11 @@ struct ContentView: View {
                     debugPrint(error.localizedDescription)
                 }
             } catch {
-                debugPrint("Failure in initialization task")
-                debugPrint(error.localizedDescription)
+                showToast(
+                    .error(.red),
+                    "Failed to load pages",
+                    subTitle: "The application requires the catalog to perform its operations: \(error.localizedDescription)",
+                    duration: 10)
             }
         }
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
