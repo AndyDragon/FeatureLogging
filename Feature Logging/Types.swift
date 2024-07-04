@@ -836,6 +836,15 @@ struct Template: Codable, Identifiable {
     let template: String
 }
 
+struct LoadedCatalogs {
+    var waitingForPages = true
+    var loadedPages = [LoadedPage]()
+    var waitingForTemplates = true
+    var templatesCatalog = TemplateCatalog(pages: [], specialTemplates: [])
+    var waitingForDisallowList = true
+    var disallowList = [String]()
+}
+
 enum ToastDuration: Int {
     case disabled = 0,
          short = 3,

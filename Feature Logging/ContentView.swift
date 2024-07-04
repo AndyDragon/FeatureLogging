@@ -42,9 +42,12 @@ struct ContentView: View {
     @State private var toastTapAction: () -> Void = {}
     @State private var isShowingToast = false
     @State private var hoveredFeature: Feature? = nil
-    @State private var loadedPages = [LoadedPage]()
+    @State private var loadedCatalogs = LoadedCatalogs()
     private var loadedPage: LoadedPage? {
-        loadedPages.first(where: { $0.id == page })
+        if loadedCatalogs.waitingForPages {
+            return nil
+        }
+        return loadedCatalogs.loadedPages.first(where: { $0.id == page })
     }
     @State private var featuresViewModel = FeaturesViewModel()
     @State private var sortedFeatures = [Feature]()
@@ -87,7 +90,7 @@ struct ContentView: View {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
 
             if isShowingScriptView {
-                ScriptContentView(appState) {
+                ScriptContentView(appState, loadedCatalogs) {
                     isShowingScriptView.toggle()
                 }
             } else {
@@ -99,14 +102,12 @@ struct ContentView: View {
 
                         Picker("", selection: $page.onChange { value in
                             UserDefaults.standard.set(page, forKey: "Page")
-                            // TODO andydragon : testing without this
-                            // isDirty = true
                             logURL = nil
                             selectedFeature = nil
                             featuresViewModel = FeaturesViewModel()
                             sortedFeatures = featuresViewModel.sortedFeatures
                         }) {
-                            ForEach(loadedPages) { page in
+                            ForEach(loadedCatalogs.loadedPages) { page in
                                 if page.name != "default" {
                                     Text(page.displayName).tag(page.id)
                                 }
@@ -595,8 +596,8 @@ struct ContentView: View {
                         pages.append(LoadedPage.from(hub: hubPair.key, page: hubPage))
                     }
                 }
-                loadedPages.removeAll()
-                loadedPages.append(contentsOf: pages.sorted(by: {
+                loadedCatalogs.loadedPages.removeAll()
+                loadedCatalogs.loadedPages.append(contentsOf: pages.sorted(by: {
                     if $0.hub == "other" && $1.hub == "other" {
                         return $0.name < $1.name
                     }
@@ -608,8 +609,36 @@ struct ContentView: View {
                     }
                     return "\($0.hub)_\($0.name)" < "\($1.hub)_\($1.name)"
                 }))
+                loadedCatalogs.waitingForPages = false
                 if page.isEmpty {
-                    page = loadedPages.first?.id ?? ""
+                    page = loadedCatalogs.loadedPages.first?.id ?? ""
+                }
+
+                // Delay the start of the templates download so the window can be ready faster
+                try await Task.sleep(nanoseconds: 200_000_000)
+
+#if TESTING
+                let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/templates.json")!
+#else
+                let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/templates.json")!
+#endif
+                loadedCatalogs.templatesCatalog = try await URLSession.shared.decode(TemplateCatalog.self, from: templatesUrl)
+                loadedCatalogs.waitingForTemplates = false
+
+                do {
+                    // Delay the start of the disallowed list download so the window can be ready faster
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+
+#if TESTING
+                    let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/testing/disallowlist.json")!
+#else
+                    let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlist.json")!
+#endif
+                    loadedCatalogs.disallowList = try await URLSession.shared.decode([String].self, from: disallowListUrl)
+                    loadedCatalogs.waitingForDisallowList = false
+                } catch {
+                    // do nothing, the disallow list is not critical
+                    debugPrint(error.localizedDescription)
                 }
 
                 do {
@@ -708,7 +737,7 @@ struct ContentView: View {
             do {
                 let decoder = JSONDecoder()
                 let loadedLog = try decoder.decode(Log.self, from: jsonString.data(using: .utf8)!)
-                if let loadedPage = loadedPages.first(where: { $0.id == loadedLog.page }) {
+                if let loadedPage = loadedCatalogs.loadedPages.first(where: { $0.id == loadedLog.page }) {
                     selectedFeature = nil
                     page = loadedPage.id
                     featuresViewModel.features = loadedLog.getFeatures()
@@ -1097,6 +1126,10 @@ struct FeatureListRow: View {
     @State var userName = ""
     @State var userAlias = ""
     @State var featureDescription = ""
+    @State var photoFeaturedOnHub = false
+    @State var userIsTeammate = false
+    @State var userHasFeaturesOnPage = false
+    @State var userHasFeaturesOnHub = false
     @State var postLink = ""
     @State var showingMessageEditor = false
 
@@ -1180,6 +1213,35 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
+
+                    Text(" | ")
+
+                    Image(systemName: "tag.square")
+                        .foregroundStyle(photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary, photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary)
+                        .font(.system(size: 14))
+                        .frame(width: 16, height: 16)
+                        .help(photoFeaturedOnHub ? "Photo featured on hub" : "Photo not featured on hub")
+                    Spacer()
+                        .frame(width: 6)
+                    Image(systemName: "tag")
+                        .foregroundStyle(userHasFeaturesOnPage ? Color.AccentColor : Color.TextColorSecondary, Color.TextColorSecondary)
+                        .font(.system(size: 14))
+                        .frame(width: 16, height: 16)
+                        .help(userHasFeaturesOnPage ? "User has features on page" : "First feature on page")
+                    Spacer()
+                        .frame(width: 6)
+                    Image(systemName: "tag.fill")
+                        .foregroundStyle(userHasFeaturesOnHub ? Color.AccentColor : Color.TextColorSecondary, Color.TextColorSecondary)
+                        .font(.system(size: 14))
+                        .frame(width: 16, height: 16)
+                        .help(userHasFeaturesOnHub ? "User has features on hub" : "First feature on hub")
+                    Spacer()
+                        .frame(width: 6)
+                    Image(systemName: "person.badge.key.fill")
+                        .foregroundStyle(Color.TextColorSecondary, userIsTeammate ? Color.AccentColor : Color.TextColorSecondary)
+                        .font(.system(size: 14))
+                        .frame(width: 16, height: 16)
+                        .help(userIsTeammate ? "User is teammate" : "User is not a teammate")
 
                     Spacer()
 
@@ -1288,6 +1350,10 @@ struct FeatureListRow: View {
             userName = feature.userName
             userAlias = feature.userAlias
             featureDescription = feature.featureDescription
+            userIsTeammate = feature.userIsTeammate
+            photoFeaturedOnHub = feature.photoFeaturedOnHub
+            userHasFeaturesOnPage = feature.userHasFeaturesOnPage
+            userHasFeaturesOnHub = feature.userHasFeaturesOnHub
             postLink = feature.postLink
         }
         .onChange(of: feature.userName) {
@@ -1298,6 +1364,18 @@ struct FeatureListRow: View {
         }
         .onChange(of: feature.featureDescription) {
             featureDescription = feature.featureDescription
+        }
+        .onChange(of: feature.userIsTeammate) {
+            userIsTeammate = feature.userIsTeammate
+        }
+        .onChange(of: feature.photoFeaturedOnHub) {
+            photoFeaturedOnHub = feature.photoFeaturedOnHub
+        }
+        .onChange(of: feature.userHasFeaturesOnPage) {
+            userHasFeaturesOnPage = feature.userHasFeaturesOnPage
+        }
+        .onChange(of: feature.userHasFeaturesOnHub) {
+            userHasFeaturesOnHub = feature.userHasFeaturesOnHub
         }
         .onChange(of: feature.postLink) {
             postLink = feature.postLink
