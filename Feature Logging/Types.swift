@@ -9,6 +9,26 @@ import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
 
+enum FocusedField: Hashable {
+    case userName, // ScriptContentView
+         level,
+         yourName,
+         yourFirstName,
+         page,
+         pageName,
+         staffLevel,
+         firstFeature,
+         rawTag,
+         communityTag,
+         hubTag,
+         featureScript,
+         commentScript,
+         originalPostScript,
+         newMembershipScript,
+         
+         pagePicker // Content view
+}
+
 enum MembershipCase: String, CaseIterable, Identifiable, Codable {
     case none = "None",
 
@@ -153,19 +173,17 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
     }
 }
 
-enum TinEyeResults: String, CaseIterable, Identifiable, Codable {
-    case zeroMatches = "0 matches",
-         noMatches = "no matches",
-         matchFound = "matches found"
-
+enum StaffLevelCase: String, CaseIterable, Identifiable {
+    case mod = "Mod",
+         coadmin = "Co-Admin",
+         admin = "Admin"
     var id: Self { self }
 }
 
-enum AiCheckResults: String, CaseIterable, Identifiable, Codable {
-    case human = "human",
-         ai = "ai"
-
-    var id: Self { self }
+enum PlaceholderSheetCase {
+    case featureScript,
+         commentScript,
+         originalPostScript
 }
 
 enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
@@ -230,6 +248,21 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
             none
         ].contains(value)
     }
+}
+
+enum TinEyeResults: String, CaseIterable, Identifiable, Codable {
+    case zeroMatches = "0 matches",
+         noMatches = "no matches",
+         matchFound = "matches found"
+
+    var id: Self { self }
+}
+
+enum AiCheckResults: String, CaseIterable, Identifiable, Codable {
+    case human = "human",
+         ai = "ai"
+
+    var id: Self { self }
 }
 
 class FeaturesViewModel: ObservableObject  {
@@ -703,6 +736,43 @@ struct CodableFeature: Codable {
     }
 }
 
+struct CodableFeatureUser: Codable {
+    var page: String
+    var userName: String
+    var userAlias: String
+    var userLevel: MembershipCase
+    var tagSource: TagSourceCase
+    var firstFeature: Bool
+    var newLevel: NewMembershipCase
+    
+    init() {
+        page = ""
+        userName = ""
+        userAlias = ""
+        userLevel = MembershipCase.none
+        tagSource = TagSourceCase.commonPageTag
+        firstFeature = false
+        newLevel = NewMembershipCase.none
+    }
+    
+    init(json: Data) {
+        self.init()
+        do {
+            let decoder = JSONDecoder()
+            let featureUser = try decoder.decode(CodableFeatureUser.self, from: json)
+            self.page = featureUser.page
+            self.userName = featureUser.userName
+            self.userAlias = featureUser.userAlias
+            self.userLevel = featureUser.userLevel
+            self.tagSource = featureUser.tagSource
+            self.firstFeature = featureUser.firstFeature
+            self.newLevel = featureUser.newLevel
+        } catch {
+            debugPrint(error)
+        }
+    }
+}
+
 struct ScriptsCatalog: Codable {
     var hubs: [String: [Page]]
 }
@@ -711,6 +781,7 @@ struct Page: Codable {
     var id: String { self.name }
     let name: String
     let pageName: String?
+    let title: String?
     let hashTag: String?
 }
 
@@ -724,6 +795,7 @@ struct LoadedPage: Codable, Identifiable {
     let hub: String
     let name: String
     let pageName: String?
+    let title: String?
     let hashTag: String?
     var displayName: String {
         if hub == "other" {
@@ -733,8 +805,35 @@ struct LoadedPage: Codable, Identifiable {
     }
 
     static func from(hub: String, page: Page) -> LoadedPage {
-        return LoadedPage(hub: hub, name: page.name, pageName: page.pageName, hashTag: page.hashTag)
+        return LoadedPage(hub: hub, name: page.name, pageName: page.pageName, title: page.title, hashTag: page.hashTag)
     }
+}
+
+struct TemplateCatalog: Codable {
+    let pages: [TemplatePage]
+    let specialTemplates: [Template]
+}
+
+struct TemplatePage: Codable, Identifiable {
+    var id: String { self.name }
+    let name: String
+    let templates: [Template]
+}
+
+struct HubCatalog: Codable {
+    let hubs: [Hub]
+}
+
+struct Hub: Codable, Identifiable {
+    var id: String { self.name }
+    let name: String
+    let templates: [Template]
+}
+
+struct Template: Codable, Identifiable {
+    var id: String { self.name }
+    let name: String
+    let template: String
 }
 
 enum ToastDuration: Int {

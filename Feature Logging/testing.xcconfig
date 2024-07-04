@@ -1,0 +1,11 @@
+//
+//  testing.xcconfig
+//  Feature Logging
+//
+//  Created by Andrew Forget on 2024-07-04.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+OTHER_SWIFT_FLAGS = -DTESTING

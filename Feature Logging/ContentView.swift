@@ -9,10 +9,6 @@ import SwiftUI
 import UniformTypeIdentifiers
 import AlertToast
 
-enum FocusedField {
-    case pagePicker
-}
-
 struct ContentView: View {
     // THEME
     @AppStorage(
@@ -65,6 +61,7 @@ struct ContentView: View {
     @State private var logURL: URL? = nil
     @State private var showReportFileExporter = false
     @State private var reportDocument = ReportDocument()
+    @State private var isShowingScriptView = false
     @FocusState private var focusedField: FocusedField?
     private var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
@@ -89,388 +86,401 @@ struct ContentView: View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
 
-            VStack {
-                // Page picker
-                HStack(alignment: .center) {
-                    Text("Page:")
-                        .frame(width: 108, alignment: .trailing)
+            if isShowingScriptView {
+                ScriptContentView(appState) {
+                    isShowingScriptView.toggle()
+                }
+            } else {
+                VStack {
+                    // Page picker
+                    HStack(alignment: .center) {
+                        Text("Page:")
+                            .frame(width: 108, alignment: .trailing)
 
-                    Picker("", selection: $page.onChange { value in
-                        UserDefaults.standard.set(page, forKey: "Page")
-                        isDirty = true
-                        logURL = nil
-                        selectedFeature = nil
-                        featuresViewModel = FeaturesViewModel()
-                        sortedFeatures = featuresViewModel.sortedFeatures
-                    }) {
-                        ForEach(loadedPages) { page in
-                            if page.name != "default" {
-                                Text(page.displayName).tag(page.id)
+                        Picker("", selection: $page.onChange { value in
+                            UserDefaults.standard.set(page, forKey: "Page")
+                            // TODO andydragon : testing without this
+                            // isDirty = true
+                            logURL = nil
+                            selectedFeature = nil
+                            featuresViewModel = FeaturesViewModel()
+                            sortedFeatures = featuresViewModel.sortedFeatures
+                        }) {
+                            ForEach(loadedPages) { page in
+                                if page.name != "default" {
+                                    Text(page.displayName).tag(page.id)
+                                }
                             }
+                        }
+                        .tint(Color.AccentColor)
+                        .accentColor(Color.AccentColor)
+                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                        .focusable()
+                        .focused($focusedField, equals: .pagePicker)
+                        .disabled(!featuresViewModel.features.isEmpty)
+
+                        Menu("Copy tag", systemImage: "tag.fill") {
+                            Button(action: {
+                                copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the page tag to the clipboard", duration: 2) { }
+                            }) {
+                                Text("Page tag")
+                            }
+                            if loadedPage?.hub == "snap" {
+                                Button(action: {
+                                    copyToClipboard("\(includeHash ? "#" : "")raw_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
+                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW page tag to the clipboard", duration: 2) { }
+                                }) {
+                                    Text("RAW page tag")
+                                }
+                            }
+                            Button(action: {
+                                copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_community")
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the community tag to the clipboard", duration: 2) { }
+                            }) {
+                                Text("Community tag")
+                            }
+                            if loadedPage?.hub == "snap" {
+                                Button(action: {
+                                    copyToClipboard("\(includeHash ? "#" : "")raw_community")
+                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW community tag to the clipboard", duration: 2) { }
+                                }) {
+                                    Text("RAW community tag")
+                                }
+                            }
+                            Button(action: {
+                                copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_hub")
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the hub tag to the clipboard", duration: 2) { }
+                            }) {
+                                Text("Hub tag")
+                            }
+                            if loadedPage?.hub == "snap" {
+                                Button(action: {
+                                    copyToClipboard("\(includeHash ? "#" : "")raw_hub")
+                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW hub tag to the clipboard", duration: 2) { }
+                                }) {
+                                    Text("RAW hub tag")
+                                }
+                            }
+                        }
+                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .tint(Color.AccentColor)
+                        .accentColor(Color.AccentColor)
+                        .disabled(isAnyToastShowing || (loadedPage?.hub != "click" && loadedPage?.hub != "snap"))
+                        .frame(maxWidth: 132)
+                        .focusable()
+                    }
+
+                    // Feature editor
+                    VStack {
+                        if let currentFeature = selectedFeature {
+                            FeatureEditor(feature: currentFeature, loadedPage: loadedPage, close: {
+                                selectedFeature = nil
+                            }, updateList: {
+                                sortedFeatures = featuresViewModel.sortedFeatures
+                                shouldScrollFeatureListToSelection.toggle()
+                            }, markDocumentDirty: {
+                                isDirty = true
+                            }, showToast: showToast)
+                        } else {
+                            Spacer()
                         }
                     }
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
-                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                    .focusable()
-                    .focused($focusedField, equals: .pagePicker)
+                    .frame(height: 380)
 
-                    Menu("Copy tag", systemImage: "tag.fill") {
+                    // Feature list buttons
+                    HStack {
+                        Spacer()
+
+                        // Add feature
                         Button(action: {
-                            copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
-                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the page tag to the clipboard", duration: 2) { }
+                            let linkText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
+                            let existingFeature = featuresViewModel.features.first(where: { $0.postLink.lowercased() == linkText.lowercased() })
+                            if existingFeature != nil {
+                                showToast(
+                                    .systemImage("exclamationmark.triangle.fill", .orange),
+                                    "Found duplicate post link",
+                                    subTitle: "There is already a feature in the list with that post link, selected the existing feature",
+                                    duration: 3)
+                                selectedFeature = existingFeature
+                                return
+                            }
+                            let feature = Feature()
+                            if linkText.starts(with: "https://vero.co/") {
+                                feature.postLink = linkText
+                                let possibleUserAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
+                                // If the user doesn't have an alias, the link will have a single letter, often 'p'
+                                if possibleUserAlias.count > 1 {
+                                    feature.userAlias = possibleUserAlias
+                                }
+                            }
+                            featuresViewModel.features.append(feature)
+                            sortedFeatures = featuresViewModel.sortedFeatures
+                            selectedFeature = feature
+                            isDirty = true
+                            shouldScrollFeatureListToSelection.toggle()
                         }) {
-                            Text("Page tag")
-                        }
-                        if loadedPage?.hub == "snap" {
-                            Button(action: {
-                                copyToClipboard("\(includeHash ? "#" : "")raw_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW page tag to the clipboard", duration: 2) { }
-                            }) {
-                                Text("RAW page tag")
+                            HStack(alignment: .center) {
+                                Image(systemName: "person.fill.badge.plus")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                Text("Add feature")
                             }
                         }
+                        .disabled(isAnyToastShowing)
+                        .keyboardShortcut("+", modifiers: .command)
+
+                        Spacer()
+                            .frame(width: 16)
+
+                        // Remove feature
                         Button(action: {
-                            copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_community")
-                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the community tag to the clipboard", duration: 2) { }
+                            if let currentFeature = selectedFeature {
+                                selectedFeature = nil
+                                featuresViewModel.features.removeAll(where: { $0.id == currentFeature.id })
+                                sortedFeatures = featuresViewModel.sortedFeatures
+                                isDirty = true
+                            }
                         }) {
-                            Text("Community tag")
-                        }
-                        if loadedPage?.hub == "snap" {
-                            Button(action: {
-                                copyToClipboard("\(includeHash ? "#" : "")raw_community")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW community tag to the clipboard", duration: 2) { }
-                            }) {
-                                Text("RAW community tag")
+                            HStack(alignment: .center) {
+                                Image(systemName: "person.fill.badge.minus")
+                                    .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
+                                Text("Remove feature")
                             }
                         }
+                        .disabled(isAnyToastShowing || selectedFeature == nil)
+                        .keyboardShortcut("-", modifiers: .command)
+
+                        Spacer()
+                            .frame(width: 16)
+
+                        // Remove all
                         Button(action: {
-                            copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_hub")
-                            showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the hub tag to the clipboard", duration: 2) { }
+                            selectedFeature = nil
+                            featuresViewModel = FeaturesViewModel()
+                            sortedFeatures = featuresViewModel.sortedFeatures
+                            isDirty = true
                         }) {
-                            Text("Hub tag")
-                        }
-                        if loadedPage?.hub == "snap" {
-                            Button(action: {
-                                copyToClipboard("\(includeHash ? "#" : "")raw_hub")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW hub tag to the clipboard", duration: 2) { }
-                            }) {
-                                Text("RAW hub tag")
+                            HStack(alignment: .center) {
+                                Image(systemName: "trash")
+                                    .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
+                                Text("Remove all")
                             }
                         }
+                        .disabled(isAnyToastShowing || featuresViewModel.features.isEmpty)
+                        .keyboardShortcut(.delete, modifiers: .command)
+                    }
+
+                    // Feature list
+                    ScrollViewReader { proxy in
+                        List {
+                            ForEach(sortedFeatures, id: \.self) { feature in
+                                FeatureListRow(feature: feature, loadedPage: loadedPage!, markDocumentDirty: {
+                                    isDirty = true
+                                }, ensureSelected: {
+                                    selectedFeature = feature
+                                }, showToast: showToast, showScriptView: {
+                                    isShowingScriptView.toggle()
+                                })
+                                .padding([.top, .bottom], 8)
+                                .padding([.leading, .trailing])
+                                .foregroundStyle(Color(nsColor: hoveredFeature == feature
+                                                       ? NSColor.selectedControlTextColor
+                                                       : NSColor.labelColor), Color(nsColor: .labelColor))
+                                .background(selectedFeature == feature
+                                            ? Color.BackgroundColorListSelected
+                                            : hoveredFeature == feature
+                                            ? Color.BackgroundColorListSelected.opacity(0.33)
+                                            : Color.BackgroundColorList)
+                                .cornerRadius(4)
+                                .onHover(perform: { hovering in
+                                    if hoveredFeature == feature {
+                                        if !hovering {
+                                            hoveredFeature = nil
+                                        }
+                                    } else if hovering {
+                                        hoveredFeature = feature
+                                    }
+                                })
+                                .onTapGesture {
+                                    withAnimation {
+                                        selectedFeature = feature
+                                    }
+                                }
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(4)
+                        .presentationBackground(.clear)
+                        .onChange(of: shouldScrollFeatureListToSelection, {
+                            withAnimation {
+                                proxy.scrollTo(selectedFeature)
+                            }
+                        })
+                        .onTapGesture {
+                            withAnimation {
+                                selectedFeature = nil
+                            }
+                        }
+                        .focusable()
+                    }
+                    .scrollContentBackground(.hidden)
+                    .background(Color.BackgroundColorList)
+                    .border(Color.gray.opacity(0.25))
+                    .cornerRadius(4)
+                }
+                .toolbar {
+                    // Open log
+                    Button(action: {
+                        if isDirty {
+                            documentDirtyAfterSaveAction = {
+                                showFileImporter.toggle()
+                            }
+                            documentDirtyAfterDismissAction = {
+                                showFileImporter.toggle()
+                            }
+                            documentDirtyAlertConfirmation = "Would you like to save this log file before opening another log?"
+                            isShowingDocumentDirtyAlert.toggle()
+                        } else {
+                            showFileImporter.toggle()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up.on.square")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Open log...")
+                                .font(.system(.body, design: .rounded).bold())
+                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        }
+                        .padding(4)
+                        .buttonStyle(.plain)
+                    }
+                    .fileImporter(
+                        isPresented: $showFileImporter,
+                        allowedContentTypes: [.json]
+                    ) { result in
+                        switch result {
+                        case .success(let file):
+                            loadLog(from: file)
+                            isDirty = false
+                        case .failure(let error):
+                            print(error)
+                        }
+                    }
+                    .disabled(isAnyToastShowing || loadedPage == nil)
+
+                    // Save log
+                    Button(action: {
+                        logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
+                        if let file = logURL {
+                            saveLog(to: file)
+                            isDirty = false
+                        } else {
+                            showFileExporter.toggle()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.down.on.square")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Save log...")
+                                .font(.system(.body, design: .rounded).bold())
+                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        }
+                        .padding(4)
+                        .buttonStyle(.plain)
+                    }
+                    .fileExporter(
+                        isPresented: $showFileExporter,
+                        document: logDocument,
+                        contentType: .json,
+                        defaultFilename: "\(loadedPage?.hub ?? "hub")_\(loadedPage?.pageName ?? loadedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).json"
+                    ) { result in
+                        switch result {
+                        case .success(let url):
+                            print("Saved to \(url)")
+                            logURL = url
+                            isDirty = false
+                            documentDirtyAfterSaveAction()
+                            documentDirtyAfterSaveAction = {}
+                            documentDirtyAfterDismissAction = {}
+                        case .failure(let error):
+                            debugPrint(error)
+                        }
+                    }
+                    .disabled(isAnyToastShowing || loadedPage == nil)
+
+                    // Copy report
+                    Button(action: {
+                        copyReportToClipboard()
+                    }) {
+                        HStack {
+                            Image(systemName: "pencil.and.list.clipboard")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Generate report")
+                                .font(.system(.body, design: .rounded).bold())
+                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        }
+                        .padding(4)
+                        .buttonStyle(.plain)
+                    }
+                    .disabled(isAnyToastShowing || loadedPage == nil)
+
+                    // Save report
+                    Button(action: {
+                        reportDocument = ReportDocument(initialText: generateReport())
+                        showReportFileExporter.toggle()
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.down.on.square")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Save report...")
+                                .font(.system(.body, design: .rounded).bold())
+                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        }
+                        .padding(4)
+                        .buttonStyle(.plain)
+                    }
+                    .fileExporter(
+                        isPresented: $showReportFileExporter,
+                        document: reportDocument,
+                        contentType: UTType.features,
+                        defaultFilename: logURL != nil ?
+                        "\(logURL!.deletingPathExtension().lastPathComponent).features" :
+                            "\(loadedPage?.hub ?? "hub")_\(loadedPage?.pageName ?? loadedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).features"
+                    ) { result in
+                        switch result {
+                        case .success(let url):
+                            print("Exported to \(url)")
+                        case .failure(let error):
+                            debugPrint(error)
+                        }
+                    }
+                    .disabled(isAnyToastShowing || loadedPage == nil)
+
+                    // Theme
+                    Menu("Theme", systemImage: "paintpalette") {
+                        Picker("Theme:", selection: $theme.onChange(setTheme)) {
+                            ForEach(Theme.allCases) { itemTheme in
+                                if itemTheme != .notSet {
+                                    Text(itemTheme.rawValue).tag(itemTheme)
+                                }
+                            }
+                        }
+                        .pickerStyle(.inline)
                     }
                     .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
-                    .disabled(isAnyToastShowing || (loadedPage?.hub != "click" && loadedPage?.hub != "snap"))
-                    .frame(maxWidth: 132)
-                    .focusable()
-                }
-
-                // Feature editor
-                VStack {
-                    if let currentFeature = selectedFeature {
-                        FeatureEditor(feature: currentFeature, loadedPage: loadedPage, close: {
-                            selectedFeature = nil
-                        }, updateList: {
-                            sortedFeatures = featuresViewModel.sortedFeatures
-                            shouldScrollFeatureListToSelection.toggle()
-                        }, markDocumentDirty: {
-                            isDirty = true
-                        }, showToast: showToast)
-                    } else {
-                        Spacer()
-                    }
-                }
-                .frame(height: 380)
-
-                // Feature list buttons
-                HStack {
-                    Spacer()
-
-                    // Add feature
-                    Button(action: {
-                        let linkText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
-                        let existingFeature = featuresViewModel.features.first(where: { $0.postLink.lowercased() == linkText.lowercased() })
-                        if existingFeature != nil {
-                            showToast(
-                                .systemImage("exclamationmark.triangle.fill", .orange),
-                                "Found duplicate post link",
-                                subTitle: "There is already a feature in the list with that post link, selected the existing feature",
-                                duration: 3)
-                            selectedFeature = existingFeature
-                            return
-                        }
-                        let feature = Feature()
-                        if linkText.starts(with: "https://vero.co/") {
-                            feature.postLink = linkText
-                            let possibleUserAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
-                            // If the user doesn't have an alias, the link will have a single letter, often 'p'
-                            if possibleUserAlias.count > 1 {
-                                feature.userAlias = possibleUserAlias
-                            }
-                        }
-                        featuresViewModel.features.append(feature)
-                        sortedFeatures = featuresViewModel.sortedFeatures
-                        selectedFeature = feature
-                        isDirty = true
-                        shouldScrollFeatureListToSelection.toggle()
-                    }) {
-                        HStack(alignment: .center) {
-                            Image(systemName: "person.fill.badge.plus")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Add feature")
-                        }
-                    }
                     .disabled(isAnyToastShowing)
-                    .keyboardShortcut("+", modifiers: .command)
-
-                    Spacer()
-                        .frame(width: 16)
-
-                    // Remove feature
-                    Button(action: {
-                        if let currentFeature = selectedFeature {
-                            selectedFeature = nil
-                            featuresViewModel.features.removeAll(where: { $0.id == currentFeature.id })
-                            sortedFeatures = featuresViewModel.sortedFeatures
-                            isDirty = true
-                        }
-                    }) {
-                        HStack(alignment: .center) {
-                            Image(systemName: "person.fill.badge.minus")
-                                .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
-                            Text("Remove feature")
-                        }
-                    }
-                    .disabled(isAnyToastShowing || selectedFeature == nil)
-                    .keyboardShortcut("-", modifiers: .command)
-
-                    Spacer()
-                        .frame(width: 16)
-
-                    // Remove all
-                    Button(action: {
-                        selectedFeature = nil
-                        featuresViewModel = FeaturesViewModel()
-                        sortedFeatures = featuresViewModel.sortedFeatures
-                        isDirty = true
-                    }) {
-                        HStack(alignment: .center) {
-                            Image(systemName: "trash")
-                                .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
-                            Text("Remove all")
-                        }
-                    }
-                    .disabled(isAnyToastShowing || featuresViewModel.features.isEmpty)
-                    .keyboardShortcut(.delete, modifiers: .command)
                 }
-
-                // Feature list
-                ScrollViewReader { proxy in
-                    List {
-                        ForEach(sortedFeatures, id: \.self) { feature in
-                            FeatureListRow(feature: feature, loadedPage: loadedPage!, markDocumentDirty: {
-                                isDirty = true
-                            }, ensureSelected: {
-                                selectedFeature = feature
-                            }, showToast: showToast)
-                            .padding([.top, .bottom], 8)
-                            .padding([.leading, .trailing])
-                            .foregroundStyle(Color(nsColor: hoveredFeature == feature
-                                                   ? NSColor.selectedControlTextColor
-                                                   : NSColor.labelColor), Color(nsColor: .labelColor))
-                            .background(selectedFeature == feature
-                                        ? Color.BackgroundColorListSelected
-                                        : hoveredFeature == feature
-                                        ? Color.BackgroundColorListSelected.opacity(0.33)
-                                        : Color.BackgroundColorList)
-                            .cornerRadius(4)
-                            .onHover(perform: { hovering in
-                                if hoveredFeature == feature {
-                                    if !hovering {
-                                        hoveredFeature = nil
-                                    }
-                                } else if hovering {
-                                    hoveredFeature = feature
-                                }
-                            })
-                            .onTapGesture {
-                                withAnimation {
-                                    selectedFeature = feature
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(4)
-                    .presentationBackground(.clear)
-                    .onChange(of: shouldScrollFeatureListToSelection, {
-                        withAnimation {
-                            proxy.scrollTo(selectedFeature)
-                        }
-                    })
-                    .onTapGesture {
-                        withAnimation {
-                            selectedFeature = nil
-                        }
-                    }
-                    .focusable()
-                }
-                .scrollContentBackground(.hidden)
-                .background(Color.BackgroundColorList)
-                .border(Color.gray.opacity(0.25))
-                .cornerRadius(4)
+                .padding()
+                .allowsHitTesting(!isAnyToastShowing)
+                ToastDismissShield(
+                    isAnyToastShowing: isAnyToastShowing,
+                    isShowingToast: $isShowingToast,
+                    isShowingVersionAvailableToast: appState.isShowingVersionAvailableToast)
             }
-            .toolbar {
-                // Open log
-                Button(action: {
-                    if isDirty {
-                        documentDirtyAfterSaveAction = {
-                            showFileImporter.toggle()
-                        }
-                        documentDirtyAfterDismissAction = {
-                            showFileImporter.toggle()
-                        }
-                        documentDirtyAlertConfirmation = "Would you like to save this log file before opening another log?"
-                        isShowingDocumentDirtyAlert.toggle()
-                    } else {
-                        showFileImporter.toggle()
-                    }
-                }) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.up.on.square")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Open log...")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                    }
-                    .padding(4)
-                    .buttonStyle(.plain)
-                }
-                .fileImporter(
-                    isPresented: $showFileImporter,
-                    allowedContentTypes: [.json]
-                ) { result in
-                    switch result {
-                    case .success(let file):
-                        loadLog(from: file)
-                        isDirty = false
-                    case .failure(let error):
-                        print(error)
-                    }
-                }
-                .disabled(isAnyToastShowing || loadedPage == nil)
-
-                // Save log
-                Button(action: {
-                    logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
-                    if let file = logURL {
-                        saveLog(to: file)
-                        isDirty = false
-                    } else {
-                        showFileExporter.toggle()
-                    }
-                }) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.down.on.square")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Save log...")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                    }
-                    .padding(4)
-                    .buttonStyle(.plain)
-                }
-                .fileExporter(
-                    isPresented: $showFileExporter,
-                    document: logDocument,
-                    contentType: .json,
-                    defaultFilename: "\(loadedPage?.hub ?? "hub")_\(loadedPage?.pageName ?? loadedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).json"
-                ) { result in
-                    switch result {
-                    case .success(let url):
-                        print("Saved to \(url)")
-                        logURL = url
-                        isDirty = false
-                        documentDirtyAfterSaveAction()
-                        documentDirtyAfterSaveAction = {}
-                        documentDirtyAfterDismissAction = {}
-                    case .failure(let error):
-                        debugPrint(error)
-                    }
-                }
-                .disabled(isAnyToastShowing || loadedPage == nil)
-
-                // Copy report
-                Button(action: {
-                    copyReportToClipboard()
-                }) {
-                    HStack {
-                        Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Generate report")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                    }
-                    .padding(4)
-                    .buttonStyle(.plain)
-                }
-                .disabled(isAnyToastShowing || loadedPage == nil)
-
-                // Save report
-                Button(action: {
-                    reportDocument = ReportDocument(initialText: generateReport())
-                    showReportFileExporter.toggle()
-                }) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.down.on.square")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Save report...")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                    }
-                    .padding(4)
-                    .buttonStyle(.plain)
-                }
-                .fileExporter(
-                    isPresented: $showReportFileExporter,
-                    document: reportDocument,
-                    contentType: UTType.features,
-                    defaultFilename: logURL != nil ?
-                    "\(logURL!.deletingPathExtension().lastPathComponent).features" :
-                        "\(loadedPage?.hub ?? "hub")_\(loadedPage?.pageName ?? loadedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).features"
-                ) { result in
-                    switch result {
-                    case .success(let url):
-                        print("Exported to \(url)")
-                    case .failure(let error):
-                        debugPrint(error)
-                    }
-                }
-                .disabled(isAnyToastShowing || loadedPage == nil)
-
-                // Theme
-                Menu("Theme", systemImage: "paintpalette") {
-                    Picker("Theme:", selection: $theme.onChange(setTheme)) {
-                        ForEach(Theme.allCases) { itemTheme in
-                            if itemTheme != .notSet {
-                                Text(itemTheme.rawValue).tag(itemTheme)
-                            }
-                        }
-                    }
-                    .pickerStyle(.inline)
-                }
-                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                .disabled(isAnyToastShowing)
-            }
-            .padding()
-            .allowsHitTesting(!isAnyToastShowing)
-            ToastDismissShield(
-                isAnyToastShowing: isAnyToastShowing,
-                isShowingToast: $isShowingToast,
-                isShowingVersionAvailableToast: appState.isShowingVersionAvailableToast)
         }
+#if TESTING
+        .navigationTitle("Feature Logging - Script Testing")
+#endif
         .blur(radius: isAnyToastShowing ? 4 : 0)
         .frame(minWidth: 1024, minHeight: 720)
         .background(Color.BackgroundColor)
@@ -573,7 +583,11 @@ struct ContentView: View {
         .navigationSubtitle(isDirty ? "edited" : "")
         .task {
             do {
+#if TESTING
+                let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/pages.json")!
+#else
                 let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
+#endif
                 let pagesCatalog = try await URLSession.shared.decode(ScriptsCatalog.self, from: pagesUrl)
                 var pages = [LoadedPage]()
                 for hubPair in (pagesCatalog.hubs) {
@@ -1078,6 +1092,7 @@ struct FeatureListRow: View {
     var markDocumentDirty: () -> Void
     var ensureSelected: () -> Void
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
+    var showScriptView: () -> Void
 
     @State var userName = ""
     @State var userAlias = ""
@@ -1171,29 +1186,29 @@ struct FeatureListRow: View {
                     if feature.isPickedAndAllowed {
                         Button(action: {
                             ensureSelected()
-                            showingMessageEditor.toggle()
+                            launchVeroScripts()
                         }) {
                             HStack(alignment: .center) {
-                                Image(systemName: "square.and.pencil.circle")
+                                Image(systemName: "pencil.and.list.clipboard")
                                     .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                Text("Edit personal message")
+                                Text("Edit scripts")
                             }
                         }
-                        .disabled(!feature.isPickedAndAllowed)
 
                         Spacer()
                             .frame(width: 8)
 
                         Button(action: {
                             ensureSelected()
-                            launchVeroScripts()
+                            showingMessageEditor.toggle()
                         }) {
                             HStack(alignment: .center) {
-                                Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                                Image(systemName: "square.and.pencil")
                                     .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                Text("Open Vero Scripts")
+                                Text("Edit personal message")
                             }
                         }
+                        .disabled(!feature.isPickedAndAllowed)
                     }
                 }
                 HStack {
@@ -1320,14 +1335,8 @@ struct FeatureListRow: View {
             // Store the feature in the shared storage
             sharedFeature = jsonString
 
-            // Launch the Vero Scripts app
-            guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.andydragon.Vero-Scripts") else { return }
-            let configuration = NSWorkspace.OpenConfiguration()
-            configuration.promptsUserIfNeeded = true
-            configuration.arguments = []
-            NSWorkspace.shared.openApplication(at: url, configuration: configuration)
-
-            showToast(.complete(.green), "Launched Vero Scripts", "The feature was copied to the clipboard", 2) { }
+            // Launch the ScriptContentView
+            showScriptView()
         } catch {
             debugPrint(error)
         }
