@@ -16,7 +16,6 @@ struct ScriptContentView: View {
         store: UserDefaults(suiteName: "group.com.andydragon.VeroTools")
     ) var sharedFeature = ""
 
-    @Environment(\.openURL) private var openURL
     @State private var membership = MembershipCase.none
     @State private var membershipValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var userName = ""
@@ -41,10 +40,6 @@ struct ScriptContentView: View {
     @State private var newMembership = NewMembershipCase.none
     @State private var newMembershipValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var newMembershipScript = ""
-    @State private var showingAlert = false
-    @State private var alertTitle = ""
-    @State private var alertMessage = ""
-    @State private var terminalAlert = false
     @State private var placeholderSheetCase = PlaceholderSheetCase.featureScript
     @State private var showingPlaceholderSheet = false
     @State private var loadedCatalogs = LoadedCatalogs()
@@ -60,13 +55,6 @@ struct ScriptContentView: View {
     @State private var lastYourFirstName = ""
     @State private var lastPage = ""
     @State private var lastPageStaffLevel = StaffLevelCase.mod
-    @State private var isShowingToast = false
-    @State private var toastId: UUID? = nil
-    @State private var toastType = AlertToast.AlertType.regular
-    @State private var toastDuration = 0.0
-    @State private var toastText = ""
-    @State private var toastSubTitle = ""
-    @State private var toastTapAction: () -> Void = {}
     @FocusState private var focusedField: FocusedField?
 
     private var canCopyScripts: Bool {
@@ -81,19 +69,21 @@ struct ScriptContentView: View {
         && newMembershipValidation.valid
         && userNameValidation.valid
     }
-    private var appState: VersionCheckAppState
-    private var isAnyToastShowing: Bool {
-        isShowingToast
-        || appState.isShowingVersionAvailableToast.wrappedValue
-        || appState.isShowingVersionRequiredToast.wrappedValue
-    }
     private var accordionHeightRatio = 3.5
+    private var isShowingToast: Binding<Bool>
     private var hideScriptView: () -> Void
+    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
 
-    init(_ appState: VersionCheckAppState, _ loadedCatalogs: LoadedCatalogs, _ hideScriptView: @escaping () -> Void) {
-        self.appState = appState
+    init(
+        _ loadedCatalogs: LoadedCatalogs,
+        _ isShowingToast: Binding<Bool>,
+        _ hideScriptView: @escaping () -> Void,
+        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
+    ) {
         self.loadedCatalogs = loadedCatalogs
+        self.isShowingToast = isShowingToast
         self.hideScriptView = hideScriptView
+        self.showToast = showToast
     }
 
     var body: some View {
@@ -314,7 +304,7 @@ struct ScriptContentView: View {
                 Group {
                     // Feature script output
                     ScriptEditor(
-                        title: featureDescription.isEmpty ? "Feature script:" : "Feature script: (description: \(featureDescription))",
+                        title: featureDescription.isEmpty ? "Feature script:" : "Feature script (description: \(featureDescription)):",
                         script: $featureScript,
                         minHeight: 72,
                         maxHeight: .infinity,
@@ -328,16 +318,14 @@ struct ScriptContentView: View {
                                 [commentScriptPlaceholders, originalPostScriptPlaceholders],
                                 force: force,
                                 withPlaceholders: withPlaceholders) {
-                                Task {
-                                    await showToast(
-                                        .complete(.green),
-                                        "Copied",
-                                        subTitle: String {
-                                            "Copied the feature script\(withPlaceholders ? " with placeholders" : "") "
-                                            "to the clipboard"
-                                        },
-                                        duration: .short)
-                                }
+                                showToast(
+                                    .complete(.green),
+                                    "Copied",
+                                    String {
+                                        "Copied the feature script\(withPlaceholders ? " with placeholders" : "") "
+                                        "to the clipboard"
+                                    },
+                                    3) {}
                             }
                         },
                         focus: $focusedField,
@@ -345,7 +333,7 @@ struct ScriptContentView: View {
 
                     // Comment script output
                     ScriptEditor(
-                        title: featureDescription.isEmpty ? "Comment script:" : "Comment script: (description: \(featureDescription))",
+                        title: "Comment script:",
                         script: $commentScript,
                         minHeight: 36,
                         maxHeight: 36 * accordionHeightRatio,
@@ -359,16 +347,14 @@ struct ScriptContentView: View {
                                 [featureScriptPlaceholders, originalPostScriptPlaceholders],
                                 force: force,
                                 withPlaceholders: withPlaceholders) {
-                                Task {
-                                    await showToast(
-                                        .complete(.green),
-                                        "Copied",
-                                        subTitle: String {
-                                            "Copied the comment script\(withPlaceholders ? " with placeholders" : "") "
-                                            "to the clipboard"
-                                        },
-                                        duration: .short)
-                                }
+                                showToast(
+                                    .complete(.green),
+                                    "Copied",
+                                    String {
+                                        "Copied the comment script\(withPlaceholders ? " with placeholders" : "") "
+                                        "to the clipboard"
+                                    },
+                                    3) {}
                             }
                         },
                         focus: $focusedField,
@@ -376,7 +362,7 @@ struct ScriptContentView: View {
 
                     // Original post script output
                     ScriptEditor(
-                        title: featureDescription.isEmpty ? "Original post script:" : "Original post script: (description: \(featureDescription))",
+                        title: "Original post script:",
                         script: $originalPostScript,
                         minHeight: 24,
                         maxHeight: 24 * accordionHeightRatio,
@@ -390,16 +376,14 @@ struct ScriptContentView: View {
                                 [featureScriptPlaceholders, commentScriptPlaceholders],
                                 force: force,
                                 withPlaceholders: withPlaceholders) {
-                                Task {
-                                    await showToast(
-                                        .complete(.green),
-                                        "Copied",
-                                        subTitle: String {
-                                            "Copied the original script\(withPlaceholders ? " with placeholders" : "") "
-                                            "to the clipboard"
-                                        },
-                                        duration: .short)
-                                }
+                                showToast(
+                                    .complete(.green),
+                                    "Copied",
+                                    String {
+                                        "Copied the original script\(withPlaceholders ? " with placeholders" : "") "
+                                        "to the clipboard"
+                                    },
+                                    3) {}
                             }
                         },
                         focus: $focusedField,
@@ -423,13 +407,11 @@ struct ScriptContentView: View {
                         canCopy: canCopyNewMembershipScript,
                         copy: {
                             copyToClipboard(newMembershipScript)
-                            Task {
-                                await showToast(
-                                    .complete(.green),
-                                    "Copied",
-                                    subTitle: "Copied the new membership script to the clipboard",
-                                    duration: .short)
-                            }
+                            showToast(
+                                .complete(.green),
+                                "Copied",
+                                "Copied the new membership script to the clipboard",
+                                3) {}
                         },
                         focus: $focusedField,
                         focusField: .newMembershipScript)
@@ -437,14 +419,6 @@ struct ScriptContentView: View {
             }
             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
             .padding()
-            .alert(
-                alertTitle,
-                isPresented: $showingAlert,
-                actions: {
-                },
-                message: {
-                    Text(alertMessage)
-                })
             .sheet(isPresented: $showingPlaceholderSheet) {
                 PlaceholderSheet(
                     placeholders: placeholderSheetCase == .featureScript
@@ -488,13 +462,11 @@ struct ScriptContentView: View {
                             break
                         }
                         let suffix = copiedSuffix.isEmpty ? "" : " \(copiedSuffix)"
-                        Task {
-                            await showToast(
-                                .complete(.green),
-                                "Copied",
-                                subTitle: "Copied the \(scriptName) script\(suffix) to the clipboard",
-                                duration: .short)
-                        }
+                        showToast(
+                            .complete(.green),
+                            "Copied",
+                            "Copied the \(scriptName) script\(suffix) to the clipboard",
+                            3) {}
                     })
             }
             .toolbar {
@@ -504,92 +476,20 @@ struct ScriptContentView: View {
                     HStack {
                         Image(systemName: "xmark")
                             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text("Close")
+                        Text("Close (⌘+`)")
                             .font(.system(.body, design: .rounded).bold())
                             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                     }
                     .padding(4)
                     .buttonStyle(.plain)
                 }
-                .disabled(isAnyToastShowing)
+                .keyboardShortcut("`", modifiers: .command)
+                .disabled(isShowingToast.wrappedValue)
             }
-            .allowsHitTesting(!isAnyToastShowing)
-            if isAnyToastShowing {
-                VStack {
-                    Rectangle().opacity(0.0000001)
-                }
-                .onTapGesture {
-                    if isShowingToast {
-                        toastId = nil
-                        isShowingToast.toggle()
-                    } else if appState.isShowingVersionAvailableToast.wrappedValue {
-                        appState.isShowingVersionAvailableToast.wrappedValue.toggle()
-                    }
-                }
-            }
+            .allowsHitTesting(!isShowingToast.wrappedValue)
         }
-        .blur(radius: isAnyToastShowing ? 4 : 0)
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)
-        .toast(
-            isPresenting: $isShowingToast,
-            duration: 0,
-            tapToDismiss: true,
-            offsetY: 32,
-            alert: {
-                AlertToast(
-                    displayMode: .hud,
-                    type: toastType,
-                    title: toastText,
-                    subTitle: toastSubTitle)
-            },
-            onTap: toastTapAction,
-            completion: {
-                focusedField = .userName
-            })
-        .toast(
-            isPresenting: appState.isShowingVersionAvailableToast,
-            duration: 10,
-            tapToDismiss: true,
-            offsetY: 32,
-            alert: {
-                AlertToast(
-                    displayMode: .hud,
-                    type: .systemImage("exclamationmark.triangle.fill", .yellow),
-                    title: "New version available",
-                    subTitle: getVersionToastSubtitle())
-            },
-            onTap: {
-                if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
-                    openURL(url)
-                }
-            },
-            completion: {
-                appState.resetCheckingForUpdates()
-                focusedField = .userName
-            })
-        .toast(
-            isPresenting: appState.isShowingVersionRequiredToast,
-            duration: 0,
-            tapToDismiss: true,
-            offsetY: 32,
-            alert: {
-                AlertToast(
-                    displayMode: .hud,
-                    type: .systemImage("xmark.octagon.fill", .TextColorRequired),
-                    title: "New version required",
-                    subTitle: getVersionToastSubtitle())
-            },
-            onTap: {
-                if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
-                    openURL(url)
-                    NSApplication.shared.terminate(nil)
-                }
-            },
-            completion: {
-                appState.resetCheckingForUpdates()
-                focusedField = .userName
-            })
         .onAppear {
             focusedField = .userName
         }
@@ -606,35 +506,6 @@ struct ScriptContentView: View {
             // Update the scripts
             updateScripts()
             updateNewMembershipScripts()
-        }
-    }
-
-    private func showToast(
-        _ type: AlertToast.AlertType,
-        _ text: String,
-        subTitle: String = "",
-        duration: ToastDuration,
-        onTap: @escaping () -> Void = {}
-    ) async {
-        toastType = type
-        toastText = text
-        toastSubTitle = subTitle
-        toastTapAction = onTap
-        if isShowingToast {
-            toastId = nil
-            isShowingToast.toggle()
-        }
-        toastId = UUID()
-        isShowingToast.toggle()
-
-        if duration != .disabled {
-            let expectedToastId = toastId
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(duration.rawValue), execute: {
-                if (isShowingToast && expectedToastId == toastId) {
-                    toastId = nil
-                    isShowingToast.toggle()
-                }
-            })
         }
     }
 
@@ -680,7 +551,7 @@ struct ScriptContentView: View {
 
             firstForPage = featureUser.firstFeature
             firstForPageChanged(to: firstForPage)
-            
+
             featureDescription = featureUser.description
 
             if loadedPage.hub == "click" {
@@ -778,27 +649,6 @@ struct ScriptContentView: View {
             newMembershipChanged(to: newMembership)
             featureDescription = ""
             focusedField = .userName
-        }
-    }
-
-    private func getVersionToastSubtitle() -> String {
-        let appVersion = appState.versionCheckToast.wrappedValue.appVersion
-        let currentVersion = appState.versionCheckToast.wrappedValue.currentVersion
-        let linkAvailable = appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty
-        var availableOrRequired: String
-        var optionInstruction: String
-        if appState.isShowingVersionAvailableToast.wrappedValue {
-            availableOrRequired = "available"
-            optionInstruction = " (this will go away in 10 seconds)"
-        } else {
-            availableOrRequired = "required"
-            optionInstruction = " or ⌘ + Q to Quit"
-        }
-        return String {
-            "You are using v\(appVersion) "
-            "and v\(currentVersion) is \(availableOrRequired)"
-            "\(linkAvailable ? "" : ", click here to open your browser")"
-            optionInstruction
         }
     }
 

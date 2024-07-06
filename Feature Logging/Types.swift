@@ -825,10 +825,3 @@ struct LoadedCatalogs {
     var waitingForDisallowList = true
     var disallowList = [String]()
 }
-
-enum ToastDuration: Int {
-    case disabled = 0,
-         short = 3,
-         medium = 10,
-         long = 20
-}

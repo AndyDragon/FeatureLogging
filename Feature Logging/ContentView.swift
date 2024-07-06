@@ -91,9 +91,9 @@ struct ContentView: View {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
 
             if isShowingScriptView {
-                ScriptContentView(appState, loadedCatalogs) {
+                ScriptContentView(loadedCatalogs, $isShowingToast, {
                     isShowingScriptView.toggle()
-                }
+                }, showToast)
             } else {
                 VStack {
                     // Page picker
@@ -349,7 +349,7 @@ struct ContentView: View {
                         HStack {
                             Image(systemName: "square.and.arrow.up.on.square")
                                 .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Open log...")
+                            Text("Open log (⌘+O)")
                                 .font(.system(.body, design: .rounded).bold())
                                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                         }
@@ -383,7 +383,7 @@ struct ContentView: View {
                         HStack {
                             Image(systemName: "square.and.arrow.down.on.square")
                                 .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Save log...")
+                            Text("Save log (⌘+S)")
                                 .font(.system(.body, design: .rounded).bold())
                                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                         }
@@ -434,7 +434,7 @@ struct ContentView: View {
                         HStack {
                             Image(systemName: "square.and.arrow.down.on.square")
                                 .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Save report...")
+                            Text("Save report (⌘+⇧+S)")
                                 .font(.system(.body, design: .rounded).bold())
                                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                         }
@@ -474,12 +474,12 @@ struct ContentView: View {
                 }
                 .padding()
                 .allowsHitTesting(!isAnyToastShowing)
-                ToastDismissShield(
-                    isAnyToastShowing: isAnyToastShowing,
-                    isShowingToast: $isShowingToast,
-                    toastId: $toastId,
-                    isShowingVersionAvailableToast: appState.isShowingVersionAvailableToast)
             }
+            ToastDismissShield(
+                isAnyToastShowing: isAnyToastShowing,
+                isShowingToast: $isShowingToast,
+                toastId: $toastId,
+                isShowingVersionAvailableToast: appState.isShowingVersionAvailableToast)
         }
 #if TESTING
         .navigationTitle("Feature Logging - Script Testing")
@@ -506,6 +506,10 @@ struct ContentView: View {
             } else {
                 showFileExporter.toggle()
             }
+        }
+        .onChange(of: commandModel.saveReport) {
+            reportDocument = ReportDocument(initialText: generateReport())
+            showReportFileExporter.toggle()
         }
         .sheet(isPresented: $isShowingDocumentDirtyAlert) {
             DocumentDirtySheet(
@@ -1294,7 +1298,7 @@ struct FeatureListRow: View {
                     Color.BackgroundColor.edgesIgnoringSafeArea(.all)
 
                     VStack(alignment: .leading)  {
-                        Text("Person message for feature: \(feature.userName) - \(feature.featureDescription)")
+                        Text("Personal message for feature: \(feature.userName) - \(feature.featureDescription)")
 
                         Spacer()
                             .frame(height: 8)

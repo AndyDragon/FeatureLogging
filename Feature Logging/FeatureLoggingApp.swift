@@ -78,7 +78,14 @@ struct Feature_LoggingApp: App {
                     Text("Save log...")
                 })
                 .keyboardShortcut("s", modifiers: .command)
-
+                
+                Button(action: {
+                    commandModel.saveReport.toggle()
+                }, label: {
+                    Text("Save report...")
+                })
+                .keyboardShortcut("s", modifiers: [.command, .shift])
+                
                 Divider()
 
                 Button(action: {
@@ -138,8 +145,7 @@ class AppCommandModel: ObservableObject {
     @Published var newLog: Bool = false
     @Published var openLog: Bool = false
     @Published var saveLog: Bool = false
-//    @Published var launchCullingApp: Bool = false
-//    @Published var launchAiCheckApp: Bool = false
+    @Published var saveReport: Bool = false
     @Published var isDirty: Bool = false
 }
 
