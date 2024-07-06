@@ -42,6 +42,9 @@ struct Feature_LoggingApp: App {
         WindowGroup {
             ContentView(appState)
                 .environmentObject(commandModel)
+                .onAppear {
+                    NSWindow.allowsAutomaticWindowTabbing = false
+                }
         }
         .commands {
             CommandGroup(replacing: .appSettings, addition: {

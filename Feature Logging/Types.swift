@@ -657,6 +657,7 @@ struct CodableFeature: Codable {
     var tagSource: TagSourceCase
     var firstFeature: Bool
     var newLevel: NewMembershipCase
+    var description: String
 
     init(using page: LoadedPage, from feature: Feature) {
         self.page = page.id;
@@ -666,6 +667,7 @@ struct CodableFeature: Codable {
         self.tagSource = feature.tagSource
         self.firstFeature = !feature.userHasFeaturesOnPage
         self.newLevel = NewMembershipCase.none
+        self.description = feature.featureDescription
         if page.hub == "click" {
             let totalFeatures = calculateFeatureCount(feature.featureCountOnHub)
             if totalFeatures + 1 == 5 {
@@ -711,6 +713,20 @@ struct CodableFeature: Codable {
         case tagSource
         case firstFeature
         case newLevel
+        case description
+    }
+    
+    init(json: Data) throws {
+        let decoder = JSONDecoder()
+        let feature = try decoder.decode(CodableFeature.self, from: json)
+        self.page = feature.page
+        self.userName = feature.userName
+        self.userAlias = feature.userAlias
+        self.userLevel = feature.userLevel
+        self.tagSource = feature.tagSource
+        self.firstFeature = feature.firstFeature
+        self.newLevel = feature.newLevel
+        self.description = feature.description
     }
 
     init(from decoder: Decoder) throws {
@@ -722,6 +738,7 @@ struct CodableFeature: Codable {
         self.tagSource = try container.decode(TagSourceCase.self, forKey: .tagSource)
         self.firstFeature = try container.decode(Bool.self, forKey: .firstFeature)
         self.newLevel = try container.decode(NewMembershipCase.self, forKey: .newLevel)
+        self.description = try container.decode(String.self, forKey: .description)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -733,43 +750,7 @@ struct CodableFeature: Codable {
         try container.encode(tagSource, forKey: .tagSource)
         try container.encode(firstFeature, forKey: .firstFeature)
         try container.encode(newLevel, forKey: .newLevel)
-    }
-}
-
-struct CodableFeatureUser: Codable {
-    var page: String
-    var userName: String
-    var userAlias: String
-    var userLevel: MembershipCase
-    var tagSource: TagSourceCase
-    var firstFeature: Bool
-    var newLevel: NewMembershipCase
-    
-    init() {
-        page = ""
-        userName = ""
-        userAlias = ""
-        userLevel = MembershipCase.none
-        tagSource = TagSourceCase.commonPageTag
-        firstFeature = false
-        newLevel = NewMembershipCase.none
-    }
-    
-    init(json: Data) {
-        self.init()
-        do {
-            let decoder = JSONDecoder()
-            let featureUser = try decoder.decode(CodableFeatureUser.self, from: json)
-            self.page = featureUser.page
-            self.userName = featureUser.userName
-            self.userAlias = featureUser.userAlias
-            self.userLevel = featureUser.userLevel
-            self.tagSource = featureUser.tagSource
-            self.firstFeature = featureUser.firstFeature
-            self.newLevel = featureUser.newLevel
-        } catch {
-            debugPrint(error)
-        }
+        try container.encode(description, forKey: .description)
     }
 }
 

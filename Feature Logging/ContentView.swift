@@ -41,6 +41,7 @@ struct ContentView: View {
     @State private var toastDuration = 3.0
     @State private var toastTapAction: () -> Void = {}
     @State private var isShowingToast = false
+    @State private var toastId: UUID? = nil
     @State private var hoveredFeature: Feature? = nil
     @State private var loadedCatalogs = LoadedCatalogs()
     private var loadedPage: LoadedPage? {
@@ -476,6 +477,7 @@ struct ContentView: View {
                 ToastDismissShield(
                     isAnyToastShowing: isAnyToastShowing,
                     isShowingToast: $isShowingToast,
+                    toastId: $toastId,
                     isShowingVersionAvailableToast: appState.isShowingVersionAvailableToast)
             }
         }
@@ -689,21 +691,28 @@ struct ContentView: View {
         duration: Int = 3,
         onTap: @escaping () -> Void = {}
     ) {
-        let savedfocusedField = focusedField
+        if isShowingToast {
+            toastId = nil
+            isShowingToast.toggle()
+        }
+        let savedFocusedField = focusedField
         withAnimation {
             toastType = type
             toastText = text
             toastSubTitle = subTitle
             toastTapAction = onTap
             focusedField = nil
+            toastId = UUID()
             isShowingToast.toggle()
         }
 
         if duration != 0 {
+            let expectedToastId = toastId
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(duration), execute: {
-                if (isShowingToast) {
+                if (isShowingToast && toastId == expectedToastId) {
+                    toastId = nil
                     isShowingToast.toggle()
-                    focusedField = savedfocusedField
+                    focusedField = savedFocusedField
                 }
             })
         }

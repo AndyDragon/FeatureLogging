@@ -30,6 +30,7 @@ struct ScriptContentView: View {
     @State private var pageStaffLevel = StaffLevelCase(
         rawValue: UserDefaults.standard.string(forKey: "StaffLevel") ?? StaffLevelCase.mod.rawValue
     ) ?? StaffLevelCase.mod
+    @State private var featureDescription = ""
     @State private var firstForPage = false
     @State private var fromCommunityTag = false
     @State private var fromHubTag = false
@@ -60,6 +61,7 @@ struct ScriptContentView: View {
     @State private var lastPage = ""
     @State private var lastPageStaffLevel = StaffLevelCase.mod
     @State private var isShowingToast = false
+    @State private var toastId: UUID? = nil
     @State private var toastType = AlertToast.AlertType.regular
     @State private var toastDuration = 0.0
     @State private var toastText = ""
@@ -312,7 +314,7 @@ struct ScriptContentView: View {
                 Group {
                     // Feature script output
                     ScriptEditor(
-                        title: "Feature script:",
+                        title: featureDescription.isEmpty ? "Feature script:" : "Feature script: (description: \(featureDescription))",
                         script: $featureScript,
                         minHeight: 72,
                         maxHeight: .infinity,
@@ -343,7 +345,7 @@ struct ScriptContentView: View {
 
                     // Comment script output
                     ScriptEditor(
-                        title: "Comment script:",
+                        title: featureDescription.isEmpty ? "Comment script:" : "Comment script: (description: \(featureDescription))",
                         script: $commentScript,
                         minHeight: 36,
                         maxHeight: 36 * accordionHeightRatio,
@@ -374,7 +376,7 @@ struct ScriptContentView: View {
 
                     // Original post script output
                     ScriptEditor(
-                        title: "Original post script:",
+                        title: featureDescription.isEmpty ? "Original post script:" : "Original post script: (description: \(featureDescription))",
                         script: $originalPostScript,
                         minHeight: 24,
                         maxHeight: 24 * accordionHeightRatio,
@@ -518,6 +520,7 @@ struct ScriptContentView: View {
                 }
                 .onTapGesture {
                     if isShowingToast {
+                        toastId = nil
                         isShowingToast.toggle()
                     } else if appState.isShowingVersionAvailableToast.wrappedValue {
                         appState.isShowingVersionAvailableToast.wrappedValue.toggle()
@@ -617,11 +620,18 @@ struct ScriptContentView: View {
         toastText = text
         toastSubTitle = subTitle
         toastTapAction = onTap
+        if isShowingToast {
+            toastId = nil
+            isShowingToast.toggle()
+        }
+        toastId = UUID()
         isShowingToast.toggle()
 
         if duration != .disabled {
+            let expectedToastId = toastId
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(duration.rawValue), execute: {
-                if (isShowingToast) {
+                if (isShowingToast && expectedToastId == toastId) {
+                    toastId = nil
                     isShowingToast.toggle()
                 }
             })
@@ -637,14 +647,19 @@ struct ScriptContentView: View {
             UserDefaults(suiteName: "group.com.andydragon.VeroTools")?.removeObject(forKey: "feature")
 
             // Load the feature
-            let featureUser = CodableFeatureUser(json: sharedFeatureJson.data(using: .utf8)!)
-            if !featureUser.page.isEmpty {
-                populateFromFeatureUser(featureUser)
+            do {
+                let featureUser = try CodableFeature(json: sharedFeatureJson.data(using: .utf8)!)
+                if !featureUser.page.isEmpty {
+                    populateFromFeatureUser(featureUser)
+                }
+            }
+            catch {
+                debugPrint(error.localizedDescription)
             }
         }
     }
 
-    private func populateFromFeatureUser(_ featureUser: CodableFeatureUser) {
+    private func populateFromFeatureUser(_ featureUser: CodableFeature) {
         if let loadedPage = loadedCatalogs.loadedPages.first(where: { $0.id == featureUser.page }) {
             currentPage = loadedPage
             page = currentPage!.id
@@ -665,6 +680,8 @@ struct ScriptContentView: View {
 
             firstForPage = featureUser.firstFeature
             firstForPageChanged(to: firstForPage)
+            
+            featureDescription = featureUser.description
 
             if loadedPage.hub == "click" {
                 if featureUser.tagSource == TagSourceCase.commonPageTag {
@@ -759,6 +776,7 @@ struct ScriptContentView: View {
             fromRawTagChanged(to: fromRawTag)
             newMembership = NewMembershipCase.none
             newMembershipChanged(to: newMembership)
+            featureDescription = ""
             focusedField = .userName
         }
     }

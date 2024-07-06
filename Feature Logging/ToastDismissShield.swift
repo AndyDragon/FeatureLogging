@@ -10,6 +10,7 @@ import SwiftUI
 struct ToastDismissShield: View {
     let isAnyToastShowing: Bool
     @Binding var isShowingToast: Bool
+    @Binding var toastId: UUID?
     @Binding var isShowingVersionAvailableToast: Bool
     
     var body: some View {
@@ -20,6 +21,7 @@ struct ToastDismissShield: View {
             .onTapGesture {
                 if isShowingToast {
                     isShowingToast.toggle()
+                    toastId = nil
                 } else if isShowingVersionAvailableToast {
                     isShowingVersionAvailableToast.toggle()
                 }
@@ -32,8 +34,10 @@ struct ToastDismissShield: View {
     let isAnyToastShowing: Bool = false
     @State var isShowingToast: Bool = false
     @State var isShowingVersionAvailableToast: Bool = false
+    @State var toastId: UUID? = nil
     return ToastDismissShield(
         isAnyToastShowing: isAnyToastShowing,
         isShowingToast: $isShowingToast,
+        toastId: $toastId,
         isShowingVersionAvailableToast: $isShowingVersionAvailableToast)
 }
