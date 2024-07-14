@@ -480,12 +480,14 @@ struct ContentView: View {
                     selectedFeature = nil
                     featuresViewModel = FeaturesViewModel()
                     sortedFeatures = featuresViewModel.sortedFeatures
+                    isDirty = false
                 }
                 documentDirtyAfterDismissAction = {
                     logURL = nil
                     selectedFeature = nil
                     featuresViewModel = FeaturesViewModel()
                     sortedFeatures = featuresViewModel.sortedFeatures
+                    isDirty = false
                 }
                 documentDirtyAlertConfirmation = "Would you like to save this log file before creating a new log?"
                 isShowingDocumentDirtyAlert.toggle()
@@ -494,6 +496,7 @@ struct ContentView: View {
                 selectedFeature = nil
                 featuresViewModel = FeaturesViewModel()
                 sortedFeatures = featuresViewModel.sortedFeatures
+                isDirty = false
             }
         }
         .onChange(of: commandModel.openLog) {
