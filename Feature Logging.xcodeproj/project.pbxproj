@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4925315E2C446FC0003A8D24 /* SwiftUICharts in Frameworks */ = {isa = PBXBuildFile; productRef = 4925315D2C446FC0003A8D24 /* SwiftUICharts */; };
+		492531602C446FE4003A8D24 /* StatisticsContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4925315F2C446FE4003A8D24 /* StatisticsContentView.swift */; };
 		4930AB902BB7348F00C72CA9 /* VersionCheckAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4930AB8C2BB7348F00C72CA9 /* VersionCheckAppState.swift */; };
 		4930AB912BB7348F00C72CA9 /* Themes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4930AB8D2BB7348F00C72CA9 /* Themes.swift */; };
 		4930AB922BB7348F00C72CA9 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4930AB8E2BB7348F00C72CA9 /* Helpers.swift */; };
@@ -30,6 +32,7 @@
 
 /* Begin PBXFileReference section */
 		490DF5C72BC1E70B005E0F93 /* Feature-Logging-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Feature-Logging-Info.plist"; sourceTree = SOURCE_ROOT; };
+		4925315F2C446FE4003A8D24 /* StatisticsContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatisticsContentView.swift; sourceTree = "<group>"; };
 		4930AB8C2BB7348F00C72CA9 /* VersionCheckAppState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VersionCheckAppState.swift; sourceTree = "<group>"; };
 		4930AB8D2BB7348F00C72CA9 /* Themes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Themes.swift; sourceTree = "<group>"; };
 		4930AB8E2BB7348F00C72CA9 /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
@@ -57,6 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4925315E2C446FC0003A8D24 /* SwiftUICharts in Frameworks */,
 				4930AB962BB7354E00C72CA9 /* SystemColors in Frameworks */,
 				4930AB992BB7355A00C72CA9 /* AlertToast in Frameworks */,
 			);
@@ -89,6 +93,7 @@
 				49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */,
 				49D8280A2BB7327000153786 /* ContentView.swift */,
 				495A85892C36E46F00C112C6 /* ScriptContentView.swift */,
+				4925315F2C446FE4003A8D24 /* StatisticsContentView.swift */,
 				4930AB9C2BB74F1500C72CA9 /* FeatureEditor.swift */,
 				495A85872C36E46F00C112C6 /* FieldEditor.swift */,
 				495A85882C36E46F00C112C6 /* NewMembershipEditor.swift */,
@@ -135,6 +140,7 @@
 			packageProductDependencies = (
 				4930AB952BB7354E00C72CA9 /* SystemColors */,
 				4930AB982BB7355A00C72CA9 /* AlertToast */,
+				4925315D2C446FC0003A8D24 /* SwiftUICharts */,
 			);
 			productName = "Feature Logging";
 			productReference = 49D828052BB7327000153786 /* Feature Logging.app */;
@@ -167,6 +173,7 @@
 			packageReferences = (
 				4930AB942BB7354E00C72CA9 /* XCRemoteSwiftPackageReference "swiftui-system-colors" */,
 				4930AB972BB7355A00C72CA9 /* XCRemoteSwiftPackageReference "AlertToast" */,
+				4925315C2C446FC0003A8D24 /* XCRemoteSwiftPackageReference "SwiftUICharts" */,
 			);
 			productRefGroup = 49D828062BB7327000153786 /* Products */;
 			projectDirPath = "";
@@ -201,6 +208,7 @@
 				495A858D2C36E46F00C112C6 /* NewMembershipEditor.swift in Sources */,
 				4930AB9D2BB74F1500C72CA9 /* FeatureEditor.swift in Sources */,
 				4930AB912BB7348F00C72CA9 /* Themes.swift in Sources */,
+				492531602C446FE4003A8D24 /* StatisticsContentView.swift in Sources */,
 				495A858C2C36E46F00C112C6 /* FieldEditor.swift in Sources */,
 				49EBB9D52BC0944300D2AE04 /* ValidationLabel.swift in Sources */,
 				49D22C5B2BBC97BD005ECE84 /* SettingsPane.swift in Sources */,
@@ -282,7 +290,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 24;
+				CURRENT_PROJECT_VERSION = 25;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -435,7 +443,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 24;
+				CURRENT_PROJECT_VERSION = 25;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -468,7 +476,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 24;
+				CURRENT_PROJECT_VERSION = 25;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -518,6 +526,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		4925315C2C446FC0003A8D24 /* XCRemoteSwiftPackageReference "SwiftUICharts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/willdale/SwiftUICharts.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.10.2;
+			};
+		};
 		4930AB942BB7354E00C72CA9 /* XCRemoteSwiftPackageReference "swiftui-system-colors" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/diniska/swiftui-system-colors";
@@ -537,6 +553,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		4925315D2C446FC0003A8D24 /* SwiftUICharts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4925315C2C446FC0003A8D24 /* XCRemoteSwiftPackageReference "SwiftUICharts" */;
+			productName = SwiftUICharts;
+		};
 		4930AB952BB7354E00C72CA9 /* SystemColors */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 4930AB942BB7354E00C72CA9 /* XCRemoteSwiftPackageReference "swiftui-system-colors" */;

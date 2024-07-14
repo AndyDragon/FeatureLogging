@@ -50,6 +50,23 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
 
     var id: Self { self }
 
+    static func allCasesSorted() -> [MembershipCase] {
+        return [
+            .none,
+            .commonArtist,
+            .commonMember,
+            .snapVipMember,
+            .snapVipGoldMember,
+            .clickBronzeMember,
+            .clickSilverMember,
+            .clickGoldMember,
+            .commonPlatinumMember,
+            .snapEliteMember,
+            .snapHallOfFameMember,
+            .snapDiamondMember
+        ]
+    }
+    
     static func casesFor(hub: String?) -> [MembershipCase] {
         if hub == "snap" {
             return [
@@ -484,7 +501,7 @@ struct LogFeature: Codable {
 
 struct Log: Codable {
     var page: String
-    private var features: [LogFeature]
+    var features: [LogFeature]
 
     init() {
         page = ""

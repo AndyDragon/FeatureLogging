@@ -55,6 +55,14 @@ struct Feature_LoggingApp: App {
                 })
                 .disabled(checkingForUpdates)
             })
+            CommandGroup(after: .sidebar) {
+                Toggle(isOn: $commandModel.showStatistics, label: {
+                    Text("View statistics")
+                })
+                .keyboardShortcut("s", modifiers: [.command, .option])
+
+                Divider()
+            }
             CommandGroup(replacing: CommandGroupPlacement.newItem) {
                 Button(action: {
                     commandModel.newLog.toggle()
@@ -147,6 +155,7 @@ class AppCommandModel: ObservableObject {
     @Published var saveLog: Bool = false
     @Published var saveReport: Bool = false
     @Published var isDirty: Bool = false
+    @Published var showStatistics: Bool = false
 }
 
 protocol DocumentManagerDelegate {

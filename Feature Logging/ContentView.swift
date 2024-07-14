@@ -66,6 +66,7 @@ struct ContentView: View {
     @State private var showReportFileExporter = false
     @State private var reportDocument = ReportDocument()
     @State private var isShowingScriptView = false
+    @State private var isShowingStatisticsView = false
     @FocusState private var focusedField: FocusedField?
     private var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
@@ -93,6 +94,10 @@ struct ContentView: View {
             if isShowingScriptView {
                 ScriptContentView(loadedCatalogs, $isShowingToast, {
                     isShowingScriptView.toggle()
+                }, showToast)
+            } else if isShowingStatisticsView {
+                StatisticsContentView($isShowingToast, {
+                    commandModel.showStatistics = false
                 }, showToast)
             } else {
                 VStack {
@@ -251,25 +256,6 @@ struct ContentView: View {
                         }
                         .disabled(isAnyToastShowing || selectedFeature == nil)
                         .keyboardShortcut("-", modifiers: .command)
-
-                        Spacer()
-                            .frame(width: 16)
-
-                        // Remove all
-                        Button(action: {
-                            selectedFeature = nil
-                            featuresViewModel = FeaturesViewModel()
-                            sortedFeatures = featuresViewModel.sortedFeatures
-                            isDirty = true
-                        }) {
-                            HStack(alignment: .center) {
-                                Image(systemName: "trash")
-                                    .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
-                                Text("Remove all")
-                            }
-                        }
-                        .disabled(isAnyToastShowing || featuresViewModel.features.isEmpty)
-                        .keyboardShortcut(.delete, modifiers: .command)
                     }
 
                     // Feature list
@@ -488,13 +474,41 @@ struct ContentView: View {
         .frame(minWidth: 1024, minHeight: 720)
         .background(Color.BackgroundColor)
         .onChange(of: commandModel.newLog) {
-            logURL = nil
-            selectedFeature = nil
-            featuresViewModel = FeaturesViewModel()
-            sortedFeatures = featuresViewModel.sortedFeatures
+            if isDirty {
+                documentDirtyAfterSaveAction = {
+                    logURL = nil
+                    selectedFeature = nil
+                    featuresViewModel = FeaturesViewModel()
+                    sortedFeatures = featuresViewModel.sortedFeatures
+                }
+                documentDirtyAfterDismissAction = {
+                    logURL = nil
+                    selectedFeature = nil
+                    featuresViewModel = FeaturesViewModel()
+                    sortedFeatures = featuresViewModel.sortedFeatures
+                }
+                documentDirtyAlertConfirmation = "Would you like to save this log file before creating a new log?"
+                isShowingDocumentDirtyAlert.toggle()
+            } else {
+                logURL = nil
+                selectedFeature = nil
+                featuresViewModel = FeaturesViewModel()
+                sortedFeatures = featuresViewModel.sortedFeatures
+            }
         }
         .onChange(of: commandModel.openLog) {
-            showFileImporter.toggle()
+            if isDirty {
+                documentDirtyAfterSaveAction = {
+                    showFileImporter.toggle()
+                }
+                documentDirtyAfterDismissAction = {
+                    showFileImporter.toggle()
+                }
+                documentDirtyAlertConfirmation = "Would you like to save this log file before opening another log?"
+                isShowingDocumentDirtyAlert.toggle()
+            } else {
+                showFileImporter.toggle()
+            }
         }
         .onChange(of: commandModel.saveLog) {
             logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
@@ -510,6 +524,9 @@ struct ContentView: View {
         .onChange(of: commandModel.saveReport) {
             reportDocument = ReportDocument(initialText: generateReport())
             showReportFileExporter.toggle()
+        }
+        .onChange(of: commandModel.showStatistics) {
+            isShowingStatisticsView = commandModel.showStatistics
         }
         .sheet(isPresented: $isShowingDocumentDirtyAlert) {
             DocumentDirtySheet(
