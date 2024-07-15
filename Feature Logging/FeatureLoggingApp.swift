@@ -54,15 +54,19 @@ struct Feature_LoggingApp: App {
                     Text("Check for updates...")
                 })
                 .disabled(checkingForUpdates)
-            })
-            CommandGroup(after: .sidebar) {
-                Toggle(isOn: $commandModel.showStatistics, label: {
-                    Text("View statistics")
-                })
-                .keyboardShortcut("s", modifiers: [.command, .option])
+                .keyboardShortcut("u", modifiers: [.command, .control])
 
                 Divider()
-            }
+
+                Button(action: {
+                    commandModel.showStatistics.toggle()
+                }, label: {
+                    Text(commandModel.showStatistics ? "Hide statistics" : "Show statistics")
+                })
+                .keyboardShortcut("t", modifiers: [.command])
+
+                Divider()
+            })
             CommandGroup(replacing: CommandGroupPlacement.newItem) {
                 Button(action: {
                     commandModel.newLog.toggle()

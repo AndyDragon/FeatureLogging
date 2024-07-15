@@ -21,7 +21,14 @@ struct StatisticsContentView: View {
     @State private var logs = [LogFile]()
     @State private var pages = [String]()
     @State private var selectedPage = ""
-    @State private var logChartViewModel: StackedBarChartData? = nil
+
+    @State private var pickedFeaturePieChart: PieChartData? = nil
+    @State private var firstFeaturePieChart: PieChartData? = nil
+    @State private var photoFeaturedPieChart: PieChartData? = nil
+    @State private var userLevelPieChart: PieChartData? = nil
+    @State private var pageFeatureCountPieChart: PieChartData? = nil
+    @State private var hubFeatureCountPieChart: PieChartData? = nil
+
     private var isShowingToast: Binding<Bool>
     private var hideStatisticsView: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
@@ -39,7 +46,7 @@ struct StatisticsContentView: View {
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-            
+
             VStack {
                 HStack {
                     Button(action: {
@@ -55,7 +62,12 @@ struct StatisticsContentView: View {
                         switch result {
                         case .success(let folder):
                             selectedPage = ""
-                            logChartViewModel = nil
+                            pickedFeaturePieChart = nil
+                            firstFeaturePieChart = nil
+                            userLevelPieChart = nil
+                            photoFeaturedPieChart = nil
+                            pageFeatureCountPieChart = nil
+                            hubFeatureCountPieChart = nil
                             logs = [LogFile]()
                             location = folder.path().trimmingCharacters(in: ["/"])
                             let fileManager = FileManager.default
@@ -97,8 +109,6 @@ struct StatisticsContentView: View {
                 }
                 if !logs.isEmpty {
                     Picker("Choose a page", selection: $selectedPage.onChange({ page in
-                        logChartViewModel = nil
-                        
                         let pageLogs = logs.filter({ log in
                             if page == "all" {
                                 return true;
@@ -108,101 +118,13 @@ struct StatisticsContentView: View {
                             }
                             return log.log.page == page
                         })
-                        var allGroups: [GroupingData] = []
-                        
-                        let totalGroup = GroupingData(title: "Total picks", colour: ColourStyle(colour: .blue))
-                        allGroups.append(totalGroup)
-                        
-                        let firstTimeGroup = GroupingData(title: "First feature on page", colour: ColourStyle(colour: .green))
-                        let notFirstTimeGroup = GroupingData(title: "Already on page", colour: ColourStyle(colour: .red))
-                        allGroups.append(firstTimeGroup)
-                        allGroups.append(notFirstTimeGroup)
-                        
-                        let levels = pageLogs.reduce([MembershipCase]()) {
-                            var newVal = Set($1.log.features.map { $0.userLevel })
-                            if newVal.contains(.none) {
-                                debugPrint("Found level None in \($1.fileName)")
-                                $1.log.features.forEach({ feature in
-                                    if feature.userLevel == MembershipCase.none {
-                                        debugPrint("    Feature for \(feature.userName)")
-                                    }
-                                })
-                            }
-                            newVal.formUnion($0)
-                            return Array(newVal)
-                        }.sorted(by: { (MembershipCase.allCasesSorted().firstIndex(of: $0) ?? 0) < (MembershipCase.allCasesSorted().firstIndex(of: $1) ?? 0) })
-                        var levelGroups: [MembershipCase: GroupingData] = [:]
-                        var levelColor = levelColors[0]
-                        levels.forEach({ level in
-                            levelGroups[level] = GroupingData(title: level.rawValue, colour: ColourStyle(colour: levelColor))
-                            levelColor = nextColor(levelColor, levelColors)
-                            allGroups.append(levelGroups[level]!)
-                            if level == MembershipCase.none {
-                                debugPrint("Found None level")
-                            }
-                        })
-                        
-                        let featureCounts = pageLogs.reduce([Int]()) { accumulation, log in
-                            var newVal = Set(log.log.features.map { getFeatureCount(log.log, $0) })
-                            newVal.formUnion(accumulation)
-                            return Array(newVal)
-                        }.sorted()
-                        var featureCountGroups: [Int: GroupingData] = [:]
-                        var featureCountColor = featureCountColors[0]
-                        featureCounts.forEach({ featureCount in
-                            featureCountGroups[featureCount] = GroupingData(title: featureCountString(featureCount), colour: ColourStyle(colour: featureCountColor))
-                            featureCountColor = nextColor(featureCountColor, featureCountColors)
-                            allGroups.append(featureCountGroups[featureCount]!)
-                        })
-                        
-                        let featuredOnHubGroup = GroupingData(title: "Photo featured on hub", colour: ColourStyle(colour: .cyan))
-                        let notFeaturedGroup = GroupingData(title: "Already on page", colour: ColourStyle(colour: .purple))
-                        allGroups.append(featuredOnHubGroup)
-                        allGroups.append(notFeaturedGroup)
 
-                        logChartViewModel = StackedBarChartData(
-                            dataSets: StackedBarDataSets(dataSets: [
-                                StackedBarDataSet(dataPoints: [
-                                    StackedBarDataPoint(value: Double(pageLogs.reduce(0) { $0 + $1.log.features.filter({ $0.isPicked }).count }), description: "Picks", group: totalGroup)
-                                ], setTitle: "Total Picks"),
-                                
-                                StackedBarDataSet(dataPoints: [
-                                    StackedBarDataPoint(value: Double(pageLogs.reduce(0) { $0 + $1.log.features.filter({ $0.isPicked && !$0.userHasFeaturesOnPage }).count }), description: "First on page", group: firstTimeGroup),
-                                    StackedBarDataPoint(value: Double(pageLogs.reduce(0) { $0 + $1.log.features.filter({ $0.isPicked && $0.userHasFeaturesOnPage }).count }), description: "Already on page", group: notFirstTimeGroup)
-                                ], setTitle: "First on page"),
-                                
-                                StackedBarDataSet(dataPoints: levels.map({ level in
-                                    StackedBarDataPoint(
-                                        value: Double(pageLogs.reduce(0) { $0 + $1.log.features.filter({ $0.isPicked && $0.userLevel == level }).count }),
-                                        description: level.rawValue,
-                                        group: levelGroups[level]!)
-                                }), setTitle: "User level"),
-                                
-                                StackedBarDataSet(dataPoints: featureCounts.map({ featureCount in
-                                    StackedBarDataPoint(
-                                        value: Double(pageLogs.reduce(0) { accumulation, log in accumulation + log.log.features.filter({ $0.isPicked && getFeatureCount(log.log, $0) == featureCount }).count }),
-                                        description: featureCountString(featureCount),
-                                        group: featureCountGroups[featureCount]!)
-                                }), setTitle: "Existing page features"),
-                                
-                                StackedBarDataSet(dataPoints: [
-                                    StackedBarDataPoint(value: Double(pageLogs.reduce(0) { $0 + $1.log.features.filter({ $0.isPicked && $0.photoFeaturedOnHub }).count }), description: "Featured on hub", group: featuredOnHubGroup),
-                                    StackedBarDataPoint(value: Double(pageLogs.reduce(0) { $0 + $1.log.features.filter({ $0.isPicked && !$0.photoFeaturedOnHub }).count }), description: "Not featured", group: notFeaturedGroup)
-                                ], setTitle: "Photo featured"),
-                            ]),
-                            groups: allGroups,
-                            metadata: ChartMetadata(title: "Features"),
-                            barStyle: BarStyle(barWidth: 0.5, cornerRadius: CornerRadius(left: 0.1, right: 0.1)),
-                            chartStyle: BarChartStyle(infoBoxPlacement: .infoBox(isStatic: false),
-                                                      xAxisGridStyle: GridStyle(numberOfLines: 5,
-                                                                                lineColour: Color.gray.opacity(0.25)),
-                                                      xAxisLabelsFrom: .dataPoint(rotation: .degrees(0)),
-                                                      yAxisGridStyle: GridStyle(numberOfLines: 5,
-                                                                                lineColour: Color.gray.opacity(0.25)),
-                                                      yAxisNumberOfLabels: 10,
-                                                      baseline: .zero,
-                                                      topLine: .maximum(of: Double(pageLogs.count)),
-                                                      globalAnimation: .easeOut(duration: 0.4)))
+                        pickedFeaturePieChart = makePickedFeatureChartData(pageLogs)
+                        firstFeaturePieChart = makeFirstFeatureChartData(pageLogs)
+                        photoFeaturedPieChart = makePhotoFeaturedChartData(pageLogs)
+                        userLevelPieChart = makeUserLevelChartData(pageLogs)
+                        pageFeatureCountPieChart = makePageFeatureCountChartData(pageLogs)
+                        hubFeatureCountPieChart = makeHubFeatureCountChartData(pageLogs)
                     })) {
                         ForEach(pages, id: \.self) { page in
                             if page == "all" {
@@ -215,21 +137,65 @@ struct StatisticsContentView: View {
                         }
                     }
                 }
-                if let logChartViewModel {
+                if let pickedFeaturePieChart,
+                    let firstFeaturePieChart,
+                    let userLevelPieChart,
+                    let photoFeaturedPieChart,
+                    let pageFeatureCountPieChart,
+                    let hubFeatureCountPieChart {
                     ZStack {
                         RoundedRectangle(cornerRadius: 8).fill(Color(red: 0.1, green: 0.1, blue: 0.16))
-                        
-                        StackedBarChart(chartData: logChartViewModel)
-                            .id(logChartViewModel.id)
-                            .touchOverlay(chartData: logChartViewModel)
-                            .xAxisGrid(chartData: logChartViewModel)
-                            .xAxisLabels(chartData: logChartViewModel)
-                            .yAxisGrid(chartData: logChartViewModel)
-                            .yAxisLabels(chartData: logChartViewModel)
-                            .legends(chartData: logChartViewModel, columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())])
-                            .infoBox(chartData: logChartViewModel)
-                            .headerBox(chartData: logChartViewModel)
-                            .padding()
+
+                        Grid {
+                            GridRow {
+                                PieChart(chartData: pickedFeaturePieChart)
+                                    .id(pickedFeaturePieChart.id)
+                                    .touchOverlay(chartData: pickedFeaturePieChart)
+                                    .headerBox(chartData: pickedFeaturePieChart)
+                                    .legends(chartData: pickedFeaturePieChart)
+                                    .padding()
+
+                                PieChart(chartData: firstFeaturePieChart)
+                                    .id(firstFeaturePieChart.id)
+                                    .touchOverlay(chartData: firstFeaturePieChart)
+                                    .headerBox(chartData: firstFeaturePieChart)
+                                    .legends(chartData: firstFeaturePieChart)
+                                    .padding()
+
+                                PieChart(chartData: photoFeaturedPieChart)
+                                    .id(photoFeaturedPieChart.id)
+                                    .touchOverlay(chartData: photoFeaturedPieChart)
+                                    .headerBox(chartData: photoFeaturedPieChart)
+                                    .legends(chartData: photoFeaturedPieChart)
+                                    .padding()
+                            }
+
+                            Divider()
+
+                            GridRow {
+                                PieChart(chartData: userLevelPieChart)
+                                    .id(userLevelPieChart.id)
+                                    .touchOverlay(chartData: userLevelPieChart)
+                                    .headerBox(chartData: userLevelPieChart)
+                                    .legends(chartData: userLevelPieChart, columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())])
+                                    .padding()
+
+                                PieChart(chartData: pageFeatureCountPieChart)
+                                    .id(pageFeatureCountPieChart.id)
+                                    .touchOverlay(chartData: pageFeatureCountPieChart)
+                                    .headerBox(chartData: pageFeatureCountPieChart)
+                                    .legends(chartData: pageFeatureCountPieChart, columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())])
+                                    .padding()
+
+                                PieChart(chartData: hubFeatureCountPieChart)
+                                    .id(hubFeatureCountPieChart.id)
+                                    .touchOverlay(chartData: hubFeatureCountPieChart)
+                                    .headerBox(chartData: hubFeatureCountPieChart)
+                                    .legends(chartData: hubFeatureCountPieChart, columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())])
+                                    .padding()
+                            }
+                        }
+                        .padding()
                     }
                 } else {
                     Spacer()
@@ -259,62 +225,126 @@ struct StatisticsContentView: View {
         .background(Color.BackgroundColor)
     }
 
-    private let levelColors = [
-        Color(red: 0.25, green: 0, blue: 0),
-        Color(red: 1, green: 0, blue: 0),
-        Color(red: 0.01, green: 0, blue: 0.25),
-        Color(red: 0.01, green: 0, blue: 1),
-        Color(red: 0.25, green: 0, blue: 0.25),
-        Color(red: 1, green: 0, blue: 1),
-        Color(red: 0.25, green: 0, blue: 0.5),
-        Color(red: 1, green: 0, blue: 0.25),
-        Color(red: 0.25, green: 0, blue: 0.75),
-        Color(red: 1, green: 0, blue: 0.5),
-        Color(red: 0.25, green: 0, blue: 1),
-        Color(red: 1, green: 0, blue: 0.75),
+    private func makePickedFeatureChartData(_ logs: [LogFile]) -> PieChartData {
+        let data = PieDataSet(dataPoints: [
+            PieChartDataPoint(
+                value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) }).count }),
+                description: "Picked",
+                colour: .blue),
+        ], legendTitle: "??")
+        return PieChartData(dataSets: data,
+                            metadata: ChartMetadata(title: "Picked", subtitle: "Total picks"),
+                            chartStyle: PieChartStyle(infoBoxPlacement: .header))
+    }
 
-        
-        Color(red: 0.5, green: 0, blue: 0),
-        Color(red: 0.75, green: 0, blue: 0),
-        Color(red: 0.01, green: 0, blue: 0.5),
-        Color(red: 0.01, green: 0, blue: 0.75),
-        Color(red: 0.5, green: 0, blue: 0.5),
-        Color(red: 0.75, green: 0, blue: 0.75),
-        Color(red: 0.5, green: 0, blue: 0.25),
-        Color(red: 0.75, green: 0, blue: 0.25),
-        Color(red: 0.5, green: 0, blue: 0.75),
-        Color(red: 0.75, green: 0, blue: 0.5),
-        Color(red: 0.5, green: 0, blue: 1),
-        Color(red: 0.75, green: 0, blue: 1),
-    ];
-    
-    private let featureCountColors = [
-        Color(red: 0, green: 0.25, blue: 0),
-        Color(red: 0, green: 1, blue: 0),
-        Color(red: 0, green: 0.01, blue: 0.25),
-        Color(red: 0, green: 0.01, blue: 1),
-        Color(red: 0, green: 0.25, blue: 0.25),
-        Color(red: 0, green: 1, blue: 1),
-        Color(red: 0, green: 0.25, blue: 0.5),
-        Color(red: 0, green: 1, blue: 0.25),
-        Color(red: 0, green: 0.25, blue: 0.75),
-        Color(red: 0, green: 1, blue: 0.5),
-        Color(red: 0, green: 0.25, blue: 1),
-        Color(red: 0, green: 1, blue: 0.75),
+    private func makeFirstFeatureChartData(_ logs: [LogFile]) -> PieChartData {
+        let data = PieDataSet(dataPoints: [
+            PieChartDataPoint(
+                value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && !$0.userHasFeaturesOnPage }).count }),
+                description: "First on page",
+                colour: .green),
+            PieChartDataPoint(
+                value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && $0.userHasFeaturesOnPage }).count }),
+                description: "Not first",
+                colour: .red),
+        ], legendTitle: "??")
+        return PieChartData(dataSets: data,
+                            metadata: ChartMetadata(title: "First feature", subtitle: "First time user is featured"),
+                            chartStyle: PieChartStyle(infoBoxPlacement: .header))
+    }
 
-        Color(red: 0, green: 0.5, blue: 0),
-        Color(red: 0, green: 0.75, blue: 0),
-        Color(red: 0, green: 0.01, blue: 0.5),
-        Color(red: 0, green: 0.01, blue: 0.75),
-        Color(red: 0, green: 0.5, blue: 0.5),
-        Color(red: 0, green: 0.75, blue: 0.75),
-        Color(red: 0, green: 0.5, blue: 0.25),
-        Color(red: 0, green: 0.75, blue: 0.25),
-        Color(red: 0, green: 0.5, blue: 0.75),
-        Color(red: 0, green: 0.75, blue: 0.5),
-        Color(red: 0, green: 0.5, blue: 1),
-        Color(red: 0, green: 0.75, blue: 1),
-    ];
+    private func makePhotoFeaturedChartData(_ logs: [LogFile]) -> PieChartData {
+        let data = PieDataSet(dataPoints: [
+            PieChartDataPoint(
+                value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && $0.photoFeaturedOnHub }).count }),
+                description: "Featured on hub",
+                colour: .green),
+            PieChartDataPoint(
+                value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && !$0.photoFeaturedOnHub }).count }),
+                description: "Not featured",
+                colour: .red),
+        ], legendTitle: "??")
+        return PieChartData(dataSets: data,
+                            metadata: ChartMetadata(title: "Photo featured", subtitle: "Photo feature on different page on hub"),
+                            chartStyle: PieChartStyle(infoBoxPlacement: .header))
+    }
+
+    private func makeUserLevelChartData(_ logs: [LogFile]) -> PieChartData {
+        let levels = logs.reduce([MembershipCase]()) {
+            var newVal = Set($1.log.features.map { $0.userLevel })
+            newVal.formUnion($0)
+            return Array(newVal)
+        }.sorted(by: { (MembershipCase.allCasesSorted().firstIndex(of: $0) ?? 0) < (MembershipCase.allCasesSorted().firstIndex(of: $1) ?? 0) })
+        let levelColors = makeLevelColors(levels.count)
+        var levelColor = levelColors[0]
+        let data = PieDataSet(dataPoints: levels.map({ level in
+            let dataPoint = PieChartDataPoint(
+                value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && $0.userLevel == level }).count }),
+                description: level.rawValue,
+                colour: levelColor)
+            levelColor = nextColor(levelColor, levelColors)
+            return dataPoint
+        }), legendTitle: "??")
+        return PieChartData(dataSets: data,
+                            metadata: ChartMetadata(title: "User level", subtitle: "Membership of the user before feature"),
+                            chartStyle: PieChartStyle(infoBoxPlacement: .header))
+    }
+
+    private func makePageFeatureCountChartData(_ logs: [LogFile]) -> PieChartData {
+        let buckets = logs.reduce([Int]()) { accumulation, log in
+            var newVal = Set(log.log.features.map { binFeatureCount(getPageFeatureCount(log.log, $0)) })
+            newVal.formUnion(accumulation)
+            return Array(newVal)
+        }.sorted()
+        let bucketColors = makeBucketColors(buckets.count)
+        var bucketColor = bucketColors[0]
+        let data = PieDataSet(dataPoints: buckets.map({ bucket in
+            let dataPoint = PieChartDataPoint(
+                value: Double(logs.reduce(0) { accumulation, log in accumulation + log.log.features.filter({ isFeaturePicked($0) && binFeatureCount(getPageFeatureCount(log.log, $0)) == bucket }).count }),
+                description: featureCountString(bucket, "page"),
+                colour: bucketColor)
+            bucketColor = nextColor(bucketColor, bucketColors)
+            return dataPoint
+        }), legendTitle: "??")
+        return PieChartData(dataSets: data,
+                            metadata: ChartMetadata(title: "Previous page features", subtitle: "Number of features the user has on page"),
+                            chartStyle: PieChartStyle(infoBoxPlacement: .header))
+    }
+
+    private func makeHubFeatureCountChartData(_ logs: [LogFile]) -> PieChartData {
+        let buckets = logs.reduce([Int]()) { accumulation, log in
+            var newVal = Set(log.log.features.map { binFeatureCount(getHubFeatureCount(log.log, $0)) })
+            newVal.formUnion(accumulation)
+            return Array(newVal)
+        }.sorted()
+        let bucketColors = makeBucketColors(buckets.count)
+        var bucketColor = bucketColors[0]
+        let data = PieDataSet(dataPoints: buckets.map({ bucket in
+            let dataPoint = PieChartDataPoint(
+                value: Double(logs.reduce(0) { accumulation, log in accumulation + log.log.features.filter({ isFeaturePicked($0) && binFeatureCount(getHubFeatureCount(log.log, $0)) == bucket }).count }),
+                description: featureCountString(bucket, "hub"),
+                colour: bucketColor)
+            bucketColor = nextColor(bucketColor, bucketColors)
+            return dataPoint
+        }), legendTitle: "??")
+        return PieChartData(dataSets: data,
+                            metadata: ChartMetadata(title: "Previous hub features", subtitle: "Number of features the user has on entire hub"),
+                            chartStyle: PieChartStyle(infoBoxPlacement: .header))
+    }
+
+    private func isFeaturePicked(_ feature: LogFeature) -> Bool {
+        return feature.isPicked && !feature.photoFeaturedOnPage && feature.tinEyeResults != .matchFound && feature.aiCheckResults != .ai && !feature.tooSoonToFeatureUser
+    }
+
+    private func makeLevelColors(_ slices: Int) -> [Color] {
+        let sliceAmount = 0.8 / Double(slices)
+        return (0..<slices).map { Color(red: 0, green: 1 - sliceAmount * Double($0), blue: 0.2 + sliceAmount * Double($0)) }
+    }
+
+    private func makeBucketColors(_ slices: Int) -> [Color] {
+        let sliceAmount = 0.8 / Double(slices)
+        return (0..<slices).map { Color(red: 1 - sliceAmount * Double($0), green: 0, blue: 0.2 + sliceAmount * Double($0)) }
+    }
 
     private func nextColor(_ color: Color, _ colors: [Color]) -> Color {
         if let index = colors.firstIndex(of: color) {
@@ -322,8 +352,8 @@ struct StatisticsContentView: View {
         }
         return colors[0]
     }
-    
-    private func getFeatureCount(_ log: Log, _ feature: LogFeature) -> Int {
+
+    private func getPageFeatureCount(_ log: Log, _ feature: LogFeature) -> Int {
         if log.page.starts(with: "snap:") {
             if feature.userHasFeaturesOnPage && feature.featureCountOnPage == "many" {
                 return Int.max
@@ -331,8 +361,8 @@ struct StatisticsContentView: View {
             if feature.userHasFeaturesOnPage && feature.featureCountOnRawPage == "many" {
                 return Int.max
             }
-            let featureCountOnPage = feature.userHasFeaturesOnPage ? (Int(feature.featureCountOnPage) ?? 0) : 0;
-            let featureCountOnRawPage = feature.userHasFeaturesOnPage ? (Int(feature.featureCountOnRawPage) ?? 0) : 0;
+            let featureCountOnPage = feature.userHasFeaturesOnPage ? (Int(feature.featureCountOnPage) ?? 0) : 0
+            let featureCountOnRawPage = feature.userHasFeaturesOnPage ? (Int(feature.featureCountOnRawPage) ?? 0) : 0
             return featureCountOnPage + featureCountOnRawPage
         }
         if feature.userHasFeaturesOnPage && feature.featureCountOnPage == "many" {
@@ -340,12 +370,37 @@ struct StatisticsContentView: View {
         }
         return feature.userHasFeaturesOnPage ? (Int(feature.featureCountOnPage) ?? 0) : 0
     }
-    
-    private func featureCountString(_ featureCount: Int) -> String {
+
+    private func getHubFeatureCount(_ log: Log, _ feature: LogFeature) -> Int {
+        if log.page.starts(with: "snap:") {
+            if feature.userHasFeaturesOnHub && feature.featureCountOnHub == "many" {
+                return Int.max
+            }
+            if feature.userHasFeaturesOnHub && feature.featureCountOnRawHub == "many" {
+                return Int.max
+            }
+            let featureCountOnHub = feature.userHasFeaturesOnHub ? (Int(feature.featureCountOnHub) ?? 0) : 0
+            let featureCountOnRawHub = feature.userHasFeaturesOnHub ? (Int(feature.featureCountOnRawHub) ?? 0) : 0
+            return featureCountOnHub + featureCountOnRawHub
+        }
+        if feature.userHasFeaturesOnHub && feature.featureCountOnHub == "many" {
+            return Int.max
+        }
+        return feature.userHasFeaturesOnHub ? (Int(feature.featureCountOnHub) ?? 0) : 0
+    }
+
+    private func binFeatureCount(_ featureCount: Int) -> Int {
+        if featureCount == 0 || featureCount == Int.max {
+            return featureCount // 0 and max are special
+        }
+        return Int((featureCount - 1) / 5) * 5 + 1
+    }
+
+    private func featureCountString(_ featureCount: Int, _ bucket: String) -> String {
         return featureCount == Int.max
-        ? "Many existing features"
+        ? "Many existing \(bucket) features"
         : featureCount == 0
-        ? "No existing features"
-        : "\(featureCount) existing feature\(featureCount == 1 ? "" : "s")"
+        ? "No existing \(bucket) features"
+        : "\(featureCount)-\(featureCount + 4) existing \(bucket) features"
     }
 }
