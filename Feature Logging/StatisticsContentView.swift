@@ -29,6 +29,8 @@ struct StatisticsContentView: View {
     @State private var pageFeatureCountPieChart: PieChartData? = nil
     @State private var hubFeatureCountPieChart: PieChartData? = nil
 
+    private let languagePrefix = Locale.preferredLanguageCode
+    
     private var isShowingToast: Binding<Bool>
     private var hideStatisticsView: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
@@ -208,15 +210,18 @@ struct StatisticsContentView: View {
                 }) {
                     HStack {
                         Image(systemName: "xmark")
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text("Close (⌘+`)")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Close")
                             .font(.system(.body, design: .rounded).bold())
                             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
+                            .font(.system(.body, design: .rounded))
+                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
                     }
                     .padding(4)
                     .buttonStyle(.plain)
                 }
-                .keyboardShortcut("`", modifiers: .command)
+                .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
                 .disabled(isShowingToast.wrappedValue)
             }
             .allowsHitTesting(!isShowingToast.wrappedValue)
@@ -226,11 +231,12 @@ struct StatisticsContentView: View {
     }
 
     private func makePickedFeatureChartData(_ logs: [LogFile]) -> PieChartData {
+        let levelColors = makeLevelColors(1)
         let data = PieDataSet(dataPoints: [
             PieChartDataPoint(
                 value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) }).count }),
                 description: "Picked",
-                colour: .blue),
+                colour: levelColors[0]),
         ], legendTitle: "??")
         return PieChartData(dataSets: data,
                             metadata: ChartMetadata(title: "Picked", subtitle: "Total picks"),
@@ -238,15 +244,16 @@ struct StatisticsContentView: View {
     }
 
     private func makeFirstFeatureChartData(_ logs: [LogFile]) -> PieChartData {
+        let levelColors = makeLevelColors(2)
         let data = PieDataSet(dataPoints: [
             PieChartDataPoint(
                 value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && !$0.userHasFeaturesOnPage }).count }),
                 description: "First on page",
-                colour: .green),
+                colour: levelColors[0]),
             PieChartDataPoint(
                 value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && $0.userHasFeaturesOnPage }).count }),
                 description: "Not first",
-                colour: .red),
+                colour: levelColors[1]),
         ], legendTitle: "??")
         return PieChartData(dataSets: data,
                             metadata: ChartMetadata(title: "First feature", subtitle: "First time user is featured"),
@@ -254,15 +261,16 @@ struct StatisticsContentView: View {
     }
 
     private func makePhotoFeaturedChartData(_ logs: [LogFile]) -> PieChartData {
+        let levelColors = makeLevelColors(2)
         let data = PieDataSet(dataPoints: [
             PieChartDataPoint(
                 value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && $0.photoFeaturedOnHub }).count }),
                 description: "Featured on hub",
-                colour: .green),
+                colour: levelColors[0]),
             PieChartDataPoint(
                 value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && !$0.photoFeaturedOnHub }).count }),
                 description: "Not featured",
-                colour: .red),
+                colour: levelColors[1]),
         ], legendTitle: "??")
         return PieChartData(dataSets: data,
                             metadata: ChartMetadata(title: "Photo featured", subtitle: "Photo feature on different page on hub"),
@@ -271,7 +279,7 @@ struct StatisticsContentView: View {
 
     private func makeUserLevelChartData(_ logs: [LogFile]) -> PieChartData {
         let levels = logs.reduce([MembershipCase]()) {
-            var newVal = Set($1.log.features.map { $0.userLevel })
+            var newVal = Set($1.log.features.filter { isFeaturePicked($0) }.map { $0.userLevel })
             newVal.formUnion($0)
             return Array(newVal)
         }.sorted(by: { (MembershipCase.allCasesSorted().firstIndex(of: $0) ?? 0) < (MembershipCase.allCasesSorted().firstIndex(of: $1) ?? 0) })
@@ -292,7 +300,7 @@ struct StatisticsContentView: View {
 
     private func makePageFeatureCountChartData(_ logs: [LogFile]) -> PieChartData {
         let buckets = logs.reduce([Int]()) { accumulation, log in
-            var newVal = Set(log.log.features.map { binFeatureCount(getPageFeatureCount(log.log, $0)) })
+            var newVal = Set(log.log.features.filter { isFeaturePicked($0) }.map { binFeatureCount(getPageFeatureCount(log.log, $0)) })
             newVal.formUnion(accumulation)
             return Array(newVal)
         }.sorted()
@@ -313,7 +321,7 @@ struct StatisticsContentView: View {
 
     private func makeHubFeatureCountChartData(_ logs: [LogFile]) -> PieChartData {
         let buckets = logs.reduce([Int]()) { accumulation, log in
-            var newVal = Set(log.log.features.map { binFeatureCount(getHubFeatureCount(log.log, $0)) })
+            var newVal = Set(log.log.features.filter { isFeaturePicked($0) }.map { binFeatureCount(getHubFeatureCount(log.log, $0)) })
             newVal.formUnion(accumulation)
             return Array(newVal)
         }.sorted()
@@ -337,13 +345,19 @@ struct StatisticsContentView: View {
     }
 
     private func makeLevelColors(_ slices: Int) -> [Color] {
-        let sliceAmount = 0.8 / Double(slices)
-        return (0..<slices).map { Color(red: 0, green: 1 - sliceAmount * Double($0), blue: 0.2 + sliceAmount * Double($0)) }
+        if slices <= 1 {
+            return [Color(red: 0, green: 0, blue: 1)]
+        }
+        let sliceAmount = 0.8 / Double(slices - 1)
+        return (0..<slices).map { Color(red: 0, green: 0.2 + sliceAmount * Double($0), blue: 1 - sliceAmount * Double($0)) }
     }
 
     private func makeBucketColors(_ slices: Int) -> [Color] {
-        let sliceAmount = 0.8 / Double(slices)
-        return (0..<slices).map { Color(red: 1 - sliceAmount * Double($0), green: 0, blue: 0.2 + sliceAmount * Double($0)) }
+        if slices <= 1 {
+            return [Color(red: 0, green: 0, blue: 1)]
+        }
+        let sliceAmount = 0.8 / Double(slices - 1)
+        return (0..<slices).map { Color(red: 0.2 + sliceAmount * Double($0), green: 0, blue: 1 - sliceAmount * Double($0)) }
     }
 
     private func nextColor(_ color: Color, _ colors: [Color]) -> Color {

@@ -56,6 +56,20 @@ func matches(of regex: String, in text: String) -> [String] {
     }
 }
 
+extension Locale {
+    static var preferredLanguageCode: String {
+        guard let preferredLanguage = preferredLanguages.first,
+              let code = Locale(identifier: preferredLanguage).language.languageCode?.identifier else {
+            return "en"
+        }
+        return code
+    }
+    
+    static var preferredLanguageCodes: [String] {
+        return Locale.preferredLanguages.compactMap({Locale(identifier: $0).language.languageCode?.identifier})
+    }
+}
+
 extension URLSession {
     func decode<T: Decodable>(
         _ type: T.Type = T.self,

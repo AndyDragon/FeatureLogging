@@ -44,9 +44,9 @@ struct ScriptContentView: View {
     @State private var showingPlaceholderSheet = false
     @State private var loadedCatalogs = LoadedCatalogs()
     @State private var currentPage: LoadedPage? = nil
-    @ObservedObject private var featureScriptPlaceholders = PlaceholderList()
-    @ObservedObject private var commentScriptPlaceholders = PlaceholderList()
-    @ObservedObject private var originalPostScriptPlaceholders = PlaceholderList()
+    @ObservedObject private var featureScriptPlaceholders: PlaceholderList
+    @ObservedObject private var commentScriptPlaceholders: PlaceholderList
+    @ObservedObject private var originalPostScriptPlaceholders: PlaceholderList
     @State private var scriptWithPlaceholdersInPlace = ""
     @State private var scriptWithPlaceholders = ""
     @State private var lastMembership = MembershipCase.none
@@ -56,6 +56,8 @@ struct ScriptContentView: View {
     @State private var lastPage = ""
     @State private var lastPageStaffLevel = StaffLevelCase.mod
     @FocusState private var focusedField: FocusedField?
+    
+    private let languagePrefix = Locale.preferredLanguageCode
 
     private var canCopyScripts: Bool {
         return membershipValidation.valid
@@ -72,17 +74,26 @@ struct ScriptContentView: View {
     private var accordionHeightRatio = 3.5
     private var isShowingToast: Binding<Bool>
     private var hideScriptView: () -> Void
+    private var navigateToNextFeature: (_ forward: Bool) -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
 
     init(
         _ loadedCatalogs: LoadedCatalogs,
+        _ featureScriptPlaceholders: PlaceholderList,
+        _ commentScriptPlaceholders: PlaceholderList,
+        _ originalPostScriptPlaceholders: PlaceholderList,
         _ isShowingToast: Binding<Bool>,
         _ hideScriptView: @escaping () -> Void,
+        _ navigateToNextFeature: @escaping (_ forward: Bool) -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
     ) {
         self.loadedCatalogs = loadedCatalogs
+        self.featureScriptPlaceholders = featureScriptPlaceholders
+        self.commentScriptPlaceholders = commentScriptPlaceholders
+        self.originalPostScriptPlaceholders = originalPostScriptPlaceholders
         self.isShowingToast = isShowingToast
         self.hideScriptView = hideScriptView
+        self.navigateToNextFeature = navigateToNextFeature
         self.showToast = showToast
     }
 
@@ -471,19 +482,60 @@ struct ScriptContentView: View {
             }
             .toolbar {
                 Button(action: {
-                    hideScriptView()
+                    navigateToNextFeature(false)
                 }) {
                     HStack {
-                        Image(systemName: "xmark")
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text("Close (⌘+`)")
+                        Image(systemName: "arrowtriangle.backward.fill")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Previous feature")
                             .font(.system(.body, design: .rounded).bold())
                             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        Text("    ⌘ ⌥ ◀")
+                            .font(.system(.body, design: .rounded))
+                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
                     }
                     .padding(4)
                     .buttonStyle(.plain)
                 }
-                .keyboardShortcut("`", modifiers: .command)
+                .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
+                .disabled(isShowingToast.wrappedValue)
+
+                Button(action: {
+                    hideScriptView()
+                }) {
+                    HStack {
+                        Image(systemName: "xmark")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Close")
+                            .font(.system(.body, design: .rounded).bold())
+                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
+                            .font(.system(.body, design: .rounded))
+                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                    }
+                    .padding(4)
+                    .buttonStyle(.plain)
+                }
+                .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
+                .disabled(isShowingToast.wrappedValue)
+
+                Button(action: {
+                    navigateToNextFeature(true)
+                }) {
+                    HStack {
+                        Image(systemName: "arrowtriangle.forward.fill")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Next feature")
+                            .font(.system(.body, design: .rounded).bold())
+                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        Text("    ⌘ ⌥ ▶")
+                            .font(.system(.body, design: .rounded))
+                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                    }
+                    .padding(4)
+                    .buttonStyle(.plain)
+                }
+                .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
                 .disabled(isShowingToast.wrappedValue)
             }
             .allowsHitTesting(!isShowingToast.wrappedValue)
@@ -626,10 +678,6 @@ struct ScriptContentView: View {
 
             newMembership = featureUser.newLevel
             newMembershipChanged(to: newMembership)
-
-            clearPlaceholders()
-
-            focusedField = .userName
         } else {
             userName = ""
             userNameChanged(to: userName)
@@ -648,8 +696,11 @@ struct ScriptContentView: View {
             newMembership = NewMembershipCase.none
             newMembershipChanged(to: newMembership)
             featureDescription = ""
-            focusedField = .userName
         }
+
+        clearPlaceholders()
+        copyToClipboard("")
+        focusedField = .userName
     }
 
     private func clearPlaceholders() {

@@ -18,6 +18,7 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @State private var isDarkModeOn = true
 
+    // PREFS
     @AppStorage(
         "preference_includehash",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -30,6 +31,12 @@ struct ContentView: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+
+    // SHARED FEATURE
+    @AppStorage(
+        "feature",
+        store: UserDefaults(suiteName: "group.com.andydragon.VeroTools")
+    ) var sharedFeature = ""
 
     @EnvironmentObject var commandModel: AppCommandModel
 
@@ -51,6 +58,9 @@ struct ContentView: View {
         return loadedCatalogs.loadedPages.first(where: { $0.id == page })
     }
     @State private var featuresViewModel = FeaturesViewModel()
+    @ObservedObject var featureScriptPlaceholders = PlaceholderList()
+    @ObservedObject var commentScriptPlaceholders = PlaceholderList()
+    @ObservedObject var originalPostScriptPlaceholders = PlaceholderList()
     @State private var sortedFeatures = [Feature]()
     @State private var selectedFeature: Feature? = nil
     @State private var shouldScrollFeatureListToSelection = false
@@ -92,13 +102,20 @@ struct ContentView: View {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
 
             if isShowingScriptView {
-                ScriptContentView(loadedCatalogs, $isShowingToast, {
-                    isShowingScriptView.toggle()
-                }, showToast)
+                ScriptContentView(
+                    loadedCatalogs,
+                    featureScriptPlaceholders,
+                    commentScriptPlaceholders,
+                    originalPostScriptPlaceholders,
+                    $isShowingToast,
+                    { isShowingScriptView.toggle() },
+                    navigateToNextFeature,
+                    showToast)
             } else if isShowingStatisticsView {
-                StatisticsContentView($isShowingToast, {
-                    commandModel.showStatistics = false
-                }, showToast)
+                StatisticsContentView(
+                    $isShowingToast,
+                    { commandModel.showStatistics = false },
+                    showToast)
             } else {
                 VStack {
                     // Page picker
@@ -335,9 +352,12 @@ struct ContentView: View {
                         HStack {
                             Image(systemName: "square.and.arrow.up.on.square")
                                 .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Open log (⌘+O)")
+                            Text("Open log")
                                 .font(.system(.body, design: .rounded).bold())
                                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            Text("    ⌘ O")
+                                .font(.system(.body, design: .rounded))
+                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
                         }
                         .padding(4)
                         .buttonStyle(.plain)
@@ -369,9 +389,12 @@ struct ContentView: View {
                         HStack {
                             Image(systemName: "square.and.arrow.down.on.square")
                                 .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Save log (⌘+S)")
+                            Text("Save log")
                                 .font(.system(.body, design: .rounded).bold())
                                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            Text("    ⌘ S")
+                                .font(.system(.body, design: .rounded))
+                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
                         }
                         .padding(4)
                         .buttonStyle(.plain)
@@ -420,9 +443,12 @@ struct ContentView: View {
                         HStack {
                             Image(systemName: "square.and.arrow.down.on.square")
                                 .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Save report (⌘+⇧+S)")
+                            Text("Save report")
                                 .font(.system(.body, design: .rounded).bold())
                                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            Text("    ⌘ ⇧ S")
+                                .font(.system(.body, design: .rounded))
+                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
                         }
                         .padding(4)
                         .buttonStyle(.plain)
@@ -1058,6 +1084,42 @@ struct ContentView: View {
             subTitle: "Copied the report of features to the clipboard",
             duration: 2)
     }
+    
+    private func navigateToNextFeature(forward: Bool) {
+        if let selectedFeature, let loadedPage {
+            let currentIndex = sortedFeatures.firstIndex(of: selectedFeature)
+            if let currentIndex {
+                let startingIndex = sortedFeatures.distance(from: sortedFeatures.startIndex, to: currentIndex)
+                var nextIndex = startingIndex
+                repeat {
+                    if forward {
+                        nextIndex = (nextIndex + 1) % sortedFeatures.count
+                    } else {
+                        nextIndex = (nextIndex + sortedFeatures.count - 1) % sortedFeatures.count
+                    }
+                    if sortedFeatures[nextIndex].isPickedAndAllowed {
+                        self.selectedFeature = sortedFeatures[nextIndex]
+                        
+                        // Encode the feature for Vero Scripts and copy to the clipboard
+                        do {
+                            let encoder = JSONEncoder()
+                            let json = try encoder.encode(CodableFeature(using: loadedPage, from: sortedFeatures[nextIndex]))
+                            let jsonString = String(decoding: json, as: UTF8.self)
+                            
+                            // Store the feature in the shared storage
+                            sharedFeature = jsonString
+                            
+                            // Launch the ScriptContentView
+                            isShowingScriptView = true
+                        } catch {
+                            debugPrint(error.localizedDescription)
+                        }
+                        return
+                    }
+                } while (nextIndex != startingIndex)
+            }
+        }
+    }
 }
 
 extension ContentView: DocumentManagerDelegate {
@@ -1441,7 +1503,6 @@ struct FeatureListRow: View {
             let encoder = JSONEncoder()
             let json = try encoder.encode(CodableFeature(using: loadedPage, from: feature))
             let jsonString = String(decoding: json, as: UTF8.self)
-            copyToClipboard(jsonString)
 
             // Store the feature in the shared storage
             sharedFeature = jsonString
