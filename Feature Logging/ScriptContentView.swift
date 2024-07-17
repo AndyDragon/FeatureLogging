@@ -76,9 +76,11 @@ struct ScriptContentView: View {
     private var hideScriptView: () -> Void
     private var navigateToNextFeature: (_ forward: Bool) -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
+    @State private var pickedFeatures: [Feature]
 
     init(
         _ loadedCatalogs: LoadedCatalogs,
+        _ pickedFeatures: [Feature],
         _ featureScriptPlaceholders: PlaceholderList,
         _ commentScriptPlaceholders: PlaceholderList,
         _ originalPostScriptPlaceholders: PlaceholderList,
@@ -88,6 +90,7 @@ struct ScriptContentView: View {
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
     ) {
         self.loadedCatalogs = loadedCatalogs
+        self.pickedFeatures = pickedFeatures
         self.featureScriptPlaceholders = featureScriptPlaceholders
         self.commentScriptPlaceholders = commentScriptPlaceholders
         self.originalPostScriptPlaceholders = originalPostScriptPlaceholders
@@ -315,7 +318,7 @@ struct ScriptContentView: View {
                 Group {
                     // Feature script output
                     ScriptEditor(
-                        title: featureDescription.isEmpty ? "Feature script:" : "Feature script (description: \(featureDescription)):",
+                        title: "Feature script:",
                         script: $featureScript,
                         minHeight: 72,
                         maxHeight: .infinity,
@@ -481,24 +484,26 @@ struct ScriptContentView: View {
                     })
             }
             .toolbar {
-                Button(action: {
-                    navigateToNextFeature(false)
-                }) {
-                    HStack {
-                        Image(systemName: "arrowtriangle.backward.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Previous feature")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text("    ⌘ ⌥ ◀")
-                            .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                if pickedFeatures.count >= 2 {
+                    Button(action: {
+                        navigateToNextFeature(false)
+                    }) {
+                        HStack {
+                            Image(systemName: "arrowtriangle.backward.fill")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Previous feature")
+                                .font(.system(.body, design: .rounded).bold())
+                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            Text("    ⌘ ⌥ ◀")
+                                .font(.system(.body, design: .rounded))
+                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                        }
+                        .padding(4)
+                        .buttonStyle(.plain)
                     }
-                    .padding(4)
-                    .buttonStyle(.plain)
+                    .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
+                    .disabled(isShowingToast.wrappedValue)
                 }
-                .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
-                .disabled(isShowingToast.wrappedValue)
 
                 Button(action: {
                     hideScriptView()
@@ -519,24 +524,26 @@ struct ScriptContentView: View {
                 .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
                 .disabled(isShowingToast.wrappedValue)
 
-                Button(action: {
-                    navigateToNextFeature(true)
-                }) {
-                    HStack {
-                        Image(systemName: "arrowtriangle.forward.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Next feature")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text("    ⌘ ⌥ ▶")
-                            .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                if pickedFeatures.count >= 2 {
+                    Button(action: {
+                        navigateToNextFeature(true)
+                    }) {
+                        HStack {
+                            Image(systemName: "arrowtriangle.forward.fill")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Next feature")
+                                .font(.system(.body, design: .rounded).bold())
+                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            Text("    ⌘ ⌥ ▶")
+                                .font(.system(.body, design: .rounded))
+                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                        }
+                        .padding(4)
+                        .buttonStyle(.plain)
                     }
-                    .padding(4)
-                    .buttonStyle(.plain)
+                    .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
+                    .disabled(isShowingToast.wrappedValue)
                 }
-                .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
-                .disabled(isShowingToast.wrappedValue)
             }
             .allowsHitTesting(!isShowingToast.wrappedValue)
         }

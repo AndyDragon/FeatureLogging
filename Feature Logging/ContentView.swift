@@ -92,6 +92,19 @@ struct ContentView: View {
             return formatter
         }
     }
+    private var descriptionSuffix: String {
+        if let description = selectedFeature?.featureDescription {
+            if !description.isEmpty {
+                return ", description: \(description)"
+            }
+        }
+        return ""
+    }
+    private var titleSuffix: String {
+        isShowingScriptView
+        ? ((selectedFeature?.userName ?? "").isEmpty ? " - scripts" : " - scripts for \(selectedFeature?.userName ?? "")\(descriptionSuffix)")
+        : (isShowingStatisticsView ? " - statistics" : "")
+    }
 
     init(_ appState: VersionCheckAppState) {
         self.appState = appState
@@ -104,6 +117,7 @@ struct ContentView: View {
             if isShowingScriptView {
                 ScriptContentView(
                     loadedCatalogs,
+                    sortedFeatures.filter { $0.isPickedAndAllowed },
                     featureScriptPlaceholders,
                     commentScriptPlaceholders,
                     originalPostScriptPlaceholders,
@@ -494,7 +508,9 @@ struct ContentView: View {
                 isShowingVersionAvailableToast: appState.isShowingVersionAvailableToast)
         }
 #if TESTING
-        .navigationTitle("Feature Logging - Script Testing")
+        .navigationTitle("Feature Logging v2 - Script Testing\(titleSuffix)")
+#else
+        .navigationTitle("Feature Logging v2\(titleSuffix)")
 #endif
         .blur(radius: isAnyToastShowing ? 4 : 0)
         .frame(minWidth: 1024, minHeight: 720)
@@ -546,6 +562,7 @@ struct ContentView: View {
                 documentDirtyAfterSaveAction()
                 documentDirtyAfterSaveAction = {}
                 documentDirtyAfterDismissAction = {}
+                isDirty = false
             } else {
                 showFileExporter.toggle()
             }

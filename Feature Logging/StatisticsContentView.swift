@@ -56,6 +56,7 @@ struct StatisticsContentView: View {
                     }) {
                         HStack {
                             Image(systemName: "folder")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                             Text("Open folder containing your log files...")
                         }
                         .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
@@ -110,33 +111,40 @@ struct StatisticsContentView: View {
                     Spacer()
                 }
                 if !logs.isEmpty {
-                    Picker("Choose a page", selection: $selectedPage.onChange({ page in
-                        let pageLogs = logs.filter({ log in
-                            if page == "all" {
-                                return true;
-                            }
-                            if !page.contains(":") {
-                                return log.log.page.starts(with: page)
-                            }
-                            return log.log.page == page
-                        })
-
-                        pickedFeaturePieChart = makePickedFeatureChartData(pageLogs)
-                        firstFeaturePieChart = makeFirstFeatureChartData(pageLogs)
-                        photoFeaturedPieChart = makePhotoFeaturedChartData(pageLogs)
-                        userLevelPieChart = makeUserLevelChartData(pageLogs)
-                        pageFeatureCountPieChart = makePageFeatureCountChartData(pageLogs)
-                        hubFeatureCountPieChart = makeHubFeatureCountChartData(pageLogs)
-                    })) {
-                        ForEach(pages, id: \.self) { page in
-                            if page == "all" {
-                                Text("all pages")
-                            } else if !page.contains(":") {
-                                Text("\(page) hub")
-                            } else {
-                                Text(page.replacingOccurrences(of: ":", with: " hub, page "))
+                    HStack(alignment: .center) {
+                        Text("Choose a page:")
+                        Picker("", selection: $selectedPage.onChange({ page in
+                            let pageLogs = logs.filter({ log in
+                                if page == "all" {
+                                    return true;
+                                }
+                                if !page.contains(":") {
+                                    return log.log.page.starts(with: page)
+                                }
+                                return log.log.page == page
+                            })
+                            
+                            pickedFeaturePieChart = makePickedFeatureChartData(pageLogs)
+                            firstFeaturePieChart = makeFirstFeatureChartData(pageLogs)
+                            photoFeaturedPieChart = makePhotoFeaturedChartData(pageLogs)
+                            userLevelPieChart = makeUserLevelChartData(pageLogs)
+                            pageFeatureCountPieChart = makePageFeatureCountChartData(pageLogs)
+                            hubFeatureCountPieChart = makeHubFeatureCountChartData(pageLogs)
+                        })) {
+                            ForEach(pages, id: \.self) { page in
+                                if page == "all" {
+                                    Text("all pages")
+                                } else if !page.contains(":") {
+                                    Text("\(page) hub")
+                                } else {
+                                    Text(page.replacingOccurrences(of: ":", with: " hub, page "))
+                                }
                             }
                         }
+                        .tint(Color.AccentColor)
+                        .accentColor(Color.AccentColor)
+                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                        .focusable()
                     }
                 }
                 if let pickedFeaturePieChart,
