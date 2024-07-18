@@ -14,14 +14,17 @@ import {
     teamsDarkTheme,
 } from "@fluentui/react-components";
 import { Dismiss24Regular, PanelLeftExpand24Regular } from "@fluentui/react-icons";
-import { 
-    applicationName, 
-    deploymentWebLocation, 
-    hasTutorial, 
-    macReleaseNotesLocation, 
-    macV2ReleaseNotesLocation, 
-    versionLocation, 
-    windowsReleaseNotesLocation, 
+import {
+    applicationName,
+    deploymentWebLocation,
+    hasTutorial,
+    showMacInfo,
+    macReleaseNotesLocation,
+    showMacV2Info,
+    macV2ReleaseNotesLocation,
+    versionLocation,
+    showWindowsInfo,
+    windowsReleaseNotesLocation,
 } from "./config";
 import About from "./About";
 import General from "./General";
@@ -74,6 +77,7 @@ function App() {
                             <Link className={styles.cleanLink} style={{ fontSize: "20pt", marginTop: "40px" }} to="/">
                                 About
                             </Link>
+                            {showMacInfo && (
                             <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
                                 <Title3>macOS</Title3>
                                 <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
@@ -85,6 +89,8 @@ function App() {
                                     </Link>
                                 </div>
                             </div>
+                            )}
+                            {showMacV2Info && (
                             <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
                                 <Title3>macOS v2</Title3>
                                 <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
@@ -96,7 +102,9 @@ function App() {
                                     </Link>
                                 </div>
                             </div>
-                            <div style={{ display: "flex", flexDirection: "column", marginTop: "40px" }}>
+                            )}
+                            {showWindowsInfo && (
+                            <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
                                 <Title3>Windows</Title3>
                                 <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
                                     <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 8px 0" }} to="/windowsInstall">
@@ -107,6 +115,7 @@ function App() {
                                     </Link>
                                 </div>
                             </div>
+                            )}
                             {hasTutorial && (
                                 <div style={{ display: "flex", flexDirection: "column", marginTop: "40px" }}>
                                     <Link className={styles.cleanLink} style={{ fontSize: "20pt" }} to="/tutorial">
