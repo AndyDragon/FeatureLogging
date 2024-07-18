@@ -9,6 +9,7 @@ import SwiftUI
 
 struct VersionManifest: Codable {
     let macOS: VersionEntry
+    let macOS_v2: VersionEntry
 }
 
 struct VersionEntry: Codable {
@@ -69,14 +70,14 @@ struct VersionCheckAppState {
             // Check version from server manifest
             let versionManifestUrl = URL(string: versionLocation)!
             let versionManifest = try await URLSession.shared.decode(VersionManifest.self, from: versionManifestUrl)
-            if Bundle.main.releaseVersionOlder(than: versionManifest.macOS.current) {
+            if Bundle.main.releaseVersionOlder(than: versionManifest.macOS_v2.current) {
                 DispatchQueue.main.async {
                     withAnimation {
                         versionCheckToast.wrappedValue = VersionCheckToast(
                             appVersion: Bundle.main.releaseVersionNumberPretty,
-                            currentVersion: versionManifest.macOS.current,
-                            linkToCurrentVersion: versionManifest.macOS.link)
-                        if versionManifest.macOS.vital {
+                            currentVersion: versionManifest.macOS_v2.current,
+                            linkToCurrentVersion: versionManifest.macOS_v2.link)
+                        if versionManifest.macOS_v2.vital {
                             isShowingVersionRequiredToast.wrappedValue.toggle()
                         } else {
                             isShowingVersionAvailableToast.wrappedValue.toggle()
