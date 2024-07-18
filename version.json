@@ -4,6 +4,11 @@
         "link": "https://vero.andydragon.com/app/featurelogging/macInstall",
         "vital": false
     },
+    "macOS_v2": {
+        "current": "2.0.29",
+        "link": "https://vero.andydragon.com/app/featurelogging/macInstall_v2",
+        "vital": false
+    },
     "windows": {
         "current": "1.0.7",
         "link": "https://vero.andydragon.com/app/featurelogging/windowsInstall",

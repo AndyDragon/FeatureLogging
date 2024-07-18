@@ -18,15 +18,19 @@ export const versionLocation = "featurelogging/version.json";
 export const macDmgLocation = "featurelogging/macos/Feature%20Logging%20";
 export const macReleaseNotesLocation = "releaseNotes-mac.json";
 
+export const macV2DmgLocation = "featurelogging/macos/Feature%20Logging%20";
+export const macV2ReleaseNotesLocation = "releaseNotes-mac_v2.json";
+
 export const windowsInstallerLocation = "featurelogging/windows";
 export const windowsReleaseNotesLocation = "releaseNotes-windows.json";
 
 export const hasTutorial = true;
 
-export type Platform = "macOS" | "windows";
+export type Platform = "macOS" | "macOS_v2" | "windows";
 
 export const platformString: Record<Platform, string> = {
     macOS: "macOS",
+    macOS_v2: "macOS v2",
     windows: "Windows"
 }
 
@@ -42,6 +46,17 @@ export interface Links {
 
 export const links: Record<Platform, Links | undefined> = {
     macOS: {
+        location: (version, suffix) => `${macDmgLocation}${suffix}v${version}.dmg`,
+        actions: [
+            {
+                name: "default",
+                action: "download",
+                target: "",
+                suffix: "",
+            }
+        ]
+    },
+    macOS_v2: {
         location: (version, suffix) => `${macDmgLocation}${suffix}v${version}.dmg`,
         actions: [
             {
