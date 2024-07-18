@@ -37,7 +37,8 @@ export default function ReleaseNotes(props: ReleaseNotesProps) {
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json'
-                        }
+                        },
+                        cache: "no-cache",
                     });
                 setReleaseNotes(await releaseNotesRequest.json());
             } catch (error) {
