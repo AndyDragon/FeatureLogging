@@ -89,7 +89,7 @@ struct VersionCheckAppState {
             }
         } catch {
             // do nothing, the version check is not critical
-            debugPrint(error)
+            debugPrint(error.localizedDescription)
             resetCheckingForUpdates()
         }
     }
