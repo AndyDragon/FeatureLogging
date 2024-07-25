@@ -2,7 +2,6 @@
 using MahApps.Metro.IconPacks;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Notification.Wpf;
 using System.Collections.ObjectModel;
@@ -108,8 +107,13 @@ namespace FeatureLogging
         private readonly NotificationManager notificationManager = new();
         private string lastFilename = string.Empty;
 
+        // Change this to 'true' to load the testing scripts.
+        const bool ScriptTesting = false;
+
         public MainViewModel()
         {
+            scriptViewModel = new ScriptsViewModel(this);
+
             _ = LoadPages();
 
             #region Command implementations
@@ -129,6 +133,9 @@ namespace FeatureLogging
                 SelectedFeature = null;
                 Features.Clear();
                 OnPropertyChanged(nameof(HasFeatures));
+                OnPropertyChanged(nameof(FeatureNavigationVisibility));
+                OnPropertyChanged(nameof(CanChangePage));
+                View = ViewMode.LogView;
                 IsDirty = false;
             });
 
@@ -199,7 +206,10 @@ namespace FeatureLogging
                                     Features.Add(loadedFeature);
                                 }
                                 OnPropertyChanged(nameof(HasFeatures));
+                                OnPropertyChanged(nameof(FeatureNavigationVisibility));
+                                OnPropertyChanged(nameof(CanChangePage));
                                 lastFilename = dialog.FileName;
+                                View = ViewMode.LogView;
                                 IsDirty = false;
                                 foreach (var feature in Features)
                                 {
@@ -404,6 +414,8 @@ namespace FeatureLogging
                 Features.Add(feature);
                 SelectedFeature = feature;
                 OnPropertyChanged(nameof(HasFeatures));
+                OnPropertyChanged(nameof(FeatureNavigationVisibility));
+                OnPropertyChanged(nameof(CanChangePage));
             });
 
             RemoveFeatureCommand = new Command(() =>
@@ -413,14 +425,9 @@ namespace FeatureLogging
                     SelectedFeature = null;
                     Features.Remove(feature);
                     OnPropertyChanged(nameof(HasFeatures));
+                    OnPropertyChanged(nameof(FeatureNavigationVisibility));
+                    OnPropertyChanged(nameof(CanChangePage));
                 }
-            });
-
-            RemoveAllFeaturesCommand = new Command(() =>
-            {
-                SelectedFeature = null;
-                Features.Clear();
-                OnPropertyChanged(nameof(HasFeatures));
             });
 
             PastePostLinkCommand = new Command(() =>
@@ -551,6 +558,34 @@ namespace FeatureLogging
                     return !string.IsNullOrEmpty(Settings.AiCheckApp) && File.Exists(Settings.AiCheckApp);
                 });
 
+            SwitchToLogViewCommand = new Command(() => { View = ViewMode.LogView; });
+
+            NavigateToPreviousFeatureCommand = new Command(() =>
+            {
+                var pickedAndAllowedFeatures = Features.Where(feature => feature.IsPickedAndAllowed).ToArray();
+                var currentIndex = Array.IndexOf(pickedAndAllowedFeatures, SelectedFeature);
+                if (currentIndex == -1)
+                {
+                    return;
+                }
+                var newIndex = (currentIndex + pickedAndAllowedFeatures.Length - 1) % pickedAndAllowedFeatures.Length;
+                SelectedFeature = pickedAndAllowedFeatures[newIndex];
+                SelectedFeature.OpenFeatureInVeroScriptsCommand.Execute(this);
+            });
+
+            NavigateToNextFeatureCommand = new Command(() =>
+            {
+                var pickedAndAllowedFeatures = Features.Where(feature => feature.IsPickedAndAllowed).ToArray();
+                var currentIndex = Array.IndexOf(pickedAndAllowedFeatures, SelectedFeature);
+                if (currentIndex == -1)
+                {
+                    return;
+                }
+                var newIndex = (currentIndex + 1) % pickedAndAllowedFeatures.Length;
+                SelectedFeature = pickedAndAllowedFeatures[newIndex];
+                SelectedFeature.OpenFeatureInVeroScriptsCommand.Execute(this);
+            });
+
             #endregion
 
             #region Dirty state management
@@ -623,7 +658,9 @@ namespace FeatureLogging
                 {
                     NoCache = true
                 };
-                var pagesUri = new Uri("https://vero.andydragon.com/static/data/pages.json");
+                var pagesUri = new Uri(ScriptTesting
+                    ? "https://vero.andydragon.com/static/data/testing/pages.json"
+                    : "https://vero.andydragon.com/static/data/pages.json");
                 var content = await httpClient.GetStringAsync(pagesUri);
                 if (!string.IsNullOrEmpty(content))
                 {
@@ -652,8 +689,34 @@ namespace FeatureLogging
                         expirationTime: TimeSpan.FromSeconds(3));
                 }
                 SelectedPage = LoadedPages.FirstOrDefault(page => page.Id == Page);
+                _ = LoadTemplates();
                 _ = LoadDisallowList();
                 IsDirty = false;
+            }
+            catch (Exception ex)
+            {
+                // TODO andydragon : handle errors
+                Console.WriteLine("Error occurred: {0}", ex.Message);
+            }
+        }
+
+        private async Task LoadTemplates()
+        {
+            try
+            {
+                // Disable client-side caching.
+                httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
+                {
+                    NoCache = true
+                };
+                var templatesUri = new Uri(ScriptTesting
+                    ? "https://vero.andydragon.com/static/data/testing/templates.json"
+                    : "https://vero.andydragon.com/static/data/templates.json");
+                var content = await httpClient.GetStringAsync(templatesUri);
+                if (!string.IsNullOrEmpty(content))
+                {
+                    scriptViewModel.TemplatesCatalog = JsonConvert.DeserializeObject<TemplatesCatalog>(content) ?? new TemplatesCatalog();
+                }
             }
             catch (Exception ex)
             {
@@ -707,8 +770,6 @@ namespace FeatureLogging
 
         public ICommand RemoveFeatureCommand { get; }
 
-        public ICommand RemoveAllFeaturesCommand { get; }
-
         public ICommand PastePostLinkCommand { get; }
 
         public ICommand CopyPageFeatureTagCommand { get; }
@@ -727,6 +788,12 @@ namespace FeatureLogging
 
         public ICommand LaunchAiCheckAppCommand { get; }
 
+        public ICommand SwitchToLogViewCommand { get; }
+
+        public ICommand NavigateToPreviousFeatureCommand { get; }
+
+        public ICommand NavigateToNextFeatureCommand { get; }
+
         #endregion
 
         #region Dirty state
@@ -738,7 +805,16 @@ namespace FeatureLogging
             set => Set(ref isDirty, value, [nameof(Title)]);
         }
 
-        public string Title => $"Feature Logging {(IsDirty ? " - edited" : string.Empty)}";
+        public string Title => 
+            View == ViewMode.ScriptView 
+            ? $"Feature Logging{(IsDirty ? " - edited" : string.Empty)}{(string.IsNullOrEmpty(SelectedFeature?.UserName) 
+                ? " - scripts" 
+                : (" - scripts for: " + SelectedFeature?.UserName))}{(string.IsNullOrEmpty(SelectedFeature?.FeatureDescription) 
+                ? "" 
+                : " - description: " + SelectedFeature?.FeatureDescription)}"
+            : View == ViewMode.StatisticsView
+            ? $"Feature Logging{(IsDirty ? " - edited" : string.Empty)} - statistics"
+            : $"Feature Logging{(IsDirty ? " - edited" : string.Empty)}";
 
         public void HandleDirtyAction(string action, Action<bool> onConfirmAction)
         {
@@ -814,6 +890,32 @@ namespace FeatureLogging
 
         #endregion
 
+        #region View management
+
+        public enum ViewMode {  LogView, ScriptView, StatisticsView }
+        private ViewMode view = ViewMode.LogView;
+        public ViewMode View 
+        {
+            get => view;
+            set
+            {
+                if (Set(ref view, value))
+                {
+                    OnPropertyChanged(nameof(LogViewVisibility));
+                    OnPropertyChanged(nameof(ScriptViewVisibility));
+                    OnPropertyChanged(nameof(StatisticsViewVisibility));
+                    OnPropertyChanged(nameof(FeatureNavigationVisibility));
+                    OnPropertyChanged(nameof(Title));
+                }
+            }
+        }
+
+        public Visibility LogViewVisibility => view == ViewMode.LogView ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility ScriptViewVisibility => view == ViewMode.ScriptView ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility StatisticsViewVisibility => view == ViewMode.StatisticsView ? Visibility.Visible : Visibility.Collapsed;
+
+        #endregion
+
         #region External app menu
 
         public static string CullingAppLaunch => "Launch " + (!string.IsNullOrEmpty(Settings.CullingApp) ? Settings.CullingAppName : "Culling app") + "...";
@@ -838,10 +940,6 @@ namespace FeatureLogging
                 {
                     Page = SelectedPage?.Id ?? string.Empty;
                     SelectedFeature = null;
-                    if (oldHubName != SelectedPage?.HubName || string.IsNullOrEmpty(Page))
-                    {
-                        RemoveAllFeaturesCommand.Execute(null);
-                    }
                     OnPropertyChanged(nameof(Memberships));
                     OnPropertyChanged(nameof(TagSources));
                     OnPropertyChanged(nameof(ClickHubVisibility));
@@ -852,6 +950,8 @@ namespace FeatureLogging
                 }
             }
         }
+
+        public bool CanChangePage => Features.Count == 0;
 
         public Visibility ClickHubVisibility => SelectedPage?.HubName == "click" ? Visibility.Visible : Visibility.Collapsed;
 
@@ -961,10 +1061,13 @@ namespace FeatureLogging
                     Feature = SelectedFeature?.Id ?? string.Empty;
                     OnPropertyChanged(nameof(HasSelectedFeature));
                     OnPropertyChanged(nameof(SelectedFeatureVisibility));
+                    OnPropertyChanged(nameof(Title));
                 }
             }
         }
         public Visibility SelectedFeatureVisibility => SelectedPage != null && SelectedFeature != null ? Visibility.Visible : Visibility.Collapsed;
+
+        public Visibility FeatureNavigationVisibility => Features.Where(feature => feature.IsPickedAndAllowed).Count() > 1 && View == ViewMode.ScriptView ? Visibility.Visible : Visibility.Collapsed;
 
         public bool HasSelectedFeature => SelectedFeature != null;
 
@@ -1432,7 +1535,7 @@ namespace FeatureLogging
             }
         }
 
-        private static bool TrySetClipboardText(string text)
+        public static bool TrySetClipboardText(string text)
         {
             const uint CLIPBRD_E_CANT_OPEN = 0x800401D0;
             var retriesLeft = 9;
@@ -1456,6 +1559,14 @@ namespace FeatureLogging
             }
             return false;
         }
+
+        #endregion
+
+        #region Script view model
+
+        private readonly ScriptsViewModel scriptViewModel;
+
+        public ScriptsViewModel ScriptViewModel => scriptViewModel;
 
         #endregion
 
@@ -1592,6 +1703,7 @@ namespace FeatureLogging
             {
                 if (parameter is MainViewModel vm && vm.SelectedPage != null)
                 {
+                    vm.SelectedFeature = this;
                     if (PhotoFeaturedOnPage)
                     {
                         vm.ShowToast("Cannot feature photo", "That photo has already been featured on this page", NotificationType.Error, TimeSpan.FromSeconds(12));
@@ -1702,26 +1814,12 @@ namespace FeatureLogging
                             File.WriteAllText(featureFile, JsonConvert.SerializeObject(featureDictionary));
                         }
 
-#if DEBUG
-                        // For debugging, test locally
-                        var debugVeroScriptsLocation = UserSettings.Get("debugVeroScriptsLocation", "");
-                        if (!string.IsNullOrEmpty(debugVeroScriptsLocation))
-                        {
-                            StoreFeatureInShared();
-                            var applicationPath = Path.Combine(debugVeroScriptsLocation, "Vero Scripts.exe");
-                            var processStart = new ProcessStartInfo
-                            {
-                                FileName = applicationPath,
-                                WindowStyle = ProcessWindowStyle.Maximized,
-                            };
-                            Process.Start(processStart);
-                            return;
-                        }
-#endif
+                        // TODO andydragon : eventually, remove this and just pass the script...
+
                         // Launch from application deployment manifest on web.
                         StoreFeatureInShared();
-                        var applicationDeploymentManifest = "https://vero.andydragon.com/app/veroscripts/windows/Vero%20Scripts.application";
-                        Process.Start("rundll32.exe", "dfshim.dll,ShOpenVerbApplication " + applicationDeploymentManifest);
+                        vm.View = MainViewModel.ViewMode.ScriptView;
+                        vm.ScriptViewModel.PopulateScriptFromFeatureFile();
                     }
                     catch (Exception ex)
                     {

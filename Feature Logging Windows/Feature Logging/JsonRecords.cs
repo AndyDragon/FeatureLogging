@@ -19,6 +19,7 @@
 
         public string Name { get; set; }
         public string? PageName { get; set; }
+        public string? Title { get; set; }
         public string? HashTag { get; set; }
     }
 
@@ -38,6 +39,7 @@
         public string HubName { get; private set; } = hubName;
         public string Name { get; private set; } = page.Name;
         public string? PageName { get; private set; } = page.PageName;
+        public string? Title { get; private set; } = page.Title;
         public string? HashTag { get; private set; } = page.HashTag;
         public string DisplayName
         {

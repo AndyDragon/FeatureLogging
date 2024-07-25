@@ -52,6 +52,7 @@ export default function About(props: GeneralProps) {
     version?.["macOS"]?.current && platforms.push({ platform: "macOS", installLocation: "./macInstall" });
     version?.["macOS_v2"]?.current && platforms.push({ platform: "macOS_v2", installLocation: "./macInstall_v2" });
     version?.["windows"]?.current && platforms.push({ platform: "windows", installLocation: "./windowsInstall" });
+    version?.["windows_v2"]?.current && platforms.push({ platform: "windows_v2", installLocation: "./windowsInstall_v2" });
     return (
         <div style={{ margin: "50px" }}>
             <Title1>{applicationDescription}</Title1>

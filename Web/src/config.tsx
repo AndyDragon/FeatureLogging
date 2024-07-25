@@ -27,14 +27,19 @@ export const showWindowsInfo = true;
 export const windowsInstallerLocation = "featurelogging/windows";
 export const windowsReleaseNotesLocation = "releaseNotes-windows.json";
 
+export const showWindowsV2Info = true;
+export const windowsV2InstallerLocation = "featurelogging/windowsV2";
+export const windowsV2ReleaseNotesLocation = "releaseNotes-windows_v2.json";
+
 export const hasTutorial = true;
 
-export type Platform = "macOS" | "macOS_v2" | "windows";
+export type Platform = "macOS" | "macOS_v2" | "windows" | "windows_v2";
 
 export const platformString: Record<Platform, string> = {
     macOS: "macOS",
     macOS_v2: "macOS v2",
-    windows: "Windows"
+    windows: "Windows",
+    windows_v2: "Windows v2",
 }
 
 export interface Links {
@@ -72,6 +77,23 @@ export const links: Record<Platform, Links | undefined> = {
     },
     windows: {
         location: (_version, suffix) => `${windowsInstallerLocation}${suffix}`,
+        actions: [
+            {
+                name: "current",
+                action: "install",
+                target: "",
+                suffix: "/setup.exe",
+            },
+            {
+                name: "current",
+                action: "read more about",
+                target: "_blank",
+                suffix: "",
+            }
+        ]
+    },
+    windows_v2: {
+        location: (_version, suffix) => `${windowsV2InstallerLocation}${suffix}`,
         actions: [
             {
                 name: "current",

@@ -8,6 +8,7 @@
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:notifications="clr-namespace:Notification.Wpf.Controls;assembly=Notification.Wpf"
     xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+    xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf"
     mc:Ignorable="d"
     Title="{Binding Title}"
     Icon="pack://application:,,,/Feature Logging;component/App.ico"
@@ -38,14 +39,18 @@
         <KeyBinding Key="OemComma" Modifiers="Ctrl" Command="{Binding LaunchSettingsCommand}" />
         <KeyBinding Key="OemPlus" Modifiers="Ctrl" Command="{Binding AddFeatureCommand}" />
         <KeyBinding Key="OemMinus" Modifiers="Ctrl" Command="{Binding RemoveFeatureCommand}" />
-        <KeyBinding Key="Backspace" Modifiers="Ctrl" Command="{Binding RemoveAllFeaturesCommand}" />
         <KeyBinding Key="C" Modifiers="Ctrl+Alt" Command="{Binding LaunchCullingAppCommand}" />
         <KeyBinding Key="A" Modifiers="Ctrl+Alt" Command="{Binding LaunchAiCheckAppCommand}" />
+
+        <KeyBinding Key="OemTilde" Modifiers="Ctrl" Command="{Binding SwitchToLogViewCommand}" />
+        <KeyBinding Key="Left" Modifiers="Ctrl" Command="{Binding NavigateToPreviousFeatureCommand}" />
+        <KeyBinding Key="Right" Modifiers="Ctrl" Command="{Binding NavigateToNextFeatureCommand}" />
     </Window.InputBindings>
-    
+
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands>
             <Button 
+                Visibility="{Binding LogViewVisibility}"
                 Command="{Binding NewFeaturesCommand}" 
                 Content="New log" 
                 ToolTip="Creates a new feature log (Ctrl+N)">
@@ -65,6 +70,7 @@
                 </Button.ContentTemplate>
             </Button>
             <Button 
+                Visibility="{Binding LogViewVisibility}"
                 Command="{Binding OpenFeaturesCommand}" 
                 Content="Open log..." 
                 ToolTip="Opens a saved log (Ctrl+O)">
@@ -84,6 +90,7 @@
                 </Button.ContentTemplate>
             </Button>
             <Button 
+                Visibility="{Binding LogViewVisibility}"
                 Command="{Binding SaveFeaturesCommand}" 
                 Content="Save log..." 
                 ToolTip="Opens a saved log (Ctrl+S)">
@@ -103,6 +110,7 @@
                 </Button.ContentTemplate>
             </Button>
             <Button 
+                Visibility="{Binding LogViewVisibility}"
                 Command="{Binding SaveReportCommand}" 
                 Content="Save report..." 
                 ToolTip="Saves a report of the features to a file (Ctrl+R)">
@@ -121,6 +129,7 @@
                 </Button.ContentTemplate>
             </Button>
             <Button 
+                Visibility="{Binding LogViewVisibility}"
                 Command="{Binding LaunchSettingsCommand}" 
                 Content="Settings" ToolTip="Opens the application settings (Ctrl+comma)">
                 <Button.ContentTemplate>
@@ -137,6 +146,60 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
+            <Button 
+                Visibility="{Binding FeatureNavigationVisibility}"
+                Command="{Binding NavigateToPreviousFeatureCommand}" 
+                Content="Previous" ToolTip="Previous feature (Ctrl+left)">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconCodicons 
+                                Width="20"
+                                Height="20"
+                                Kind="TriangleLeft" />
+                            <TextBlock Margin="4 0 0 0"
+                                VerticalAlignment="Center"
+                                Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button 
+                Visibility="{Binding ScriptViewVisibility}"
+                Command="{Binding SwitchToLogViewCommand}" 
+                Content="Close" ToolTip="Closes the script editor (Ctrl+tilda)">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconCoolicons 
+                                Width="20"
+                                Height="20"
+                                Kind="OffClose" />
+                            <TextBlock Margin="4 0 0 0"
+                                VerticalAlignment="Center"
+                                Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button 
+                Visibility="{Binding FeatureNavigationVisibility}"
+                Command="{Binding NavigateToNextFeatureCommand}" 
+                Content="Next" ToolTip="Next feature (Ctrl+right)">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconCodicons 
+                                Width="20"
+                                Height="20"
+                                Kind="TriangleRight" />
+                            <TextBlock Margin="4 0 0 0"
+                                VerticalAlignment="Center"
+                                Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
         </mah:WindowCommands>
     </mah:MetroWindow.RightWindowCommands>
 
@@ -146,6 +209,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
+        <!-- Menu -->
         <Menu Grid.Row="0"
               Margin="8,0,8,0"
               HorizontalAlignment="Left"
@@ -166,7 +230,10 @@
                 <MenuItem Header="Settings..." Command="{Binding LaunchSettingsCommand}" InputGestureText="Ctrl+," />
             </MenuItem>
         </Menu>
+        
+        <!-- LOG VIEW -->
         <Grid 
+            Visibility="{Binding LogViewVisibility}"
             Grid.Row="1" 
             Margin="16,8,16,8">
             <Grid.RowDefinitions>
@@ -200,7 +267,11 @@
                             Foreground="{Binding PageValidation, Converter={StaticResource validationResultColorConverter}}" />
                     </StackPanel>
                 </Label>
-                <ComboBox Grid.Column="1" ItemsSource="{Binding LoadedPages}" SelectedItem="{Binding SelectedPage, Mode=TwoWay}">
+                <ComboBox 
+                    Grid.Column="1" 
+                    ItemsSource="{Binding LoadedPages}" 
+                    SelectedItem="{Binding SelectedPage, Mode=TwoWay}" 
+                    IsEnabled="{Binding CanChangePage}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate DataType="local:LoadedPage">
                             <TextBlock Text="{Binding DisplayName}" />
@@ -243,14 +314,14 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                
+
                 <!-- Is Picked -->
                 <Grid Grid.Row="0">
                     <StackPanel Orientation="Horizontal">
                         <mah:ToggleSwitch Content="Is picked as feature" IsOn="{Binding SelectedFeature.IsPicked, Mode=TwoWay}" Margin="8,0,0,0" />
                     </StackPanel>
                 </Grid>
-                
+
                 <!-- Post Link -->
                 <Grid Grid.Row="1" Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
@@ -286,7 +357,7 @@
                         </StackPanel>
                     </Button>
                 </Grid>
-                
+
                 <!-- User -->
                 <Grid Grid.Row="2" Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
@@ -348,7 +419,7 @@
                     <ComboBox Grid.Column="5" ItemsSource="{Binding Memberships}" SelectedItem="{Binding SelectedFeature.UserLevel, Mode=TwoWay}" VerticalAlignment="Center" />
                     <mah:ToggleSwitch Grid.Column="6" Margin="16,0,0,0" Content="Teammate" IsOn="{Binding SelectedFeature.UserIsTeammate, Mode=TwoWay}" VerticalAlignment="Center" />
                 </Grid>
-                
+
                 <!-- Tag source -->
                 <Grid Grid.Row="3" Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
@@ -425,7 +496,7 @@
                         VerticalAlignment="Center" 
                         Height="20" />
                 </Grid>
-                
+
                 <!-- Description -->
                 <Grid Grid.Row="4" Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
@@ -699,7 +770,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                
+
                 <!-- Add feature -->
                 <Button Grid.Column="1" Command="{Binding AddFeatureCommand}" Margin="12,0,0,0">
                     <StackPanel Orientation="Horizontal">
@@ -711,7 +782,7 @@
                         <TextBlock VerticalAlignment="Center">Add feature</TextBlock>
                     </StackPanel>
                 </Button>
-                
+
                 <!-- Remove feature -->
                 <Button Grid.Column="2" Command="{Binding RemoveFeatureCommand}" IsEnabled="{Binding HasSelectedFeature}" Margin="12,0,0,0">
                     <StackPanel Orientation="Horizontal">
@@ -721,18 +792,6 @@
                             Margin="0,0,6,0" 
                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}" />
                         <TextBlock VerticalAlignment="Center">Remove feature</TextBlock>
-                    </StackPanel>
-                </Button>
-
-                <!-- Remove all features -->
-                <Button Grid.Column="3" Command="{Binding RemoveAllFeaturesCommand}" IsEnabled="{Binding HasFeatures}" Margin="12,0,0,0">
-                    <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconModern 
-                            VerticalAlignment="Center"
-                            Kind="GroupDelete"
-                            Margin="0,0,6,0" 
-                            Foreground="{DynamicResource MahApps.Brushes.Control.Validation}" />
-                        <TextBlock VerticalAlignment="Center">Remove all features</TextBlock>
                     </StackPanel>
                 </Button>
             </Grid>
@@ -781,32 +840,36 @@
                                 <Button 
                                     Grid.Column="2" 
                                     HorizontalAlignment="Right" 
-                                    Command="{Binding EditPersonalMessageCommand}"
+                                    Command="{Binding OpenFeatureInVeroScriptsCommand}"
                                     CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext}"
                                     Margin="0,0,12,0"
                                     Visibility="{Binding IsPickedAndAllowed, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                    <StackPanel Orientation="Horizontal">
+                                    <StackPanel Orientation="Horizontal" Margin="4,0">
                                         <iconPacks:PackIconMaterial 
                                             VerticalAlignment="Center"
                                             Kind="BookEdit"
                                             Margin="0,0,6,0"
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                                        <TextBlock>Edit personal message</TextBlock>
+                                        <TextBlock 
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,0,2">Edit Scripts</TextBlock>
                                     </StackPanel>
                                 </Button>
                                 <Button 
                                     Grid.Column="3" 
                                     HorizontalAlignment="Right" 
-                                    Command="{Binding OpenFeatureInVeroScriptsCommand}"
+                                    Command="{Binding EditPersonalMessageCommand}"
                                     CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext}"
                                     Visibility="{Binding IsPickedAndAllowed, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                    <StackPanel Orientation="Horizontal">
+                                    <StackPanel Orientation="Horizontal" Margin="4,0">
                                         <iconPacks:PackIconMaterial 
                                             VerticalAlignment="Center"
-                                            Kind="RocketLaunch"
+                                            Kind="CommentEdit"
                                             Margin="0,0,6,0"
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                                        <TextBlock>Open Vero Scripts</TextBlock>
+                                        <TextBlock 
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,0,2">Edit personal message</TextBlock>
                                     </StackPanel>
                                 </Button>
                             </Grid>
@@ -814,9 +877,342 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
             </Border>
-
-            <notifications:NotificationArea Grid.Row="0" Grid.RowSpan="4" x:Name="WindowArea" Position="TopRight" MaxItems="3" />
         </Grid>
+
+        <!-- SCRIPT VIEW -->
+        <Grid 
+            Visibility="{Binding ScriptViewVisibility}"
+            Grid.Row="1" 
+            Margin="16,8,16,8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />                 <!-- Page / Staff level -->
+                <RowDefinition Height="Auto" />                 <!-- You / Your first name -->
+                <RowDefinition Height="Auto" />                 <!-- User / Level / Options -->
+                <RowDefinition Height="Auto" />                 <!-- Feature script header -->
+                <RowDefinition Height="5*" />                   <!-- Feature script -->
+                <RowDefinition Height="Auto" />                 <!-- Comment script header -->
+                <RowDefinition Height="3*" />                   <!-- Comment script -->
+                <RowDefinition Height="Auto" />                 <!-- Original post script header -->
+                <RowDefinition Height="2*" />                   <!-- Original post script -->
+                <RowDefinition Height="Auto" />                 <!-- New membership script header -->
+                <RowDefinition Height="3*" />                   <!-- New membership script -->
+            </Grid.RowDefinitions>
+
+            <!-- Page / Staff level -->
+            <Grid 
+                Grid.Row="0" 
+                Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
+                    <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.PageValidation.Error}">
+                        <iconPacks:PackIconModern 
+                            VerticalAlignment="Center"
+                            Kind="Warning"
+                            Margin="0,0,6,0"
+                            Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
+                            Visibility="{Binding ScriptViewModel.PageValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
+                        <TextBlock 
+                            Text="Page:" 
+                            FontWeight="Bold" 
+                            VerticalAlignment="Center"
+                            Foreground="{Binding ScriptViewModel.PageValidation, Converter={StaticResource validationResultColorConverter}}" />
+                    </StackPanel>
+                </Label>
+                <ComboBox Grid.Column="1" ItemsSource="{Binding LoadedPages}" SelectedItem="{Binding SelectedPage, Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate DataType="local:LoadedPage">
+                            <TextBlock Text="{Binding DisplayName}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Label Grid.Column="2" VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0">
+                    <TextBlock Text="Page staff level:" FontWeight="Bold" />
+                </Label>
+                <ComboBox Grid.Column="3" ItemsSource="{Binding ScriptViewModel.StaffLevels}" SelectedItem="{Binding ScriptViewModel.StaffLevel, Mode=TwoWay}" />
+            </Grid>
+
+            <!-- You / Your first name -->
+            <Grid 
+                Grid.Row="1" 
+                Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
+                    <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.YourNameValidation.Error}">
+                        <iconPacks:PackIconModern 
+                            VerticalAlignment="Center"
+                            Kind="Warning"
+                            Margin="0,0,6,0"
+                            Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
+                            Visibility="{Binding ScriptViewModel.YourNameValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
+                        <TextBlock 
+                            Text="You:" 
+                            FontWeight="Bold" 
+                            VerticalAlignment="Center"
+                            Foreground="{Binding ScriptViewModel.YourNameValidation, Converter={StaticResource validationResultColorConverter}}" />
+                    </StackPanel>
+                </Label>
+                <TextBox Text="{Binding ScriptViewModel.YourName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Height="20" />
+                <Label Grid.Column="2" VerticalAlignment="Center" FontSize="11" Margin="10, 0, 4, 0">
+                    <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.YourFirstNameValidation.Error}">
+                        <iconPacks:PackIconModern 
+                            VerticalAlignment="Center"
+                            Kind="Warning"
+                            Margin="0,0,6,0"
+                            Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
+                            Visibility="{Binding ScriptViewModel.YourFirstNameValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
+                        <TextBlock 
+                            Text="Your first name:" 
+                            FontWeight="Bold" 
+                            VerticalAlignment="Center"
+                            Foreground="{Binding ScriptViewModel.YourFirstNameValidation, Converter={StaticResource validationResultColorConverter}}" />
+                    </StackPanel>
+                </Label>
+                <TextBox Text="{Binding ScriptViewModel.YourFirstName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="3" Height="20" />
+            </Grid>
+
+            <!-- User / Level / Options -->
+            <Grid 
+                Grid.Row="2" 
+                Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
+                    <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.UserNameValidation.Error}">
+                        <iconPacks:PackIconModern 
+                            VerticalAlignment="Center"
+                            Kind="Warning"
+                            Margin="0,0,6,0"
+                            Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
+                            Visibility="{Binding ScriptViewModel.UserNameValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
+                        <TextBlock 
+                            Text="User:" 
+                            FontWeight="Bold" 
+                            VerticalAlignment="Center"
+                            Foreground="{Binding ScriptViewModel.UserNameValidation, Converter={StaticResource validationResultColorConverter}}" />
+                    </StackPanel>
+                </Label>
+                <TextBox Text="{Binding ScriptViewModel.UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" VerticalAlignment="Center" Height="20" />
+                <Label Grid.Column="2" VerticalAlignment="Center" FontSize="11" Margin="10, 0, 4, 0">
+                    <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.MembershipValidation.Error}">
+                        <iconPacks:PackIconModern 
+                            VerticalAlignment="Center"
+                            Kind="Warning"
+                            Margin="0,0,6,0"
+                            Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
+                            Visibility="{Binding ScriptViewModel.MembershipValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
+                        <TextBlock 
+                            Text="Level:" 
+                            FontWeight="Bold" 
+                            VerticalAlignment="Center"
+                            Foreground="{Binding ScriptViewModel.MembershipValidation, Converter={StaticResource validationResultColorConverter}}" />
+                    </StackPanel>
+                </Label>
+                <ComboBox ItemsSource="{Binding ScriptViewModel.HubMemberships}" SelectedItem="{Binding ScriptViewModel.Membership, Mode=TwoWay}" Grid.Column="3" VerticalAlignment="Center"  />
+                <CheckBox 
+                    Grid.Column="4" 
+                    IsChecked="{Binding ScriptViewModel.FirstForPage}" 
+                    Content="First feature on page" 
+                    FontWeight="Bold" 
+                    FontSize="11" 
+                    Margin="16,0,0,0" 
+                    VerticalAlignment="Center" />
+                <CheckBox 
+                    Grid.Column="5" 
+                    IsChecked="{Binding ScriptViewModel.RawTag}" 
+                    Content="From RAW tag" 
+                    FontWeight="Bold" 
+                    FontSize="11" 
+                    Margin="16,0,0,0" 
+                    VerticalAlignment="Center"
+                    Visibility="{Binding ScriptViewModel.SnapHubVisibility}" />
+                <CheckBox 
+                    Grid.Column="6" 
+                    IsChecked="{Binding ScriptViewModel.CommunityTag}" 
+                    Content="From community tag" 
+                    FontWeight="Bold" 
+                    FontSize="11" 
+                    Margin="16,0,0,0" 
+                    VerticalAlignment="Center"
+                    Visibility="{Binding ScriptViewModel.SnapHubVisibility}" />
+            </Grid>
+
+            <!-- Feature script header -->
+            <Grid 
+                Grid.Row="3" 
+                Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Label Content="Feature script:" Grid.Column="0" VerticalAlignment="Center" FontWeight="Bold" FontSize="11" />
+                <Button 
+                    Grid.Column="1" 
+                    Content="Copy" 
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
+                    VerticalAlignment="Center" 
+                    Margin="8,0,0,0" 
+                    Padding="12,2" 
+                    Command="{Binding ScriptViewModel.CopyFeatureScriptCommand}" />
+                <Button 
+                    Grid.Column="2" 
+                    Content="Copy (with Placeholders)" 
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
+                    Visibility="{Binding ScriptViewModel.FeatureScriptPlaceholderVisibility}" 
+                    VerticalAlignment="Center" 
+                    Margin="8,0,0,0" 
+                    Padding="12,2" 
+                    Command="{Binding ScriptViewModel.CopyFeatureScriptWithPlaceholdersCommand}" />
+            </Grid>
+            <!-- Feature script -->
+            <emoji:RichTextBox 
+                Grid.Row="4" 
+                Text="{Binding ScriptViewModel.FeatureScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                Height="Auto" 
+                Margin="0,0,0,8" 
+                Foreground="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource validationBooleanColorConverter}}" />
+
+            <!-- Comment script header -->
+            <Grid 
+                Grid.Row="5" 
+                Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Label 
+                    Grid.Column="0" 
+                    Content="Comment script:" 
+                    VerticalAlignment="Center" 
+                    FontWeight="Bold" 
+                    FontSize="11" />
+                <Button 
+                    Grid.Column="1" 
+                    Content="Copy" 
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
+                    VerticalAlignment="Center" 
+                    Margin="8,0,0,0" 
+                    Padding="12,2" 
+                    Command="{Binding ScriptViewModel.CopyCommentScriptCommand}" />
+                <Button 
+                    Grid.Column="2" 
+                    Content="Copy (with Placeholders)" 
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
+                    Visibility="{Binding ScriptViewModel.CommentScriptPlaceholderVisibility}" 
+                    VerticalAlignment="Center" 
+                    Margin="8,0,0,0" 
+                    Padding="12,2" 
+                    Command="{Binding ScriptViewModel.CopyCommentScriptWithPlaceholdersCommand}" />
+            </Grid>
+            <!-- Comment script -->
+            <emoji:RichTextBox 
+                Grid.Row="6" 
+                Text="{Binding ScriptViewModel.CommentScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                Height="Auto" 
+                Margin="0,0,0,8" 
+                Foreground="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource validationBooleanColorConverter}}" />
+
+            <!-- Original post script header -->
+            <Grid 
+                Grid.Row="7" 
+                Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Label 
+                    Grid.Column="0" 
+                    Content="Original post script:" 
+                    VerticalAlignment="Center" 
+                    FontWeight="Bold" 
+                    FontSize="11" />
+                <Button 
+                    Grid.Column="1" 
+                    Content="Copy" 
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
+                    VerticalAlignment="Center" 
+                    Margin="8,0,0,0" 
+                    Padding="12,2" 
+                    Command="{Binding ScriptViewModel.CopyOriginalPostScriptCommand }" />
+                <Button 
+                    Grid.Column="2" 
+                    Content="Copy (with Placeholder)" 
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
+                    Visibility="{Binding ScriptViewModel.OriginalPostScriptPlaceholderVisibility}" 
+                    VerticalAlignment="Center" 
+                    Margin="8,0,0,0" 
+                    Padding="12,2" 
+                    Command="{Binding ScriptViewModel.CopyOriginalPostScriptWithPlaceholdersCommand}" />
+            </Grid>
+            <!-- Original post script -->
+            <emoji:RichTextBox 
+                Grid.Row="8" 
+                Text="{Binding ScriptViewModel.OriginalPostScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                Height="Auto" 
+                Margin="0,0,0,8" 
+                Foreground="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource validationBooleanColorConverter}}" />
+
+            <!-- New membership script header -->
+            <Grid 
+                Grid.Row="9" 
+                Margin="0,0,0,3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Label 
+                    Grid.Column="0" 
+                    Content="New membership script:" 
+                    VerticalAlignment="Center" 
+                    FontWeight="Bold" 
+                    FontSize="11" />
+                <ComboBox 
+                    Grid.Column="1" 
+                    ItemsSource="{Binding ScriptViewModel.HubNewMemberships}" 
+                    SelectedItem="{Binding ScriptViewModel.NewMembership, Mode=TwoWay}" 
+                    Width="140" />
+                <Button 
+                    Grid.Column="2" 
+                    Content="Copy" 
+                    IsEnabled="{Binding ScriptViewModel.CanCopyNewMembershipScript}" 
+                    VerticalAlignment="Center" 
+                    Margin="8,0,0,0" 
+                    Padding="12,2" 
+                    Command="{Binding ScriptViewModel.CopyNewMembershipScriptCommand}" />
+            </Grid>
+            <!-- New membership script -->
+            <emoji:RichTextBox 
+                Grid.Row="10" 
+                Text="{Binding ScriptViewModel.NewMembershipScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                Height="Auto" 
+                Foreground="{Binding ScriptViewModel.CanCopyNewMembershipScript, Converter={StaticResource validationBooleanColorConverter}}" />
+        </Grid>
+
+        <notifications:NotificationArea Grid.Row="1" x:Name="WindowArea" Position="TopRight" MaxItems="3" />
 
         <!-- Footer -->
         <Grid Margin="0,8,0,0" Grid.Row="2" Background="{Binding StatusBarBrush}">

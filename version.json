@@ -13,5 +13,10 @@
         "current": "1.0.7",
         "link": "https://vero.andydragon.com/app/featurelogging/windowsInstall",
         "vital": false
+    },
+    "windows_v2": {
+        "current": "2.0.8",
+        "link": "https://vero.andydragon.com/app/featurelogging/windowsInstall_v2",
+        "vital": false
     }
 }

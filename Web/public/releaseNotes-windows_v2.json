@@ -1,0 +1,13 @@
+[
+    {
+        "version": "2.0.8",
+        "notes": [
+            {
+                "date": "July 24, 2024",
+                "notes": [
+                    "Initial release from V1 to match macOS v2"
+                ]
+            }
+        ]
+    }
+]
