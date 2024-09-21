@@ -42,6 +42,9 @@ struct ContentView: View {
 
     @Environment(\.openURL) private var openURL
     @State private var page: String = UserDefaults.standard.string(forKey: "Page") ?? ""
+    @State private var pageStaffLevel = StaffLevelCase(
+        rawValue: UserDefaults.standard.string(forKey: "StaffLevel") ?? StaffLevelCase.mod.rawValue
+    ) ?? StaffLevelCase.mod
     @State private var toastType: AlertToast.AlertType = .regular
     @State private var toastText = ""
     @State private var toastSubTitle = ""
@@ -132,7 +135,7 @@ struct ContentView: View {
                     showToast)
             } else {
                 VStack {
-                    // Page picker
+                    // Page / staff level picker
                     HStack(alignment: .center) {
                         Text("Page:")
                             .frame(width: 108, alignment: .trailing)
@@ -156,6 +159,28 @@ struct ContentView: View {
                         .focusable()
                         .focused($focusedField, equals: .pagePicker)
                         .disabled(!featuresViewModel.features.isEmpty)
+
+                        // Page staff level picker
+                        Text("Page staff level: ")
+                            .padding([.leading], 8)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                        
+                        Picker("", selection: $pageStaffLevel.onChange { value in
+                            UserDefaults.standard.set(pageStaffLevel.rawValue, forKey: "StaffLevel")
+                        }) {
+                            ForEach(StaffLevelCase.allCases) { staffLevelCase in
+                                Text(staffLevelCase.rawValue)
+                                    .tag(staffLevelCase)
+                                    .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                            }
+                        }
+                        .tint(Color.AccentColor)
+                        .accentColor(Color.AccentColor)
+                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                        .focusable()
+                        .focused($focusedField, equals: .staffLevel)
+                        .frame(maxWidth: 144)
 
                         Menu("Copy tag", systemImage: "tag.fill") {
                             Button(action: {
@@ -293,7 +318,7 @@ struct ContentView: View {
                     ScrollViewReader { proxy in
                         List {
                             ForEach(sortedFeatures, id: \.self) { feature in
-                                FeatureListRow(feature: feature, loadedPage: loadedPage!, markDocumentDirty: {
+                                FeatureListRow(feature: feature, loadedPage: loadedPage!, pageStaffLevel: pageStaffLevel, markDocumentDirty: {
                                     isDirty = true
                                 }, ensureSelected: {
                                     selectedFeature = feature
@@ -1120,7 +1145,7 @@ struct ContentView: View {
                         // Encode the feature for Vero Scripts and copy to the clipboard
                         do {
                             let encoder = JSONEncoder()
-                            let json = try encoder.encode(CodableFeature(using: loadedPage, from: sortedFeatures[nextIndex]))
+                            let json = try encoder.encode(CodableFeature(using: loadedPage, pageStaffLevel: pageStaffLevel, from: sortedFeatures[nextIndex]))
                             let jsonString = String(decoding: json, as: UTF8.self)
                             
                             // Store the feature in the shared storage
@@ -1230,6 +1255,7 @@ struct FeatureListRow: View {
 
     @ObservedObject var feature: Feature
     var loadedPage: LoadedPage
+    var pageStaffLevel: StaffLevelCase
     var markDocumentDirty: () -> Void
     var ensureSelected: () -> Void
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
@@ -1518,7 +1544,7 @@ struct FeatureListRow: View {
         do {
             // Encode the feature for Vero Scripts and copy to the clipboard
             let encoder = JSONEncoder()
-            let json = try encoder.encode(CodableFeature(using: loadedPage, from: feature))
+            let json = try encoder.encode(CodableFeature(using: loadedPage, pageStaffLevel: pageStaffLevel, from: feature))
             let jsonString = String(decoding: json, as: UTF8.self)
 
             // Store the feature in the shared storage

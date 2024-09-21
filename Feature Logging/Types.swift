@@ -190,7 +190,7 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
     }
 }
 
-enum StaffLevelCase: String, CaseIterable, Identifiable {
+enum StaffLevelCase: String, CaseIterable, Identifiable, Codable {
     case mod = "Mod",
          coadmin = "Co-Admin",
          admin = "Admin"
@@ -668,6 +668,7 @@ class Feature: Identifiable, Hashable, ObservableObject {
 
 struct CodableFeature: Codable {
     var page: String
+    var pageStaffLevel: StaffLevelCase
     var userName: String
     var userAlias: String
     var userLevel: MembershipCase
@@ -676,8 +677,9 @@ struct CodableFeature: Codable {
     var newLevel: NewMembershipCase
     var description: String
 
-    init(using page: LoadedPage, from feature: Feature) {
+    init(using page: LoadedPage, pageStaffLevel: StaffLevelCase, from feature: Feature) {
         self.page = page.id;
+        self.pageStaffLevel = pageStaffLevel
         self.userName = feature.userName
         self.userAlias = feature.userAlias
         self.userLevel = feature.userLevel
@@ -724,6 +726,7 @@ struct CodableFeature: Codable {
 
     enum CodingKeys: CodingKey {
         case page
+        case pageStaffLevel
         case userName
         case userAlias
         case userLevel
@@ -737,6 +740,7 @@ struct CodableFeature: Codable {
         let decoder = JSONDecoder()
         let feature = try decoder.decode(CodableFeature.self, from: json)
         self.page = feature.page
+        self.pageStaffLevel = feature.pageStaffLevel
         self.userName = feature.userName
         self.userAlias = feature.userAlias
         self.userLevel = feature.userLevel
@@ -749,6 +753,7 @@ struct CodableFeature: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.page = try container.decode(String.self, forKey: .page)
+        self.pageStaffLevel = try container.decodeIfPresent(StaffLevelCase.self, forKey: .pageStaffLevel) ?? StaffLevelCase.mod
         self.userName = try container.decode(String.self, forKey: .userName)
         self.userAlias = try container.decode(String.self, forKey: .userAlias)
         self.userLevel = try container.decode(MembershipCase.self, forKey: .userLevel)
@@ -761,6 +766,7 @@ struct CodableFeature: Codable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(page, forKey: .page)
+        try container.encode(pageStaffLevel, forKey: .pageStaffLevel)
         try container.encode(userName, forKey: .userName)
         try container.encode(userAlias, forKey: .userAlias)
         try container.encode(userLevel, forKey: .userLevel)

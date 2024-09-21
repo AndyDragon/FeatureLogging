@@ -44,6 +44,7 @@ struct ScriptContentView: View {
     @State private var showingPlaceholderSheet = false
     @State private var loadedCatalogs = LoadedCatalogs()
     @State private var currentPage: LoadedPage? = nil
+    @State private var pageLoadedFromFeature = false
     @ObservedObject private var featureScriptPlaceholders: PlaceholderList
     @ObservedObject private var commentScriptPlaceholders: PlaceholderList
     @ObservedObject private var originalPostScriptPlaceholders: PlaceholderList
@@ -149,6 +150,7 @@ struct ScriptContentView: View {
                                 pageValidation = (true, nil)
                             }
                         }
+                        .disabled(pageLoadedFromFeature)
 
                         // Page staff level picker
                         Text("Page staff level: ")
@@ -167,6 +169,8 @@ struct ScriptContentView: View {
                         .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                         .focusable()
                         .focused($focusedField, equals: .staffLevel)
+                        .frame(maxWidth: 144)
+                        .disabled(pageLoadedFromFeature)
                     }
 
                     // You
@@ -598,7 +602,11 @@ struct ScriptContentView: View {
                 pageValidation = (false, "Page is required")
             } else {
                 pageValidation = (true, nil)
+                pageLoadedFromFeature = true
             }
+            
+            pageStaffLevel = featureUser.pageStaffLevel
+            pageStaffLevelChanged(to: pageStaffLevel)
 
             userName = featureUser.userAlias
             userNameChanged(to: userName)

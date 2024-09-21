@@ -103,5 +103,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "2.0.31",
+        "notes": [
+            {
+                "date": "Sept 20, 2024",
+                "notes": [
+                    "Moved the staff level picker to the feature logging screen which is used in the script editor"
+                ]
+            }
+        ]
     }
 ]
