@@ -114,5 +114,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "2.0.32",
+        "notes": [
+            {
+                "date": "Sept 27, 2024",
+                "notes": [
+                    "Disallow list split up by hub to allow hubs to have different lists"
+                ]
+            }
+        ]
     }
 ]

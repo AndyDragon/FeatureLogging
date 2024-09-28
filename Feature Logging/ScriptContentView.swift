@@ -760,8 +760,10 @@ struct ScriptContentView: View {
             return (false, "Required value")
         } else if value.first! == "@" {
             return (false, "Don't include the '@' in user names")
-        } else if (loadedCatalogs.disallowList.first { disallow in disallow == value } != nil) {
-            return (false, "User is on the disallow list")
+        } else if let disallowList = loadedCatalogs.disallowList[currentPage?.hub ?? ""] {
+            if (disallowList.first { disallow in disallow == value } != nil) {
+                return (false, "User is on the disallow list")
+            }
         }
         return (true, nil)
     }

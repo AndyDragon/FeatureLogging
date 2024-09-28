@@ -724,11 +724,11 @@ struct ContentView: View {
                     try await Task.sleep(nanoseconds: 1_000_000_000)
 
 #if TESTING
-                    let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/testing/disallowlist.json")!
+                    let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/testing/disallowlists.json")!
 #else
-                    let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlist.json")!
+                    let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json")!
 #endif
-                    loadedCatalogs.disallowList = try await URLSession.shared.decode([String].self, from: disallowListUrl)
+                    loadedCatalogs.disallowList = try await URLSession.shared.decode([String:[String]].self, from: disallowListUrl)
                     loadedCatalogs.waitingForDisallowList = false
                 } catch {
                     // do nothing, the disallow list is not critical
@@ -1181,10 +1181,10 @@ extension ContentView: DocumentManagerDelegate {
 }
 
 #Preview {
-    @State var checkingForUpdates = false
-    @State var isShowingVersionAvailableToast = false
-    @State var isShowingVersionRequiredToast = false
-    @State var versionCheckToast = VersionCheckToast()
+    @Previewable @State var checkingForUpdates = false
+    @Previewable @State var isShowingVersionAvailableToast = false
+    @Previewable @State var isShowingVersionRequiredToast = false
+    @Previewable @State var versionCheckToast = VersionCheckToast()
 
     var localAppState = VersionCheckAppState(
         isCheckingForUpdates: $checkingForUpdates,

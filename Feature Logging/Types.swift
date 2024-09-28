@@ -846,5 +846,5 @@ struct LoadedCatalogs {
     var waitingForTemplates = true
     var templatesCatalog = TemplateCatalog(pages: [], specialTemplates: [])
     var waitingForDisallowList = true
-    var disallowList = [String]()
+    var disallowList = [String:[String]]()
 }

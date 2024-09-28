@@ -31,10 +31,10 @@ struct ToastDismissShield: View {
 }
 
 #Preview {
+    @Previewable @State var isShowingToast: Bool = false
+    @Previewable @State var isShowingVersionAvailableToast: Bool = false
+    @Previewable @State var toastId: UUID? = nil
     let isAnyToastShowing: Bool = false
-    @State var isShowingToast: Bool = false
-    @State var isShowingVersionAvailableToast: Bool = false
-    @State var toastId: UUID? = nil
     return ToastDismissShield(
         isAnyToastShowing: isAnyToastShowing,
         isShowingToast: $isShowingToast,
