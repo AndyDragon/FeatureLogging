@@ -9,5 +9,18 @@
                 ]
             }
         ]
-    }
+    },
+    {
+        "version": "2.0.9",
+        "notes": [
+            {
+                "date": "Sept 30, 2024",
+                "notes": [
+                    "Moved the staff level picker to the feature logging screen which is used in the script editor",
+                    "Disallow list split up by hub to allow hubs to have different lists",
+                    "Allow feature / original post comments for new membership levels for snap"
+                ]
+            }
+        ]
+   }
 ]

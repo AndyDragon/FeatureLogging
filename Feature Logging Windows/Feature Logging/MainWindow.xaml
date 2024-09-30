@@ -249,6 +249,8 @@
                 Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
@@ -278,8 +280,22 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <mah:DropDownButton
+                <Label 
                     Grid.Column="2"
+                    VerticalAlignment="Center" 
+                    FontSize="11" 
+                    Margin="10,0,4,0">
+                    <TextBlock 
+                        Text="Page staff level:" 
+                        FontWeight="Bold" 
+                        VerticalAlignment="Center" />
+                </Label>
+                <ComboBox 
+                    Grid.Column="3" 
+                    ItemsSource="{Binding StaffLevels}" 
+                    SelectedItem="{Binding StaffLevel, Mode=TwoWay}" />
+                <mah:DropDownButton
+                    Grid.Column="4"
                     BorderThickness="0"
                     Content="Copy Tag"
                     FontSize="8pt"
@@ -904,7 +920,7 @@
                 Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="3*" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
@@ -923,7 +939,7 @@
                             Foreground="{Binding ScriptViewModel.PageValidation, Converter={StaticResource validationResultColorConverter}}" />
                     </StackPanel>
                 </Label>
-                <ComboBox Grid.Column="1" ItemsSource="{Binding LoadedPages}" SelectedItem="{Binding SelectedPage, Mode=TwoWay}">
+                <ComboBox Grid.Column="1" ItemsSource="{Binding LoadedPages}" SelectedItem="{Binding SelectedPage, Mode=TwoWay}" IsEnabled="{Binding ScriptViewModel.CanChangePage}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate DataType="local:LoadedPage">
                             <TextBlock Text="{Binding DisplayName}" />
@@ -933,7 +949,7 @@
                 <Label Grid.Column="2" VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0">
                     <TextBlock Text="Page staff level:" FontWeight="Bold" />
                 </Label>
-                <ComboBox Grid.Column="3" ItemsSource="{Binding ScriptViewModel.StaffLevels}" SelectedItem="{Binding ScriptViewModel.StaffLevel, Mode=TwoWay}" />
+                <ComboBox Grid.Column="3" ItemsSource="{Binding ScriptViewModel.StaffLevels}" SelectedItem="{Binding ScriptViewModel.StaffLevel, Mode=TwoWay}" IsEnabled="{Binding ScriptViewModel.CanChangeStaffLevel}" />
             </Grid>
 
             <!-- You / Your first name -->
@@ -1194,7 +1210,7 @@
                     Grid.Column="1" 
                     ItemsSource="{Binding ScriptViewModel.HubNewMemberships}" 
                     SelectedItem="{Binding ScriptViewModel.NewMembership, Mode=TwoWay}" 
-                    Width="140" />
+                    Width="230" />
                 <Button 
                     Grid.Column="2" 
                     Content="Copy" 

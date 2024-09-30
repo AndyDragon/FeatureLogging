@@ -19,14 +19,15 @@ namespace FeatureLogging
     {
         #region Field validation
 
-        public static ValidationResult ValidateUser(string userName)
+        public static ValidationResult ValidateUser(string hubName, string userName)
         {
             var userNameValidationResult = ValidateUserName(userName);
             if (!userNameValidationResult.Valid)
             {
                 return userNameValidationResult;
             }
-            if (Validation.DisallowList.FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
+            if (Validation.DisallowList.ContainsKey(hubName) 
+                && Validation.DisallowList[hubName].FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
             {
                 return new ValidationResult(false, "User is on the disallow list");
             }
@@ -126,6 +127,9 @@ namespace FeatureLogging
                     if (page != null)
                     {
                         Page = page.Id;
+                        CanChangePage = false;
+                        StaffLevel = (string)feature["staffLevel"];
+                        CanChangeStaffLevel = false;
                         UserName = (string)feature["userAlias"];
                         Membership = HubMemberships.Contains((string)feature["userLevel"]) ? (string)feature["userLevel"] : HubMemberships[0];
                         FirstForPage = feature["firstFeature"];
@@ -185,6 +189,12 @@ namespace FeatureLogging
                             HubTag = false;
                         }
                         NewMembership = HubNewMemberships.Contains((string)feature["newLevel"]) ? (string)feature["newLevel"] : HubNewMemberships[0];
+                    } 
+                    else
+                    {
+                        CanChangePage = true;
+                        CanChangeStaffLevel = true;
+
                     }
                 }
             }
@@ -228,7 +238,7 @@ namespace FeatureLogging
             {
                 if (Set(ref userName, value))
                 {
-                    UserNameValidation = ValidateUser(UserName);
+                    UserNameValidation = ValidateUser(SelectedPage?.HubName ?? "", UserName);
                     ClearAllPlaceholders();
                     UpdateScripts();
                     UpdateNewMembershipScripts();
@@ -236,7 +246,7 @@ namespace FeatureLogging
             }
         }
 
-        private ValidationResult userNameValidation = ValidateUser("");
+        private ValidationResult userNameValidation = ValidateUser("", "");
 
         public ValidationResult UserNameValidation
         {
@@ -413,6 +423,7 @@ namespace FeatureLogging
                         OnPropertyChanged(nameof(SnapHubVisibility));
                         NewMembership = "None";
                         OnPropertyChanged(nameof(HubNewMemberships));
+                        OnPropertyChanged(nameof(UserName));
                     }
                 }
             }
@@ -471,6 +482,14 @@ namespace FeatureLogging
             }
         }
 
+        private bool canChangePage = true;
+
+        public bool CanChangePage
+        {
+            get => canChangePage;
+            set => Set(ref canChangePage, value);
+        }
+
         #endregion
 
         #region Staff level
@@ -496,6 +515,14 @@ namespace FeatureLogging
                     UpdateNewMembershipScripts();
                 }
             }
+        }
+
+        private bool canChangeStaffLevel = true;
+
+        public bool CanChangeStaffLevel
+        {
+            get => canChangeStaffLevel;
+            set => Set(ref canChangeStaffLevel, value);
         }
 
         #endregion
@@ -642,8 +669,10 @@ namespace FeatureLogging
 
         private static string[] SnapNewMemberships => [
             "None",
-            "Member",
-            "VIP Member",
+            "Member (feature comment)",
+            "Member (original post comment)",
+            "VIP Member (feature comment)",
+            "VIP Member (original post comment)",
         ];
 
         private static string[] ClickNewMemberships => [
@@ -1003,6 +1032,30 @@ namespace FeatureLogging
             return template?.Template ?? "";
         }
 
+        private string GetNewMembershipScriptName(string hubName, string newMembershipLevel)
+        {
+            if (hubName == "snap")
+            {
+                switch (newMembershipLevel)
+                {
+                    case "Member (feature comment)":
+                        return "snap:member feature";
+                    case "Member (original post comment)":
+                        return "snap:member original post";
+                    case "VIP Member (feature comment)":
+                        return "snap:vip member feature";
+                    case "VIP Member (original post comment)":
+                        return "snap:vip member original post";
+                    default:
+                        return "";
+                }
+            } else if (hubName == "click")
+            {
+                return hubName + ":" + NewMembership.Replace(" ", "_").ToLowerInvariant();
+            }
+            return "";
+        }
+
         private void UpdateNewMembershipScripts()
         {
             if (!CanCopyNewMembershipScript)
@@ -1054,7 +1107,8 @@ namespace FeatureLogging
                 }
                 if (!string.IsNullOrEmpty(hubName))
                 {
-                    TemplateEntry? template = TemplatesCatalog.SpecialTemplates.FirstOrDefault(template => template.Name == hubName + ":" + NewMembership.Replace(" ", "_").ToLowerInvariant());
+                    var templateName = GetNewMembershipScriptName(hubName, NewMembership);
+                    TemplateEntry? template = TemplatesCatalog.SpecialTemplates.FirstOrDefault(template => template.Name == templateName);
                     NewMembershipScript = (template?.Template ?? "")
                         .Replace("%%PAGENAME%%", scriptPageName)
                         .Replace("%%FULLPAGENAME%%", pageName)

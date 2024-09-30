@@ -22,9 +22,9 @@ namespace FeatureLogging
 {
     public static class Validation
     {
-        private static List<string> disallowList = [];
+        private static Dictionary<string, List<string>> disallowList = new Dictionary<string, List<string>>();
 
-        public static List<string> DisallowList 
+        public static Dictionary<string, List<string>> DisallowList 
         {
             get => disallowList;
             set => disallowList = value;
@@ -32,14 +32,15 @@ namespace FeatureLogging
 
         #region Field validation
 
-        public static ValidationResult ValidateUser(string userName)
+        public static ValidationResult ValidateUser(string hubName, string userName)
         {
             var userNameValidationResult = ValidateUserName(userName);
             if (!userNameValidationResult.Valid)
             {
                 return userNameValidationResult;
             }
-            if (DisallowList.FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
+            if (DisallowList.ContainsKey(hubName) &&
+                DisallowList[hubName].FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
             {
                 return new ValidationResult(false, "User is on the disallow list");
             }
@@ -734,11 +735,11 @@ namespace FeatureLogging
                 {
                     NoCache = true
                 };
-                var templatesUri = new Uri("https://vero.andydragon.com/static/data/disallowlist.json");
+                var templatesUri = new Uri("https://vero.andydragon.com/static/data/disallowlists.json");
                 var content = await httpClient.GetStringAsync(templatesUri);
                 if (!string.IsNullOrEmpty(content))
                 {
-                    Validation.DisallowList = JsonConvert.DeserializeObject<List<string>>(content) ?? [];
+                    Validation.DisallowList = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(content) ?? [];
                 }
             }
             catch (Exception ex)
@@ -1010,6 +1011,31 @@ namespace FeatureLogging
         }
 
         #endregion
+
+        #region Staff level
+
+        public static string[] StaffLevels => [
+            "Mod",
+            "Co-Admin",
+            "Admin",
+        ];
+
+        private string staffLevel = UserSettings.Get(nameof(StaffLevel), "Mod");
+
+        public string StaffLevel
+        {
+            get => staffLevel;
+            set
+            {
+                if (Set(ref staffLevel, value))
+                {
+                    UserSettings.Store(nameof(StaffLevel), StaffLevel);
+                }
+            }
+        }
+
+        #endregion
+
 
         #region Page tags
 
@@ -1737,6 +1763,7 @@ namespace FeatureLogging
                             var featureDictionary = new Dictionary<string, dynamic>
                             {
                                 ["page"] = vm.SelectedPage.Id,
+                                ["staffLevel"] = vm.StaffLevel,
                                 ["userName"] = UserName,
                                 ["userAlias"] = UserAlias,
                                 ["userLevel"] = UserLevel,
@@ -1788,8 +1815,8 @@ namespace FeatureLogging
                                     var totalFeatures = featuresOnHub + featuresOnRaw;
                                     featureDictionary["newLevel"] = (totalFeatures + 1) switch
                                     {
-                                        5 => "Member",
-                                        15 => "VIP Member",
+                                        5 => "Member (feature comment)",
+                                        15 => "VIP Member (feature comment)",
                                         _ => "",
                                     };
                                     featureDictionary["userLevel"] = (totalFeatures + 1) switch
