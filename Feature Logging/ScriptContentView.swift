@@ -1207,7 +1207,7 @@ struct ScriptContentView: View {
             } else {
                 currentPage = nil
             }
-            let templateName = "\(currentPage?.hub ?? ""):\(newMembership.rawValue.replacingOccurrences(of: " ", with: "_").lowercased())"
+            let templateName = NewMembershipCase.scriptFor(hub: currentPage?.hub, newMembership)
             let template = loadedCatalogs.templatesCatalog.specialTemplates.first(where: { template in
                 template.name == templateName
             })

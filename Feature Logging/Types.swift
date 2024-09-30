@@ -206,13 +206,14 @@ enum PlaceholderSheetCase {
 enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
     case none = "None",
 
-         // common
-         commonMember = "Member",
-
          // snap
-         snapVipMember = "VIP Member",
+         snapMemberFeature = "Member (feature comment)",
+         snapMemberOriginalPost = "Member (original post comment)",
+         snapVipMemberFeature = "VIP Member (feature comment)",
+         snapVipMemberOriginalPost = "VIP Member (original post comment)",
 
          // click
+         clickMember = "Member",
          clickBronzeMember = "Bronze Member",
          clickSilverMember = "Silver Member",
          clickGoldMember = "Gold Member",
@@ -224,14 +225,16 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
         if hub == "snap" {
             return [
                 .none,
-                .commonMember,
-                .snapVipMember
+                .snapMemberFeature,
+                .snapMemberOriginalPost,
+                .snapVipMemberFeature,
+                .snapVipMemberOriginalPost
             ]
         }
         if hub == "click" {
             return [
                 .none,
-                .commonMember,
+                .clickMember,
                 .clickBronzeMember,
                 .clickSilverMember,
                 .clickGoldMember,
@@ -242,19 +245,41 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
             .none
         ]
     }
+    
+    static func scriptFor(hub: String?, _ value: NewMembershipCase) -> String {
+        if hub == "snap" {
+            switch value {
+            case .snapMemberFeature:
+                return "snap:member feature"
+            case .snapMemberOriginalPost:
+                return "snap:member original post"
+            case .snapVipMemberFeature:
+                return "snap:vip member feature"
+            case .snapVipMemberOriginalPost:
+                return "snap:vip member original post"
+            default:
+                return ""
+            }
+        } else if hub == "click" {
+            return "\(hub ?? ""):\(value.rawValue.replacingOccurrences(of: " ", with: "_").lowercased())"
+        }
+        return ""
+    }
 
     static func caseValidFor(hub: String?, _ value: NewMembershipCase) -> Bool {
         if hub == "snap" {
             return [
                 none,
-                commonMember,
-                snapVipMember
+                snapMemberFeature,
+                snapMemberOriginalPost,
+                snapVipMemberFeature,
+                snapVipMemberOriginalPost
             ].contains(value)
         }
         if hub == "click" {
             return [
                 none,
-                commonMember,
+                clickMember,
                 clickBronzeMember,
                 clickSilverMember,
                 clickGoldMember,
@@ -690,7 +715,7 @@ struct CodableFeature: Codable {
         if page.hub == "click" {
             let totalFeatures = calculateFeatureCount(feature.featureCountOnHub)
             if totalFeatures + 1 == 5 {
-                self.newLevel = NewMembershipCase.commonMember
+                self.newLevel = NewMembershipCase.clickMember
                 self.userLevel = MembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
                 self.newLevel = NewMembershipCase.clickBronzeMember
@@ -708,10 +733,10 @@ struct CodableFeature: Codable {
         } else if page.hub == "snap" {
             let totalFeatures = calculateFeatureCount(feature.featureCountOnHub) + calculateFeatureCount(feature.featureCountOnRawHub)
             if totalFeatures + 1 == 5 {
-                self.newLevel = NewMembershipCase.commonMember
+                self.newLevel = NewMembershipCase.snapMemberFeature
                 self.userLevel = MembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
-                self.newLevel = NewMembershipCase.snapVipMember
+                self.newLevel = NewMembershipCase.snapVipMemberFeature
                 self.userLevel = MembershipCase.snapVipMember
             }
         }
