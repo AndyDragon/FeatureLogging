@@ -113,6 +113,89 @@ struct ContentView: View {
         self.appState = appState
     }
 
+    private func loadPageCatalog() async {
+        do {
+#if TESTING
+            let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/pages.json")!
+#else
+            let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
+#endif
+            let pagesCatalog = try await URLSession.shared.decode(ScriptsCatalog.self, from: pagesUrl)
+            var pages = [LoadedPage]()
+            for hubPair in (pagesCatalog.hubs) {
+                for hubPage in hubPair.value {
+                    pages.append(LoadedPage.from(hub: hubPair.key, page: hubPage))
+                }
+            }
+            loadedCatalogs.loadedPages.removeAll()
+            loadedCatalogs.loadedPages.append(contentsOf: pages.sorted(by: {
+                if $0.hub == "other" && $1.hub == "other" {
+                    return $0.name < $1.name
+                }
+                if $0.hub == "other" {
+                    return false
+                }
+                if $1.hub == "other" {
+                    return true
+                }
+                return "\($0.hub)_\($0.name)" < "\($1.hub)_\($1.name)"
+            }))
+            loadedCatalogs.waitingForPages = false
+            if page.isEmpty {
+                page = loadedCatalogs.loadedPages.first?.id ?? ""
+            }
+            
+            // Delay the start of the templates download so the window can be ready faster
+            try await Task.sleep(nanoseconds: 200_000_000)
+            
+#if TESTING
+            let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/templates.json")!
+#else
+            let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/templates.json")!
+#endif
+            loadedCatalogs.templatesCatalog = try await URLSession.shared.decode(TemplateCatalog.self, from: templatesUrl)
+            loadedCatalogs.waitingForTemplates = false
+            
+            do {
+                // Delay the start of the disallowed list download so the window can be ready faster
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                
+#if TESTING
+                let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/testing/disallowlists.json")!
+#else
+                let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json")!
+#endif
+                loadedCatalogs.disallowList = try await URLSession.shared.decode([String:[String]].self, from: disallowListUrl)
+                loadedCatalogs.waitingForDisallowList = false
+            } catch {
+                // do nothing, the disallow list is not critical
+                debugPrint(error.localizedDescription)
+            }
+            
+            do {
+                // Delay the start of the disallowed list download so the window can be ready faster
+                try await Task.sleep(nanoseconds: 100_000_000)
+                
+                appState.checkForUpdates()
+            } catch {
+                // do nothing, the version check is not critical
+                debugPrint(error.localizedDescription)
+            }
+        } catch {
+            showToast(
+                .error(.red),
+                "Failed to load pages",
+                subTitle: "The application requires the catalog to perform its operations: \(error.localizedDescription)\n\nClick here to try again.",
+                duration: 30) {
+                    DispatchQueue.main.async {
+                        Task {
+                            await loadPageCatalog()
+                        }
+                    }
+                }
+        }
+    }
+    
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
@@ -677,80 +760,7 @@ struct ContentView: View {
         })
         .navigationSubtitle(isDirty ? "edited" : "")
         .task {
-            do {
-#if TESTING
-                let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/pages.json")!
-#else
-                let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
-#endif
-                let pagesCatalog = try await URLSession.shared.decode(ScriptsCatalog.self, from: pagesUrl)
-                var pages = [LoadedPage]()
-                for hubPair in (pagesCatalog.hubs) {
-                    for hubPage in hubPair.value {
-                        pages.append(LoadedPage.from(hub: hubPair.key, page: hubPage))
-                    }
-                }
-                loadedCatalogs.loadedPages.removeAll()
-                loadedCatalogs.loadedPages.append(contentsOf: pages.sorted(by: {
-                    if $0.hub == "other" && $1.hub == "other" {
-                        return $0.name < $1.name
-                    }
-                    if $0.hub == "other" {
-                        return false
-                    }
-                    if $1.hub == "other" {
-                        return true
-                    }
-                    return "\($0.hub)_\($0.name)" < "\($1.hub)_\($1.name)"
-                }))
-                loadedCatalogs.waitingForPages = false
-                if page.isEmpty {
-                    page = loadedCatalogs.loadedPages.first?.id ?? ""
-                }
-
-                // Delay the start of the templates download so the window can be ready faster
-                try await Task.sleep(nanoseconds: 200_000_000)
-
-#if TESTING
-                let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/templates.json")!
-#else
-                let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/templates.json")!
-#endif
-                loadedCatalogs.templatesCatalog = try await URLSession.shared.decode(TemplateCatalog.self, from: templatesUrl)
-                loadedCatalogs.waitingForTemplates = false
-
-                do {
-                    // Delay the start of the disallowed list download so the window can be ready faster
-                    try await Task.sleep(nanoseconds: 1_000_000_000)
-
-#if TESTING
-                    let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/testing/disallowlists.json")!
-#else
-                    let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json")!
-#endif
-                    loadedCatalogs.disallowList = try await URLSession.shared.decode([String:[String]].self, from: disallowListUrl)
-                    loadedCatalogs.waitingForDisallowList = false
-                } catch {
-                    // do nothing, the disallow list is not critical
-                    debugPrint(error.localizedDescription)
-                }
-
-                do {
-                    // Delay the start of the disallowed list download so the window can be ready faster
-                    try await Task.sleep(nanoseconds: 100_000_000)
-
-                    appState.checkForUpdates()
-                } catch {
-                    // do nothing, the version check is not critical
-                    debugPrint(error.localizedDescription)
-                }
-            } catch {
-                showToast(
-                    .error(.red),
-                    "Failed to load pages",
-                    subTitle: "The application requires the catalog to perform its operations: \(error.localizedDescription)",
-                    duration: 10)
-            }
+            await loadPageCatalog()
         }
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
     }

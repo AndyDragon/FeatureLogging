@@ -136,5 +136,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "2.0.34",
+        "notes": [
+            {
+                "date": "Oct 4, 2024",
+                "notes": [
+                    "Add retry to the page load failure in case of network issues"
+                ]
+            }
+        ]
     }
 ]

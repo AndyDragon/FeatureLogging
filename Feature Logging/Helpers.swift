@@ -78,7 +78,7 @@ extension URLSession {
         dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .deferredToData,
         dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate
     ) async throws -> T {
-        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 120.0)
         let (data, _) = try await data(for: request)
 
         let decoder = JSONDecoder()
