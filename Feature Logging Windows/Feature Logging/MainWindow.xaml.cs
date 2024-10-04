@@ -54,5 +54,13 @@ namespace FeatureLogging
                 }
             }
         }
+
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (this.DataContext is MainViewModel viewModel)
+            {
+                viewModel.MainWindow = this;
+            }
+        }
     }
 }

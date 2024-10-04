@@ -11,6 +11,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
@@ -22,7 +23,7 @@ namespace FeatureLogging
 {
     public static class Validation
     {
-        private static Dictionary<string, List<string>> disallowList = new Dictionary<string, List<string>>();
+        private static Dictionary<string, List<string>> disallowList = [];
 
         public static Dictionary<string, List<string>> DisallowList 
         {
@@ -39,8 +40,8 @@ namespace FeatureLogging
             {
                 return userNameValidationResult;
             }
-            if (DisallowList.ContainsKey(hubName) &&
-                DisallowList[hubName].FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
+            if (DisallowList.TryGetValue(hubName, out List<string>? value) &&
+                value.FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
             {
                 return new ValidationResult(false, "User is on the disallow list");
             }
@@ -696,8 +697,12 @@ namespace FeatureLogging
             }
             catch (Exception ex)
             {
-                // TODO andydragon : handle errors
                 Console.WriteLine("Error occurred: {0}", ex.Message);
+                ShowErrorToast(
+                    "Failed to load the page catalog",
+                    "The application requires the catalog to perform its operations: " + ex.Message + "\n\nClick here to retry",
+                    NotificationType.Error,
+                    () => { _ = LoadPages(); });
             }
         }
 
@@ -721,8 +726,12 @@ namespace FeatureLogging
             }
             catch (Exception ex)
             {
-                // TODO andydragon : handle errors
                 Console.WriteLine("Error occurred: {0}", ex.Message);
+                ShowErrorToast(
+                    "Failed to load the page templates",
+                    "The application requires the templtes to perform its operations: " + ex.Message + "\n\nClick here to retry",
+                    NotificationType.Error,
+                    () => { _ = LoadTemplates(); });
             }
         }
 
@@ -744,7 +753,7 @@ namespace FeatureLogging
             }
             catch (Exception ex)
             {
-                // TODO andydragon : handle errors
+                // Do nothing, not vital
                 Console.WriteLine("Error occurred: {0}", ex.Message);
             }
         }
@@ -936,7 +945,6 @@ namespace FeatureLogging
             get => selectedPage;
             set
             {
-                var oldHubName = SelectedPage?.HubName;
                 if (Set(ref selectedPage, value))
                 {
                     Page = SelectedPage?.Id ?? string.Empty;
@@ -1035,7 +1043,6 @@ namespace FeatureLogging
         }
 
         #endregion
-
 
         #region Page tags
 
@@ -1594,6 +1601,8 @@ namespace FeatureLogging
 
         public ScriptsViewModel ScriptViewModel => scriptViewModel;
 
+        public MainWindow? MainWindow { get; internal set; }
+
         #endregion
 
         internal void ShowToast(string title, string? message, NotificationType type, TimeSpan? expirationTime = null)
@@ -1604,6 +1613,43 @@ namespace FeatureLogging
                 type: type,
                 areaName: "WindowArea",
                 expirationTime: expirationTime);
+        }
+
+        internal async void ShowErrorToast(string title, string? message, NotificationType type, Action action)
+        {
+            int sleepTime = 0;
+            int MaxSleepTime = 1000 * 60 * 60;
+            int SleepStep = 500;
+
+            while (sleepTime < MaxSleepTime)
+            {
+                if (MainWindow != null && MainWindow.IsVisible)
+                {
+                    var wasClicked = false;
+                    notificationManager.Show(
+                        title,
+                        message,
+                        type,
+                        areaName: "WindowArea",
+                        onClick: () => 
+                        { 
+                            wasClicked = true; 
+                            action(); 
+                        },
+                        ShowXbtn: true,
+                        onClose: () => 
+                        { 
+                            if (!wasClicked) 
+                            { 
+                                MainWindow?.Close(); 
+                            }
+                        },
+                        expirationTime: TimeSpan.MaxValue);
+                    break;
+                }
+                sleepTime += SleepStep;
+                await Task.Delay(SleepStep);
+            }
         }
     }
 

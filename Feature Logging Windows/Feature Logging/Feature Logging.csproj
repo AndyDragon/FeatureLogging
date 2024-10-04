@@ -16,7 +16,7 @@
     <Copyright>Copyright (c) 2024 AndyDragon Software, all rights reserved</Copyright>
     <Company>AndyDragon Software</Company>
     <Authors>Andrew Forget</Authors>
-    <Version>2.0.9</Version>
+    <Version>2.0.10</Version>
   </PropertyGroup>
 
   <ItemGroup>
