@@ -42,9 +42,7 @@ struct ContentView: View {
 
     @Environment(\.openURL) private var openURL
     @State private var page: String = UserDefaults.standard.string(forKey: "Page") ?? ""
-    @State private var pageStaffLevel = StaffLevelCase(
-        rawValue: UserDefaults.standard.string(forKey: "StaffLevel") ?? StaffLevelCase.mod.rawValue
-    ) ?? StaffLevelCase.mod
+    @State private var pageStaffLevel = StaffLevelCase.mod
     @State private var toastType: AlertToast.AlertType = .regular
     @State private var toastText = ""
     @State private var toastSubTitle = ""
@@ -113,89 +111,6 @@ struct ContentView: View {
         self.appState = appState
     }
 
-    private func loadPageCatalog() async {
-        do {
-#if TESTING
-            let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/pages.json")!
-#else
-            let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
-#endif
-            let pagesCatalog = try await URLSession.shared.decode(ScriptsCatalog.self, from: pagesUrl)
-            var pages = [LoadedPage]()
-            for hubPair in (pagesCatalog.hubs) {
-                for hubPage in hubPair.value {
-                    pages.append(LoadedPage.from(hub: hubPair.key, page: hubPage))
-                }
-            }
-            loadedCatalogs.loadedPages.removeAll()
-            loadedCatalogs.loadedPages.append(contentsOf: pages.sorted(by: {
-                if $0.hub == "other" && $1.hub == "other" {
-                    return $0.name < $1.name
-                }
-                if $0.hub == "other" {
-                    return false
-                }
-                if $1.hub == "other" {
-                    return true
-                }
-                return "\($0.hub)_\($0.name)" < "\($1.hub)_\($1.name)"
-            }))
-            loadedCatalogs.waitingForPages = false
-            if page.isEmpty {
-                page = loadedCatalogs.loadedPages.first?.id ?? ""
-            }
-            
-            // Delay the start of the templates download so the window can be ready faster
-            try await Task.sleep(nanoseconds: 200_000_000)
-            
-#if TESTING
-            let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/templates.json")!
-#else
-            let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/templates.json")!
-#endif
-            loadedCatalogs.templatesCatalog = try await URLSession.shared.decode(TemplateCatalog.self, from: templatesUrl)
-            loadedCatalogs.waitingForTemplates = false
-            
-            do {
-                // Delay the start of the disallowed list download so the window can be ready faster
-                try await Task.sleep(nanoseconds: 1_000_000_000)
-                
-#if TESTING
-                let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/testing/disallowlists.json")!
-#else
-                let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json")!
-#endif
-                loadedCatalogs.disallowList = try await URLSession.shared.decode([String:[String]].self, from: disallowListUrl)
-                loadedCatalogs.waitingForDisallowList = false
-            } catch {
-                // do nothing, the disallow list is not critical
-                debugPrint(error.localizedDescription)
-            }
-            
-            do {
-                // Delay the start of the disallowed list download so the window can be ready faster
-                try await Task.sleep(nanoseconds: 100_000_000)
-                
-                appState.checkForUpdates()
-            } catch {
-                // do nothing, the version check is not critical
-                debugPrint(error.localizedDescription)
-            }
-        } catch {
-            showToast(
-                .error(.red),
-                "Failed to load pages",
-                subTitle: "The application requires the catalog to perform its operations: \(error.localizedDescription)\n\nClick here to try again.",
-                duration: 30) {
-                    DispatchQueue.main.async {
-                        Task {
-                            await loadPageCatalog()
-                        }
-                    }
-                }
-        }
-    }
-    
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
@@ -229,6 +144,7 @@ struct ContentView: View {
                             selectedFeature = nil
                             featuresViewModel = FeaturesViewModel()
                             sortedFeatures = featuresViewModel.sortedFeatures
+                            updateStaffLevelForPage()
                         }) {
                             ForEach(loadedCatalogs.loadedPages) { page in
                                 if page.name != "default" {
@@ -250,7 +166,7 @@ struct ContentView: View {
                             .truncationMode(.tail)
                         
                         Picker("", selection: $pageStaffLevel.onChange { value in
-                            UserDefaults.standard.set(pageStaffLevel.rawValue, forKey: "StaffLevel")
+                            storeStaffLevelForPage()
                         }) {
                             ForEach(StaffLevelCase.allCases) { staffLevelCase in
                                 Text(staffLevelCase.rawValue)
@@ -835,6 +751,126 @@ struct ContentView: View {
         return ""
     }
 
+    private func updateStaffLevelForPage() {
+        // debugPrint("******* Update *******")
+        // debugPrint(UserDefaults.standard.dictionaryRepresentation().filter { $0.key.starts(with: "StaffLevel") })
+        if !page.isEmpty {
+            if let rawPageStaffLevel = UserDefaults.standard.string(forKey: "StaffLevel_" + page) {
+                if let pageStaffLevelFromRaw = StaffLevelCase(rawValue: rawPageStaffLevel) {
+                    pageStaffLevel = pageStaffLevelFromRaw
+                    return
+                }
+                pageStaffLevel = StaffLevelCase.mod
+                return
+            }
+        }
+
+        if let rawPagelessStaffLevel = UserDefaults.standard.string(forKey: "StaffLevel") {
+            if let pageStaffLevelFromRaw = StaffLevelCase(rawValue: rawPagelessStaffLevel) {
+                pageStaffLevel = pageStaffLevelFromRaw
+                storeStaffLevelForPage()
+                return
+            }
+        }
+
+        pageStaffLevel = StaffLevelCase.mod
+        storeStaffLevelForPage()
+    }
+
+    private func storeStaffLevelForPage() {
+        if !page.isEmpty {
+            UserDefaults.standard.set(pageStaffLevel.rawValue, forKey: "StaffLevel_" + page)
+        } else {
+            UserDefaults.standard.set(pageStaffLevel.rawValue, forKey: "StaffLevel")
+        }
+        // debugPrint("******* Store *******")
+        // debugPrint(UserDefaults.standard.dictionaryRepresentation().filter { $0.key.starts(with: "StaffLevel") })
+    }
+
+    private func loadPageCatalog() async {
+        do {
+#if TESTING
+            let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/pages.json")!
+#else
+            let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
+#endif
+            let pagesCatalog = try await URLSession.shared.decode(ScriptsCatalog.self, from: pagesUrl)
+            var pages = [LoadedPage]()
+            for hubPair in (pagesCatalog.hubs) {
+                for hubPage in hubPair.value {
+                    pages.append(LoadedPage.from(hub: hubPair.key, page: hubPage))
+                }
+            }
+            loadedCatalogs.loadedPages.removeAll()
+            loadedCatalogs.loadedPages.append(contentsOf: pages.sorted(by: {
+                if $0.hub == "other" && $1.hub == "other" {
+                    return $0.name < $1.name
+                }
+                if $0.hub == "other" {
+                    return false
+                }
+                if $1.hub == "other" {
+                    return true
+                }
+                return "\($0.hub)_\($0.name)" < "\($1.hub)_\($1.name)"
+            }))
+            loadedCatalogs.waitingForPages = false
+            if page.isEmpty {
+                page = loadedCatalogs.loadedPages.first?.id ?? ""
+            }
+            updateStaffLevelForPage()
+
+            // Delay the start of the templates download so the window can be ready faster
+            try await Task.sleep(nanoseconds: 200_000_000)
+            
+#if TESTING
+            let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/templates.json")!
+#else
+            let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/templates.json")!
+#endif
+            loadedCatalogs.templatesCatalog = try await URLSession.shared.decode(TemplateCatalog.self, from: templatesUrl)
+            loadedCatalogs.waitingForTemplates = false
+            
+            do {
+                // Delay the start of the disallowed list download so the window can be ready faster
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                
+#if TESTING
+                let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/testing/disallowlists.json")!
+#else
+                let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json")!
+#endif
+                loadedCatalogs.disallowList = try await URLSession.shared.decode([String:[String]].self, from: disallowListUrl)
+                loadedCatalogs.waitingForDisallowList = false
+            } catch {
+                // do nothing, the disallow list is not critical
+                debugPrint(error.localizedDescription)
+            }
+            
+            do {
+                // Delay the start of the disallowed list download so the window can be ready faster
+                try await Task.sleep(nanoseconds: 100_000_000)
+                
+                appState.checkForUpdates()
+            } catch {
+                // do nothing, the version check is not critical
+                debugPrint(error.localizedDescription)
+            }
+        } catch {
+            showToast(
+                .error(.red),
+                "Failed to load pages",
+                subTitle: "The application requires the catalog to perform its operations: \(error.localizedDescription)\n\nClick here to try again.",
+                duration: 30) {
+                    DispatchQueue.main.async {
+                        Task {
+                            await loadPageCatalog()
+                        }
+                    }
+                }
+        }
+    }
+    
     private func loadLog(from file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
         if (!gotAccess) {
