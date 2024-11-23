@@ -1233,7 +1233,7 @@ struct ContentView: View {
                             sharedFeature = jsonString
                             
                             // Launch the ScriptContentView
-                            isShowingScriptView.toggle()
+                            isShowingScriptView = true
                         } catch {
                             debugPrint(error.localizedDescription)
                         }
@@ -1516,6 +1516,7 @@ struct FeatureListRow: View {
                             })
                             .focusable()
                             .autocorrectionDisabled(false)
+                            .disableAutocorrection(false)
                             .textFieldStyle(.plain)
                             .padding(4)
                             .background(Color.BackgroundColorEditor)

@@ -48,6 +48,7 @@ struct FeatureEditor: View {
     @State private var tooSoonToFeatureUser = false
     @State private var tinEyeResults = TinEyeResults.zeroMatches
     @State private var aiCheckResults = AiCheckResults.human
+    @State private var downloadUnavailable = true
 
     private let labelWidth: CGFloat = 108
 
@@ -86,7 +87,7 @@ struct FeatureEditor: View {
                 ValidationLabel("Post link:", labelWidth: labelWidth, validation: !postLink.isEmpty && !postLink.contains(where: \.isNewline))
                 TextField("enter the post link", text: $postLink.onChange { value in
                     feature.postLink = postLink
-                    self.postLink = postLink
+                    downloadUnavailable = !postLink.starts(with: "https://vero.co/")
                     markDocumentDirty()
                 })
                 .focusable()
@@ -109,6 +110,7 @@ struct FeatureEditor: View {
                     } else {
                         // TODO andydragon : show toast, invalid clipboard text, not a VERO link
                     }
+                    downloadUnavailable = !postLink.starts(with: "https://vero.co/")
                     feature.postLink = postLink
                     feature.userAlias = userAlias
                 }) {
@@ -121,6 +123,9 @@ struct FeatureEditor: View {
                 .focusable()
 
                 Button(action: {
+                    if postLink.isEmpty {
+                        
+                    }
                     showDownloaderView(postLink)
                 }) {
                     HStack(alignment: .center) {
@@ -130,6 +135,7 @@ struct FeatureEditor: View {
                     }
                 }
                 .focusable()
+                .disabled(downloadUnavailable)
             }
 
             // User alias
@@ -778,6 +784,7 @@ struct FeatureEditor: View {
         .onChange(of: feature, initial: true) {
             isPicked = feature.isPicked
             postLink = feature.postLink
+            downloadUnavailable = !postLink.starts(with: "https://vero.co/")
             userName = feature.userName
             userAlias = feature.userAlias
             userLevel = feature.userLevel

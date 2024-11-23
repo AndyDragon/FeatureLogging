@@ -61,6 +61,8 @@ struct NewMembershipEditor: View {
                 .background(Color.BackgroundColorEditor)
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
+                .autocorrectionDisabled(false)
+                .disableAutocorrection(false)
         } else {
             TextEditor(text: $script)
                 .font(.system(size: 14))
@@ -72,6 +74,8 @@ struct NewMembershipEditor: View {
                 .background(Color.BackgroundColorEditor)
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
+                .autocorrectionDisabled(false)
+                .disableAutocorrection(false)
         }
     }
 }

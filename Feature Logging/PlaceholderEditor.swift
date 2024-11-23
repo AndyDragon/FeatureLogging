@@ -41,6 +41,8 @@ struct PlaceholderView: View {
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .textEditorStyle(.plain)
+                    .autocorrectionDisabled(false)
+                    .disableAutocorrection(false)
                 } else {
                     TextEditor(text: $editorValue.onChange(editorValueChanged))
                     .font(.body)
@@ -52,6 +54,8 @@ struct PlaceholderView: View {
                     .background(Color.BackgroundColorEditor)
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
+                    .autocorrectionDisabled(false)
+                    .disableAutocorrection(false)
                 }
             } else {
                 TextField("", text: $editorValue.onChange(editorValueChanged))
@@ -64,6 +68,8 @@ struct PlaceholderView: View {
                 .background(Color.BackgroundColorEditor)
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
+                .autocorrectionDisabled(false)
+                .disableAutocorrection(false)
             }
             Spacer()
                 .background(Color.yellow)

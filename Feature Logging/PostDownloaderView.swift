@@ -17,6 +17,8 @@ struct PostDownloaderView: View {
     @State private var postLoaded = false
     @State private var description = ""
     @State private var userName = ""
+    @State private var logging: [(Color, String)] = []
+    @State private var loggingComplete = false
 
     var page: Binding<String>
     var postUrl: Binding<String>
@@ -51,9 +53,7 @@ struct PostDownloaderView: View {
                         }
                         if postLoaded {
                             HStack {
-                                Text(userName)
-                                    .foregroundStyle(userName.isEmpty ? .red : .green, .black)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                ValidationLabel("User name: \(userName)", validation: !userName.isEmpty, validColor: .green)
                                 HStack {
                                     Button(action: {
                                         //savePostUserName(userName)
@@ -67,19 +67,27 @@ struct PostDownloaderView: View {
                                     }
                                 }
                             }
+                            ValidationLabel("Page tag: \(tagCheck)", validation: !missingTag, validColor: .green)
+                            ValidationLabel("\(imageUrls.count) image\(imageUrls.count == 1 ? "" : "s") found", validation: imageUrls.count > 0, validColor: .green)
                             TextEditor(text: .constant(description))
                                 .scrollIndicators(.automatic)
                                 .frame(maxWidth: 640.0, maxHeight: 320.0, alignment: .leading)
-                            Text(tagCheck)
-                                .foregroundStyle(missingTag ? .red : .green, .black)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Text("\(imageUrls.count) image\(imageUrls.count == 1 ? "" : "s") found")
-                                .foregroundStyle(imageUrls.count == 0 ? .red : .green, .black)
-                                .frame(maxWidth: .infinity, alignment: .leading)
                             HStack {
                                 ForEach (Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
                                     ImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
                                         .padding(.all, 0.001)
+                                }
+                            }
+                        }
+                        if loggingComplete {
+                            VStack {
+                                Text("LOGGING:")
+                                    .foregroundStyle(.orange, .black)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                ForEach (Array(logging.enumerated()), id: \.offset) { index, log in
+                                    Text(log.1)
+                                        .foregroundStyle(log.0, .black)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                             }
                         }
@@ -119,26 +127,44 @@ struct PostDownloaderView: View {
         }
     }
     
+    enum AccountError: String, LocalizedError {
+        case PrivateAccount = "Could not find any images, this account might be private"
+        case MissingImages = "Could not find any images"
+        public var errorDescription: String? { self.rawValue }
+    }
+    
     private func loadFeature() {
         postLoaded = false
         tagCheck = ""
         missingTag = false
         imageUrls = []
+        logging = []
+        loggingComplete = false
+        var likelyPrivate = false
         if let url = URL(string: postUrl.wrappedValue) {
             do {
                 let contents = try String(contentsOf: url, encoding: .utf8)
+                logging.append((.blue, "Loaded the post from the server"))
                 let document = try SwiftSoup.parse(contents)
                 if let user = try! getMetaTagContent(document, "name", "username") {
                     print("User: \(user)")
+                    logging.append((.blue, "User: \(user)"))
                 }
                 userName = ""
                 if let title = try! getMetaTagContent(document, "property", "og:title") {
                     if title.hasSuffix(" shared a photo on VERO™") {
                         userName = title.replacingOccurrences(of: " shared a photo on VERO™", with: "")
                         print("User's name: \(userName)")
+                        logging.append((.blue, "User's name: \(userName)"))
                     } else if title.hasSuffix(" shared photos on VERO™") {
                         userName = title.replacingOccurrences(of: " shared photos on VERO™", with: "")
                         print("User's name: \(userName)")
+                        logging.append((.blue, "User's name: \(userName)"))
+                    } else if title.hasSuffix(" on VERO™") {
+                        userName = title.replacingOccurrences(of: " on VERO™", with: "")
+                        print("User's name: \(userName)")
+                        logging.append((.blue, "User's name: \(userName)"))
+                        likelyPrivate = true
                     }
                 }
                 if let captionsDiv = try! document.body()?.getElementsByTag("div").first(where: { element in
@@ -191,17 +217,38 @@ struct PostDownloaderView: View {
                         var imageSrc = try! image.attr("src")
                         if imageSrc.hasSuffix("_thumb.jpg") {
                             imageSrc = imageSrc.replacingOccurrences(of: "_thumb.jpg", with: "")
+                        } else if imageSrc.hasSuffix("_thumb.png") {
+                            imageSrc = imageSrc.replacingOccurrences(of: "_thumb.png", with: "")
                         }
-                        print(imageSrc)
+                        print("Image source: \(imageSrc)")
+                        logging.append((.blue, "Image source: \(imageSrc)"))
                         return (URL(string: imageSrc)!, userName)
                     })
                 }
                 
-                // let body = try document.outerHtml()
-                // print(body)
+                if imageUrls.isEmpty && likelyPrivate {
+                    throw AccountError.PrivateAccount
+                } else if imageUrls.isEmpty {
+                    throw AccountError.MissingImages
+                }
+                
+                // Debugging
+                //print(try document.outerHtml())
                 
                 postLoaded = true
+            } catch let error as AccountError {
+                logging.append((.red, "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"))
+                logging.append((.red, "Post must be handled manually in VERO app"))
+                showToast(
+                    .error(.red),
+                    "Failed to load and parse post",
+                    String {
+                        "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"
+                    },
+                    3) {}
             } catch {
+                logging.append((.red, "Failed to download and parse the post information - \(error.localizedDescription)"))
+                logging.append((.red, "Post must be handled manually in VERO app"))
                 showToast(
                     .error(.red),
                     "Failed to load and parse post",
@@ -210,6 +257,7 @@ struct PostDownloaderView: View {
                     },
                     3) {}
             }
+            loggingComplete = true
         }
     }
     
@@ -231,6 +279,7 @@ private struct ImageView : View {
     @State private var width = 0
     @State private var height = 0
     @State private var data: Data?
+    @State private var scale: Float = 0.0000001
     var imageUrl: URL
     var name: String
     var index: Int
@@ -239,17 +288,23 @@ private struct ImageView : View {
     var body: some View {
         VStack {
             VStack {
-                KFImage(imageUrl).onSuccess { result in
-                    print("\(result.image.size.width) x \(result.image.size.height)")
-                    width = Int(result.image.size.width)
-                    height = Int(result.image.size.height)
-                    data = result.data()!
+                HStack {
+                    KFImage(imageUrl).onSuccess { result in
+                        print("\(result.image.size.width) x \(result.image.size.height)")
+                        width = Int(result.image.size.width)
+                        height = Int(result.image.size.height)
+                        scale = min(400.0 / Float(width), 360.0 / Float(height))
+                        data = result.data()!
+                    }
                 }
-                .resizable()
-                .frame(width: 360, height: 360)
+                .scaleEffect(CGFloat(scale))
+                .frame(width: 400, height: 360)
+                .clipped()
+                Slider(value: $scale, in: 0.01...1)
                 Text("Size: \(width) x \(height)")
                     .foregroundStyle(.black, .secondary)
             }
+            .frame(width: 400, height: 410)
             .padding(.all, 4)
             .background(Color.white)
             Button("Save") {
