@@ -17,7 +17,7 @@ struct ContentView: View {
     ) var theme = Theme.notSet
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @State private var isDarkModeOn = true
-
+    
     // PREFS
     @AppStorage(
         "preference_includehash",
@@ -31,17 +31,20 @@ struct ContentView: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-
+    
     // SHARED FEATURE
     @AppStorage(
         "feature",
         store: UserDefaults(suiteName: "group.com.andydragon.VeroTools")
     ) var sharedFeature = ""
-
+    
     @EnvironmentObject var commandModel: AppCommandModel
-
+    
     @Environment(\.openURL) private var openURL
     @State private var page: String = UserDefaults.standard.string(forKey: "Page") ?? ""
+    @State private var pageHashTag: String = ""
+    @State private var postUrl: String = ""
+    @State private var postUserName: String = ""
     @State private var pageStaffLevel = StaffLevelCase.mod
     @State private var toastType: AlertToast.AlertType = .regular
     @State private var toastText = ""
@@ -78,6 +81,7 @@ struct ContentView: View {
     @State private var reportDocument = ReportDocument()
     @State private var isShowingScriptView = false
     @State private var isShowingStatisticsView = false
+    @State private var isShowingDownloaderView = false
     @FocusState private var focusedField: FocusedField?
     private var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
@@ -104,17 +108,21 @@ struct ContentView: View {
     private var titleSuffix: String {
         isShowingScriptView
         ? ((selectedFeature?.userName ?? "").isEmpty ? " - scripts" : " - scripts for \(selectedFeature?.userName ?? "")\(descriptionSuffix)")
-        : (isShowingStatisticsView ? " - statistics" : "")
+        : (isShowingDownloaderView
+           ? ((selectedFeature?.userName ?? "").isEmpty ? " - post viewer" : " - post viewer for \(selectedFeature?.userName ?? "")\(descriptionSuffix)")
+           : (isShowingStatisticsView
+              ? " - statistics"
+              : ""))
     }
-
+    
     init(_ appState: VersionCheckAppState) {
         self.appState = appState
     }
-
+    
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-
+            
             if isShowingScriptView {
                 ScriptContentView(
                     loadedCatalogs,
@@ -126,6 +134,14 @@ struct ContentView: View {
                     { isShowingScriptView.toggle() },
                     navigateToNextFeature,
                     showToast)
+            } else if isShowingDownloaderView {
+                PostDownloaderView(
+                    page: $pageHashTag,
+                    postUrl: $postUrl,
+                    isShowingToast: $isShowingToast,
+                    hideDownloaderView: { isShowingDownloaderView.toggle() },
+                    showToast: showToast,
+                    savePostUserName: savePostUserName)
             } else if isShowingStatisticsView {
                 StatisticsContentView(
                     $isShowingToast,
@@ -137,7 +153,7 @@ struct ContentView: View {
                     HStack(alignment: .center) {
                         Text("Page:")
                             .frame(width: 108, alignment: .trailing)
-
+                        
                         Picker("", selection: $page.onChange { value in
                             UserDefaults.standard.set(page, forKey: "Page")
                             logURL = nil
@@ -145,6 +161,11 @@ struct ContentView: View {
                             featuresViewModel = FeaturesViewModel()
                             sortedFeatures = featuresViewModel.sortedFeatures
                             updateStaffLevelForPage()
+                            if let loadedPage = loadedCatalogs.loadedPages.first(where: { $0.id == page }) {
+                                pageHashTag = loadedPage.hashTag ?? "\(loadedPage.hub)_\(loadedPage.name)"
+                            } else {
+                                pageHashTag = ""
+                            }
                         }) {
                             ForEach(loadedCatalogs.loadedPages) { page in
                                 if page.name != "default" {
@@ -158,7 +179,7 @@ struct ContentView: View {
                         .focusable()
                         .focused($focusedField, equals: .pagePicker)
                         .disabled(!featuresViewModel.features.isEmpty)
-
+                        
                         // Page staff level picker
                         Text("Page staff level: ")
                             .padding([.leading], 8)
@@ -180,7 +201,7 @@ struct ContentView: View {
                         .focusable()
                         .focused($focusedField, equals: .staffLevel)
                         .frame(maxWidth: 144)
-
+                        
                         Menu("Copy tag", systemImage: "tag.fill") {
                             Button(action: {
                                 copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
@@ -232,28 +253,31 @@ struct ContentView: View {
                         .frame(maxWidth: 132)
                         .focusable()
                     }
-
+                    
                     // Feature editor
                     VStack {
                         if let currentFeature = selectedFeature {
-                            FeatureEditor(feature: currentFeature, loadedPage: loadedPage, close: {
+                            FeatureEditor(feature: currentFeature, loadedPage: loadedPage, postUrl: $postUrl, postUserName: postUserName, close: {
                                 selectedFeature = nil
                             }, updateList: {
                                 sortedFeatures = featuresViewModel.sortedFeatures
                                 shouldScrollFeatureListToSelection.toggle()
                             }, markDocumentDirty: {
                                 isDirty = true
-                            }, showToast: showToast)
+                            }, showToast: showToast, showDownloaderView: { postUrl in
+                                self.postUrl = postUrl
+                                isShowingDownloaderView.toggle()
+                            })
                         } else {
                             Spacer()
                         }
                     }
                     .frame(height: 380)
-
+                    
                     // Feature list buttons
                     HStack {
                         Spacer()
-
+                        
                         // Add feature
                         Button(action: {
                             let linkText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
@@ -290,10 +314,10 @@ struct ContentView: View {
                         }
                         .disabled(isAnyToastShowing)
                         .keyboardShortcut("+", modifiers: .command)
-
+                        
                         Spacer()
                             .frame(width: 16)
-
+                        
                         // Remove feature
                         Button(action: {
                             if let currentFeature = selectedFeature {
@@ -312,7 +336,7 @@ struct ContentView: View {
                         .disabled(isAnyToastShowing || selectedFeature == nil)
                         .keyboardShortcut("-", modifiers: .command)
                     }
-
+                    
                     // Feature list
                     ScrollViewReader { proxy in
                         List {
@@ -413,7 +437,7 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isAnyToastShowing || loadedPage == nil)
-
+                    
                     // Save log
                     Button(action: {
                         logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
@@ -456,7 +480,7 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isAnyToastShowing || loadedPage == nil)
-
+                    
                     // Copy report
                     Button(action: {
                         copyReportToClipboard()
@@ -472,7 +496,7 @@ struct ContentView: View {
                         .buttonStyle(.plain)
                     }
                     .disabled(isAnyToastShowing || loadedPage == nil)
-
+                    
                     // Save report
                     Button(action: {
                         reportDocument = ReportDocument(initialText: generateReport())
@@ -507,7 +531,7 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isAnyToastShowing || loadedPage == nil)
-
+                    
                     // Theme
                     Menu("Theme", systemImage: "paintpalette") {
                         Picker("Theme:", selection: $theme.onChange(setTheme)) {
@@ -680,14 +704,14 @@ struct ContentView: View {
         }
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
     }
-
+    
     private func delayAndTerminate() {
         isDirty = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: {
             NSApplication.shared.terminate(nil)
         })
     }
-
+    
     private func setTheme(_ newTheme: Theme) {
         if (newTheme == .notSet) {
             isDarkModeOn = colorScheme == .dark
@@ -701,7 +725,13 @@ struct ContentView: View {
             }
         }
     }
-
+    
+    private func savePostUserName(
+        _ userName: String
+    ) {
+        postUserName = userName
+    }
+    
     private func showToast(
         _ type: AlertToast.AlertType,
         _ text: String,
@@ -723,7 +753,7 @@ struct ContentView: View {
             toastId = UUID()
             isShowingToast.toggle()
         }
-
+        
         if duration != 0 {
             let expectedToastId = toastId
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(duration), execute: {
@@ -735,7 +765,7 @@ struct ContentView: View {
             })
         }
     }
-
+    
     private func getVersionSubTitle() -> String {
         if appState.isShowingVersionAvailableToast.wrappedValue {
             return "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) " +
@@ -750,7 +780,7 @@ struct ContentView: View {
         }
         return ""
     }
-
+    
     private func updateStaffLevelForPage() {
         // debugPrint("******* Update *******")
         // debugPrint(UserDefaults.standard.dictionaryRepresentation().filter { $0.key.starts(with: "StaffLevel") })
@@ -764,7 +794,7 @@ struct ContentView: View {
                 return
             }
         }
-
+        
         if let rawPagelessStaffLevel = UserDefaults.standard.string(forKey: "StaffLevel") {
             if let pageStaffLevelFromRaw = StaffLevelCase(rawValue: rawPagelessStaffLevel) {
                 pageStaffLevel = pageStaffLevelFromRaw
@@ -772,11 +802,11 @@ struct ContentView: View {
                 return
             }
         }
-
+        
         pageStaffLevel = StaffLevelCase.mod
         storeStaffLevelForPage()
     }
-
+    
     private func storeStaffLevelForPage() {
         if !page.isEmpty {
             UserDefaults.standard.set(pageStaffLevel.rawValue, forKey: "StaffLevel_" + page)
@@ -786,7 +816,7 @@ struct ContentView: View {
         // debugPrint("******* Store *******")
         // debugPrint(UserDefaults.standard.dictionaryRepresentation().filter { $0.key.starts(with: "StaffLevel") })
     }
-
+    
     private func loadPageCatalog() async {
         do {
 #if TESTING
@@ -818,8 +848,13 @@ struct ContentView: View {
             if page.isEmpty {
                 page = loadedCatalogs.loadedPages.first?.id ?? ""
             }
+            if let loadedPage = loadedCatalogs.loadedPages.first(where: { $0.id == page }) {
+                pageHashTag = loadedPage.hashTag ?? "\(loadedPage.hub)_\(loadedPage.name)"
+            } else {
+                pageHashTag = ""
+            }
             updateStaffLevelForPage()
-
+            
             // Delay the start of the templates download so the window can be ready faster
             try await Task.sleep(nanoseconds: 200_000_000)
             
@@ -877,7 +912,7 @@ struct ContentView: View {
             print("No access?")
             return
         }
-
+        
         let fileContents = FileManager.default.contents(atPath: file.path)
         if let json = fileContents {
             let jsonString = String(String(decoding: json, as: UTF8.self))
@@ -900,17 +935,17 @@ struct ContentView: View {
                 debugPrint("Error parsing JSON: \(error.localizedDescription)")
             }
         }
-
+        
         file.stopAccessingSecurityScopedResource()
     }
-
+    
     private func saveLog(to file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
         if (!gotAccess) {
             print("No access?")
             return
         }
-
+        
         do {
             let jsonData = Data(logDocument.text.replacingOccurrences(of: "\\/", with: "/").utf8)
             try jsonData.write(to: file)
@@ -922,10 +957,10 @@ struct ContentView: View {
         } catch {
             debugPrint(error)
         }
-
+        
         file.stopAccessingSecurityScopedResource()
     }
-
+    
     private func generateReport() -> String {
         var lines = [String]()
         var personalLines = [String]()
@@ -980,21 +1015,21 @@ struct ContentView: View {
                 switch feature.tagSource {
                 case .commonPageTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
-                    break;
+                    break
                 case .clickCommunityTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_community")
-                    break;
+                    break
                 case .clickHubTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_hub")
-                    break;
+                    break
                 default:
                     lines.append("\(indent)hashtag = other")
-                    break;
+                    break
                 }
                 lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
                 lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
                 lines.append("")
-
+                
                 if isPicked {
                     let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                     let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -1058,24 +1093,24 @@ struct ContentView: View {
                 switch feature.tagSource {
                 case .commonPageTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
-                    break;
+                    break
                 case .snapRawPageTag:
                     lines.append("\(indent)hashtag = #raw_\(loadedPage!.pageName ?? loadedPage!.name)")
-                    break;
+                    break
                 case .snapCommunityTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_community")
-                    break;
+                    break
                 case .snapRawCommunityTag:
                     lines.append("\(indent)hashtag = #raw_community")
-                    break;
+                    break
                 default:
                     lines.append("\(indent)hashtag = other")
-                    break;
+                    break
                 }
                 lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
                 lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
                 lines.append("")
-
+                
                 if isPicked {
                     let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                     let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -1131,15 +1166,15 @@ struct ContentView: View {
                 switch feature.tagSource {
                 case .commonPageTag:
                     lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
-                    break;
+                    break
                 default:
                     lines.append("\(indent)hashtag = other")
-                    break;
+                    break
                 }
                 lines.append("\(indent)tineye - \(feature.tinEyeResults.rawValue)")
                 lines.append("\(indent)ai check - \(feature.aiCheckResults.rawValue)")
                 lines.append("")
-
+                
                 if isPicked {
                     let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                     let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -1162,7 +1197,7 @@ struct ContentView: View {
         }
         return text
     }
-
+    
     private func copyReportToClipboard() {
         let text = generateReport()
         copyToClipboard(text)
@@ -1198,7 +1233,7 @@ struct ContentView: View {
                             sharedFeature = jsonString
                             
                             // Launch the ScriptContentView
-                            isShowingScriptView = true
+                            isShowingScriptView.toggle()
                         } catch {
                             debugPrint(error.localizedDescription)
                         }
@@ -1249,7 +1284,7 @@ struct DocumentDirtySheet: View {
     var saveAction: () -> Void
     var dismissAction: () -> Void
     var cancelAction: () -> Void
-
+    
     var body: some View {
         VStack {
             HStack(alignment: .center) {
@@ -1298,7 +1333,7 @@ struct FeatureListRow: View {
         "feature",
         store: UserDefaults(suiteName: "group.com.andydragon.VeroTools")
     ) var sharedFeature = ""
-
+    
     @ObservedObject var feature: Feature
     var loadedPage: LoadedPage
     var pageStaffLevel: StaffLevelCase
@@ -1306,7 +1341,7 @@ struct FeatureListRow: View {
     var ensureSelected: () -> Void
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
     var showScriptView: () -> Void
-
+    
     @State var userName = ""
     @State var userAlias = ""
     @State var featureDescription = ""
@@ -1316,7 +1351,7 @@ struct FeatureListRow: View {
     @State var userHasFeaturesOnHub = false
     @State var postLink = ""
     @State var showingMessageEditor = false
-
+    
     @AppStorage(
         "preference_personalMessage",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -1325,7 +1360,7 @@ struct FeatureListRow: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-
+    
     var body: some View {
         HStack(alignment: .center) {
             if feature.photoFeaturedOnPage {
@@ -1365,11 +1400,11 @@ struct FeatureListRow: View {
                     .frame(width: 32, height: 32)
                     .opacity(0.0000001)
             }
-
+            
             VStack {
                 HStack {
                     Text("Feature: ")
-
+                    
                     if !userName.isEmpty {
                         Text(userName)
                     } else {
@@ -1377,9 +1412,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-
+                    
                     Text(" | ")
-
+                    
                     if !userAlias.isEmpty {
                         Text("@\(userAlias)")
                     } else {
@@ -1387,9 +1422,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-
+                    
                     Text(" | ")
-
+                    
                     if !featureDescription.isEmpty {
                         Text(featureDescription)
                     } else {
@@ -1397,9 +1432,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-
+                    
                     Text(" | ")
-
+                    
                     Image(systemName: "tag.square")
                         .foregroundStyle(photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary, photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary)
                         .font(.system(size: 14))
@@ -1426,9 +1461,9 @@ struct FeatureListRow: View {
                         .font(.system(size: 14))
                         .frame(width: 16, height: 16)
                         .help(userIsTeammate ? "User is teammate" : "User is not a teammate")
-
+                    
                     Spacer()
-
+                    
                     if feature.isPickedAndAllowed {
                         Button(action: {
                             ensureSelected()
@@ -1440,10 +1475,10 @@ struct FeatureListRow: View {
                                 Text("Edit scripts")
                             }
                         }
-
+                        
                         Spacer()
                             .frame(width: 8)
-
+                        
                         Button(action: {
                             ensureSelected()
                             showingMessageEditor.toggle()
@@ -1460,20 +1495,20 @@ struct FeatureListRow: View {
                 HStack {
                     Text(postLink)
                         .font(.footnote)
-
+                    
                     Spacer()
                 }
             }
             .sheet(isPresented: $showingMessageEditor, content: {
                 ZStack {
                     Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-
+                    
                     VStack(alignment: .leading)  {
                         Text("Personal message for feature: \(feature.userName) - \(feature.featureDescription)")
-
+                        
                         Spacer()
                             .frame(height: 8)
-
+                        
                         HStack(alignment: .center) {
                             Text("Personal message (from your account): ")
                             TextField("", text: $feature.personalMessage.onChange { value in
@@ -1487,12 +1522,12 @@ struct FeatureListRow: View {
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
                         }
-
+                        
                         Spacer()
-
+                        
                         HStack(alignment: .center)  {
                             Spacer()
-
+                            
                             Button(action: {
                                 let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                                 let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -1512,7 +1547,7 @@ struct FeatureListRow: View {
                                     Text("Copy full text")
                                 }
                             }
-
+                            
                             Button(action: {
                                 showingMessageEditor.toggle()
                             }) {
@@ -1565,7 +1600,7 @@ struct FeatureListRow: View {
             postLink = feature.postLink
         }
     }
-
+    
     private func launchVeroScripts() {
         if feature.photoFeaturedOnPage {
             showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured on this page", 0) { }
@@ -1588,14 +1623,14 @@ struct FeatureListRow: View {
             return
         }
         do {
-            // Encode the feature for Vero Scripts and copy to the clipboard
+            // Encode the feature for the scripts view
             let encoder = JSONEncoder()
             let json = try encoder.encode(CodableFeature(using: loadedPage, pageStaffLevel: pageStaffLevel, from: feature))
             let jsonString = String(decoding: json, as: UTF8.self)
-
+            
             // Store the feature in the shared storage
             sharedFeature = jsonString
-
+            
             // Launch the ScriptContentView
             showScriptView()
         } catch {

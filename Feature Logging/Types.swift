@@ -25,7 +25,7 @@ enum FocusedField: Hashable {
          commentScript,
          originalPostScript,
          newMembershipScript,
-         
+
          pagePicker // Content view
 }
 
@@ -66,7 +66,7 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
             .snapDiamondMember
         ]
     }
-    
+
     static func casesFor(hub: String?) -> [MembershipCase] {
         if hub == "snap" {
             return [
@@ -245,7 +245,7 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
             .none
         ]
     }
-    
+
     static func scriptFor(hub: String?, _ value: NewMembershipCase) -> String {
         if hub == "snap" {
             switch value {
@@ -703,7 +703,7 @@ struct CodableFeature: Codable {
     var description: String
 
     init(using page: LoadedPage, pageStaffLevel: StaffLevelCase, from feature: Feature) {
-        self.page = page.id;
+        self.page = page.id
         self.pageStaffLevel = pageStaffLevel
         self.userName = feature.userName
         self.userAlias = feature.userAlias
@@ -760,7 +760,7 @@ struct CodableFeature: Codable {
         case newLevel
         case description
     }
-    
+
     init(json: Data) throws {
         let decoder = JSONDecoder()
         let feature = try decoder.decode(CodableFeature.self, from: json)

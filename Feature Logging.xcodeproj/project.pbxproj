@@ -28,6 +28,9 @@
 		49D8280D2BB7327200153786 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49D8280C2BB7327200153786 /* Assets.xcassets */; };
 		49D828102BB7327200153786 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49D8280F2BB7327200153786 /* Preview Assets.xcassets */; };
 		49EBB9D52BC0944300D2AE04 /* ValidationLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EBB9D42BC0944300D2AE04 /* ValidationLabel.swift */; };
+		49FA95F82CF195CB0074DE7B /* PostDownloaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FA95F72CF195CB0074DE7B /* PostDownloaderView.swift */; };
+		49FA95FB2CF195E50074DE7B /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 49FA95FA2CF195E50074DE7B /* Kingfisher */; };
+		49FA95FE2CF198A20074DE7B /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 49FA95FD2CF198A20074DE7B /* SwiftSoup */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +56,7 @@
 		49D8280F2BB7327200153786 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		49D828112BB7327200153786 /* Feature_Logging.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Feature_Logging.entitlements; sourceTree = "<group>"; };
 		49EBB9D42BC0944300D2AE04 /* ValidationLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationLabel.swift; sourceTree = "<group>"; };
+		49FA95F72CF195CB0074DE7B /* PostDownloaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostDownloaderView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,9 +64,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				49FA95FB2CF195E50074DE7B /* Kingfisher in Frameworks */,
 				4925315E2C446FC0003A8D24 /* SwiftUICharts in Frameworks */,
 				4930AB962BB7354E00C72CA9 /* SystemColors in Frameworks */,
 				4930AB992BB7355A00C72CA9 /* AlertToast in Frameworks */,
+				49FA95FE2CF198A20074DE7B /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -93,6 +99,7 @@
 				49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */,
 				49D8280A2BB7327000153786 /* ContentView.swift */,
 				495A85892C36E46F00C112C6 /* ScriptContentView.swift */,
+				49FA95F72CF195CB0074DE7B /* PostDownloaderView.swift */,
 				4925315F2C446FE4003A8D24 /* StatisticsContentView.swift */,
 				4930AB9C2BB74F1500C72CA9 /* FeatureEditor.swift */,
 				495A85872C36E46F00C112C6 /* FieldEditor.swift */,
@@ -141,6 +148,8 @@
 				4930AB952BB7354E00C72CA9 /* SystemColors */,
 				4930AB982BB7355A00C72CA9 /* AlertToast */,
 				4925315D2C446FC0003A8D24 /* SwiftUICharts */,
+				49FA95FA2CF195E50074DE7B /* Kingfisher */,
+				49FA95FD2CF198A20074DE7B /* SwiftSoup */,
 			);
 			productName = "Feature Logging";
 			productReference = 49D828052BB7327000153786 /* Feature Logging.app */;
@@ -174,6 +183,8 @@
 				4930AB942BB7354E00C72CA9 /* XCRemoteSwiftPackageReference "swiftui-system-colors" */,
 				4930AB972BB7355A00C72CA9 /* XCRemoteSwiftPackageReference "AlertToast" */,
 				4925315C2C446FC0003A8D24 /* XCRemoteSwiftPackageReference "SwiftUICharts" */,
+				49FA95F92CF195E50074DE7B /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				49FA95FC2CF198A20074DE7B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 			);
 			productRefGroup = 49D828062BB7327000153786 /* Products */;
 			projectDirPath = "";
@@ -202,6 +213,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				49D8280B2BB7327000153786 /* ContentView.swift in Sources */,
+				49FA95F82CF195CB0074DE7B /* PostDownloaderView.swift in Sources */,
 				495A858B2C36E46F00C112C6 /* ScriptEditor.swift in Sources */,
 				495A858A2C36E46F00C112C6 /* PlaceholderEditor.swift in Sources */,
 				495A858E2C36E46F00C112C6 /* ScriptContentView.swift in Sources */,
@@ -290,7 +302,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 36;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -306,7 +318,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.andydragon.Feature-Logging";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -443,7 +455,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 36;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -459,7 +471,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.andydragon.Feature-Logging";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -476,7 +488,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 36;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -492,7 +504,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.0;
+				MARKETING_VERSION = 2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.andydragon.Feature-Logging";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -550,6 +562,22 @@
 				minimumVersion = 1.3.9;
 			};
 		};
+		49FA95F92CF195E50074DE7B /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.1.1;
+			};
+		};
+		49FA95FC2CF198A20074DE7B /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AndyDragon/SwiftSoup.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -567,6 +595,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 4930AB972BB7355A00C72CA9 /* XCRemoteSwiftPackageReference "AlertToast" */;
 			productName = AlertToast;
+		};
+		49FA95FA2CF195E50074DE7B /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 49FA95F92CF195E50074DE7B /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		49FA95FD2CF198A20074DE7B /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 49FA95FC2CF198A20074DE7B /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

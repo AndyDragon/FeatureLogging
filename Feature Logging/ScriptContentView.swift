@@ -904,7 +904,7 @@ struct ScriptContentView: View {
         force: Bool = false
     ) -> Bool {
         var needEditor: Bool = false
-        var foundPlaceholders: [String] = [];
+        var foundPlaceholders: [String] = []
         foundPlaceholders.append(contentsOf: matches(of: "\\[\\[([^\\]]*)\\]\\]", in: script))
         if foundPlaceholders.count != 0 {
             for placeholder in foundPlaceholders {
@@ -927,7 +927,7 @@ struct ScriptContentView: View {
                 }
             }
         }
-        var foundLongPlaceholders: [String] = [];
+        var foundLongPlaceholders: [String] = []
         foundLongPlaceholders.append(contentsOf: matches(of: "\\[\\{([^\\}]*)\\}\\]", in: script))
         if foundLongPlaceholders.count != 0 {
             for placeholder in foundLongPlaceholders {
@@ -1086,11 +1086,11 @@ struct ScriptContentView: View {
     ) -> String! {
         var template: Template!
         if loadedCatalogs.waitingForTemplates {
-            return "";
+            return ""
         }
         let templatePage = loadedCatalogs.templatesCatalog.pages.first(where: { page in
             page.id == pageId
-        });
+        })
 
         // check first feature AND raw AND community
         if firstFeature && rawTag && communityTag {

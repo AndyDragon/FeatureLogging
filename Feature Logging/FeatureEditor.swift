@@ -11,10 +11,13 @@ import AlertToast
 struct FeatureEditor: View {
     @ObservedObject var feature: Feature
     @State var loadedPage: LoadedPage?
+    @Binding var postUrl: String
+    @State var postUserName: String = ""
     var close: () -> Void
     var updateList: () -> Void
     var markDocumentDirty: () -> Void
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
+    var showDownloaderView: (_ postLink: String) -> Void
 
     @AppStorage(
         "preference_includehash",
@@ -83,6 +86,7 @@ struct FeatureEditor: View {
                 ValidationLabel("Post link:", labelWidth: labelWidth, validation: !postLink.isEmpty && !postLink.contains(where: \.isNewline))
                 TextField("enter the post link", text: $postLink.onChange { value in
                     feature.postLink = postLink
+                    self.postLink = postLink
                     markDocumentDirty()
                 })
                 .focusable()
@@ -112,6 +116,17 @@ struct FeatureEditor: View {
                         Image(systemName: "list.clipboard.fill")
                             .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                         Text("Paste")
+                    }
+                }
+                .focusable()
+
+                Button(action: {
+                    showDownloaderView(postLink)
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .foregroundStyle(Color.primary, Color.accentColor)
+                        Text("Load post")
                     }
                 }
                 .focusable()
@@ -166,6 +181,11 @@ struct FeatureEditor: View {
                 .background(Color.BackgroundColorEditor)
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
+                
+                TextField("", text: $postUserName.onChange { value in
+                    userName = postUserName
+                })
+                .hidden()
 
                 Button(action: {
                     let userText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
