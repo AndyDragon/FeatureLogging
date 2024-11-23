@@ -289,13 +289,16 @@ private struct ImageView : View {
         VStack {
             VStack {
                 HStack {
-                    KFImage(imageUrl).onSuccess { result in
-                        print("\(result.image.size.width) x \(result.image.size.height)")
-                        width = Int(result.image.size.width)
-                        height = Int(result.image.size.height)
-                        scale = min(400.0 / Float(width), 360.0 / Float(height))
-                        data = result.data()!
-                    }
+                    KFImage(imageUrl)
+                        .onSuccess { result in
+                            print("\(result.image.size.width) x \(result.image.size.height)")
+                            width = Int(result.image.size.width)
+                            height = Int(result.image.size.height)
+                            scale = min(400.0 / Float(width), 360.0 / Float(height))
+                            data = result.data()!
+                        }
+                        .serialize(as: .PNG)
+                        .forceRefresh()
                 }
                 .scaleEffect(CGFloat(scale))
                 .frame(width: 400, height: 360)
@@ -314,7 +317,7 @@ private struct ImageView : View {
                         try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: false, attributes: nil)
                     }
                     let fileURL = folderURL.appendingPathComponent("\(name).png")
-                    try data!.write(to: fileURL)
+                    try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
                     showToast(
                         .complete(.green),
                         "Saved",
