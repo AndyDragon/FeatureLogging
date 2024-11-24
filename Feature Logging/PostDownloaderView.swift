@@ -10,15 +10,23 @@ import SwiftSoup
 import Kingfisher
 import AlertToast
 
+/// The `PostDownloaderView` provides a view which shows data from a user's post as well as their user profile bio.
+///
+/// If the post cannot be downloaded, the feature must be done directly from VERO instead. This usually happens when
+/// the user's profile is marked as private.
+///
 struct PostDownloaderView: View {
     @State private var imageUrls: [(URL, String)] = []
     @State private var tagCheck = ""
     @State private var missingTag = false
     @State private var postLoaded = false
+    @State private var userLoaded = false
     @State private var description = ""
     @State private var userName = ""
     @State private var logging: [(Color, String)] = []
     @State private var loggingComplete = false
+    @State private var userProfileLink = ""
+    @State private var userBio = ""
 
     var page: Binding<String>
     var postUrl: Binding<String>
@@ -70,6 +78,33 @@ struct PostDownloaderView: View {
                                 }
                             }
                             .frame(height: 20)
+                            if userLoaded {
+                                ValidationLabel("User BIO:", validation: !userBio.isEmpty, validColor: .green)
+                                if #available(macOS 14.0, *) {
+                                    TextEditor(text: .constant(userBio))
+                                        .scrollIndicators(.never)
+                                        .frame(maxWidth: 640.0, maxHeight: 80.0, alignment: .leading)
+                                        .textEditorStyle(.plain)
+                                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                        .scrollContentBackground(.hidden)
+                                        .padding(4)
+                                        .padding([.bottom], 6)
+                                        .autocorrectionDisabled(false)
+                                        .disableAutocorrection(false)
+                                        .font(.system(size: 18, design: .serif))
+                                } else {
+                                    TextEditor(text: .constant(userBio))
+                                        .scrollIndicators(.never)
+                                        .frame(maxWidth: 640.0, maxHeight: 80.0, alignment: .leading)
+                                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                        .scrollContentBackground(.hidden)
+                                        .padding(4)
+                                        .padding([.bottom], 6)
+                                        .autocorrectionDisabled(false)
+                                        .disableAutocorrection(false)
+                                        .font(.system(size: 18, design: .serif))
+                                }
+                            }
                             HStack (alignment: .center) {
                                 ValidationLabel("Page tag: \(tagCheck)", validation: !missingTag, validColor: .green)
                             }
@@ -81,35 +116,31 @@ struct PostDownloaderView: View {
                             ValidationLabel("Description:", validation: !description.isEmpty, validColor: .green)
                             if #available(macOS 14.0, *) {
                                 TextEditor(text: .constant(description))
-                                    .scrollIndicators(.automatic)
-                                    .frame(maxWidth: 640.0, maxHeight: 320.0, alignment: .leading)
+                                    .scrollIndicators(.never)
+                                    .frame(maxWidth: 640.0, maxHeight: 200.0, alignment: .leading)
                                     .textEditorStyle(.plain)
                                     .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                                     .scrollContentBackground(.hidden)
                                     .padding(4)
-                                    .background(Color.BackgroundColorEditor)
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
                                     .padding([.bottom], 6)
                                     .autocorrectionDisabled(false)
                                     .disableAutocorrection(false)
+                                    .font(.system(size: 14))
                             } else {
                                 TextEditor(text: .constant(description))
-                                    .scrollIndicators(.automatic)
-                                    .frame(maxWidth: 640.0, maxHeight: 320.0, alignment: .leading)
+                                    .scrollIndicators(.never)
+                                    .frame(maxWidth: 640.0, maxHeight: 200.0, alignment: .leading)
                                     .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                                     .scrollContentBackground(.hidden)
                                     .padding(4)
-                                    .background(Color.BackgroundColorEditor)
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
                                     .padding([.bottom], 6)
                                     .autocorrectionDisabled(false)
                                     .disableAutocorrection(false)
+                                    .font(.system(size: 14))
                             }
                             HStack {
                                 ForEach (Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
-                                    ImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
+                                    PostDownloaderImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
                                         .padding(.all, 0.001)
                                 }
                             }
@@ -162,19 +193,24 @@ struct PostDownloaderView: View {
         }
     }
     
+    /// Account error enumeration for throwing account-specifc error codes.
     enum AccountError: String, LocalizedError {
         case PrivateAccount = "Could not find any images, this account might be private"
         case MissingImages = "Could not find any images"
         public var errorDescription: String? { self.rawValue }
     }
     
-    private func loadFeature() {
+    /// Loads the feature using the postUrl.
+    private func loadFeature() -> Void {
         postLoaded = false
+        userLoaded = false
         tagCheck = ""
         missingTag = false
         imageUrls = []
         logging = []
         loggingComplete = false
+        userProfileLink = ""
+        userBio = ""
         var likelyPrivate = false
         if let url = URL(string: postUrl.wrappedValue) {
             do {
@@ -200,6 +236,13 @@ struct PostDownloaderView: View {
                         print("User's name: \(userName)")
                         logging.append((.blue, "User's name: \(userName)"))
                         likelyPrivate = true
+                    }
+                }
+                if let userProfileUrl = try! getMetaTagContent(document, "property", "og:url") {
+                    let urlParts = userProfileUrl.split(separator: "/", omittingEmptySubsequences: true)
+                    print("User profile parts \(urlParts)")
+                    if urlParts.count == 2 {
+                        userProfileLink = "https://vero.co/\(urlParts[0])"
                     }
                 }
                 if let captionsDiv = try! document.body()?.getElementsByTag("div").first(where: { element in
@@ -261,14 +304,16 @@ struct PostDownloaderView: View {
                     })
                 }
                 
+                // Debugging
+                //print(try document.outerHtml())
+
                 if imageUrls.isEmpty && likelyPrivate {
                     throw AccountError.PrivateAccount
                 } else if imageUrls.isEmpty {
                     throw AccountError.MissingImages
                 }
                 
-                // Debugging
-                //print(try document.outerHtml())
+                loadUserProfile();
                 
                 postLoaded = true
             } catch let error as AccountError {
@@ -295,7 +340,53 @@ struct PostDownloaderView: View {
             loggingComplete = true
         }
     }
+
+    /// Loads the user profile using the userProfileLink.
+    private func loadUserProfile() {
+        if let url = URL(string: userProfileLink) {
+            do {
+                let contents = try String(contentsOf: url, encoding: .utf8)
+                logging.append((.blue, "Loaded the user profile from the server"))
+                let document = try SwiftSoup.parse(contents)
+                
+                if let description = try! getMetaTagContent(document, "property", "og:description") {
+                    userBio = description
+                }
+                
+                // Debugging
+                //print(try document.outerHtml())
+                
+                userLoaded = true
+            } catch let error as AccountError {
+                logging.append((.red, "Failed to download and parse the user profile information - \(error.errorDescription ?? "unknown")"))
+                logging.append((.red, "User info must be handled manually in VERO app"))
+                showToast(
+                    .error(.red),
+                    "Failed to load and parse user profile",
+                    String {
+                        "Failed to download and parse the user profile information - \(error.errorDescription ?? "unknown")"
+                    },
+                    3) {}
+            } catch {
+                logging.append((.red, "Failed to download and parse the user profile information - \(error.localizedDescription)"))
+                logging.append((.red, "User info must be handled manually in VERO app"))
+                showToast(
+                    .error(.red),
+                    "Failed to load and parse user profile",
+                    String {
+                        "Failed to download and parse the user profile information - \(error.localizedDescription)"
+                    },
+                    3) {}
+            }
+        }
+    }
     
+    /// Gets the `content` value of the `meta` tag with the given `key`/`value` pair.
+    /// - Parameters:
+    ///   - document: The `SoupSwift` document object.
+    ///   - key: The key for the match in the `meta` tags.
+    ///   - value: The value for the match in the `meta` tags.
+    /// - Returns: The `content` value for the meta tag if found.
     private func getMetaTagContent(_ document: Document, _ key: String, _ value: String) throws -> String? {
         let headMetaTags = try document.head()?.getElementsByTag("meta")
         let ogImageTag = headMetaTags?.first(where: { element in
@@ -307,99 +398,5 @@ struct PostDownloaderView: View {
             }
         })
         return try! ogImageTag?.attr("content")
-    }
-}
-
-private struct ImageView : View {
-    @State private var width = 0
-    @State private var height = 0
-    @State private var data: Data?
-    @State private var fileExtension = ".png"
-    @State private var scale: Float = 0.000000001
-    var imageUrl: URL
-    var name: String
-    var index: Int
-    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
-    
-    var body: some View {
-        VStack {
-            VStack {
-                HStack {
-                    KFImage(imageUrl)
-                        .onSuccess { result in
-                            let pixelSize = (result.image.pixelSize ?? result.image.size)
-                            print("result.image: \(pixelSize.width) x \(pixelSize.height)")
-                            if let cgImage = result.image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
-                                let imageRepresentation = NSBitmapImageRep(cgImage: cgImage)
-                                imageRepresentation.size = result.image.size
-                                data = imageRepresentation.representation(using: .png, properties: [:])
-                                fileExtension = ".png"
-                            } else {
-                                data = result.data()
-                                fileExtension = ".jpg"
-                            }
-                            width = Int(pixelSize.width)
-                            height = Int(pixelSize.height)
-                            scale = min(400.0 / Float(result.image.size.width), 360.0 / Float(result.image.size.height))
-                        }
-                        .forceRefresh()
-                }
-                .scaleEffect(CGFloat(scale))
-                .frame(width: 400, height: 360)
-                .clipped()
-                Slider(value: $scale, in: 0.01...2)
-                Text("Size: \(width)px x \(height)px")
-                    .foregroundStyle(.black, .secondary)
-            }
-            .frame(width: 400, height: 410)
-            .padding(.all, 4)
-            .background(Color(red: 0.9, green: 0.9, blue: 0.92))
-            HStack {
-                Button(action: {
-                    let folderURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("VERO")
-                    do {
-                        if !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil) {
-                            try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: false, attributes: nil)
-                        }
-                        let fileURL = folderURL.appendingPathComponent("\(name).\(fileExtension)")
-                        try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
-                        showToast(
-                            .complete(.green),
-                            "Saved",
-                            String {
-                                "Saved the image to file \(fileURL)"
-                            },
-                            3) {}
-                    } catch {
-                        print("Failed to save file")
-                        debugPrint(error.localizedDescription)
-                        showToast(
-                            .error(.red),
-                            "Failed to save",
-                            String {
-                                "Failed to saved the image to your Pictures folder - \(error.localizedDescription)"
-                            },
-                            3) {}
-                    }
-                }) {
-                    HStack(alignment: .center) {
-                        Image(systemName: "square.and.arrow.down.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Save image")
-                    }
-                }
-                Spacer()
-                    .frame(width: 10)
-                Button(action: {
-                    copyToClipboard(imageUrl.absoluteString)
-                }) {
-                    HStack(alignment: .center) {
-                        Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Copy URL")
-                    }
-                }
-            }
-        }
     }
 }

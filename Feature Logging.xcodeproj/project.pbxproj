@@ -23,6 +23,9 @@
 		495A858D2C36E46F00C112C6 /* NewMembershipEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495A85882C36E46F00C112C6 /* NewMembershipEditor.swift */; };
 		495A858E2C36E46F00C112C6 /* ScriptContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495A85892C36E46F00C112C6 /* ScriptContentView.swift */; };
 		49D22C5B2BBC97BD005ECE84 /* SettingsPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */; };
+		49D3C0322CF2D2E800608566 /* FeatureListRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D3C0312CF2D2E800608566 /* FeatureListRow.swift */; };
+		49D3C0342CF2D32300608566 /* DocumentDirtySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D3C0332CF2D32300608566 /* DocumentDirtySheet.swift */; };
+		49D3C0362CF2D3E400608566 /* PostDownloaderImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D3C0352CF2D3E400608566 /* PostDownloaderImageView.swift */; };
 		49D828092BB7327000153786 /* FeatureLoggingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D828082BB7327000153786 /* FeatureLoggingApp.swift */; };
 		49D8280B2BB7327000153786 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D8280A2BB7327000153786 /* ContentView.swift */; };
 		49D8280D2BB7327200153786 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49D8280C2BB7327200153786 /* Assets.xcassets */; };
@@ -49,6 +52,9 @@
 		495A85892C36E46F00C112C6 /* ScriptContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptContentView.swift; sourceTree = "<group>"; };
 		495A858F2C36FA4100C112C6 /* testing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = testing.xcconfig; sourceTree = "<group>"; };
 		49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPane.swift; sourceTree = "<group>"; };
+		49D3C0312CF2D2E800608566 /* FeatureListRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureListRow.swift; sourceTree = "<group>"; };
+		49D3C0332CF2D32300608566 /* DocumentDirtySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentDirtySheet.swift; sourceTree = "<group>"; };
+		49D3C0352CF2D3E400608566 /* PostDownloaderImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostDownloaderImageView.swift; sourceTree = "<group>"; };
 		49D828052BB7327000153786 /* Feature Logging.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Feature Logging.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		49D828082BB7327000153786 /* FeatureLoggingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureLoggingApp.swift; sourceTree = "<group>"; };
 		49D8280A2BB7327000153786 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -98,8 +104,11 @@
 				49D828082BB7327000153786 /* FeatureLoggingApp.swift */,
 				49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */,
 				49D8280A2BB7327000153786 /* ContentView.swift */,
+				49D3C0332CF2D32300608566 /* DocumentDirtySheet.swift */,
+				49D3C0312CF2D2E800608566 /* FeatureListRow.swift */,
 				495A85892C36E46F00C112C6 /* ScriptContentView.swift */,
 				49FA95F72CF195CB0074DE7B /* PostDownloaderView.swift */,
+				49D3C0352CF2D3E400608566 /* PostDownloaderImageView.swift */,
 				4925315F2C446FE4003A8D24 /* StatisticsContentView.swift */,
 				4930AB9C2BB74F1500C72CA9 /* FeatureEditor.swift */,
 				495A85872C36E46F00C112C6 /* FieldEditor.swift */,
@@ -215,6 +224,7 @@
 				49D8280B2BB7327000153786 /* ContentView.swift in Sources */,
 				49FA95F82CF195CB0074DE7B /* PostDownloaderView.swift in Sources */,
 				495A858B2C36E46F00C112C6 /* ScriptEditor.swift in Sources */,
+				49D3C0362CF2D3E400608566 /* PostDownloaderImageView.swift in Sources */,
 				495A858A2C36E46F00C112C6 /* PlaceholderEditor.swift in Sources */,
 				495A858E2C36E46F00C112C6 /* ScriptContentView.swift in Sources */,
 				495A858D2C36E46F00C112C6 /* NewMembershipEditor.swift in Sources */,
@@ -223,10 +233,12 @@
 				492531602C446FE4003A8D24 /* StatisticsContentView.swift in Sources */,
 				495A858C2C36E46F00C112C6 /* FieldEditor.swift in Sources */,
 				49EBB9D52BC0944300D2AE04 /* ValidationLabel.swift in Sources */,
+				49D3C0342CF2D32300608566 /* DocumentDirtySheet.swift in Sources */,
 				49D22C5B2BBC97BD005ECE84 /* SettingsPane.swift in Sources */,
 				4930AB902BB7348F00C72CA9 /* VersionCheckAppState.swift in Sources */,
 				4930AB932BB7348F00C72CA9 /* Types.swift in Sources */,
 				4930AB9B2BB73B3700C72CA9 /* ToastDismissShield.swift in Sources */,
+				49D3C0322CF2D2E800608566 /* FeatureListRow.swift in Sources */,
 				4930AB922BB7348F00C72CA9 /* Helpers.swift in Sources */,
 				49D828092BB7327000153786 /* FeatureLoggingApp.swift in Sources */,
 			);

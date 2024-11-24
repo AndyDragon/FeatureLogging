@@ -107,8 +107,6 @@ struct FeatureEditor: View {
                         if possibleUserAlias.count > 1 {
                             userAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
                         }
-                    } else {
-                        // TODO andydragon : show toast, invalid clipboard text, not a VERO link
                     }
                     downloadUnavailable = !postLink.starts(with: "https://vero.co/")
                     feature.postLink = postLink
