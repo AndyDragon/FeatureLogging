@@ -123,19 +123,24 @@ struct FeatureEditor: View {
                 .focusable()
 
                 Button(action: {
-                    if postLink.isEmpty {
-                        
+                    if !postLink.isEmpty {
+                        showDownloaderView(postLink)
                     }
-                    showDownloaderView(postLink)
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "arrow.down.circle.fill")
-                            .foregroundStyle(Color.primary, Color.accentColor)
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                         Text("Load post")
+                            .font(.system(.body, design: .rounded).bold())
+                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        Text("  ⌘ ⇧ ↓")
+                            .font(.system(.body, design: .rounded))
+                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
                     }
                 }
                 .focusable()
                 .disabled(downloadUnavailable)
+                .keyboardShortcut(.downArrow, modifiers: [.command, .shift])
             }
 
             // User alias

@@ -38,40 +38,75 @@ struct PostDownloaderView: View {
                     VStack(alignment: .leading) {
                         Text("Page: \(page.wrappedValue)")
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                         Text("Post URL: \(postUrl.wrappedValue)")
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                         HStack {
                             Button(action: {
                                 loadFeature()
                             }) {
                                 HStack(alignment: .center) {
                                     Image(systemName: "arrow.down.circle.fill")
-                                        .foregroundStyle(Color.primary, Color.accentColor)
+                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                     Text("Load post")
                                 }
                             }
                         }
                         if postLoaded {
-                            HStack {
+                            HStack (alignment: .center) {
                                 ValidationLabel("User name: \(userName)", validation: !userName.isEmpty, validColor: .green)
-                                HStack {
+                                HStack (alignment: .center) {
                                     Button(action: {
                                         //savePostUserName(userName)
                                         copyToClipboard(userName)
                                     }) {
                                         HStack(alignment: .center) {
                                             Image(systemName: "pencil.and.list.clipboard" /*"pencil.line"*/)
-                                                .foregroundStyle(Color.primary, Color.accentColor)
+                                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                             Text("Copy user name" /* "Save user name" */)
                                         }
                                     }
                                 }
                             }
-                            ValidationLabel("Page tag: \(tagCheck)", validation: !missingTag, validColor: .green)
-                            ValidationLabel("\(imageUrls.count) image\(imageUrls.count == 1 ? "" : "s") found", validation: imageUrls.count > 0, validColor: .green)
-                            TextEditor(text: .constant(description))
-                                .scrollIndicators(.automatic)
-                                .frame(maxWidth: 640.0, maxHeight: 320.0, alignment: .leading)
+                            .frame(height: 20)
+                            HStack (alignment: .center) {
+                                ValidationLabel("Page tag: \(tagCheck)", validation: !missingTag, validColor: .green)
+                            }
+                            .frame(height: 20)
+                            HStack (alignment: .center) {
+                                ValidationLabel("\(imageUrls.count) image\(imageUrls.count == 1 ? "" : "s") found", validation: imageUrls.count > 0, validColor: .green)
+                            }
+                            .frame(height: 20)
+                            ValidationLabel("Description:", validation: !description.isEmpty, validColor: .green)
+                            if #available(macOS 14.0, *) {
+                                TextEditor(text: .constant(description))
+                                    .scrollIndicators(.automatic)
+                                    .frame(maxWidth: 640.0, maxHeight: 320.0, alignment: .leading)
+                                    .textEditorStyle(.plain)
+                                    .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                    .scrollContentBackground(.hidden)
+                                    .padding(4)
+                                    .background(Color.BackgroundColorEditor)
+                                    .border(Color.gray.opacity(0.25))
+                                    .cornerRadius(4)
+                                    .padding([.bottom], 6)
+                                    .autocorrectionDisabled(false)
+                                    .disableAutocorrection(false)
+                            } else {
+                                TextEditor(text: .constant(description))
+                                    .scrollIndicators(.automatic)
+                                    .frame(maxWidth: 640.0, maxHeight: 320.0, alignment: .leading)
+                                    .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                    .scrollContentBackground(.hidden)
+                                    .padding(4)
+                                    .background(Color.BackgroundColorEditor)
+                                    .border(Color.gray.opacity(0.25))
+                                    .cornerRadius(4)
+                                    .padding([.bottom], 6)
+                                    .autocorrectionDisabled(false)
+                                    .disableAutocorrection(false)
+                            }
                             HStack {
                                 ForEach (Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
                                     ImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
@@ -279,62 +314,90 @@ private struct ImageView : View {
     @State private var width = 0
     @State private var height = 0
     @State private var data: Data?
-    @State private var scale: Float = 0.0000001
+    @State private var fileExtension = ".png"
+    @State private var scale: Float = 0.000000001
     var imageUrl: URL
     var name: String
     var index: Int
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
-
+    
     var body: some View {
         VStack {
             VStack {
                 HStack {
                     KFImage(imageUrl)
                         .onSuccess { result in
-                            print("\(result.image.size.width) x \(result.image.size.height)")
-                            width = Int(result.image.size.width)
-                            height = Int(result.image.size.height)
-                            scale = min(400.0 / Float(width), 360.0 / Float(height))
-                            data = result.data()!
+                            let pixelSize = (result.image.pixelSize ?? result.image.size)
+                            print("result.image: \(pixelSize.width) x \(pixelSize.height)")
+                            if let cgImage = result.image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+                                let imageRepresentation = NSBitmapImageRep(cgImage: cgImage)
+                                imageRepresentation.size = result.image.size
+                                data = imageRepresentation.representation(using: .png, properties: [:])
+                                fileExtension = ".png"
+                            } else {
+                                data = result.data()
+                                fileExtension = ".jpg"
+                            }
+                            width = Int(pixelSize.width)
+                            height = Int(pixelSize.height)
+                            scale = min(400.0 / Float(result.image.size.width), 360.0 / Float(result.image.size.height))
                         }
-                        .serialize(as: .PNG)
                         .forceRefresh()
                 }
                 .scaleEffect(CGFloat(scale))
                 .frame(width: 400, height: 360)
                 .clipped()
-                Slider(value: $scale, in: 0.01...1)
-                Text("Size: \(width) x \(height)")
+                Slider(value: $scale, in: 0.01...2)
+                Text("Size: \(width)px x \(height)px")
                     .foregroundStyle(.black, .secondary)
             }
             .frame(width: 400, height: 410)
             .padding(.all, 4)
-            .background(Color.white)
-            Button("Save") {
-                let folderURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("VERO")
-                do {
-                    if !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil) {
-                        try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: false, attributes: nil)
+            .background(Color(red: 0.9, green: 0.9, blue: 0.92))
+            HStack {
+                Button(action: {
+                    let folderURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("VERO")
+                    do {
+                        if !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil) {
+                            try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: false, attributes: nil)
+                        }
+                        let fileURL = folderURL.appendingPathComponent("\(name).\(fileExtension)")
+                        try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
+                        showToast(
+                            .complete(.green),
+                            "Saved",
+                            String {
+                                "Saved the image to file \(fileURL)"
+                            },
+                            3) {}
+                    } catch {
+                        print("Failed to save file")
+                        debugPrint(error.localizedDescription)
+                        showToast(
+                            .error(.red),
+                            "Failed to save",
+                            String {
+                                "Failed to saved the image to your Pictures folder - \(error.localizedDescription)"
+                            },
+                            3) {}
                     }
-                    let fileURL = folderURL.appendingPathComponent("\(name).png")
-                    try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
-                    showToast(
-                        .complete(.green),
-                        "Saved",
-                        String {
-                            "Saved the image to file \(fileURL)"
-                        },
-                        3) {}
-                } catch {
-                    print("Failed to save file")
-                    debugPrint(error.localizedDescription)
-                    showToast(
-                        .error(.red),
-                        "Failed to save",
-                        String {
-                            "Failed to saved the image to your Pictures folder - \(error.localizedDescription)"
-                        },
-                        3) {}
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "square.and.arrow.down.fill")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Save image")
+                    }
+                }
+                Spacer()
+                    .frame(width: 10)
+                Button(action: {
+                    copyToClipboard(imageUrl.absoluteString)
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "pencil.and.list.clipboard")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Copy URL")
+                    }
                 }
             }
         }

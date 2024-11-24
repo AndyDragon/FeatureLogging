@@ -191,3 +191,13 @@ extension URL {
         return String(NSString(string: self.lastPathComponent).deletingPathExtension)
     }
 }
+
+extension NSImage {
+    var pixelSize: NSSize? {
+        if let rep = self.representations.first{
+            let size = NSSize(width: rep.pixelsWide, height: rep.pixelsHigh)
+            return size
+        }
+        return nil
+    }
+}
