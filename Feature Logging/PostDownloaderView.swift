@@ -28,7 +28,8 @@ struct PostDownloaderView: View {
     @State private var userProfileLink = ""
     @State private var userBio = ""
 
-    var page: Binding<String>
+    var pageTitle: Binding<String>
+    var pageHashTags: Binding<[String]>
     var postUrl: Binding<String>
     var isShowingToast: Binding<Bool>
     var hideDownloaderView: () -> Void
@@ -44,12 +45,20 @@ struct PostDownloaderView: View {
             VStack {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading) {
-                        Text("Page: \(page.wrappedValue)")
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text("Post URL: \(postUrl.wrappedValue)")
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        HStack (alignment: .center) {
+                            ValidationLabel("Page: \(pageTitle.wrappedValue)", validation: true, validColor: .green)
+                        }
+                        .frame(height: 20)
+                        HStack (alignment: .center) {
+                            ValidationLabel("Page tags: \(pageHashTags.wrappedValue.joined(separator: ", "))", validation: true, validColor: .green)
+                        }
+                        .frame(height: 20)
+                        HStack (alignment: .center) {
+                            ValidationLabel("Post URL: \(postUrl.wrappedValue)", validation: true, validColor: .green)
+                        }
+                        .frame(height: 20)
+                        Spacer()
+                            .frame(height: 6)
                         HStack {
                             Button(action: {
                                 loadFeature()
@@ -61,6 +70,8 @@ struct PostDownloaderView: View {
                                 }
                             }
                         }
+                        Spacer()
+                            .frame(height: 6)
                         if postLoaded {
                             HStack (alignment: .center) {
                                 ValidationLabel("User name: \(userName)", validation: !userName.isEmpty, validColor: .green)
@@ -106,7 +117,7 @@ struct PostDownloaderView: View {
                                 }
                             }
                             HStack (alignment: .center) {
-                                ValidationLabel("Page tag: \(tagCheck)", validation: !missingTag, validColor: .green)
+                                ValidationLabel(tagCheck, validation: !missingTag, validColor: .green)
                             }
                             .frame(height: 20)
                             HStack (alignment: .center) {
@@ -245,6 +256,7 @@ struct PostDownloaderView: View {
                         userProfileLink = "https://vero.co/\(urlParts[0])"
                     }
                 }
+                var hashTags: [String] = []
                 if let captionsDiv = try! document.body()?.getElementsByTag("div").first(where: { element in
                     do {
                         return try element.classNames().contains(where: { className in
@@ -269,16 +281,29 @@ struct PostDownloaderView: View {
                         } else if (element.tagNameNormal() == "a") {
                             let text = try! element.text()
                             if !text.isEmpty {
-                                description = description + nextSpace + text.trimmingCharacters(in: .whitespacesAndNewlines)
+                                let linkText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                                description = description + nextSpace + linkText
+                                if linkText.hasPrefix("#") {
+                                    hashTags.append(linkText.lowercased())
+                                }
                                 nextSpace = " "
                             }
                         }
                     }
                 }
-                if description.contains("#\(page.wrappedValue)") {
-                    tagCheck = "Contains page tag #\(page.wrappedValue)"
+                var pageHashTagFound = ""
+                if hashTags.firstIndex(where: { hashTag in
+                    return pageHashTags.wrappedValue.firstIndex(where: { pageHashTag in
+                        if hashTag.lowercased() == pageHashTag.lowercased() {
+                            pageHashTagFound = pageHashTag.lowercased()
+                            return true
+                        }
+                        return false
+                    }) != nil
+                }) != nil {
+                    tagCheck = "Contains page hashtag \(pageHashTagFound)"
                 } else {
-                    tagCheck = "MISSING page tag #\(page.wrappedValue)!!"
+                    tagCheck = "MISSING page hashtag!!"
                     missingTag = true
                 }
                 if let imagesInBody = try! document.body()?.getElementsByTag("img") {

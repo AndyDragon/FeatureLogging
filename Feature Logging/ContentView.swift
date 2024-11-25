@@ -42,7 +42,8 @@ struct ContentView: View {
     
     @Environment(\.openURL) private var openURL
     @State private var page: String = UserDefaults.standard.string(forKey: "Page") ?? ""
-    @State private var pageHashTag: String = ""
+    @State private var pageTitle: String = ""
+    @State private var pageHashTags: [String] = []
     @State private var postUrl: String = ""
     @State private var postUserName: String = ""
     @State private var pageStaffLevel = StaffLevelCase.mod
@@ -136,7 +137,8 @@ struct ContentView: View {
                     showToast)
             } else if isShowingDownloaderView {
                 PostDownloaderView(
-                    page: $pageHashTag,
+                    pageTitle: $pageTitle,
+                    pageHashTags: $pageHashTags,
                     postUrl: $postUrl,
                     isShowingToast: $isShowingToast,
                     hideDownloaderView: { isShowingDownloaderView.toggle() },
@@ -161,11 +163,7 @@ struct ContentView: View {
                             featuresViewModel = FeaturesViewModel()
                             sortedFeatures = featuresViewModel.sortedFeatures
                             updateStaffLevelForPage()
-                            if let loadedPage = loadedCatalogs.loadedPages.first(where: { $0.id == page }) {
-                                pageHashTag = loadedPage.hashTag ?? "\(loadedPage.hub)_\(loadedPage.name)"
-                            } else {
-                                pageHashTag = ""
-                            }
+                            updatePageTitleAndHashTags()
                         }) {
                             ForEach(loadedCatalogs.loadedPages) { page in
                                 if page.name != "default" {
@@ -726,6 +724,22 @@ struct ContentView: View {
         }
     }
     
+    private func updatePageTitleAndHashTags() {
+        if let loadedPage = loadedCatalogs.loadedPages.first(where: { $0.id == page }) {
+            pageTitle = loadedPage.title ?? "\(loadedPage.hub) \(loadedPage.name)"
+            if loadedPage.hub == "snap" {
+                pageHashTags = ["#snap_\(loadedPage.name)", "#raw_\(loadedPage.name)"]
+            } else if loadedPage.hub == "click" {
+                pageHashTags = ["#click_\(loadedPage.name)"]
+            } else {
+                pageHashTags = [loadedPage.hashTag ?? loadedPage.name]
+            }
+        } else {
+            pageTitle = ""
+            pageHashTags = []
+        }
+    }
+    
     private func savePostUserName(
         _ userName: String
     ) {
@@ -844,11 +858,7 @@ struct ContentView: View {
             if page.isEmpty {
                 page = loadedCatalogs.loadedPages.first?.id ?? ""
             }
-            if let loadedPage = loadedCatalogs.loadedPages.first(where: { $0.id == page }) {
-                pageHashTag = loadedPage.hashTag ?? "\(loadedPage.hub)_\(loadedPage.name)"
-            } else {
-                pageHashTag = ""
-            }
+            updatePageTitleAndHashTags()
             updateStaffLevelForPage()
             
             // Delay the start of the templates download so the window can be ready faster
