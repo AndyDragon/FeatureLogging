@@ -36,14 +36,17 @@ struct NewMembershipEditor: View {
             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
             .frame(width: 320)
 
-            Button(action: {
-                copy()
-            }, label: {
-                Text("Copy")
-                    .padding(.horizontal, 20)
-            })
+            Button(
+                action: {
+                    copy()
+                },
+                label: {
+                    Text("Copy")
+                        .padding(.horizontal, 20)
+                }
+            )
             .disabled(!canCopy)
-            
+
             Spacer()
         }
         .frame(alignment: .leading)

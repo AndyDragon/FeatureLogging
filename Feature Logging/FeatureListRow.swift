@@ -5,25 +5,20 @@
 //  Created by Andrew Forget on 2024-11-23.
 //
 
+import AlertToast
 import SwiftUI
 import UniformTypeIdentifiers
-import AlertToast
 
 struct FeatureListRow: View {
-    // SHARED FEATURE
-    @AppStorage(
-        "feature",
-        store: UserDefaults(suiteName: "group.com.andydragon.VeroTools")
-    ) var sharedFeature = ""
-    
     @ObservedObject var feature: Feature
-    var loadedPage: LoadedPage
-    var pageStaffLevel: StaffLevelCase
+    @State var sharedFeature: Binding<CodableFeature?>
+    @State var loadedPage: LoadedPage
+    @State var pageStaffLevel: StaffLevelCase
     var markDocumentDirty: () -> Void
     var ensureSelected: () -> Void
-    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
+    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     var showScriptView: () -> Void
-    
+
     @State var userName = ""
     @State var userAlias = ""
     @State var featureDescription = ""
@@ -33,7 +28,7 @@ struct FeatureListRow: View {
     @State var userHasFeaturesOnHub = false
     @State var postLink = ""
     @State var showingMessageEditor = false
-    
+
     @AppStorage(
         "preference_personalMessage",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -42,7 +37,7 @@ struct FeatureListRow: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-    
+
     var body: some View {
         HStack(alignment: .center) {
             if feature.photoFeaturedOnPage {
@@ -82,11 +77,11 @@ struct FeatureListRow: View {
                     .frame(width: 32, height: 32)
                     .opacity(0.0000001)
             }
-            
+
             VStack {
                 HStack {
                     Text("Feature: ")
-                    
+
                     if !userName.isEmpty {
                         Text(userName)
                     } else {
@@ -94,9 +89,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-                    
+
                     Text(" | ")
-                    
+
                     if !userAlias.isEmpty {
                         Text("@\(userAlias)")
                     } else {
@@ -104,9 +99,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-                    
+
                     Text(" | ")
-                    
+
                     if !featureDescription.isEmpty {
                         Text(featureDescription)
                     } else {
@@ -114,9 +109,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-                    
+
                     Text(" | ")
-                    
+
                     Image(systemName: "tag.square")
                         .foregroundStyle(photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary, photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary)
                         .font(.system(size: 14))
@@ -143,9 +138,9 @@ struct FeatureListRow: View {
                         .font(.system(size: 14))
                         .frame(width: 16, height: 16)
                         .help(userIsTeammate ? "User is teammate" : "User is not a teammate")
-                    
+
                     Spacer()
-                    
+
                     if feature.isPickedAndAllowed {
                         Button(action: {
                             ensureSelected()
@@ -157,10 +152,10 @@ struct FeatureListRow: View {
                                 Text("Edit scripts")
                             }
                         }
-                        
+
                         Spacer()
                             .frame(width: 8)
-                        
+
                         Button(action: {
                             ensureSelected()
                             showingMessageEditor.toggle()
@@ -177,76 +172,82 @@ struct FeatureListRow: View {
                 HStack {
                     Text(postLink)
                         .font(.footnote)
-                    
+
                     Spacer()
                 }
             }
-            .sheet(isPresented: $showingMessageEditor, content: {
-                ZStack {
-                    Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-                    
-                    VStack(alignment: .leading)  {
-                        Text("Personal message for feature: \(feature.userName) - \(feature.featureDescription)")
-                        
-                        Spacer()
-                            .frame(height: 8)
-                        
-                        HStack(alignment: .center) {
-                            Text("Personal message (from your account): ")
-                            TextField("", text: $feature.personalMessage.onChange { value in
-                                markDocumentDirty()
-                            })
-                            .focusable()
-                            .autocorrectionDisabled(false)
-                            .disableAutocorrection(false)
-                            .textFieldStyle(.plain)
-                            .padding(4)
-                            .background(Color.BackgroundColorEditor)
-                            .border(Color.gray.opacity(0.25))
-                            .cornerRadius(4)
-                        }
-                        
-                        Spacer()
-                        
-                        HStack(alignment: .center)  {
+            .sheet(
+                isPresented: $showingMessageEditor,
+                content: {
+                    ZStack {
+                        Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+
+                        VStack(alignment: .leading) {
+                            Text("Personal message for feature: \(feature.userName) - \(feature.featureDescription)")
+
                             Spacer()
-                            
-                            Button(action: {
-                                let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
-                                let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
-                                let fullPersonalMessage = personalMessageTemplate
-                                    .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage.displayName)
-                                    .replacingOccurrences(of: "%%HUBNAME%%", with: loadedPage.hub == "other" ? "" : loadedPage.hub)
-                                    .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
-                                    .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
-                                    .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
-                                copyToClipboard(fullPersonalMessage)
-                                showingMessageEditor.toggle()
-                                showToast(.complete(.green), "Copied to clipboard", "The personal message was copied to the clipboard", 2) { }
-                            }) {
-                                HStack(alignment: .center) {
-                                    Image(systemName: "pencil.and.list.clipboard")
-                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                    Text("Copy full text")
-                                }
+                                .frame(height: 8)
+
+                            HStack(alignment: .center) {
+                                Text("Personal message (from your account): ")
+                                TextField(
+                                    "",
+                                    text: $feature.personalMessage.onChange { value in
+                                        markDocumentDirty()
+                                    }
+                                )
+                                .focusable()
+                                .autocorrectionDisabled(false)
+                                .disableAutocorrection(false)
+                                .textFieldStyle(.plain)
+                                .padding(4)
+                                .background(Color.BackgroundColorEditor)
+                                .border(Color.gray.opacity(0.25))
+                                .cornerRadius(4)
                             }
-                            
-                            Button(action: {
-                                showingMessageEditor.toggle()
-                            }) {
-                                HStack(alignment: .center) {
-                                    Image(systemName: "xmark")
-                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                    Text("Close")
+
+                            Spacer()
+
+                            HStack(alignment: .center) {
+                                Spacer()
+
+                                Button(action: {
+                                    let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
+                                    let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
+                                    let fullPersonalMessage =
+                                        personalMessageTemplate
+                                        .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage.displayName)
+                                        .replacingOccurrences(of: "%%HUBNAME%%", with: loadedPage.hub == "other" ? "" : loadedPage.hub)
+                                        .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                                        .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                                        .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+                                    copyToClipboard(fullPersonalMessage)
+                                    showingMessageEditor.toggle()
+                                    showToast(.complete(.green), "Copied to clipboard", "The personal message was copied to the clipboard", .Success) {}
+                                }) {
+                                    HStack(alignment: .center) {
+                                        Image(systemName: "pencil.and.list.clipboard")
+                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                        Text("Copy full text")
+                                    }
+                                }
+
+                                Button(action: {
+                                    showingMessageEditor.toggle()
+                                }) {
+                                    HStack(alignment: .center) {
+                                        Image(systemName: "xmark")
+                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                        Text("Close")
+                                    }
                                 }
                             }
                         }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding()
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding()
-                }
-                .frame(width: 800, height: 160)
-            })
+                    .frame(width: 800, height: 160)
+                })
         }
         .onChange(of: feature, initial: true) {
             userName = feature.userName
@@ -283,41 +284,36 @@ struct FeatureListRow: View {
             postLink = feature.postLink
         }
     }
-    
+
     private func launchVeroScripts() {
         if feature.photoFeaturedOnPage {
-            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured on this page", 0) { }
+            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured on this page", .Blocking) {}
             return
         }
         if feature.tinEyeResults == .matchFound {
-            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo had a TinEye match", 0) { }
+            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo had a TinEye match", .Blocking) {}
             return
         }
         if feature.aiCheckResults == .ai {
-            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo was flagged as AI", 0) { }
+            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo was flagged as AI", .Blocking) {}
             return
         }
         if feature.tooSoonToFeatureUser {
-            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "The user has been featured too recently", 0) { }
+            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "The user has been featured too recently", .Blocking) {}
             return
         }
         if !feature.isPicked {
-            showToast(.systemImage("exclamationmark.triangle.fill", .yellow), "Should not feature photo", "The photo is not marked as picked, mark the photo as picked and try again", 0) { }
+            showToast(
+                .systemImage("exclamationmark.triangle.fill", .yellow), "Should not feature photo", "The photo is not marked as picked, mark the photo as picked and try again",
+                .Blocking
+            ) {}
             return
         }
-        do {
-            // Encode the feature for the scripts view
-            let encoder = JSONEncoder()
-            let json = try encoder.encode(CodableFeature(using: loadedPage, pageStaffLevel: pageStaffLevel, from: feature))
-            let jsonString = String(decoding: json, as: UTF8.self)
-            
-            // Store the feature in the shared storage
-            sharedFeature = jsonString
-            
-            // Launch the ScriptContentView
-            showScriptView()
-        } catch {
-            debugPrint(error)
-        }
+
+        // Store the feature in the shared storage
+        sharedFeature.wrappedValue = CodableFeature(using: loadedPage, pageStaffLevel: pageStaffLevel, from: feature)
+
+        // Launch the ScriptContentView
+        showScriptView()
     }
 }

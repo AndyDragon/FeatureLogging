@@ -5,16 +5,21 @@
 //  Created by Andrew Forget on 2024-01-03.
 //
 
-import SwiftUI
-import CloudKit
 import AlertToast
+import CloudKit
+import SwiftUI
 
 struct ScriptContentView: View {
-    // SHARED FEATURE
-    @AppStorage(
-        "feature",
-        store: UserDefaults(suiteName: "group.com.andydragon.VeroTools")
-    ) var sharedFeature = ""
+    @State private var sharedFeature: Binding<CodableFeature?>
+    @State private var loadedCatalogs = LoadedCatalogs()
+    @State private var pickedFeatures: [Feature]
+    @ObservedObject private var featureScriptPlaceholders: PlaceholderList
+    @ObservedObject private var commentScriptPlaceholders: PlaceholderList
+    @ObservedObject private var originalPostScriptPlaceholders: PlaceholderList
+    @State private var isShowingToast: Binding<Bool>
+    private var hideScriptView: () -> Void
+    private var navigateToNextFeature: (_ forward: Bool) -> Void
+    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
     @State private var membership = MembershipCase.none
     @State private var membershipValidation: (valid: Bool, reason: String?) = (true, nil)
@@ -26,9 +31,10 @@ struct ScriptContentView: View {
     @State private var yourFirstNameValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var page = UserDefaults.standard.string(forKey: "Page") ?? ""
     @State private var pageValidation: (valid: Bool, reason: String?) = (true, nil)
-    @State private var pageStaffLevel = StaffLevelCase(
-        rawValue: UserDefaults.standard.string(forKey: "StaffLevel") ?? StaffLevelCase.mod.rawValue
-    ) ?? StaffLevelCase.mod
+    @State private var pageStaffLevel =
+        StaffLevelCase(
+            rawValue: UserDefaults.standard.string(forKey: "StaffLevel") ?? StaffLevelCase.mod.rawValue
+        ) ?? StaffLevelCase.mod
     @State private var featureDescription = ""
     @State private var firstForPage = false
     @State private var fromCommunityTag = false
@@ -42,12 +48,8 @@ struct ScriptContentView: View {
     @State private var newMembershipScript = ""
     @State private var placeholderSheetCase = PlaceholderSheetCase.featureScript
     @State private var showingPlaceholderSheet = false
-    @State private var loadedCatalogs = LoadedCatalogs()
     @State private var currentPage: LoadedPage? = nil
     @State private var pageLoadedFromFeature = false
-    @ObservedObject private var featureScriptPlaceholders: PlaceholderList
-    @ObservedObject private var commentScriptPlaceholders: PlaceholderList
-    @ObservedObject private var originalPostScriptPlaceholders: PlaceholderList
     @State private var scriptWithPlaceholdersInPlace = ""
     @State private var scriptWithPlaceholders = ""
     @State private var lastMembership = MembershipCase.none
@@ -57,29 +59,25 @@ struct ScriptContentView: View {
     @State private var lastPage = ""
     @State private var lastPageStaffLevel = StaffLevelCase.mod
     @FocusState private var focusedField: FocusedField?
-    
+
     private let languagePrefix = Locale.preferredLanguageCode
 
     private var canCopyScripts: Bool {
         return membershipValidation.valid
-        && userNameValidation.valid
-        && yourNameValidation.valid
-        && yourFirstNameValidation.valid
-        && pageValidation.valid
+            && userNameValidation.valid
+            && yourNameValidation.valid
+            && yourFirstNameValidation.valid
+            && pageValidation.valid
     }
     private var canCopyNewMembershipScript: Bool {
         return newMembership != NewMembershipCase.none
-        && newMembershipValidation.valid
-        && userNameValidation.valid
+            && newMembershipValidation.valid
+            && userNameValidation.valid
     }
     private var accordionHeightRatio = 3.5
-    private var isShowingToast: Binding<Bool>
-    private var hideScriptView: () -> Void
-    private var navigateToNextFeature: (_ forward: Bool) -> Void
-    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
-    @State private var pickedFeatures: [Feature]
 
     init(
+        _ sharedFeature: Binding<CodableFeature?>,
         _ loadedCatalogs: LoadedCatalogs,
         _ pickedFeatures: [Feature],
         _ featureScriptPlaceholders: PlaceholderList,
@@ -88,8 +86,9 @@ struct ScriptContentView: View {
         _ isShowingToast: Binding<Bool>,
         _ hideScriptView: @escaping () -> Void,
         _ navigateToNextFeature: @escaping (_ forward: Bool) -> Void,
-        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
+        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     ) {
+        self.sharedFeature = sharedFeature
         self.loadedCatalogs = loadedCatalogs
         self.pickedFeatures = pickedFeatures
         self.featureScriptPlaceholders = featureScriptPlaceholders
@@ -99,6 +98,8 @@ struct ScriptContentView: View {
         self.hideScriptView = hideScriptView
         self.navigateToNextFeature = navigateToNextFeature
         self.showToast = showToast
+
+        _ = self.sharedFeature.onChange(onSharedFeatureChanged)
     }
 
     var body: some View {
@@ -120,18 +121,22 @@ struct ScriptContentView: View {
                         Text("Page: ")
                             .foregroundStyle(
                                 pageValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
-                                Color.TextColorSecondary)
+                                Color.TextColorSecondary
+                            )
                             .frame(width: 36, alignment: .leading)
                             .lineLimit(1)
                             .truncationMode(.tail)
-                        Picker("", selection: $page.onChange { value in
-                            if page.isEmpty {
-                                pageValidation = (false, "Page is required")
-                            } else {
-                                pageValidation = (true, nil)
+                        Picker(
+                            "",
+                            selection: $page.onChange { value in
+                                if page.isEmpty {
+                                    pageValidation = (false, "Page is required")
+                                } else {
+                                    pageValidation = (true, nil)
+                                }
+                                pageChanged(to: value)
                             }
-                            pageChanged(to: value)
-                        }) {
+                        ) {
                             ForEach(loadedCatalogs.loadedPages) { page in
                                 Text(page.displayName)
                                     .tag(page.id)
@@ -239,13 +244,17 @@ struct ScriptContentView: View {
                         Text("Level: ")
                             .foregroundStyle(
                                 membershipValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
-                                Color.TextColorSecondary)
+                                Color.TextColorSecondary
+                            )
                             .frame(width: 36, alignment: .leading)
                             .padding([.leading], membershipValidation.valid ? 8 : 0)
-                        Picker("", selection: $membership.onChange { value in
-                            membershipValidation = validateMembership(value: membership)
-                            membershipChanged(to: value)
-                        }) {
+                        Picker(
+                            "",
+                            selection: $membership.onChange { value in
+                                membershipValidation = validateMembership(value: membership)
+                                membershipChanged(to: value)
+                            }
+                        ) {
                             ForEach(MembershipCase.casesFor(hub: currentPage?.hub)) { level in
                                 Text(level.rawValue)
                                     .tag(level)
@@ -335,7 +344,8 @@ struct ScriptContentView: View {
                                 featureScriptPlaceholders,
                                 [commentScriptPlaceholders, originalPostScriptPlaceholders],
                                 force: force,
-                                withPlaceholders: withPlaceholders) {
+                                withPlaceholders: withPlaceholders)
+                            {
                                 showToast(
                                     .complete(.green),
                                     "Copied",
@@ -343,7 +353,8 @@ struct ScriptContentView: View {
                                         "Copied the feature script\(withPlaceholders ? " with placeholders" : "") "
                                         "to the clipboard"
                                     },
-                                    3) {}
+                                    .Success
+                                ) {}
                             }
                         },
                         focus: $focusedField,
@@ -364,7 +375,8 @@ struct ScriptContentView: View {
                                 commentScriptPlaceholders,
                                 [featureScriptPlaceholders, originalPostScriptPlaceholders],
                                 force: force,
-                                withPlaceholders: withPlaceholders) {
+                                withPlaceholders: withPlaceholders)
+                            {
                                 showToast(
                                     .complete(.green),
                                     "Copied",
@@ -372,7 +384,8 @@ struct ScriptContentView: View {
                                         "Copied the comment script\(withPlaceholders ? " with placeholders" : "") "
                                         "to the clipboard"
                                     },
-                                    3) {}
+                                    .Success
+                                ) {}
                             }
                         },
                         focus: $focusedField,
@@ -393,7 +406,8 @@ struct ScriptContentView: View {
                                 originalPostScriptPlaceholders,
                                 [featureScriptPlaceholders, commentScriptPlaceholders],
                                 force: force,
-                                withPlaceholders: withPlaceholders) {
+                                withPlaceholders: withPlaceholders)
+                            {
                                 showToast(
                                     .complete(.green),
                                     "Copied",
@@ -401,7 +415,8 @@ struct ScriptContentView: View {
                                         "Copied the original script\(withPlaceholders ? " with placeholders" : "") "
                                         "to the clipboard"
                                     },
-                                    3) {}
+                                    .Success
+                                ) {}
                             }
                         },
                         focus: $focusedField,
@@ -429,7 +444,8 @@ struct ScriptContentView: View {
                                 .complete(.green),
                                 "Copied",
                                 "Copied the new membership script to the clipboard",
-                                3) {}
+                                .Success
+                            ) {}
                         },
                         focus: $focusedField,
                         focusField: .newMembershipScript)
@@ -440,10 +456,10 @@ struct ScriptContentView: View {
             .sheet(isPresented: $showingPlaceholderSheet) {
                 PlaceholderSheet(
                     placeholders: placeholderSheetCase == .featureScript
-                    ? featureScriptPlaceholders
-                    : placeholderSheetCase == .commentScript
-                    ? commentScriptPlaceholders
-                    : originalPostScriptPlaceholders,
+                        ? featureScriptPlaceholders
+                        : placeholderSheetCase == .commentScript
+                            ? commentScriptPlaceholders
+                            : originalPostScriptPlaceholders,
                     scriptWithPlaceholders: $scriptWithPlaceholders,
                     scriptWithPlaceholdersInPlace: $scriptWithPlaceholdersInPlace,
                     isPresenting: $showingPlaceholderSheet,
@@ -484,7 +500,8 @@ struct ScriptContentView: View {
                             .complete(.green),
                             "Copied",
                             "Copied the \(scriptName) script\(suffix) to the clipboard",
-                            3) {}
+                            .Success
+                        ) {}
                     })
             }
             .toolbar {
@@ -556,15 +573,14 @@ struct ScriptContentView: View {
         .onAppear {
             focusedField = .userName
         }
-        .onValueChanged(value: sharedFeature) { newValue in
-            loadSharedFeature()
-        }
         .task {
             // Hack for page staff level to handle changes (otherwise they are not persisted)
             lastPageStaffLevel = pageStaffLevel
 
             // Try to load the shared feature up front
-            loadSharedFeature()
+            if let featureUser = sharedFeature.wrappedValue {
+                populateFromFeatureUser(featureUser)
+            }
 
             // Update the scripts
             updateScripts()
@@ -572,24 +588,9 @@ struct ScriptContentView: View {
         }
     }
 
-    private func loadSharedFeature() {
-        if !sharedFeature.isEmpty {
-            // Store this before we clear the value
-            let sharedFeatureJson = sharedFeature
-
-            // Clear the feature
-            UserDefaults(suiteName: "group.com.andydragon.VeroTools")?.removeObject(forKey: "feature")
-
-            // Load the feature
-            do {
-                let featureUser = try CodableFeature(json: sharedFeatureJson.data(using: .utf8)!)
-                if !featureUser.page.isEmpty {
-                    populateFromFeatureUser(featureUser)
-                }
-            }
-            catch {
-                debugPrint(error.localizedDescription)
-            }
+    private func onSharedFeatureChanged(_ feature: CodableFeature?) {
+        if let featureUser = sharedFeature.wrappedValue {
+            populateFromFeatureUser(featureUser)
         }
     }
 
@@ -604,7 +605,7 @@ struct ScriptContentView: View {
                 pageValidation = (true, nil)
                 pageLoadedFromFeature = true
             }
-            
+
             pageStaffLevel = featureUser.pageStaffLevel
             pageStaffLevelChanged(to: pageStaffLevel)
 
@@ -761,7 +762,7 @@ struct ScriptContentView: View {
         } else if value.first! == "@" {
             return (false, "Don't include the '@' in user names")
         } else if let disallowList = loadedCatalogs.disallowList[currentPage?.hub ?? ""] {
-            if (disallowList.first { disallow in disallow == value } != nil) {
+            if disallowList.first(where: { disallow in disallow == value }) != nil {
                 return (false, "User is on the disallow list")
             }
         }
@@ -874,7 +875,7 @@ struct ScriptContentView: View {
     private func transferPlaceholderValues(
         _ scriptPlaceholders: PlaceholderList,
         _ otherPlaceholders: [PlaceholderList]
-    ) -> Void {
+    ) {
         scriptPlaceholders.placeholderDict.forEach { placeholder in
             otherPlaceholders.forEach { destinationPlaceholders in
                 let destinationPlaceholderEntry = destinationPlaceholders.placeholderDict[placeholder.key]
@@ -916,7 +917,8 @@ struct ScriptContentView: View {
                         let sourcePlaceholderEntry = sourcePlaceholders.placeholderDict[placeholder]
                         if (value == nil || value!.isEmpty)
                             && sourcePlaceholderEntry != nil
-                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty {
+                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty
+                        {
                             value = sourcePlaceholderEntry?.value
                         }
                     }
@@ -939,7 +941,8 @@ struct ScriptContentView: View {
                         let sourcePlaceholderEntry = sourcePlaceholders.longPlaceholderDict[placeholder]
                         if (value == nil || value!.isEmpty)
                             && sourcePlaceholderEntry != nil
-                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty {
+                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty
+                        {
                             value = sourcePlaceholderEntry?.value
                         }
                     }
@@ -959,7 +962,7 @@ struct ScriptContentView: View {
         return false
     }
 
-    private func updateScripts() -> Void {
+    private func updateScripts() {
         var currentPageName = page
         var scriptPageName = currentPageName
         var scriptPageHash = currentPageName
@@ -1016,28 +1019,32 @@ struct ScriptContentView: View {
             originalPostScript = ""
             commentScript = ""
         } else {
-            let featureScriptTemplate = getTemplateFromCatalog(
-                "feature",
-                from: page,
-                firstFeature: firstForPage,
-                rawTag: fromRawTag,
-                communityTag: fromCommunityTag,
-                hubTag: fromHubTag) ?? ""
-            let commentScriptTemplate = getTemplateFromCatalog(
-                "comment",
-                from: page,
-                firstFeature: firstForPage,
-                rawTag: fromRawTag,
-                communityTag: fromCommunityTag,
-                hubTag: fromHubTag) ?? ""
-            let originalPostScriptTemplate = getTemplateFromCatalog(
-                "original post",
-                from: page,
-                firstFeature: firstForPage,
-                rawTag: fromRawTag,
-                communityTag: fromCommunityTag,
-                hubTag: fromHubTag) ?? ""
-            featureScript = featureScriptTemplate
+            let featureScriptTemplate =
+                getTemplateFromCatalog(
+                    "feature",
+                    from: page,
+                    firstFeature: firstForPage,
+                    rawTag: fromRawTag,
+                    communityTag: fromCommunityTag,
+                    hubTag: fromHubTag) ?? ""
+            let commentScriptTemplate =
+                getTemplateFromCatalog(
+                    "comment",
+                    from: page,
+                    firstFeature: firstForPage,
+                    rawTag: fromRawTag,
+                    communityTag: fromCommunityTag,
+                    hubTag: fromHubTag) ?? ""
+            let originalPostScriptTemplate =
+                getTemplateFromCatalog(
+                    "original post",
+                    from: page,
+                    firstFeature: firstForPage,
+                    rawTag: fromRawTag,
+                    communityTag: fromCommunityTag,
+                    hubTag: fromHubTag) ?? ""
+            featureScript =
+                featureScriptTemplate
                 .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
                 .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageName)
                 .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
@@ -1049,7 +1056,8 @@ struct ScriptContentView: View {
                 // Special case for 'YOUR FIRST NAME' since it's now autofilled.
                 .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: yourFirstName)
                 .replacingOccurrences(of: "%%STAFFLEVEL%%", with: pageStaffLevel.rawValue)
-            originalPostScript = originalPostScriptTemplate
+            originalPostScript =
+                originalPostScriptTemplate
                 .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
                 .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageName)
                 .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
@@ -1061,7 +1069,8 @@ struct ScriptContentView: View {
                 // Special case for 'YOUR FIRST NAME' since it's now autofilled.
                 .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: yourFirstName)
                 .replacingOccurrences(of: "%%STAFFLEVEL%%", with: pageStaffLevel.rawValue)
-            commentScript = commentScriptTemplate
+            commentScript =
+                commentScriptTemplate
                 .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
                 .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageName)
                 .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
@@ -1165,7 +1174,7 @@ struct ScriptContentView: View {
         return template?.template
     }
 
-    private func updateNewMembershipScripts() -> Void {
+    private func updateNewMembershipScripts() {
         if loadedCatalogs.waitingForTemplates {
             newMembershipScript = ""
             return

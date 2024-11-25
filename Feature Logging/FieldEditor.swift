@@ -22,7 +22,7 @@ struct FieldEditor: View {
     }
     var focus: FocusState<FocusedField?>.Binding
     var focusField: FocusedField
-    
+
     var body: some View {
         HStack {
             // Title validator
@@ -32,32 +32,37 @@ struct FieldEditor: View {
                     .help(fieldValidation.reason ?? "")
                     .imageScale(.small)
             }
-            
+
             // Title
             if title.count != 0 {
                 if titleWidth.isEmpty {
                     Text(title)
-                        .foregroundStyle(fieldValidation.valid ?
-                                         Color.TextColorPrimary : Color.TextColorRequired,
-                                         Color.TextColorSecondary)
+                        .foregroundStyle(
+                            fieldValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
+                            Color.TextColorSecondary
+                        )
                         .lineLimit(1)
                         .truncationMode(.tail)
                 } else {
                     Text(title)
-                        .foregroundStyle(fieldValidation.valid ?
-                                         Color.TextColorPrimary : Color.TextColorRequired,
-                                         Color.TextColorSecondary)
+                        .foregroundStyle(
+                            fieldValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
+                            Color.TextColorSecondary
+                        )
                         .frame(width: titleWidth[0], alignment: .leading)
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
             }
-            
+
             // Editor
-            TextField(placeholder, text: $field.onChange { value in
-                fieldValidation = validate(value)
-                fieldChanged(value)
-            }).onAppear(perform: {
+            TextField(
+                placeholder,
+                text: $field.onChange { value in
+                    fieldValidation = validate(value)
+                    fieldChanged(value)
+                }
+            ).onAppear(perform: {
                 fieldValidation = validate(field)
             })
             .focused(focus, equals: focusField)

@@ -12,7 +12,7 @@ struct ToastDismissShield: View {
     @Binding var isShowingToast: Bool
     @Binding var toastId: UUID?
     @Binding var isShowingVersionAvailableToast: Bool
-    
+
     var body: some View {
         if isAnyToastShowing {
             VStack {

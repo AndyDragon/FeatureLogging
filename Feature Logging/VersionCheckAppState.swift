@@ -22,7 +22,7 @@ struct VersionCheckToast {
     var appVersion: String
     var currentVersion: String
     var linkToCurrentVersion: String
-    
+
     init(appVersion: String = "unknown", currentVersion: String = "unknown", linkToCurrentVersion: String = "") {
         self.appVersion = appVersion
         self.currentVersion = currentVersion
@@ -43,17 +43,18 @@ struct VersionCheckAppState {
         isShowingVersionAvailableToast: Binding<Bool>,
         isShowingVersionRequiredToast: Binding<Bool>,
         versionCheckToast: Binding<VersionCheckToast>,
-        versionLocation: String) {
-            self.isCheckingForUpdates = isCheckingForUpdates
-            self.isShowingVersionAvailableToast = isShowingVersionAvailableToast
-            self.isShowingVersionRequiredToast = isShowingVersionRequiredToast
-            self.versionCheckToast = versionCheckToast
-            self.versionLocation = versionLocation
-        }
+        versionLocation: String
+    ) {
+        self.isCheckingForUpdates = isCheckingForUpdates
+        self.isShowingVersionAvailableToast = isShowingVersionAvailableToast
+        self.isShowingVersionRequiredToast = isShowingVersionRequiredToast
+        self.versionCheckToast = versionCheckToast
+        self.versionLocation = versionLocation
+    }
 
     func checkForUpdates() {
         if isPreviewMode {
-            return;
+            return
         }
         isCheckingForUpdates.wrappedValue = true
         Task {
@@ -65,7 +66,7 @@ struct VersionCheckAppState {
         isCheckingForUpdates.wrappedValue = false
     }
 
-    private func checkForUpdatesAsync() async throws -> Void {
+    private func checkForUpdatesAsync() async throws {
         do {
             // Check version from server manifest
             let versionManifestUrl = URL(string: versionLocation)!

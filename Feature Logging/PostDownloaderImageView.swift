@@ -5,12 +5,12 @@
 //  Created by Andrew Forget on 2024-11-23.
 //
 
-import SwiftUI
-import SwiftSoup
-import Kingfisher
 import AlertToast
+import Kingfisher
+import SwiftSoup
+import SwiftUI
 
-struct PostDownloaderImageView : View {
+struct PostDownloaderImageView: View {
     @State private var width = 0
     @State private var height = 0
     @State private var data: Data?
@@ -19,8 +19,8 @@ struct PostDownloaderImageView : View {
     var imageUrl: URL
     var name: String
     var index: Int
-    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
-    
+    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
+
     var body: some View {
         VStack {
             VStack {
@@ -69,7 +69,8 @@ struct PostDownloaderImageView : View {
                             String {
                                 "Saved the image to file \(fileURL)"
                             },
-                            3) {}
+                            .Success
+                        ) {}
                     } catch {
                         print("Failed to save file")
                         debugPrint(error.localizedDescription)
@@ -79,7 +80,8 @@ struct PostDownloaderImageView : View {
                             String {
                                 "Failed to saved the image to your Pictures folder - \(error.localizedDescription)"
                             },
-                            3) {}
+                            .Failure
+                        ) {}
                     }
                 }) {
                     HStack(alignment: .center) {

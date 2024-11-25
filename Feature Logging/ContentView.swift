@@ -5,9 +5,16 @@
 //  Created by Andrew Forget on 2024-03-29.
 //
 
+import AlertToast
 import SwiftUI
 import UniformTypeIdentifiers
-import AlertToast
+
+enum ToastDuration: Int {
+    case Blocking = 0
+    case Success = 1
+    case Failure = 5
+    case LongFailure = 30
+}
 
 struct ContentView: View {
     // THEME
@@ -17,7 +24,7 @@ struct ContentView: View {
     ) var theme = Theme.notSet
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @State private var isDarkModeOn = true
-    
+
     // PREFS
     @AppStorage(
         "preference_includehash",
@@ -31,21 +38,18 @@ struct ContentView: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-    
-    // SHARED FEATURE
-    @AppStorage(
-        "feature",
-        store: UserDefaults(suiteName: "group.com.andydragon.VeroTools")
-    ) var sharedFeature = ""
-    
+
     @EnvironmentObject var commandModel: AppCommandModel
-    
+
     @Environment(\.openURL) private var openURL
-    @State private var page: String = UserDefaults.standard.string(forKey: "Page") ?? ""
+
+    @State private var sharedFeature: CodableFeature? = nil
     @State private var pageTitle: String = ""
     @State private var pageHashTags: [String] = []
     @State private var postUrl: String = ""
     @State private var postUserName: String = ""
+
+    @State private var page: String = UserDefaults.standard.string(forKey: "Page") ?? ""
     @State private var pageStaffLevel = StaffLevelCase.mod
     @State private var toastType: AlertToast.AlertType = .regular
     @State private var toastText = ""
@@ -86,17 +90,13 @@ struct ContentView: View {
     @FocusState private var focusedField: FocusedField?
     private var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
-        isShowingToast ||
-        appState.isShowingVersionAvailableToast.wrappedValue ||
-        appState.isShowingVersionRequiredToast.wrappedValue
+        isShowingToast || appState.isShowingVersionAvailableToast.wrappedValue || appState.isShowingVersionRequiredToast.wrappedValue
     }
     private var fileNameDateFormatter: DateFormatter {
-        get {
-            let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: "en_US_POSIX")
-            formatter.dateFormat = "yyyy-MM-dd"
-            return formatter
-        }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
     }
     private var descriptionSuffix: String {
         if let description = selectedFeature?.featureDescription {
@@ -108,24 +108,25 @@ struct ContentView: View {
     }
     private var titleSuffix: String {
         isShowingScriptView
-        ? ((selectedFeature?.userName ?? "").isEmpty ? " - scripts" : " - scripts for \(selectedFeature?.userName ?? "")\(descriptionSuffix)")
-        : (isShowingDownloaderView
-           ? ((selectedFeature?.userName ?? "").isEmpty ? " - post viewer" : " - post viewer for \(selectedFeature?.userName ?? "")\(descriptionSuffix)")
-           : (isShowingStatisticsView
-              ? " - statistics"
-              : ""))
+            ? ((selectedFeature?.userName ?? "").isEmpty ? " - scripts" : " - scripts for \(selectedFeature?.userName ?? "")\(descriptionSuffix)")
+            : (isShowingDownloaderView
+                ? ((selectedFeature?.userName ?? "").isEmpty ? " - post viewer" : " - post viewer for \(selectedFeature?.userName ?? "")\(descriptionSuffix)")
+                : (isShowingStatisticsView
+                    ? " - statistics"
+                    : ""))
     }
-    
+
     init(_ appState: VersionCheckAppState) {
         self.appState = appState
     }
-    
+
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-            
+
             if isShowingScriptView {
                 ScriptContentView(
+                    $sharedFeature,
                     loadedCatalogs,
                     sortedFeatures.filter { $0.isPickedAndAllowed },
                     featureScriptPlaceholders,
@@ -137,13 +138,13 @@ struct ContentView: View {
                     showToast)
             } else if isShowingDownloaderView {
                 PostDownloaderView(
-                    pageTitle: $pageTitle,
-                    pageHashTags: $pageHashTags,
-                    postUrl: $postUrl,
-                    isShowingToast: $isShowingToast,
-                    hideDownloaderView: { isShowingDownloaderView.toggle() },
-                    showToast: showToast,
-                    savePostUserName: savePostUserName)
+                    $pageTitle,
+                    $pageHashTags,
+                    $postUrl,
+                    $isShowingToast,
+                    { isShowingDownloaderView.toggle() },
+                    showToast,
+                    savePostUserName)
             } else if isShowingStatisticsView {
                 StatisticsContentView(
                     $isShowingToast,
@@ -155,16 +156,19 @@ struct ContentView: View {
                     HStack(alignment: .center) {
                         Text("Page:")
                             .frame(width: 108, alignment: .trailing)
-                        
-                        Picker("", selection: $page.onChange { value in
-                            UserDefaults.standard.set(page, forKey: "Page")
-                            logURL = nil
-                            selectedFeature = nil
-                            featuresViewModel = FeaturesViewModel()
-                            sortedFeatures = featuresViewModel.sortedFeatures
-                            updateStaffLevelForPage()
-                            updatePageTitleAndHashTags()
-                        }) {
+
+                        Picker(
+                            "",
+                            selection: $page.onChange { value in
+                                UserDefaults.standard.set(page, forKey: "Page")
+                                logURL = nil
+                                selectedFeature = nil
+                                featuresViewModel = FeaturesViewModel()
+                                sortedFeatures = featuresViewModel.sortedFeatures
+                                updateStaffLevelForPage()
+                                updatePageTitleAndHashTags()
+                            }
+                        ) {
                             ForEach(loadedCatalogs.loadedPages) { page in
                                 if page.name != "default" {
                                     Text(page.displayName).tag(page.id)
@@ -177,16 +181,19 @@ struct ContentView: View {
                         .focusable()
                         .focused($focusedField, equals: .pagePicker)
                         .disabled(!featuresViewModel.features.isEmpty)
-                        
+
                         // Page staff level picker
                         Text("Page staff level: ")
                             .padding([.leading], 8)
                             .lineLimit(1)
                             .truncationMode(.tail)
-                        
-                        Picker("", selection: $pageStaffLevel.onChange { value in
-                            storeStaffLevelForPage()
-                        }) {
+
+                        Picker(
+                            "",
+                            selection: $pageStaffLevel.onChange { value in
+                                storeStaffLevelForPage()
+                            }
+                        ) {
                             ForEach(StaffLevelCase.allCases) { staffLevelCase in
                                 Text(staffLevelCase.rawValue)
                                     .tag(staffLevelCase)
@@ -199,46 +206,46 @@ struct ContentView: View {
                         .focusable()
                         .focused($focusedField, equals: .staffLevel)
                         .frame(maxWidth: 144)
-                        
+
                         Menu("Copy tag", systemImage: "tag.fill") {
                             Button(action: {
                                 copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the page tag to the clipboard", duration: 2) { }
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the page tag to the clipboard", duration: .Success) {}
                             }) {
                                 Text("Page tag")
                             }
                             if loadedPage?.hub == "snap" {
                                 Button(action: {
                                     copyToClipboard("\(includeHash ? "#" : "")raw_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
-                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW page tag to the clipboard", duration: 2) { }
+                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW page tag to the clipboard", duration: .Success) {}
                                 }) {
                                     Text("RAW page tag")
                                 }
                             }
                             Button(action: {
                                 copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_community")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the community tag to the clipboard", duration: 2) { }
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the community tag to the clipboard", duration: .Success) {}
                             }) {
                                 Text("Community tag")
                             }
                             if loadedPage?.hub == "snap" {
                                 Button(action: {
                                     copyToClipboard("\(includeHash ? "#" : "")raw_community")
-                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW community tag to the clipboard", duration: 2) { }
+                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW community tag to the clipboard", duration: .Success) {}
                                 }) {
                                     Text("RAW community tag")
                                 }
                             }
                             Button(action: {
                                 copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_hub")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the hub tag to the clipboard", duration: 2) { }
+                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the hub tag to the clipboard", duration: .Success) {}
                             }) {
                                 Text("Hub tag")
                             }
                             if loadedPage?.hub == "snap" {
                                 Button(action: {
                                     copyToClipboard("\(includeHash ? "#" : "")raw_hub")
-                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW hub tag to the clipboard", duration: 2) { }
+                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW hub tag to the clipboard", duration: .Success) {}
                                 }) {
                                     Text("RAW hub tag")
                                 }
@@ -251,31 +258,36 @@ struct ContentView: View {
                         .frame(maxWidth: 132)
                         .focusable()
                     }
-                    
+
                     // Feature editor
                     VStack {
                         if let currentFeature = selectedFeature {
-                            FeatureEditor(feature: currentFeature, loadedPage: loadedPage, postUrl: $postUrl, postUserName: postUserName, close: {
-                                selectedFeature = nil
-                            }, updateList: {
-                                sortedFeatures = featuresViewModel.sortedFeatures
-                                shouldScrollFeatureListToSelection.toggle()
-                            }, markDocumentDirty: {
-                                isDirty = true
-                            }, showToast: showToast, showDownloaderView: { postUrl in
-                                self.postUrl = postUrl
-                                isShowingDownloaderView.toggle()
-                            })
+                            FeatureEditor(
+                                feature: currentFeature, loadedPage: loadedPage, postUrl: $postUrl, postUserName: postUserName,
+                                close: {
+                                    selectedFeature = nil
+                                },
+                                updateList: {
+                                    sortedFeatures = featuresViewModel.sortedFeatures
+                                    shouldScrollFeatureListToSelection.toggle()
+                                },
+                                markDocumentDirty: {
+                                    isDirty = true
+                                }, showToast: showToast,
+                                showDownloaderView: { postUrl in
+                                    self.postUrl = postUrl
+                                    isShowingDownloaderView.toggle()
+                                })
                         } else {
                             Spacer()
                         }
                     }
                     .frame(height: 380)
-                    
+
                     // Feature list buttons
                     HStack {
                         Spacer()
-                        
+
                         // Add feature
                         Button(action: {
                             let linkText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
@@ -285,7 +297,7 @@ struct ContentView: View {
                                     .systemImage("exclamationmark.triangle.fill", .orange),
                                     "Found duplicate post link",
                                     subTitle: "There is already a feature in the list with that post link, selected the existing feature",
-                                    duration: 3)
+                                    duration: .Failure)
                                 selectedFeature = existingFeature
                                 return
                             }
@@ -312,10 +324,10 @@ struct ContentView: View {
                         }
                         .disabled(isAnyToastShowing)
                         .keyboardShortcut("+", modifiers: .command)
-                        
+
                         Spacer()
                             .frame(width: 16)
-                        
+
                         // Remove feature
                         Button(action: {
                             if let currentFeature = selectedFeature {
@@ -334,28 +346,42 @@ struct ContentView: View {
                         .disabled(isAnyToastShowing || selectedFeature == nil)
                         .keyboardShortcut("-", modifiers: .command)
                     }
-                    
+
                     // Feature list
                     ScrollViewReader { proxy in
                         List {
                             ForEach(sortedFeatures, id: \.self) { feature in
-                                FeatureListRow(feature: feature, loadedPage: loadedPage!, pageStaffLevel: pageStaffLevel, markDocumentDirty: {
-                                    isDirty = true
-                                }, ensureSelected: {
-                                    selectedFeature = feature
-                                }, showToast: showToast, showScriptView: {
-                                    isShowingScriptView.toggle()
-                                })
+                                FeatureListRow(
+                                    feature: feature,
+                                    sharedFeature: $sharedFeature,
+                                    loadedPage: loadedPage!,
+                                    pageStaffLevel: pageStaffLevel,
+                                    markDocumentDirty: {
+                                        isDirty = true
+                                    },
+                                    ensureSelected: {
+                                        selectedFeature = feature
+                                    },
+                                    showToast: showToast,
+                                    showScriptView: {
+                                        isShowingScriptView.toggle()
+                                    }
+                                )
                                 .padding([.top, .bottom], 8)
                                 .padding([.leading, .trailing])
-                                .foregroundStyle(Color(nsColor: hoveredFeature == feature
-                                                       ? NSColor.selectedControlTextColor
-                                                       : NSColor.labelColor), Color(nsColor: .labelColor))
-                                .background(selectedFeature == feature
-                                            ? Color.BackgroundColorListSelected
-                                            : hoveredFeature == feature
+                                .foregroundStyle(
+                                    Color(
+                                        nsColor: hoveredFeature == feature
+                                            ? NSColor.selectedControlTextColor
+                                            : NSColor.labelColor), Color(nsColor: .labelColor)
+                                )
+                                .background(
+                                    selectedFeature == feature
+                                        ? Color.BackgroundColorListSelected
+                                        : hoveredFeature == feature
                                             ? Color.BackgroundColorListSelected.opacity(0.33)
-                                            : Color.BackgroundColorList)
+                                            : Color.BackgroundColorList
+                                )
                                 .cornerRadius(4)
                                 .onHover(perform: { hovering in
                                     if hoveredFeature == feature {
@@ -376,11 +402,14 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .padding(4)
                         .presentationBackground(.clear)
-                        .onChange(of: shouldScrollFeatureListToSelection, {
-                            withAnimation {
-                                proxy.scrollTo(selectedFeature)
+                        .onChange(
+                            of: shouldScrollFeatureListToSelection,
+                            {
+                                withAnimation {
+                                    proxy.scrollTo(selectedFeature)
+                                }
                             }
-                        })
+                        )
                         .onTapGesture {
                             withAnimation {
                                 selectedFeature = nil
@@ -435,7 +464,7 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isAnyToastShowing || loadedPage == nil)
-                    
+
                     // Save log
                     Button(action: {
                         logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
@@ -478,7 +507,7 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isAnyToastShowing || loadedPage == nil)
-                    
+
                     // Copy report
                     Button(action: {
                         copyReportToClipboard()
@@ -494,7 +523,7 @@ struct ContentView: View {
                         .buttonStyle(.plain)
                     }
                     .disabled(isAnyToastShowing || loadedPage == nil)
-                    
+
                     // Save report
                     Button(action: {
                         reportDocument = ReportDocument(initialText: generateReport())
@@ -517,9 +546,9 @@ struct ContentView: View {
                         isPresented: $showReportFileExporter,
                         document: reportDocument,
                         contentType: UTType.features,
-                        defaultFilename: logURL != nil ?
-                        "\(logURL!.deletingPathExtension().lastPathComponent).features" :
-                            "\(loadedPage?.hub ?? "hub")_\(loadedPage?.pageName ?? loadedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).features"
+                        defaultFilename: logURL != nil
+                            ? "\(logURL!.deletingPathExtension().lastPathComponent).features"
+                            : "\(loadedPage?.hub ?? "hub")_\(loadedPage?.pageName ?? loadedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).features"
                     ) { result in
                         switch result {
                         case .success(let url):
@@ -529,7 +558,7 @@ struct ContentView: View {
                         }
                     }
                     .disabled(isAnyToastShowing || loadedPage == nil)
-                    
+
                     // Theme
                     Menu("Theme", systemImage: "paintpalette") {
                         Picker("Theme:", selection: $theme.onChange(setTheme)) {
@@ -553,11 +582,11 @@ struct ContentView: View {
                 toastId: $toastId,
                 isShowingVersionAvailableToast: appState.isShowingVersionAvailableToast)
         }
-#if TESTING
-        .navigationTitle("Feature Logging v2 - Script Testing\(titleSuffix)")
-#else
-        .navigationTitle("Feature Logging v2\(titleSuffix)")
-#endif
+        #if TESTING
+            .navigationTitle("Feature Logging v2 - Script Testing\(titleSuffix)")
+        #else
+            .navigationTitle("Feature Logging v2\(titleSuffix)")
+        #endif
         .blur(radius: isAnyToastShowing ? 4 : 0)
         .frame(minWidth: 1024, minHeight: 720)
         .background(Color.BackgroundColor)
@@ -649,7 +678,8 @@ struct ContentView: View {
                     title: toastText,
                     subTitle: toastSubTitle)
             },
-            onTap: toastTapAction)
+            onTap: toastTapAction
+        )
         .toast(
             isPresenting: appState.isShowingVersionAvailableToast,
             duration: 10,
@@ -669,7 +699,8 @@ struct ContentView: View {
             },
             completion: {
                 appState.resetCheckingForUpdates()
-            })
+            }
+        )
         .toast(
             isPresenting: appState.isShowingVersionRequiredToast,
             duration: 0,
@@ -690,7 +721,8 @@ struct ContentView: View {
             },
             completion: {
                 appState.resetCheckingForUpdates()
-            })
+            }
+        )
         .onAppear(perform: {
             setTheme(theme)
             focusedField = .pagePicker
@@ -702,16 +734,18 @@ struct ContentView: View {
         }
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
     }
-    
+
     private func delayAndTerminate() {
         isDirty = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: {
-            NSApplication.shared.terminate(nil)
-        })
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + 0.2,
+            execute: {
+                NSApplication.shared.terminate(nil)
+            })
     }
-    
+
     private func setTheme(_ newTheme: Theme) {
-        if (newTheme == .notSet) {
+        if newTheme == .notSet {
             isDarkModeOn = colorScheme == .dark
             Color.isDarkModeOn = colorScheme == .dark
         } else {
@@ -723,7 +757,7 @@ struct ContentView: View {
             }
         }
     }
-    
+
     private func updatePageTitleAndHashTags() {
         if let loadedPage = loadedCatalogs.loadedPages.first(where: { $0.id == page }) {
             pageTitle = loadedPage.title ?? "\(loadedPage.hub) \(loadedPage.name)"
@@ -739,18 +773,18 @@ struct ContentView: View {
             pageHashTags = []
         }
     }
-    
+
     private func savePostUserName(
         _ userName: String
     ) {
         postUserName = userName
     }
-    
+
     private func showToast(
         _ type: AlertToast.AlertType,
         _ text: String,
         subTitle: String = "",
-        duration: Int = 3,
+        duration: ToastDuration = .Success,
         onTap: @escaping () -> Void = {}
     ) {
         if isShowingToast {
@@ -767,34 +801,32 @@ struct ContentView: View {
             toastId = UUID()
             isShowingToast.toggle()
         }
-        
-        if duration != 0 {
+
+        if duration != .Blocking {
             let expectedToastId = toastId
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(duration), execute: {
-                if (isShowingToast && toastId == expectedToastId) {
-                    toastId = nil
-                    isShowingToast.toggle()
-                    focusedField = savedFocusedField
-                }
-            })
+            DispatchQueue.main.asyncAfter(
+                deadline: .now() + .seconds(duration.rawValue),
+                execute: {
+                    if isShowingToast && toastId == expectedToastId {
+                        toastId = nil
+                        isShowingToast.toggle()
+                        focusedField = savedFocusedField
+                    }
+                })
         }
     }
-    
+
     private func getVersionSubTitle() -> String {
         if appState.isShowingVersionAvailableToast.wrappedValue {
-            return "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) " +
-            "and v\(appState.versionCheckToast.wrappedValue.currentVersion) is available" +
-            "\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click here to open your browser") " +
-            "(this will go away in 10 seconds)"
+            return "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) " + "and v\(appState.versionCheckToast.wrappedValue.currentVersion) is available"
+                + "\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click here to open your browser") " + "(this will go away in 10 seconds)"
         } else if appState.isShowingVersionRequiredToast.wrappedValue {
-            return "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) " +
-            "and v\(appState.versionCheckToast.wrappedValue.currentVersion) is required" +
-            "\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click here to open your browser") " +
-            "or ⌘ + Q to Quit"
+            return "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) " + "and v\(appState.versionCheckToast.wrappedValue.currentVersion) is required"
+                + "\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click here to open your browser") " + "or ⌘ + Q to Quit"
         }
         return ""
     }
-    
+
     private func updateStaffLevelForPage() {
         if !page.isEmpty {
             if let rawPageStaffLevel = UserDefaults.standard.string(forKey: "StaffLevel_" + page) {
@@ -806,7 +838,7 @@ struct ContentView: View {
                 return
             }
         }
-        
+
         if let rawPagelessStaffLevel = UserDefaults.standard.string(forKey: "StaffLevel") {
             if let pageStaffLevelFromRaw = StaffLevelCase(rawValue: rawPagelessStaffLevel) {
                 pageStaffLevel = pageStaffLevelFromRaw
@@ -814,11 +846,11 @@ struct ContentView: View {
                 return
             }
         }
-        
+
         pageStaffLevel = StaffLevelCase.mod
         storeStaffLevelForPage()
     }
-    
+
     private func storeStaffLevelForPage() {
         if !page.isEmpty {
             UserDefaults.standard.set(pageStaffLevel.rawValue, forKey: "StaffLevel_" + page)
@@ -826,14 +858,14 @@ struct ContentView: View {
             UserDefaults.standard.set(pageStaffLevel.rawValue, forKey: "StaffLevel")
         }
     }
-    
+
     private func loadPageCatalog() async {
         do {
-#if TESTING
-            let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/pages.json")!
-#else
-            let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
-#endif
+            #if TESTING
+                let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/pages.json")!
+            #else
+                let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
+            #endif
             let pagesCatalog = try await URLSession.shared.decode(ScriptsCatalog.self, from: pagesUrl)
             var pages = [LoadedPage]()
             for hubPair in (pagesCatalog.hubs) {
@@ -842,56 +874,57 @@ struct ContentView: View {
                 }
             }
             loadedCatalogs.loadedPages.removeAll()
-            loadedCatalogs.loadedPages.append(contentsOf: pages.sorted(by: {
-                if $0.hub == "other" && $1.hub == "other" {
-                    return $0.name < $1.name
-                }
-                if $0.hub == "other" {
-                    return false
-                }
-                if $1.hub == "other" {
-                    return true
-                }
-                return "\($0.hub)_\($0.name)" < "\($1.hub)_\($1.name)"
-            }))
+            loadedCatalogs.loadedPages.append(
+                contentsOf: pages.sorted(by: {
+                    if $0.hub == "other" && $1.hub == "other" {
+                        return $0.name < $1.name
+                    }
+                    if $0.hub == "other" {
+                        return false
+                    }
+                    if $1.hub == "other" {
+                        return true
+                    }
+                    return "\($0.hub)_\($0.name)" < "\($1.hub)_\($1.name)"
+                }))
             loadedCatalogs.waitingForPages = false
             if page.isEmpty {
                 page = loadedCatalogs.loadedPages.first?.id ?? ""
             }
             updatePageTitleAndHashTags()
             updateStaffLevelForPage()
-            
+
             // Delay the start of the templates download so the window can be ready faster
             try await Task.sleep(nanoseconds: 200_000_000)
-            
-#if TESTING
-            let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/templates.json")!
-#else
-            let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/templates.json")!
-#endif
+
+            #if TESTING
+                let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/templates.json")!
+            #else
+                let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/templates.json")!
+            #endif
             loadedCatalogs.templatesCatalog = try await URLSession.shared.decode(TemplateCatalog.self, from: templatesUrl)
             loadedCatalogs.waitingForTemplates = false
-            
+
             do {
                 // Delay the start of the disallowed list download so the window can be ready faster
                 try await Task.sleep(nanoseconds: 1_000_000_000)
-                
-#if TESTING
-                let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/testing/disallowlists.json")!
-#else
-                let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json")!
-#endif
-                loadedCatalogs.disallowList = try await URLSession.shared.decode([String:[String]].self, from: disallowListUrl)
+
+                #if TESTING
+                    let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/testing/disallowlists.json")!
+                #else
+                    let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json")!
+                #endif
+                loadedCatalogs.disallowList = try await URLSession.shared.decode([String: [String]].self, from: disallowListUrl)
                 loadedCatalogs.waitingForDisallowList = false
             } catch {
                 // do nothing, the disallow list is not critical
                 debugPrint(error.localizedDescription)
             }
-            
+
             do {
                 // Delay the start of the disallowed list download so the window can be ready faster
                 try await Task.sleep(nanoseconds: 100_000_000)
-                
+
                 appState.checkForUpdates()
             } catch {
                 // do nothing, the version check is not critical
@@ -902,23 +935,24 @@ struct ContentView: View {
                 .error(.red),
                 "Failed to load pages",
                 subTitle: "The application requires the catalog to perform its operations: \(error.localizedDescription)\n\nClick here to try again.",
-                duration: 30) {
-                    DispatchQueue.main.async {
-                        Task {
-                            await loadPageCatalog()
-                        }
+                duration: .LongFailure
+            ) {
+                DispatchQueue.main.async {
+                    Task {
+                        await loadPageCatalog()
                     }
                 }
+            }
         }
     }
-    
+
     private func loadLog(from file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
-        if (!gotAccess) {
+        if !gotAccess {
             print("No access?")
             return
         }
-        
+
         let fileContents = FileManager.default.contents(atPath: file.path)
         if let json = fileContents {
             let jsonString = String(String(decoding: json, as: UTF8.self))
@@ -936,22 +970,22 @@ struct ContentView: View {
                     .complete(.green),
                     "Loaded features",
                     subTitle: "Loaded \(sortedFeatures.count) features from the log file",
-                    duration: 2)
+                    duration: .Success)
             } catch {
                 debugPrint("Error parsing JSON: \(error.localizedDescription)")
             }
         }
-        
+
         file.stopAccessingSecurityScopedResource()
     }
-    
+
     private func saveLog(to file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
-        if (!gotAccess) {
+        if !gotAccess {
             print("No access?")
             return
         }
-        
+
         do {
             let jsonData = Data(logDocument.text.replacingOccurrences(of: "\\/", with: "/").utf8)
             try jsonData.write(to: file)
@@ -959,14 +993,14 @@ struct ContentView: View {
                 .complete(.green),
                 "Saved features",
                 subTitle: "Saved \(sortedFeatures.count) features to the log file",
-                duration: 2)
+                duration: .Success)
         } catch {
             debugPrint(error)
         }
-        
+
         file.stopAccessingSecurityScopedResource()
     }
-    
+
     private func generateReport() -> String {
         var lines = [String]()
         var personalLines = [String]()
@@ -1035,11 +1069,12 @@ struct ContentView: View {
                 lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
                 lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
                 lines.append("")
-                
+
                 if isPicked {
                     let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                     let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
-                    let fullPersonalMessage = personalMessageTemplate
+                    let fullPersonalMessage =
+                        personalMessageTemplate
                         .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage!.displayName)
                         .replacingOccurrences(of: "%%HUBNAME%%", with: loadedPage!.hub)
                         .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
@@ -1083,12 +1118,16 @@ struct ContentView: View {
                 lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
                 lines.append("\(indent)member level - \(feature.userLevel.rawValue)")
                 if feature.userHasFeaturesOnPage {
-                    lines.append("\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage) Snap + \(feature.featureCountOnRawPage) RAW)")
+                    lines.append(
+                        "\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage) Snap + \(feature.featureCountOnRawPage) RAW)"
+                    )
                 } else {
                     lines.append("\(indent)last feature on page - never (features on page 0 Snap + 0 RAW)")
                 }
                 if feature.userHasFeaturesOnHub {
-                    lines.append("\(indent)last feature - \(feature.lastFeaturedOnHub) \(feature.lastFeaturedPage) (features \(feature.featureCountOnHub) Snap + \(feature.featureCountOnRawHub) RAW)")
+                    lines.append(
+                        "\(indent)last feature - \(feature.lastFeaturedOnHub) \(feature.lastFeaturedPage) (features \(feature.featureCountOnHub) Snap + \(feature.featureCountOnRawHub) RAW)"
+                    )
                 } else {
                     lines.append("\(indent)last feature - never (features 0 Snap + 0 RAW)")
                 }
@@ -1116,11 +1155,12 @@ struct ContentView: View {
                 lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
                 lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
                 lines.append("")
-                
+
                 if isPicked {
                     let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                     let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
-                    let fullPersonalMessage = personalMessageTemplate
+                    let fullPersonalMessage =
+                        personalMessageTemplate
                         .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage!.displayName)
                         .replacingOccurrences(of: "%%HUBNAME%%", with: loadedPage!.hub)
                         .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
@@ -1180,11 +1220,12 @@ struct ContentView: View {
                 lines.append("\(indent)tineye - \(feature.tinEyeResults.rawValue)")
                 lines.append("\(indent)ai check - \(feature.aiCheckResults.rawValue)")
                 lines.append("")
-                
+
                 if isPicked {
                     let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                     let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
-                    let fullPersonalMessage = personalMessageTemplate
+                    let fullPersonalMessage =
+                        personalMessageTemplate
                         .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage!.displayName)
                         .replacingOccurrences(of: "%%HUBNAME%%", with: "")
                         .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
@@ -1203,7 +1244,7 @@ struct ContentView: View {
         }
         return text
     }
-    
+
     private func copyReportToClipboard() {
         let text = generateReport()
         copyToClipboard(text)
@@ -1211,9 +1252,9 @@ struct ContentView: View {
             .complete(.green),
             "Report generated!",
             subTitle: "Copied the report of features to the clipboard",
-            duration: 2)
+            duration: .Success)
     }
-    
+
     private func navigateToNextFeature(forward: Bool) {
         if let selectedFeature, let loadedPage {
             let currentIndex = sortedFeatures.firstIndex(of: selectedFeature)
@@ -1228,24 +1269,18 @@ struct ContentView: View {
                     }
                     if sortedFeatures[nextIndex].isPickedAndAllowed {
                         self.selectedFeature = sortedFeatures[nextIndex]
-                        
-                        // Encode the feature for Vero Scripts and copy to the clipboard
-                        do {
-                            let encoder = JSONEncoder()
-                            let json = try encoder.encode(CodableFeature(using: loadedPage, pageStaffLevel: pageStaffLevel, from: sortedFeatures[nextIndex]))
-                            let jsonString = String(decoding: json, as: UTF8.self)
-                            
-                            // Store the feature in the shared storage
-                            sharedFeature = jsonString
-                            
-                            // Launch the ScriptContentView
-                            isShowingScriptView = true
-                        } catch {
-                            debugPrint(error.localizedDescription)
-                        }
+
+                        // Store the feature in the shared storage
+                        sharedFeature = CodableFeature(
+                            using: loadedPage,
+                            pageStaffLevel: pageStaffLevel,
+                            from: sortedFeatures[nextIndex])
+
+                        // Ensure the ScriptContentView is still visible
+                        isShowingScriptView = true
                         return
                     }
-                } while (nextIndex != startingIndex)
+                } while nextIndex != startingIndex
             }
         }
     }

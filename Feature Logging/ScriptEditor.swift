@@ -18,25 +18,31 @@ struct ScriptEditor: View {
     var focus: FocusState<FocusedField?>.Binding
     var focusField: FocusedField
 
-    var body: some View {        
+    var body: some View {
         // Header
         HStack {
             Text(title)
 
-            Button(action: {
-                copy(true, false)
-            }, label: {
-                Text("Copy")
-                    .padding(.horizontal, 20)
-            })
+            Button(
+                action: {
+                    copy(true, false)
+                },
+                label: {
+                    Text("Copy")
+                        .padding(.horizontal, 20)
+                }
+            )
             .disabled(!canCopy)
 
-            Button(action: {
-                copy(false, true)
-            }, label: {
-                Text("Copy (with Placeholders)")
-                    .padding(.horizontal, 20)
-            })
+            Button(
+                action: {
+                    copy(false, true)
+                },
+                label: {
+                    Text("Copy (with Placeholders)")
+                        .padding(.horizontal, 20)
+                }
+            )
             .disabled(!hasPlaceholders)
 
             Spacer()

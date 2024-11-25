@@ -19,7 +19,7 @@ struct SettingsPane: View {
     @State private var showingAiCheckAppFileImporter = false
 
     @Environment(\.dismiss) private var dismiss
-    
+
     @AppStorage(
         "preference_includehash",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -48,12 +48,12 @@ struct SettingsPane: View {
         "preference_aiCheckAppName",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var aiCheckAppName = "AI Check Tool"
-    
+
     var body: some View {
         ZStack {
-            
+
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-            
+
             VStack(alignment: .leading) {
                 ZStack {
                     Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
@@ -79,7 +79,7 @@ struct SettingsPane: View {
 
                 Spacer()
                     .frame(height: 12)
-                
+
                 ZStack {
                     Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
                     VStack(alignment: .leading) {
@@ -96,10 +96,10 @@ struct SettingsPane: View {
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
                             }
-                            
+
                             Spacer()
                                 .frame(height: 8)
-                            
+
                             HStack(alignment: .center) {
                                 Text("Personal message (first feature): ")
                                 TextField("", text: $personalMessageFirst)
@@ -112,10 +112,10 @@ struct SettingsPane: View {
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
                             }
-                            
+
                             Spacer()
                                 .frame(height: 8)
-                            
+
                             Text("For personal message templates, use these placeholders:")
                                 .padding([.leading], 40)
                             Text("%%PAGENAME%% - populated with page name, ie click_machines or snap_longexposure")
@@ -140,7 +140,7 @@ struct SettingsPane: View {
 
                 Spacer()
                     .frame(height: 12)
-                
+
                 ZStack {
                     Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
                     VStack(alignment: .leading) {
@@ -166,14 +166,17 @@ struct SettingsPane: View {
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
-                                Button(action: {
-                                    showingCullingAppFileImporter.toggle()
-                                }, label: {
-                                    Text("Pick app...")
-                                        .padding([.leading, .trailing], 12)
-                                })
+                                Button(
+                                    action: {
+                                        showingCullingAppFileImporter.toggle()
+                                    },
+                                    label: {
+                                        Text("Pick app...")
+                                            .padding([.leading, .trailing], 12)
+                                    }
+                                )
                                 .fileImporter(isPresented: $showingCullingAppFileImporter, allowedContentTypes: [.application]) { result in
-                                    switch (result) {
+                                    switch result {
                                     case .success(let file):
                                         if let appBundle = getBundleIdentifier(from: file) {
                                             cullingApp = (appBundle["id"] ?? "") ?? ""
@@ -184,10 +187,10 @@ struct SettingsPane: View {
                                     }
                                 }
                             }
-                            
+
                             Spacer()
                                 .frame(height: 8)
-                            
+
                             HStack(alignment: .center) {
                                 Text("AI Check app: ")
                                 TextField("", text: $aiCheckAppName)
@@ -209,14 +212,17 @@ struct SettingsPane: View {
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
-                                Button(action: {
-                                    showingAiCheckAppFileImporter.toggle()
-                                }, label: {
-                                    Text("Pick app...")
-                                        .padding([.leading, .trailing], 12)
-                                })
+                                Button(
+                                    action: {
+                                        showingAiCheckAppFileImporter.toggle()
+                                    },
+                                    label: {
+                                        Text("Pick app...")
+                                            .padding([.leading, .trailing], 12)
+                                    }
+                                )
                                 .fileImporter(isPresented: $showingAiCheckAppFileImporter, allowedContentTypes: [.application]) { result in
-                                    switch (result) {
+                                    switch result {
                                     case .success(let file):
                                         if let appBundle = getBundleIdentifier(from: file) {
                                             aiCheckApp = (appBundle["id"] ?? "") ?? ""
@@ -238,16 +244,18 @@ struct SettingsPane: View {
                 .frame(height: 98)
 
                 Spacer()
-                
+
                 HStack {
                     Spacer()
-                    
-                    Button(action: {
-                        dismiss()
-                    }, label: {
-                        Text("Close")
-                            .padding([.leading, .trailing], 12)
-                    })
+
+                    Button(
+                        action: {
+                            dismiss()
+                        },
+                        label: {
+                            Text("Close")
+                                .padding([.leading, .trailing], 12)
+                        })
                 }
             }
             .padding()
@@ -263,9 +271,9 @@ struct SettingsPane: View {
         })
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
     }
-    
+
     private func setTheme(_ newTheme: Theme) {
-        if (newTheme == .notSet) {
+        if newTheme == .notSet {
             isDarkModeOn = colorScheme == .dark
         } else {
             if let details = ThemeDetails[newTheme] {
@@ -280,7 +288,7 @@ struct SettingsPane: View {
         if let appBundle = Bundle(url: from) {
             return [
                 "id": appBundle.bundleIdentifier,
-                "name": appBundle.displayName ?? from.lastPathComponentWithoutExtension
+                "name": appBundle.displayName ?? from.lastPathComponentWithoutExtension,
             ]
         }
         debugPrint("Could not load the bundle")

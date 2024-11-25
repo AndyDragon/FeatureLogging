@@ -5,10 +5,10 @@
 //  Created by Andrew Forget on 2024-11-22.
 //
 
-import SwiftUI
-import SwiftSoup
-import Kingfisher
 import AlertToast
+import Kingfisher
+import SwiftSoup
+import SwiftUI
 
 /// The `PostDownloaderView` provides a view which shows data from a user's post as well as their user profile bio.
 ///
@@ -16,6 +16,14 @@ import AlertToast
 /// the user's profile is marked as private.
 ///
 struct PostDownloaderView: View {
+    @State private var pageTitle: Binding<String>
+    @State private var pageHashTags: Binding<[String]>
+    @State private var postUrl: Binding<String>
+    @State private var isShowingToast: Binding<Bool>
+    private var hideDownloaderView: () -> Void
+    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
+    private var savePostUserName: (_ userName: String) -> Void
+    
     @State private var imageUrls: [(URL, String)] = []
     @State private var tagCheck = ""
     @State private var missingTag = false
@@ -27,33 +35,43 @@ struct PostDownloaderView: View {
     @State private var loggingComplete = false
     @State private var userProfileLink = ""
     @State private var userBio = ""
-
-    var pageTitle: Binding<String>
-    var pageHashTags: Binding<[String]>
-    var postUrl: Binding<String>
-    var isShowingToast: Binding<Bool>
-    var hideDownloaderView: () -> Void
-    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
-    var savePostUserName: (_ userName: String) -> Void
-
+    
     private let languagePrefix = Locale.preferredLanguageCode
+    
+    init(
+        _ pageTitle: Binding<String>,
+        _ pageHashTags: Binding<[String]>,
+        _ postUrl: Binding<String>,
+        _ isShowingToast: Binding<Bool>,
+        _ hideDownloaderView: @escaping () -> Void,
+        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void,
+        _ savePostUserName: @escaping (_ userName: String) -> Void
+    ) {
+        self.pageTitle = pageTitle
+        self.pageHashTags = pageHashTags
+        self.postUrl = postUrl
+        self.isShowingToast = isShowingToast
+        self.hideDownloaderView = hideDownloaderView
+        self.showToast = showToast
+        self.savePostUserName = savePostUserName
+    }
 
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-            
+
             VStack {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading) {
-                        HStack (alignment: .center) {
+                        HStack(alignment: .center) {
                             ValidationLabel("Page: \(pageTitle.wrappedValue)", validation: true, validColor: .green)
                         }
                         .frame(height: 20)
-                        HStack (alignment: .center) {
+                        HStack(alignment: .center) {
                             ValidationLabel("Page tags: \(pageHashTags.wrappedValue.joined(separator: ", "))", validation: true, validColor: .green)
                         }
                         .frame(height: 20)
-                        HStack (alignment: .center) {
+                        HStack(alignment: .center) {
                             ValidationLabel("Post URL: \(postUrl.wrappedValue)", validation: true, validColor: .green)
                         }
                         .frame(height: 20)
@@ -73,9 +91,9 @@ struct PostDownloaderView: View {
                         Spacer()
                             .frame(height: 6)
                         if postLoaded {
-                            HStack (alignment: .center) {
+                            HStack(alignment: .center) {
                                 ValidationLabel("User name: \(userName)", validation: !userName.isEmpty, validColor: .green)
-                                HStack (alignment: .center) {
+                                HStack(alignment: .center) {
                                     Button(action: {
                                         //savePostUserName(userName)
                                         copyToClipboard(userName)
@@ -116,11 +134,11 @@ struct PostDownloaderView: View {
                                         .font(.system(size: 18, design: .serif))
                                 }
                             }
-                            HStack (alignment: .center) {
+                            HStack(alignment: .center) {
                                 ValidationLabel(tagCheck, validation: !missingTag, validColor: .green)
                             }
                             .frame(height: 20)
-                            HStack (alignment: .center) {
+                            HStack(alignment: .center) {
                                 ValidationLabel("\(imageUrls.count) image\(imageUrls.count == 1 ? "" : "s") found", validation: imageUrls.count > 0, validColor: .green)
                             }
                             .frame(height: 20)
@@ -150,7 +168,7 @@ struct PostDownloaderView: View {
                                     .font(.system(size: 14))
                             }
                             HStack {
-                                ForEach (Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
+                                ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
                                     PostDownloaderImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
                                         .padding(.all, 0.001)
                                 }
@@ -161,7 +179,7 @@ struct PostDownloaderView: View {
                                 Text("LOGGING:")
                                     .foregroundStyle(.orange, .black)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                ForEach (Array(logging.enumerated()), id: \.offset) { index, log in
+                                ForEach(Array(logging.enumerated()), id: \.offset) { index, log in
                                     Text(log.1)
                                         .foregroundStyle(log.0, .black)
                                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -203,16 +221,16 @@ struct PostDownloaderView: View {
             loadFeature()
         }
     }
-    
+
     /// Account error enumeration for throwing account-specifc error codes.
     enum AccountError: String, LocalizedError {
         case PrivateAccount = "Could not find any images, this account might be private"
         case MissingImages = "Could not find any images"
         public var errorDescription: String? { self.rawValue }
     }
-    
+
     /// Loads the feature using the postUrl.
-    private func loadFeature() -> Void {
+    private func loadFeature() {
         postLoaded = false
         userLoaded = false
         tagCheck = ""
@@ -269,16 +287,16 @@ struct PostDownloaderView: View {
                     description = ""
                     var nextSpace = ""
                     captionsDiv.children().forEach { element in
-                        if (element.tagNameNormal() == "span") {
+                        if element.tagNameNormal() == "span" {
                             let text = try! element.text()
                             if !text.isEmpty {
                                 description = description + nextSpace + text.trimmingCharacters(in: .whitespacesAndNewlines)
                                 nextSpace = " "
                             }
-                        } else if (element.tagNameNormal() == "br") {
+                        } else if element.tagNameNormal() == "br" {
                             description = description + "\n"
                             nextSpace = ""
-                        } else if (element.tagNameNormal() == "a") {
+                        } else if element.tagNameNormal() == "a" {
                             let text = try! element.text()
                             if !text.isEmpty {
                                 let linkText = text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -328,7 +346,7 @@ struct PostDownloaderView: View {
                         return (URL(string: imageSrc)!, userName)
                     })
                 }
-                
+
                 // Debugging
                 //print(try document.outerHtml())
 
@@ -337,9 +355,9 @@ struct PostDownloaderView: View {
                 } else if imageUrls.isEmpty {
                     throw AccountError.MissingImages
                 }
-                
-                loadUserProfile();
-                
+
+                loadUserProfile()
+
                 postLoaded = true
             } catch let error as AccountError {
                 logging.append((.red, "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"))
@@ -350,7 +368,8 @@ struct PostDownloaderView: View {
                     String {
                         "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"
                     },
-                    3) {}
+                    .Failure
+                ) {}
             } catch {
                 logging.append((.red, "Failed to download and parse the post information - \(error.localizedDescription)"))
                 logging.append((.red, "Post must be handled manually in VERO app"))
@@ -360,7 +379,8 @@ struct PostDownloaderView: View {
                     String {
                         "Failed to download and parse the post information - \(error.localizedDescription)"
                     },
-                    3) {}
+                    .Failure
+                ) {}
             }
             loggingComplete = true
         }
@@ -373,14 +393,14 @@ struct PostDownloaderView: View {
                 let contents = try String(contentsOf: url, encoding: .utf8)
                 logging.append((.blue, "Loaded the user profile from the server"))
                 let document = try SwiftSoup.parse(contents)
-                
+
                 if let description = try! getMetaTagContent(document, "property", "og:description") {
                     userBio = description
                 }
-                
+
                 // Debugging
                 //print(try document.outerHtml())
-                
+
                 userLoaded = true
             } catch let error as AccountError {
                 logging.append((.red, "Failed to download and parse the user profile information - \(error.errorDescription ?? "unknown")"))
@@ -391,7 +411,8 @@ struct PostDownloaderView: View {
                     String {
                         "Failed to download and parse the user profile information - \(error.errorDescription ?? "unknown")"
                     },
-                    3) {}
+                    .Failure
+                ) {}
             } catch {
                 logging.append((.red, "Failed to download and parse the user profile information - \(error.localizedDescription)"))
                 logging.append((.red, "User info must be handled manually in VERO app"))
@@ -401,11 +422,12 @@ struct PostDownloaderView: View {
                     String {
                         "Failed to download and parse the user profile information - \(error.localizedDescription)"
                     },
-                    3) {}
+                    .Failure
+                ) {}
             }
         }
     }
-    
+
     /// Gets the `content` value of the `meta` tag with the given `key`/`value` pair.
     /// - Parameters:
     ///   - document: The `SoupSwift` document object.

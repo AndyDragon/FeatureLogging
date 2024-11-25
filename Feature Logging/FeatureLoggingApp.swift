@@ -47,106 +47,132 @@ struct Feature_LoggingApp: App {
                 }
         }
         .commands {
-            CommandGroup(replacing: .appSettings, addition: {
-                Button(action: {
-                    appState.checkForUpdates()
-                }, label: {
-                    Text("Check for updates...")
+            CommandGroup(
+                replacing: .appSettings,
+                addition: {
+                    Button(
+                        action: {
+                            appState.checkForUpdates()
+                        },
+                        label: {
+                            Text("Check for updates...")
+                        }
+                    )
+                    .disabled(checkingForUpdates)
+                    .keyboardShortcut("u", modifiers: [.command, .control])
+
+                    Divider()
+
+                    Button(
+                        action: {
+                            commandModel.showStatistics.toggle()
+                        },
+                        label: {
+                            Text(commandModel.showStatistics ? "Hide statistics" : "Show statistics")
+                        }
+                    )
+                    .keyboardShortcut("t", modifiers: [.command])
+
+                    Divider()
                 })
-                .disabled(checkingForUpdates)
-                .keyboardShortcut("u", modifiers: [.command, .control])
-
-                Divider()
-
-                Button(action: {
-                    commandModel.showStatistics.toggle()
-                }, label: {
-                    Text(commandModel.showStatistics ? "Hide statistics" : "Show statistics")
-                })
-                .keyboardShortcut("t", modifiers: [.command])
-
-                Divider()
-            })
             CommandGroup(replacing: CommandGroupPlacement.newItem) {
-                Button(action: {
-                    commandModel.newLog.toggle()
-                }, label: {
-                    Text("New log")
-                })
+                Button(
+                    action: {
+                        commandModel.newLog.toggle()
+                    },
+                    label: {
+                        Text("New log")
+                    }
+                )
                 .keyboardShortcut("n", modifiers: .command)
-                
-                Button(action: {
-                    commandModel.openLog.toggle()
-                }, label: {
-                    Text("Open log...")
-                })
+
+                Button(
+                    action: {
+                        commandModel.openLog.toggle()
+                    },
+                    label: {
+                        Text("Open log...")
+                    }
+                )
                 .keyboardShortcut("o", modifiers: .command)
-                
-                Divider()
-                
-                Button(action: {
-                    commandModel.saveLog.toggle()
-                }, label: {
-                    Text("Save log...")
-                })
-                .keyboardShortcut("s", modifiers: .command)
-                
-                Button(action: {
-                    commandModel.saveReport.toggle()
-                }, label: {
-                    Text("Save report...")
-                })
-                .keyboardShortcut("s", modifiers: [.command, .shift])
-                
+
                 Divider()
 
-                Button(action: {
-                    if cullingApp.isEmpty {
-                        return
+                Button(
+                    action: {
+                        commandModel.saveLog.toggle()
+                    },
+                    label: {
+                        Text("Save log...")
                     }
-                    guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: cullingApp) else { return }
-                    let configuration = NSWorkspace.OpenConfiguration()
-                    NSWorkspace.shared.openApplication(at: url, configuration: configuration)
-                }, label: {
-                    Text("Launch \(!cullingAppName.isEmpty ? cullingAppName : "culling app")...")
-                })
+                )
+                .keyboardShortcut("s", modifiers: .command)
+
+                Button(
+                    action: {
+                        commandModel.saveReport.toggle()
+                    },
+                    label: {
+                        Text("Save report...")
+                    }
+                )
+                .keyboardShortcut("s", modifiers: [.command, .shift])
+
+                Divider()
+
+                Button(
+                    action: {
+                        if cullingApp.isEmpty {
+                            return
+                        }
+                        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: cullingApp) else { return }
+                        let configuration = NSWorkspace.OpenConfiguration()
+                        NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+                    },
+                    label: {
+                        Text("Launch \(!cullingAppName.isEmpty ? cullingAppName : "culling app")...")
+                    }
+                )
                 .keyboardShortcut("c", modifiers: [.command, .shift])
                 .disabled(cullingApp.isEmpty)
 
-                Button(action: {
-                    if aiCheckApp.isEmpty {
-                        return
+                Button(
+                    action: {
+                        if aiCheckApp.isEmpty {
+                            return
+                        }
+                        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: aiCheckApp) else { return }
+                        let configuration = NSWorkspace.OpenConfiguration()
+                        NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+                    },
+                    label: {
+                        Text("Launch \(!aiCheckAppName.isEmpty ? aiCheckAppName : "AI check tool")...")
                     }
-                    guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: aiCheckApp) else { return }
-                    let configuration = NSWorkspace.OpenConfiguration()
-                    NSWorkspace.shared.openApplication(at: url, configuration: configuration)
-                }, label: {
-                    Text("Launch \(!aiCheckAppName.isEmpty ? aiCheckAppName : "AI check tool")...")
-                })
+                )
                 .keyboardShortcut("a", modifiers: [.command, .shift])
                 .disabled(aiCheckApp.isEmpty)
             }
         }
-        
-#if os(macOS)
-        Settings {
-            SettingsPane()
-        }
-#endif
+
+        #if os(macOS)
+            Settings {
+                SettingsPane()
+            }
+        #endif
     }
-    
+
     class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         @EnvironmentObject var commandModel: AppCommandModel
-        
+
         func applicationDidFinishLaunching(_ notification: Notification) {
             let mainWindow = NSApp.windows[0]
             mainWindow.delegate = self
         }
-        
+
         func windowShouldClose(_ sender: NSWindow) -> Bool {
             return false
         }
-        
+
         func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
             return DocumentManager.default.canTerminate() ? .terminateNow : .terminateCancel
         }
@@ -168,13 +194,13 @@ protocol DocumentManagerDelegate {
 
 class DocumentManager {
     static var `default` = DocumentManager()
-    
+
     private var receivers: [DocumentManagerDelegate] = []
-    
+
     func registerReceiver(receiver: DocumentManagerDelegate) {
         receivers.append(receiver)
     }
-    
+
     func canTerminate() -> Bool {
         for receiver in receivers {
             if !receiver.onCanTerminate() {

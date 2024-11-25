@@ -5,48 +5,59 @@
 //  Created by Andrew Forget on 2024-03-29.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 import UniformTypeIdentifiers
 
 enum FocusedField: Hashable {
-    case userName, // ScriptContentView
-         level,
-         yourName,
-         yourFirstName,
-         page,
-         pageName,
-         staffLevel,
-         firstFeature,
-         rawTag,
-         communityTag,
-         hubTag,
-         featureScript,
-         commentScript,
-         originalPostScript,
-         newMembershipScript,
+    case userName,  // ScriptContentView
+        level,
+        yourName,
+        yourFirstName,
+        page,
+        pageName,
+        staffLevel,
+        firstFeature,
+        rawTag,
+        communityTag,
+        hubTag,
+        featureScript,
+        commentScript,
+        originalPostScript,
+        newMembershipScript,
 
-         pagePicker // Content view
+        pagePicker  // Content view
 }
 
 enum MembershipCase: String, CaseIterable, Identifiable, Codable {
-    case none = "None",
+    case none = "None"
+    case
 
-         commonArtist = "Artist",
-         commonMember = "Member",
-         commonPlatinumMember = "Platinum Member",
+        commonArtist = "Artist"
+    case
+        commonMember = "Member"
+    case
+        commonPlatinumMember = "Platinum Member"
+    case
 
-         // snap
-         snapVipMember = "VIP Member",
-         snapVipGoldMember = "VIP Gold Member",
-         snapEliteMember = "Elite Member",
-         snapHallOfFameMember = "Hall of Fame Member",
-         snapDiamondMember = "Diamond Member",
+        // snap
+        snapVipMember = "VIP Member"
+    case
+        snapVipGoldMember = "VIP Gold Member"
+    case
+        snapEliteMember = "Elite Member"
+    case
+        snapHallOfFameMember = "Hall of Fame Member"
+    case
+        snapDiamondMember = "Diamond Member"
+    case
 
-         // click
-         clickBronzeMember = "Bronze Member",
-         clickSilverMember = "Silver Member",
-         clickGoldMember = "Gold Member"
+        // click
+        clickBronzeMember = "Bronze Member"
+    case
+        clickSilverMember = "Silver Member"
+    case
+        clickGoldMember = "Gold Member"
 
     var id: Self { self }
 
@@ -63,7 +74,7 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
             .commonPlatinumMember,
             .snapEliteMember,
             .snapHallOfFameMember,
-            .snapDiamondMember
+            .snapDiamondMember,
         ]
     }
 
@@ -78,7 +89,7 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
                 .commonPlatinumMember,
                 .snapEliteMember,
                 .snapHallOfFameMember,
-                .snapDiamondMember
+                .snapDiamondMember,
             ]
         }
         if hub == "click" {
@@ -89,12 +100,12 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
                 .clickBronzeMember,
                 .clickSilverMember,
                 .clickGoldMember,
-                .commonPlatinumMember
+                .commonPlatinumMember,
             ]
         }
         return [
             .none,
-            .commonArtist
+            .commonArtist,
         ]
     }
 
@@ -109,7 +120,7 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
                 commonPlatinumMember,
                 snapEliteMember,
                 snapHallOfFameMember,
-                snapDiamondMember
+                snapDiamondMember,
             ].contains(value)
         }
         if hub == "click" {
@@ -120,28 +131,34 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
                 clickBronzeMember,
                 clickSilverMember,
                 clickGoldMember,
-                commonPlatinumMember
+                commonPlatinumMember,
             ].contains(value)
         }
         return [
             none,
-            commonArtist
+            commonArtist,
         ].contains(value)
     }
 }
 
 enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
-    case commonPageTag = "Page tag",
+    case commonPageTag = "Page tag"
+    case
 
-         // snap
-         snapRawPageTag = "RAW page tag",
-         snapCommunityTag = "Snap community tag",
-         snapRawCommunityTag = "RAW community tag",
-         snapMembershipTag = "Snap membership tag",
+        // snap
+        snapRawPageTag = "RAW page tag"
+    case
+        snapCommunityTag = "Snap community tag"
+    case
+        snapRawCommunityTag = "RAW community tag"
+    case
+        snapMembershipTag = "Snap membership tag"
+    case
 
-         // click
-         clickCommunityTag = "Click community tag",
-         clickHubTag = "Click hub tag"
+        // click
+        clickCommunityTag = "Click community tag"
+    case
+        clickHubTag = "Click hub tag"
 
     var id: Self { self }
 
@@ -152,14 +169,14 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
                 .snapRawPageTag,
                 .snapCommunityTag,
                 .snapRawCommunityTag,
-                .snapMembershipTag
+                .snapMembershipTag,
             ]
         }
         if hub == "click" {
             return [
                 .commonPageTag,
                 .clickCommunityTag,
-                .clickHubTag
+                .clickHubTag,
             ]
         }
         return [
@@ -174,14 +191,14 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
                 snapRawPageTag,
                 snapCommunityTag,
                 snapRawCommunityTag,
-                snapMembershipTag
+                snapMembershipTag,
             ].contains(value)
         }
         if hub == "click" {
             return [
                 commonPageTag,
                 clickCommunityTag,
-                clickHubTag
+                clickHubTag,
             ].contains(value)
         }
         return [
@@ -191,33 +208,44 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
 }
 
 enum StaffLevelCase: String, CaseIterable, Identifiable, Codable {
-    case mod = "Mod",
-         coadmin = "Co-Admin",
-         admin = "Admin"
+    case mod = "Mod"
+    case
+        coadmin = "Co-Admin"
+    case
+        admin = "Admin"
     var id: Self { self }
 }
 
 enum PlaceholderSheetCase {
     case featureScript,
-         commentScript,
-         originalPostScript
+        commentScript,
+        originalPostScript
 }
 
 enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
-    case none = "None",
+    case none = "None"
+    case
 
-         // snap
-         snapMemberFeature = "Member (feature comment)",
-         snapMemberOriginalPost = "Member (original post comment)",
-         snapVipMemberFeature = "VIP Member (feature comment)",
-         snapVipMemberOriginalPost = "VIP Member (original post comment)",
+        // snap
+        snapMemberFeature = "Member (feature comment)"
+    case
+        snapMemberOriginalPost = "Member (original post comment)"
+    case
+        snapVipMemberFeature = "VIP Member (feature comment)"
+    case
+        snapVipMemberOriginalPost = "VIP Member (original post comment)"
+    case
 
-         // click
-         clickMember = "Member",
-         clickBronzeMember = "Bronze Member",
-         clickSilverMember = "Silver Member",
-         clickGoldMember = "Gold Member",
-         clickPlatinumMember = "Platinum Member"
+        // click
+        clickMember = "Member"
+    case
+        clickBronzeMember = "Bronze Member"
+    case
+        clickSilverMember = "Silver Member"
+    case
+        clickGoldMember = "Gold Member"
+    case
+        clickPlatinumMember = "Platinum Member"
 
     var id: Self { self }
 
@@ -228,7 +256,7 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
                 .snapMemberFeature,
                 .snapMemberOriginalPost,
                 .snapVipMemberFeature,
-                .snapVipMemberOriginalPost
+                .snapVipMemberOriginalPost,
             ]
         }
         if hub == "click" {
@@ -238,7 +266,7 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
                 .clickBronzeMember,
                 .clickSilverMember,
                 .clickGoldMember,
-                .clickPlatinumMember
+                .clickPlatinumMember,
             ]
         }
         return [
@@ -273,7 +301,7 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
                 snapMemberFeature,
                 snapMemberOriginalPost,
                 snapVipMemberFeature,
-                snapVipMemberOriginalPost
+                snapVipMemberOriginalPost,
             ].contains(value)
         }
         if hub == "click" {
@@ -283,7 +311,7 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
                 clickBronzeMember,
                 clickSilverMember,
                 clickGoldMember,
-                clickPlatinumMember
+                clickPlatinumMember,
             ].contains(value)
         }
         return [
@@ -293,21 +321,24 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
 }
 
 enum TinEyeResults: String, CaseIterable, Identifiable, Codable {
-    case zeroMatches = "0 matches",
-         noMatches = "no matches",
-         matchFound = "matches found"
+    case zeroMatches = "0 matches"
+    case
+        noMatches = "no matches"
+    case
+        matchFound = "matches found"
 
     var id: Self { self }
 }
 
 enum AiCheckResults: String, CaseIterable, Identifiable, Codable {
-    case human = "human",
-         ai = "ai"
+    case human = "human"
+    case
+        ai = "ai"
 
     var id: Self { self }
 }
 
-class FeaturesViewModel: ObservableObject  {
+class FeaturesViewModel: ObservableObject {
     @Published var features = [Feature]()
     var sortedFeatures: [Feature] {
         return features.sorted(by: compareFeatures)
@@ -680,7 +711,7 @@ class Feature: Identifiable, Hashable, ObservableObject {
         isPicked && !tooSoonToFeatureUser && !photoFeaturedOnPage && tinEyeResults != .matchFound && aiCheckResults != .ai
     }
 
-    init() { }
+    init() {}
 
     static func == (lhs: Feature, rhs: Feature) -> Bool {
         return lhs.id == rhs.id
@@ -871,5 +902,5 @@ struct LoadedCatalogs {
     var waitingForTemplates = true
     var templatesCatalog = TemplateCatalog(pages: [], specialTemplates: [])
     var waitingForDisallowList = true
-    var disallowList = [String:[String]]()
+    var disallowList = [String: [String]]()
 }

@@ -5,9 +5,9 @@
 //  Created by Andrew Forget on 2024-03-29.
 //
 
-import SwiftUI
 import Combine
 import CommonCrypto
+import SwiftUI
 
 extension Binding {
     func onChange(_ handler: @escaping (Value) -> Void) -> Binding<Value> {
@@ -35,7 +35,7 @@ extension View {
     }
 }
 
-func ??<T>(lhs: Binding<Optional<T>>, rhs: T) -> Binding<T> {
+func ?? <T>(lhs: Binding<T?>, rhs: T) -> Binding<T> {
     Binding(
         get: { lhs.wrappedValue ?? rhs },
         set: { lhs.wrappedValue = $0 }
@@ -45,8 +45,9 @@ func ??<T>(lhs: Binding<Optional<T>>, rhs: T) -> Binding<T> {
 func matches(of regex: String, in text: String) -> [String] {
     do {
         let regex = try NSRegularExpression(pattern: regex)
-        let results = regex.matches(in: text,
-                                    range: NSRange(text.startIndex..., in: text))
+        let results = regex.matches(
+            in: text,
+            range: NSRange(text.startIndex..., in: text))
         return results.map {
             String(text[Range($0.range, in: text)!])
         }
@@ -59,14 +60,15 @@ func matches(of regex: String, in text: String) -> [String] {
 extension Locale {
     static var preferredLanguageCode: String {
         guard let preferredLanguage = preferredLanguages.first,
-              let code = Locale(identifier: preferredLanguage).language.languageCode?.identifier else {
+            let code = Locale(identifier: preferredLanguage).language.languageCode?.identifier
+        else {
             return "en"
         }
         return code
     }
-    
+
     static var preferredLanguageCodes: [String] {
-        return Locale.preferredLanguages.compactMap({Locale(identifier: $0).language.languageCode?.identifier})
+        return Locale.preferredLanguages.compactMap({ Locale(identifier: $0).language.languageCode?.identifier })
     }
 }
 
@@ -91,7 +93,7 @@ extension URLSession {
     }
 }
 
-func copyToClipboard(_ text: String) -> Void {
+func copyToClipboard(_ text: String) {
     let pasteBoard = NSPasteboard.general
     pasteBoard.clearContents()
     pasteBoard.writeObjects([text as NSString])
@@ -127,13 +129,13 @@ public struct StringBuilder {
     }
 }
 
-public extension String {
-    init(@StringBuilder _ builder: () -> String) {
+extension String {
+    public init(@StringBuilder _ builder: () -> String) {
         self.init(builder())
     }
 }
 
-extension Array<String> {
+extension [String] {
     func includes(_ element: String) -> Bool {
         return self.contains(where: { item in item == element })
     }
@@ -194,7 +196,7 @@ extension URL {
 
 extension NSImage {
     var pixelSize: NSSize? {
-        if let rep = self.representations.first{
+        if let rep = self.representations.first {
             let size = NSSize(width: rep.pixelsWide, height: rep.pixelsHigh)
             return size
         }

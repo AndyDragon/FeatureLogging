@@ -5,8 +5,8 @@
 //  Created by Andrew Forget on 2024-03-29.
 //
 
-import SwiftUI
 import AlertToast
+import SwiftUI
 
 struct FeatureEditor: View {
     @ObservedObject var feature: Feature
@@ -16,7 +16,7 @@ struct FeatureEditor: View {
     var close: () -> Void
     var updateList: () -> Void
     var markDocumentDirty: () -> Void
-    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: Int, _ onTap: @escaping () -> Void) -> Void
+    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     var showDownloaderView: (_ postLink: String) -> Void
 
     @AppStorage(
@@ -59,11 +59,13 @@ struct FeatureEditor: View {
                 Spacer()
                     .frame(width: labelWidth + 16, alignment: .trailing)
 
-                Toggle(isOn: $isPicked.onChange { value in
-                    feature.isPicked = isPicked
-                    updateList()
-                    markDocumentDirty()
-                }) {
+                Toggle(
+                    isOn: $isPicked.onChange { value in
+                        feature.isPicked = isPicked
+                        updateList()
+                        markDocumentDirty()
+                    }
+                ) {
                     Text("Picked as feature")
                         .lineLimit(1)
                         .truncationMode(.tail)
@@ -85,11 +87,14 @@ struct FeatureEditor: View {
             // Post link
             HStack(alignment: .center) {
                 ValidationLabel("Post link:", labelWidth: labelWidth, validation: !postLink.isEmpty && !postLink.contains(where: \.isNewline))
-                TextField("enter the post link", text: $postLink.onChange { value in
-                    feature.postLink = postLink
-                    downloadUnavailable = !postLink.starts(with: "https://vero.co/")
-                    markDocumentDirty()
-                })
+                TextField(
+                    "enter the post link",
+                    text: $postLink.onChange { value in
+                        feature.postLink = postLink
+                        downloadUnavailable = !postLink.starts(with: "https://vero.co/")
+                        markDocumentDirty()
+                    }
+                )
                 .focusable()
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
@@ -143,11 +148,16 @@ struct FeatureEditor: View {
 
             // User alias
             HStack(alignment: .center) {
-                ValidationLabel("User alias:", labelWidth: labelWidth, validation: !(userAlias.isEmpty || userAlias.starts(with: "@") || userAlias.count <= 1) && !userAlias.contains(where: \.isNewline))
-                TextField("enter the user alias", text: $userAlias.onChange { value in
-                    feature.userAlias = userAlias
-                    markDocumentDirty()
-                })
+                ValidationLabel(
+                    "User alias:", labelWidth: labelWidth,
+                    validation: !(userAlias.isEmpty || userAlias.starts(with: "@") || userAlias.count <= 1) && !userAlias.contains(where: \.isNewline))
+                TextField(
+                    "enter the user alias",
+                    text: $userAlias.onChange { value in
+                        feature.userAlias = userAlias
+                        markDocumentDirty()
+                    }
+                )
                 .focusable()
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
@@ -178,11 +188,14 @@ struct FeatureEditor: View {
             // User name
             HStack(alignment: .center) {
                 ValidationLabel("User name:", labelWidth: labelWidth, validation: !userName.isEmpty && !userName.contains(where: \.isNewline))
-                TextField("enter the user name", text: $userName.onChange { value in
-                    feature.userName = userName
-                    updateList()
-                    markDocumentDirty()
-                })
+                TextField(
+                    "enter the user name",
+                    text: $userName.onChange { value in
+                        feature.userName = userName
+                        updateList()
+                        markDocumentDirty()
+                    }
+                )
                 .focusable()
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
@@ -190,10 +203,13 @@ struct FeatureEditor: View {
                 .background(Color.BackgroundColorEditor)
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
-                TextField("", text: $postUserName.onChange { value in
-                    userName = postUserName
-                })
+
+                TextField(
+                    "",
+                    text: $postUserName.onChange { value in
+                        userName = postUserName
+                    }
+                )
                 .hidden()
 
                 Button(action: {
@@ -221,10 +237,13 @@ struct FeatureEditor: View {
                 // Member level
                 HStack(alignment: .center) {
                     ValidationLabel("User level:", labelWidth: labelWidth, validation: userLevel != MembershipCase.none)
-                    Picker("", selection: $userLevel.onChange { value in
-                        feature.userLevel = userLevel
-                        markDocumentDirty()
-                    }) {
+                    Picker(
+                        "",
+                        selection: $userLevel.onChange { value in
+                            feature.userLevel = userLevel
+                            markDocumentDirty()
+                        }
+                    ) {
                         ForEach(MembershipCase.casesFor(hub: selectedPage.hub)) { level in
                             Text(level.rawValue)
                                 .tag(level)
@@ -241,10 +260,12 @@ struct FeatureEditor: View {
                 HStack(alignment: .center) {
                     Spacer()
                         .frame(width: labelWidth + 16, alignment: .trailing)
-                    Toggle(isOn: $userIsTeammate.onChange { value in
-                        feature.userIsTeammate = userIsTeammate
-                        markDocumentDirty()
-                    }) {
+                    Toggle(
+                        isOn: $userIsTeammate.onChange { value in
+                            feature.userIsTeammate = userIsTeammate
+                            markDocumentDirty()
+                        }
+                    ) {
                         Text("User is a Team Mate")
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -259,10 +280,13 @@ struct FeatureEditor: View {
                 HStack(alignment: .center) {
                     Text("Found using:")
                         .frame(width: labelWidth, alignment: .trailing)
-                    Picker("", selection: $tagSource.onChange { value in
-                        feature.tagSource = tagSource
-                        markDocumentDirty()
-                    }) {
+                    Picker(
+                        "",
+                        selection: $tagSource.onChange { value in
+                            feature.tagSource = tagSource
+                            markDocumentDirty()
+                        }
+                    ) {
                         ForEach(TagSourceCase.casesFor(hub: selectedPage.hub)) { source in
                             Text(source.rawValue)
                                 .tag(source)
@@ -278,11 +302,13 @@ struct FeatureEditor: View {
                     Spacer()
                         .frame(width: labelWidth + 16, alignment: .trailing)
 
-                    Toggle(isOn: $photoFeaturedOnPage.onChange { value in
-                        feature.photoFeaturedOnPage = photoFeaturedOnPage
-                        updateList()
-                        markDocumentDirty()
-                    }) {
+                    Toggle(
+                        isOn: $photoFeaturedOnPage.onChange { value in
+                            feature.photoFeaturedOnPage = photoFeaturedOnPage
+                            updateList()
+                            markDocumentDirty()
+                        }
+                    ) {
                         Text("Photo already featured on page")
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -295,11 +321,13 @@ struct FeatureEditor: View {
                         .padding([.leading, .trailing])
 
                     // Photo featured on hub
-                    Toggle(isOn: $photoFeaturedOnHub.onChange { value in
-                        feature.photoFeaturedOnHub = photoFeaturedOnHub
-                        updateList()
-                        markDocumentDirty()
-                    }) {
+                    Toggle(
+                        isOn: $photoFeaturedOnHub.onChange { value in
+                            feature.photoFeaturedOnHub = photoFeaturedOnHub
+                            updateList()
+                            markDocumentDirty()
+                        }
+                    ) {
                         Text("Photo featured on hub")
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -313,10 +341,13 @@ struct FeatureEditor: View {
                             .padding([.leading, .trailing])
 
                         ValidationLabel("Last date featured:", validation: !(photoLastFeaturedOnHub.isEmpty || photoLastFeaturedPage.isEmpty))
-                        TextField("", text: $photoLastFeaturedOnHub.onChange { value in
-                            feature.photoLastFeaturedOnHub = photoLastFeaturedOnHub
-                            markDocumentDirty()
-                        })
+                        TextField(
+                            "",
+                            text: $photoLastFeaturedOnHub.onChange { value in
+                                feature.photoLastFeaturedOnHub = photoLastFeaturedOnHub
+                                markDocumentDirty()
+                            }
+                        )
                         .focusable()
                         .autocorrectionDisabled(false)
                         .textFieldStyle(.plain)
@@ -325,10 +356,13 @@ struct FeatureEditor: View {
                         .border(Color.gray.opacity(0.25))
                         .cornerRadius(4)
 
-                        TextField("on page", text: $photoLastFeaturedPage.onChange { value in
-                            feature.photoLastFeaturedPage = photoLastFeaturedPage
-                            markDocumentDirty()
-                        })
+                        TextField(
+                            "on page",
+                            text: $photoLastFeaturedPage.onChange { value in
+                                feature.photoLastFeaturedPage = photoLastFeaturedPage
+                                markDocumentDirty()
+                            }
+                        )
                         .focusable()
                         .autocorrectionDisabled(false)
                         .textFieldStyle(.plain)
@@ -344,10 +378,13 @@ struct FeatureEditor: View {
                 // Feature description
                 HStack(alignment: .center) {
                     ValidationLabel("Description:", labelWidth: labelWidth, validation: !featureDescription.isEmpty)
-                    TextField("enter the description of the feature (not used in scripts)", text: $featureDescription.onChange { value in
-                        feature.featureDescription = featureDescription
-                        markDocumentDirty()
-                    })
+                    TextField(
+                        "enter the description of the feature (not used in scripts)",
+                        text: $featureDescription.onChange { value in
+                            feature.featureDescription = featureDescription
+                            markDocumentDirty()
+                        }
+                    )
                     .focusable()
                     .autocorrectionDisabled(false)
                     .textFieldStyle(.plain)
@@ -363,10 +400,12 @@ struct FeatureEditor: View {
                         Spacer()
                             .frame(width: labelWidth + 16, alignment: .trailing)
 
-                        Toggle(isOn: $userHasFeaturesOnPage.onChange { value in
-                            feature.userHasFeaturesOnPage = userHasFeaturesOnPage
-                            markDocumentDirty()
-                        }) {
+                        Toggle(
+                            isOn: $userHasFeaturesOnPage.onChange { value in
+                                feature.userHasFeaturesOnPage = userHasFeaturesOnPage
+                                markDocumentDirty()
+                            }
+                        ) {
                             Text("User featured on page")
                                 .lineLimit(1)
                                 .truncationMode(.tail)
@@ -380,10 +419,13 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
 
                             ValidationLabel("Last date featured:", validation: !lastFeaturedOnPage.isEmpty)
-                            TextField("", text: $lastFeaturedOnPage.onChange { value in
-                                feature.lastFeaturedOnPage = lastFeaturedOnPage
-                                markDocumentDirty()
-                            })
+                            TextField(
+                                "",
+                                text: $lastFeaturedOnPage.onChange { value in
+                                    feature.lastFeaturedOnPage = lastFeaturedOnPage
+                                    markDocumentDirty()
+                                }
+                            )
                             .focusable()
                             .autocorrectionDisabled(false)
                             .textFieldStyle(.plain)
@@ -396,12 +438,15 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
 
                             Text("Number of features on page:")
-                            Picker("", selection: $featureCountOnPage.onChange { value in
-                                feature.featureCountOnPage = featureCountOnPage
-                                markDocumentDirty()
-                            }) {
+                            Picker(
+                                "",
+                                selection: $featureCountOnPage.onChange { value in
+                                    feature.featureCountOnPage = featureCountOnPage
+                                    markDocumentDirty()
+                                }
+                            ) {
                                 Text("many").tag("many")
-                                ForEach(0 ..< 76) { value in
+                                ForEach(0..<76) { value in
                                     Text("\(value)").tag("\(value)")
                                 }
                             }
@@ -416,7 +461,7 @@ struct FeatureEditor: View {
 
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")click_\(selectedPage.name)_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the page feature tag for the user to the clipboard", 2) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the page feature tag for the user to the clipboard", .Success) {}
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
@@ -432,10 +477,12 @@ struct FeatureEditor: View {
                         Spacer()
                             .frame(width: labelWidth + 16, alignment: .trailing)
 
-                        Toggle(isOn: $userHasFeaturesOnHub.onChange { value in
-                            feature.userHasFeaturesOnHub = userHasFeaturesOnHub
-                            markDocumentDirty()
-                        }) {
+                        Toggle(
+                            isOn: $userHasFeaturesOnHub.onChange { value in
+                                feature.userHasFeaturesOnHub = userHasFeaturesOnHub
+                                markDocumentDirty()
+                            }
+                        ) {
                             Text("User featured on Click")
                                 .lineLimit(1)
                                 .truncationMode(.tail)
@@ -449,10 +496,13 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
 
                             ValidationLabel("Last date featured:", validation: !(lastFeaturedOnHub.isEmpty || lastFeaturedPage.isEmpty))
-                            TextField("", text: $lastFeaturedOnHub.onChange { value in
-                                feature.lastFeaturedOnHub = lastFeaturedOnHub
-                                markDocumentDirty()
-                            })
+                            TextField(
+                                "",
+                                text: $lastFeaturedOnHub.onChange { value in
+                                    feature.lastFeaturedOnHub = lastFeaturedOnHub
+                                    markDocumentDirty()
+                                }
+                            )
                             .focusable()
                             .autocorrectionDisabled(false)
                             .textFieldStyle(.plain)
@@ -461,10 +511,13 @@ struct FeatureEditor: View {
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
 
-                            TextField("on page", text: $lastFeaturedPage.onChange { value in
-                                feature.lastFeaturedPage = lastFeaturedPage
-                                markDocumentDirty()
-                            })
+                            TextField(
+                                "on page",
+                                text: $lastFeaturedPage.onChange { value in
+                                    feature.lastFeaturedPage = lastFeaturedPage
+                                    markDocumentDirty()
+                                }
+                            )
                             .focusable()
                             .autocorrectionDisabled(false)
                             .textFieldStyle(.plain)
@@ -477,12 +530,15 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
 
                             Text("Number of features on Click:")
-                            Picker("", selection: $featureCountOnHub.onChange { value in
-                                feature.featureCountOnHub = featureCountOnHub
-                                markDocumentDirty()
-                            }) {
+                            Picker(
+                                "",
+                                selection: $featureCountOnHub.onChange { value in
+                                    feature.featureCountOnHub = featureCountOnHub
+                                    markDocumentDirty()
+                                }
+                            ) {
                                 Text("many").tag("many")
-                                ForEach(0 ..< 21) { value in
+                                ForEach(0..<21) { value in
                                     Text("\(value)").tag("\(value)")
                                 }
                             }
@@ -497,7 +553,7 @@ struct FeatureEditor: View {
 
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")click_featured_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the hub feature tag for the user to the clipboard", 2) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the hub feature tag for the user to the clipboard", .Success) {}
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
@@ -512,10 +568,12 @@ struct FeatureEditor: View {
                     HStack(alignment: .center) {
                         Spacer()
                             .frame(width: labelWidth + 16, alignment: .trailing)
-                        Toggle(isOn: $userHasFeaturesOnPage.onChange { value in
-                            feature.userHasFeaturesOnPage = userHasFeaturesOnPage
-                            markDocumentDirty()
-                        }) {
+                        Toggle(
+                            isOn: $userHasFeaturesOnPage.onChange { value in
+                                feature.userHasFeaturesOnPage = userHasFeaturesOnPage
+                                markDocumentDirty()
+                            }
+                        ) {
                             Text("User featured on page")
                                 .lineLimit(1)
                                 .truncationMode(.tail)
@@ -529,10 +587,13 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
 
                             ValidationLabel("Last date featured:", validation: !lastFeaturedOnPage.isEmpty)
-                            TextField("", text: $lastFeaturedOnPage.onChange { value in
-                                feature.lastFeaturedOnPage = lastFeaturedOnPage
-                                markDocumentDirty()
-                            })
+                            TextField(
+                                "",
+                                text: $lastFeaturedOnPage.onChange { value in
+                                    feature.lastFeaturedOnPage = lastFeaturedOnPage
+                                    markDocumentDirty()
+                                }
+                            )
                             .focusable()
                             .autocorrectionDisabled(false)
                             .textFieldStyle(.plain)
@@ -545,12 +606,15 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
 
                             Text("Number of features on Snap page:")
-                            Picker("", selection: $featureCountOnPage.onChange { value in
-                                feature.featureCountOnPage = featureCountOnPage
-                                markDocumentDirty()
-                            }) {
+                            Picker(
+                                "",
+                                selection: $featureCountOnPage.onChange { value in
+                                    feature.featureCountOnPage = featureCountOnPage
+                                    markDocumentDirty()
+                                }
+                            ) {
                                 Text("many").tag("many")
-                                ForEach(0 ..< 21) { value in
+                                ForEach(0..<21) { value in
                                     Text("\(value)").tag("\(value)")
                                 }
                             }
@@ -563,12 +627,15 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
 
                             Text("Number of features on RAW page:")
-                            Picker("", selection: $featureCountOnRawPage.onChange { value in
-                                feature.featureCountOnRawPage = featureCountOnRawPage
-                                markDocumentDirty()
-                            }) {
+                            Picker(
+                                "",
+                                selection: $featureCountOnRawPage.onChange { value in
+                                    feature.featureCountOnRawPage = featureCountOnRawPage
+                                    markDocumentDirty()
+                                }
+                            ) {
                                 Text("many").tag("many")
-                                ForEach(0 ..< 21) { value in
+                                ForEach(0..<21) { value in
                                     Text("\(value)").tag("\(value)")
                                 }
                             }
@@ -582,7 +649,7 @@ struct FeatureEditor: View {
 
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")snap_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard", 2) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard", .Success) {}
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
@@ -594,7 +661,7 @@ struct FeatureEditor: View {
 
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")raw_\(selectedPage.pageName ?? selectedPage.name)_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard", 2) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard", .Success) {}
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
@@ -610,10 +677,12 @@ struct FeatureEditor: View {
                         Spacer()
                             .frame(width: labelWidth + 16, alignment: .trailing)
 
-                        Toggle(isOn: $userHasFeaturesOnHub.onChange { value in
-                            feature.userHasFeaturesOnHub = userHasFeaturesOnHub
-                            markDocumentDirty()
-                        }) {
+                        Toggle(
+                            isOn: $userHasFeaturesOnHub.onChange { value in
+                                feature.userHasFeaturesOnHub = userHasFeaturesOnHub
+                                markDocumentDirty()
+                            }
+                        ) {
                             Text("User featured on Snap / RAW")
                                 .lineLimit(1)
                                 .truncationMode(.tail)
@@ -627,10 +696,13 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
 
                             ValidationLabel("Last date featured:", validation: !(lastFeaturedOnHub.isEmpty || lastFeaturedPage.isEmpty))
-                            TextField("", text: $lastFeaturedOnHub.onChange { value in
-                                feature.lastFeaturedOnHub = lastFeaturedOnHub
-                                markDocumentDirty()
-                            })
+                            TextField(
+                                "",
+                                text: $lastFeaturedOnHub.onChange { value in
+                                    feature.lastFeaturedOnHub = lastFeaturedOnHub
+                                    markDocumentDirty()
+                                }
+                            )
                             .focusable()
                             .autocorrectionDisabled(false)
                             .textFieldStyle(.plain)
@@ -639,10 +711,13 @@ struct FeatureEditor: View {
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
 
-                            TextField("on page", text: $lastFeaturedPage.onChange { value in
-                                feature.lastFeaturedPage = lastFeaturedPage
-                                markDocumentDirty()
-                            })
+                            TextField(
+                                "on page",
+                                text: $lastFeaturedPage.onChange { value in
+                                    feature.lastFeaturedPage = lastFeaturedPage
+                                    markDocumentDirty()
+                                }
+                            )
                             .focusable()
                             .autocorrectionDisabled(false)
                             .textFieldStyle(.plain)
@@ -655,12 +730,15 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
 
                             Text("Number of features on Snap:")
-                            Picker("", selection: $featureCountOnHub.onChange { value in
-                                feature.featureCountOnHub = featureCountOnHub
-                                markDocumentDirty()
-                            }) {
+                            Picker(
+                                "",
+                                selection: $featureCountOnHub.onChange { value in
+                                    feature.featureCountOnHub = featureCountOnHub
+                                    markDocumentDirty()
+                                }
+                            ) {
                                 Text("many").tag("many")
-                                ForEach(0 ..< 21) { value in
+                                ForEach(0..<21) { value in
                                     Text("\(value)").tag("\(value)")
                                 }
                             }
@@ -673,12 +751,15 @@ struct FeatureEditor: View {
                                 .padding([.leading, .trailing])
 
                             Text("Number of features on RAW:")
-                            Picker("", selection: $featureCountOnRawHub.onChange { value in
-                                feature.featureCountOnRawHub = featureCountOnRawHub
-                                markDocumentDirty()
-                            }) {
+                            Picker(
+                                "",
+                                selection: $featureCountOnRawHub.onChange { value in
+                                    feature.featureCountOnRawHub = featureCountOnRawHub
+                                    markDocumentDirty()
+                                }
+                            ) {
                                 Text("many").tag("many")
-                                ForEach(0 ..< 21) { value in
+                                ForEach(0..<21) { value in
                                     Text("\(value)").tag("\(value)")
                                 }
                             }
@@ -692,7 +773,7 @@ struct FeatureEditor: View {
 
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")snap_featured_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard", 2) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard", .Success) {}
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
@@ -704,7 +785,7 @@ struct FeatureEditor: View {
 
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")raw_featured_\(userAlias)")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard", 2) { }
+                            showToast(.complete(.green), "Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard", .Success) {}
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "tag.fill")
@@ -721,11 +802,13 @@ struct FeatureEditor: View {
                     Spacer()
                         .frame(width: labelWidth + 16, alignment: .trailing)
 
-                    Toggle(isOn: $tooSoonToFeatureUser.onChange { value in
-                        feature.tooSoonToFeatureUser = tooSoonToFeatureUser
-                        updateList()
-                        markDocumentDirty()
-                    }) {
+                    Toggle(
+                        isOn: $tooSoonToFeatureUser.onChange { value in
+                            feature.tooSoonToFeatureUser = tooSoonToFeatureUser
+                            updateList()
+                            markDocumentDirty()
+                        }
+                    ) {
                         Text("Too soon to feature user")
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -744,11 +827,14 @@ struct FeatureEditor: View {
                         .padding([.trailing], 8)
 
                     Text("TinEye:")
-                    Picker("", selection: $tinEyeResults.onChange { value in
-                        feature.tinEyeResults = tinEyeResults
-                        updateList()
-                        markDocumentDirty()
-                    }) {
+                    Picker(
+                        "",
+                        selection: $tinEyeResults.onChange { value in
+                            feature.tinEyeResults = tinEyeResults
+                            updateList()
+                            markDocumentDirty()
+                        }
+                    ) {
                         ForEach(TinEyeResults.allCases) { source in
                             Text(source.rawValue)
                                 .tag(source)
@@ -764,11 +850,14 @@ struct FeatureEditor: View {
                         .padding([.leading, .trailing])
 
                     Text("AI Check:")
-                    Picker("", selection: $aiCheckResults.onChange { value in
-                        feature.aiCheckResults = aiCheckResults
-                        updateList()
-                        markDocumentDirty()
-                    }) {
+                    Picker(
+                        "",
+                        selection: $aiCheckResults.onChange { value in
+                            feature.aiCheckResults = aiCheckResults
+                            updateList()
+                            markDocumentDirty()
+                        }
+                    ) {
                         ForEach(AiCheckResults.allCases) { source in
                             Text(source.rawValue)
                                 .tag(source)
