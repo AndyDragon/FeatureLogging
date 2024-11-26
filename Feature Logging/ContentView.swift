@@ -17,19 +17,7 @@ enum ToastDuration: Int {
 }
 
 struct ContentView: View {
-    // THEME
-    @AppStorage(
-        Constants.THEME_APP_STORE_KEY,
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var theme = Theme.notSet
-    @Environment(\.colorScheme) private var colorScheme: ColorScheme
-    @State private var isDarkModeOn = true
-
     // PREFS
-    @AppStorage(
-        "preference_includehash",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var includeHash = false
     @AppStorage(
         "preference_personalMessage",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -39,18 +27,20 @@ struct ContentView: View {
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
 
+    // THEME
+    @AppStorage(
+        Constants.THEME_APP_STORE_KEY,
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var theme = Theme.notSet
+    @Environment(\.colorScheme) private var colorScheme: ColorScheme
+    @State private var isDarkModeOn = true
+
     @EnvironmentObject var commandModel: AppCommandModel
 
     @Environment(\.openURL) private var openURL
 
-    @State private var sharedFeature: CodableFeature? = nil
-    @State private var pageTitle: String = ""
-    @State private var pageHashTags: [String] = []
-    @State private var postUrl: String = ""
-    @State private var postUserName: String = ""
+    @State private var viewModel = ViewModel()
 
-    @State private var page: String = UserDefaults.standard.string(forKey: "Page") ?? ""
-    @State private var pageStaffLevel = StaffLevelCase.mod
     @State private var toastType: AlertToast.AlertType = .regular
     @State private var toastText = ""
     @State private var toastSubTitle = ""
@@ -58,21 +48,9 @@ struct ContentView: View {
     @State private var toastTapAction: () -> Void = {}
     @State private var isShowingToast = false
     @State private var toastId: UUID? = nil
-    @State private var hoveredFeature: Feature? = nil
-    @State private var loadedCatalogs = LoadedCatalogs()
-    private var loadedPage: LoadedPage? {
-        if loadedCatalogs.waitingForPages {
-            return nil
-        }
-        return loadedCatalogs.loadedPages.first(where: { $0.id == page })
-    }
-    @State private var featuresViewModel = FeaturesViewModel()
     @ObservedObject var featureScriptPlaceholders = PlaceholderList()
     @ObservedObject var commentScriptPlaceholders = PlaceholderList()
     @ObservedObject var originalPostScriptPlaceholders = PlaceholderList()
-    @State private var sortedFeatures = [Feature]()
-    @State private var selectedFeature: Feature? = nil
-    @State private var shouldScrollFeatureListToSelection = false
     @State private var isShowingDocumentDirtyAlert = false
     @State private var documentDirtyAlertConfirmation = "Would you like to save this log file?"
     @State private var documentDirtyAfterSaveAction: () -> Void = {}
@@ -87,19 +65,14 @@ struct ContentView: View {
     @State private var isShowingScriptView = false
     @State private var isShowingStatisticsView = false
     @State private var isShowingDownloaderView = false
+    @State private var shouldScrollFeatureListToSelection = false
     @FocusState private var focusedField: FocusedField?
     private var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
         isShowingToast || appState.isShowingVersionAvailableToast.wrappedValue || appState.isShowingVersionRequiredToast.wrappedValue
     }
-    private var fileNameDateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }
     private var descriptionSuffix: String {
-        if let description = selectedFeature?.featureDescription {
+        if let description = viewModel.selectedFeature?.feature.featureDescription {
             if !description.isEmpty {
                 return ", description: \(description)"
             }
@@ -108,349 +81,86 @@ struct ContentView: View {
     }
     private var titleSuffix: String {
         isShowingScriptView
-            ? ((selectedFeature?.userName ?? "").isEmpty ? " - scripts" : " - scripts for \(selectedFeature?.userName ?? "")\(descriptionSuffix)")
+        ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - scripts" : " - scripts for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
             : (isShowingDownloaderView
-                ? ((selectedFeature?.userName ?? "").isEmpty ? " - post viewer" : " - post viewer for \(selectedFeature?.userName ?? "")\(descriptionSuffix)")
+                ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - post viewer" : " - post viewer for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
                 : (isShowingStatisticsView
                     ? " - statistics"
                     : ""))
     }
 
+    private var fileNameDateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }
+    
+
     init(_ appState: VersionCheckAppState) {
         self.appState = appState
     }
-
+    
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
 
-            if isShowingScriptView {
-                ScriptContentView(
-                    $sharedFeature,
-                    loadedCatalogs,
-                    sortedFeatures.filter { $0.isPickedAndAllowed },
-                    featureScriptPlaceholders,
-                    commentScriptPlaceholders,
-                    originalPostScriptPlaceholders,
-                    $isShowingToast,
-                    { isShowingScriptView.toggle() },
-                    navigateToNextFeature,
-                    showToast)
-            } else if isShowingDownloaderView {
-                PostDownloaderView(
-                    $pageTitle,
-                    $pageHashTags,
-                    $postUrl,
-                    $isShowingToast,
-                    { isShowingDownloaderView.toggle() },
-                    showToast,
-                    savePostUserName)
-            } else if isShowingStatisticsView {
-                StatisticsContentView(
-                    $isShowingToast,
-                    { commandModel.showStatistics = false },
-                    showToast)
-            } else {
-                VStack {
-                    // Page / staff level picker
-                    HStack(alignment: .center) {
-                        Text("Page:")
-                            .frame(width: 108, alignment: .trailing)
-
-                        Picker(
-                            "",
-                            selection: $page.onChange { value in
-                                UserDefaults.standard.set(page, forKey: "Page")
-                                logURL = nil
-                                selectedFeature = nil
-                                featuresViewModel = FeaturesViewModel()
-                                sortedFeatures = featuresViewModel.sortedFeatures
-                                updateStaffLevelForPage()
-                                updatePageTitleAndHashTags()
-                            }
-                        ) {
-                            ForEach(loadedCatalogs.loadedPages) { page in
-                                if page.name != "default" {
-                                    Text(page.displayName).tag(page.id)
-                                }
-                            }
-                        }
-                        .tint(Color.AccentColor)
-                        .accentColor(Color.AccentColor)
-                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                        .focusable()
-                        .focused($focusedField, equals: .pagePicker)
-                        .disabled(!featuresViewModel.features.isEmpty)
-
-                        // Page staff level picker
-                        Text("Page staff level: ")
-                            .padding([.leading], 8)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-
-                        Picker(
-                            "",
-                            selection: $pageStaffLevel.onChange { value in
-                                storeStaffLevelForPage()
-                            }
-                        ) {
-                            ForEach(StaffLevelCase.allCases) { staffLevelCase in
-                                Text(staffLevelCase.rawValue)
-                                    .tag(staffLevelCase)
-                                    .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
-                            }
-                        }
-                        .tint(Color.AccentColor)
-                        .accentColor(Color.AccentColor)
-                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                        .focusable()
-                        .focused($focusedField, equals: .staffLevel)
-                        .frame(maxWidth: 144)
-
-                        Menu("Copy tag", systemImage: "tag.fill") {
-                            Button(action: {
-                                copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the page tag to the clipboard", duration: .Success) {}
-                            }) {
-                                Text("Page tag")
-                            }
-                            if loadedPage?.hub == "snap" {
-                                Button(action: {
-                                    copyToClipboard("\(includeHash ? "#" : "")raw_\(loadedPage?.pageName ?? loadedPage?.name ?? "")")
-                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW page tag to the clipboard", duration: .Success) {}
-                                }) {
-                                    Text("RAW page tag")
-                                }
-                            }
-                            Button(action: {
-                                copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_community")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the community tag to the clipboard", duration: .Success) {}
-                            }) {
-                                Text("Community tag")
-                            }
-                            if loadedPage?.hub == "snap" {
-                                Button(action: {
-                                    copyToClipboard("\(includeHash ? "#" : "")raw_community")
-                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW community tag to the clipboard", duration: .Success) {}
-                                }) {
-                                    Text("RAW community tag")
-                                }
-                            }
-                            Button(action: {
-                                copyToClipboard("\(includeHash ? "#" : "")\(loadedPage?.hub ?? "")_hub")
-                                showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the hub tag to the clipboard", duration: .Success) {}
-                            }) {
-                                Text("Hub tag")
-                            }
-                            if loadedPage?.hub == "snap" {
-                                Button(action: {
-                                    copyToClipboard("\(includeHash ? "#" : "")raw_hub")
-                                    showToast(.complete(.green), "Copied to clipboard", subTitle: "Copied the RAW hub tag to the clipboard", duration: .Success) {}
-                                }) {
-                                    Text("RAW hub tag")
-                                }
-                            }
-                        }
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        .tint(Color.AccentColor)
-                        .accentColor(Color.AccentColor)
-                        .disabled(isAnyToastShowing || (loadedPage?.hub != "click" && loadedPage?.hub != "snap"))
-                        .frame(maxWidth: 132)
-                        .focusable()
-                    }
-
-                    // Feature editor
-                    VStack {
-                        if let currentFeature = selectedFeature {
-                            FeatureEditor(
-                                feature: currentFeature, loadedPage: loadedPage, postUrl: $postUrl, postUserName: postUserName,
-                                close: {
-                                    selectedFeature = nil
-                                },
-                                updateList: {
-                                    sortedFeatures = featuresViewModel.sortedFeatures
-                                    shouldScrollFeatureListToSelection.toggle()
-                                },
-                                markDocumentDirty: {
-                                    isDirty = true
-                                }, showToast: showToast,
-                                showDownloaderView: { postUrl in
-                                    self.postUrl = postUrl
-                                    isShowingDownloaderView.toggle()
-                                })
-                        } else {
-                            Spacer()
-                        }
-                    }
-                    .frame(height: 380)
-
-                    // Feature list buttons
-                    HStack {
-                        Spacer()
-
-                        // Add feature
-                        Button(action: {
-                            let linkText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
-                            let existingFeature = featuresViewModel.features.first(where: { $0.postLink.lowercased() == linkText.lowercased() })
-                            if existingFeature != nil {
-                                showToast(
-                                    .systemImage("exclamationmark.triangle.fill", .orange),
-                                    "Found duplicate post link",
-                                    subTitle: "There is already a feature in the list with that post link, selected the existing feature",
-                                    duration: .Failure)
-                                selectedFeature = existingFeature
-                                return
-                            }
-                            let feature = Feature()
-                            if linkText.starts(with: "https://vero.co/") {
-                                feature.postLink = linkText
-                                let possibleUserAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
-                                // If the user doesn't have an alias, the link will have a single letter, often 'p'
-                                if possibleUserAlias.count > 1 {
-                                    feature.userAlias = possibleUserAlias
-                                }
-                            }
-                            featuresViewModel.features.append(feature)
-                            sortedFeatures = featuresViewModel.sortedFeatures
-                            selectedFeature = feature
-                            isDirty = true
-                            shouldScrollFeatureListToSelection.toggle()
-                        }) {
-                            HStack(alignment: .center) {
-                                Image(systemName: "person.fill.badge.plus")
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                Text("Add feature")
-                            }
-                        }
-                        .disabled(isAnyToastShowing)
-                        .keyboardShortcut("+", modifiers: .command)
-
-                        Spacer()
-                            .frame(width: 16)
-
-                        // Remove feature
-                        Button(action: {
-                            if let currentFeature = selectedFeature {
-                                selectedFeature = nil
-                                featuresViewModel.features.removeAll(where: { $0.id == currentFeature.id })
-                                sortedFeatures = featuresViewModel.sortedFeatures
-                                isDirty = true
-                            }
-                        }) {
-                            HStack(alignment: .center) {
-                                Image(systemName: "person.fill.badge.minus")
-                                    .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
-                                Text("Remove feature")
-                            }
-                        }
-                        .disabled(isAnyToastShowing || selectedFeature == nil)
-                        .keyboardShortcut("-", modifiers: .command)
-                    }
-
-                    // Feature list
-                    ScrollViewReader { proxy in
-                        List {
-                            ForEach(sortedFeatures, id: \.self) { feature in
-                                FeatureListRow(
-                                    feature: feature,
-                                    sharedFeature: $sharedFeature,
-                                    loadedPage: loadedPage!,
-                                    pageStaffLevel: pageStaffLevel,
-                                    markDocumentDirty: {
-                                        isDirty = true
-                                    },
-                                    ensureSelected: {
-                                        selectedFeature = feature
-                                    },
-                                    showToast: showToast,
-                                    showScriptView: {
-                                        isShowingScriptView.toggle()
-                                    }
-                                )
-                                .padding([.top, .bottom], 8)
-                                .padding([.leading, .trailing])
-                                .foregroundStyle(
-                                    Color(
-                                        nsColor: hoveredFeature == feature
-                                            ? NSColor.selectedControlTextColor
-                                            : NSColor.labelColor), Color(nsColor: .labelColor)
-                                )
-                                .background(
-                                    selectedFeature == feature
-                                        ? Color.BackgroundColorListSelected
-                                        : hoveredFeature == feature
-                                            ? Color.BackgroundColorListSelected.opacity(0.33)
-                                            : Color.BackgroundColorList
-                                )
-                                .cornerRadius(4)
-                                .onHover(perform: { hovering in
-                                    if hoveredFeature == feature {
-                                        if !hovering {
-                                            hoveredFeature = nil
-                                        }
-                                    } else if hovering {
-                                        hoveredFeature = feature
-                                    }
-                                })
-                                .onTapGesture {
-                                    withAnimation {
-                                        selectedFeature = feature
-                                    }
-                                }
-                            }
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(4)
-                        .presentationBackground(.clear)
-                        .onChange(
-                            of: shouldScrollFeatureListToSelection,
-                            {
-                                withAnimation {
-                                    proxy.scrollTo(selectedFeature)
-                                }
-                            }
-                        )
-                        .onTapGesture {
-                            withAnimation {
-                                selectedFeature = nil
-                            }
-                        }
-                        .focusable()
-                    }
-                    .scrollContentBackground(.hidden)
-                    .background(Color.BackgroundColorList)
-                    .border(Color.gray.opacity(0.25))
-                    .cornerRadius(4)
+            VStack {
+                if isShowingScriptView {
+                    ScriptContentView(
+                        viewModel,
+                        featureScriptPlaceholders,
+                        commentScriptPlaceholders,
+                        originalPostScriptPlaceholders,
+                        $isShowingToast,
+                        { isShowingScriptView.toggle() },
+                        navigateToNextFeature,
+                        showToast
+                    )
+                } else if isShowingDownloaderView {
+                    PostDownloaderView(
+                        viewModel,
+                        $isShowingToast,
+                        { isShowingDownloaderView.toggle() },
+                        { shouldScrollFeatureListToSelection.toggle() },
+                        { isDirty = true },
+                        showToast
+                    )
+                } else if isShowingStatisticsView {
+                    StatisticsContentView(
+                        $isShowingToast,
+                        { commandModel.showStatistics = false },
+                        showToast
+                    )
+                } else {
+                    MainContentView(
+                        viewModel,
+                        $logURL,
+                        $focusedField,
+                        $isDirty,
+                        $logDocument,
+                        $showFileImporter,
+                        $showFileExporter,
+                        $reportDocument,
+                        $showReportFileExporter,
+                        $isShowingToast,
+                        $isShowingDocumentDirtyAlert,
+                        $documentDirtyAlertConfirmation,
+                        $documentDirtyAfterSaveAction,
+                        $documentDirtyAfterDismissAction,
+                        $shouldScrollFeatureListToSelection,
+                        { isShowingScriptView.toggle() },
+                        { isShowingDownloaderView.toggle() },
+                        updateStaffLevelForPage,
+                        storeStaffLevelForPage,
+                        saveLog,
+                        setTheme,
+                        showToast
+                    )
                 }
-                .toolbar {
-                    // Open log
-                    Button(action: {
-                        if isDirty {
-                            documentDirtyAfterSaveAction = {
-                                showFileImporter.toggle()
-                            }
-                            documentDirtyAfterDismissAction = {
-                                showFileImporter.toggle()
-                            }
-                            documentDirtyAlertConfirmation = "Would you like to save this log file before opening another log?"
-                            isShowingDocumentDirtyAlert.toggle()
-                        } else {
-                            showFileImporter.toggle()
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.up.on.square")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Open log")
-                                .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                            Text("    ⌘ O")
-                                .font(.system(.body, design: .rounded))
-                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
-                        }
-                        .padding(4)
-                        .buttonStyle(.plain)
-                    }
+                // Log importer
+                HStack { }
+                    .frame(width: 0, height: 0)
                     .fileImporter(
                         isPresented: $showFileImporter,
                         allowedContentTypes: [.json]
@@ -463,36 +173,15 @@ struct ContentView: View {
                             print(error)
                         }
                     }
-                    .disabled(isAnyToastShowing || loadedPage == nil)
-
-                    // Save log
-                    Button(action: {
-                        logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
-                        if let file = logURL {
-                            saveLog(to: file)
-                            isDirty = false
-                        } else {
-                            showFileExporter.toggle()
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.down.on.square")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Save log")
-                                .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                            Text("    ⌘ S")
-                                .font(.system(.body, design: .rounded))
-                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
-                        }
-                        .padding(4)
-                        .buttonStyle(.plain)
-                    }
+                    .fileDialogConfirmationLabel("Open log")
+                // Log exporter
+                HStack { }
+                    .frame(width: 0, height: 0)
                     .fileExporter(
                         isPresented: $showFileExporter,
                         document: logDocument,
                         contentType: .json,
-                        defaultFilename: "\(loadedPage?.hub ?? "hub")_\(loadedPage?.pageName ?? loadedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).json"
+                        defaultFilename: "\(viewModel.selectedPage?.hub ?? "hub")_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).json"
                     ) { result in
                         switch result {
                         case .success(let url):
@@ -506,49 +195,18 @@ struct ContentView: View {
                             debugPrint(error)
                         }
                     }
-                    .disabled(isAnyToastShowing || loadedPage == nil)
-
-                    // Copy report
-                    Button(action: {
-                        copyReportToClipboard()
-                    }) {
-                        HStack {
-                            Image(systemName: "pencil.and.list.clipboard")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Generate report")
-                                .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        }
-                        .padding(4)
-                        .buttonStyle(.plain)
-                    }
-                    .disabled(isAnyToastShowing || loadedPage == nil)
-
-                    // Save report
-                    Button(action: {
-                        reportDocument = ReportDocument(initialText: generateReport())
-                        showReportFileExporter.toggle()
-                    }) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.down.on.square")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Save report")
-                                .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                            Text("    ⌘ ⇧ S")
-                                .font(.system(.body, design: .rounded))
-                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
-                        }
-                        .padding(4)
-                        .buttonStyle(.plain)
-                    }
+                    .fileExporterFilenameLabel("Save log as: ") // filename label
+                    .fileDialogConfirmationLabel("Save log")
+                // Report exporter
+                HStack { }
+                    .frame(width: 0, height: 0)
                     .fileExporter(
                         isPresented: $showReportFileExporter,
                         document: reportDocument,
                         contentType: UTType.features,
                         defaultFilename: logURL != nil
-                            ? "\(logURL!.deletingPathExtension().lastPathComponent).features"
-                            : "\(loadedPage?.hub ?? "hub")_\(loadedPage?.pageName ?? loadedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).features"
+                        ? "\(logURL!.deletingPathExtension().lastPathComponent).features"
+                        : "\(viewModel.selectedPage?.hub ?? "hub")_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).features"
                     ) { result in
                         switch result {
                         case .success(let url):
@@ -557,25 +215,10 @@ struct ContentView: View {
                             debugPrint(error)
                         }
                     }
-                    .disabled(isAnyToastShowing || loadedPage == nil)
-
-                    // Theme
-                    Menu("Theme", systemImage: "paintpalette") {
-                        Picker("Theme:", selection: $theme.onChange(setTheme)) {
-                            ForEach(Theme.allCases) { itemTheme in
-                                if itemTheme != .notSet {
-                                    Text(itemTheme.rawValue).tag(itemTheme)
-                                }
-                            }
-                        }
-                        .pickerStyle(.inline)
-                    }
-                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                    .disabled(isAnyToastShowing)
-                }
-                .padding()
-                .allowsHitTesting(!isAnyToastShowing)
+                    .fileExporterFilenameLabel("Save report as: ")
+                    .fileDialogConfirmationLabel("Save report")
             }
+            .allowsHitTesting(!isAnyToastShowing)
             ToastDismissShield(
                 isAnyToastShowing: isAnyToastShowing,
                 isShowingToast: $isShowingToast,
@@ -583,9 +226,9 @@ struct ContentView: View {
                 isShowingVersionAvailableToast: appState.isShowingVersionAvailableToast)
         }
         #if TESTING
-            .navigationTitle("Feature Logging v2 - Script Testing\(titleSuffix)")
+            .navigationTitle("Feature Logging v2.1 - Script Testing\(titleSuffix)")
         #else
-            .navigationTitle("Feature Logging v2\(titleSuffix)")
+            .navigationTitle("Feature Logging v2.1\(titleSuffix)")
         #endif
         .blur(radius: isAnyToastShowing ? 4 : 0)
         .frame(minWidth: 1024, minHeight: 720)
@@ -594,25 +237,22 @@ struct ContentView: View {
             if isDirty {
                 documentDirtyAfterSaveAction = {
                     logURL = nil
-                    selectedFeature = nil
-                    featuresViewModel = FeaturesViewModel()
-                    sortedFeatures = featuresViewModel.sortedFeatures
+                    viewModel.selectedFeature = nil
+                    viewModel.features = [Feature]()
                     isDirty = false
                 }
                 documentDirtyAfterDismissAction = {
                     logURL = nil
-                    selectedFeature = nil
-                    featuresViewModel = FeaturesViewModel()
-                    sortedFeatures = featuresViewModel.sortedFeatures
+                    viewModel.selectedFeature = nil
+                    viewModel.features = [Feature]()
                     isDirty = false
                 }
                 documentDirtyAlertConfirmation = "Would you like to save this log file before creating a new log?"
                 isShowingDocumentDirtyAlert.toggle()
             } else {
                 logURL = nil
-                selectedFeature = nil
-                featuresViewModel = FeaturesViewModel()
-                sortedFeatures = featuresViewModel.sortedFeatures
+                viewModel.selectedFeature = nil
+                viewModel.features = [Feature]()
                 isDirty = false
             }
         }
@@ -631,7 +271,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: commandModel.saveLog) {
-            logDocument = LogDocument(page: loadedPage!, features: featuresViewModel.features)
+            logDocument = LogDocument(page: viewModel.selectedPage!, features: viewModel.features)
             if let file = logURL {
                 saveLog(to: file)
                 documentDirtyAfterSaveAction()
@@ -643,7 +283,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: commandModel.saveReport) {
-            reportDocument = ReportDocument(initialText: generateReport())
+            reportDocument = ReportDocument(initialText: viewModel.generateReport(personalMessageFormat, personalMessageFirstFormat))
             showReportFileExporter.toggle()
         }
         .onChange(of: commandModel.showStatistics) {
@@ -758,28 +398,6 @@ struct ContentView: View {
         }
     }
 
-    private func updatePageTitleAndHashTags() {
-        if let loadedPage = loadedCatalogs.loadedPages.first(where: { $0.id == page }) {
-            pageTitle = loadedPage.title ?? "\(loadedPage.hub) \(loadedPage.name)"
-            if loadedPage.hub == "snap" {
-                pageHashTags = ["#snap_\(loadedPage.name)", "#raw_\(loadedPage.name)"]
-            } else if loadedPage.hub == "click" {
-                pageHashTags = ["#click_\(loadedPage.name)"]
-            } else {
-                pageHashTags = [loadedPage.hashTag ?? loadedPage.name]
-            }
-        } else {
-            pageTitle = ""
-            pageHashTags = []
-        }
-    }
-
-    private func savePostUserName(
-        _ userName: String
-    ) {
-        postUserName = userName
-    }
-
     private func showToast(
         _ type: AlertToast.AlertType,
         _ text: String,
@@ -828,34 +446,30 @@ struct ContentView: View {
     }
 
     private func updateStaffLevelForPage() {
-        if !page.isEmpty {
-            if let rawPageStaffLevel = UserDefaults.standard.string(forKey: "StaffLevel_" + page) {
+        if let page = viewModel.selectedPage {
+            if let rawPageStaffLevel = UserDefaults.standard.string(forKey: "StaffLevel_" + page.id) {
                 if let pageStaffLevelFromRaw = StaffLevelCase(rawValue: rawPageStaffLevel) {
-                    pageStaffLevel = pageStaffLevelFromRaw
+                    viewModel.selectedPageStaffLevel = pageStaffLevelFromRaw
                     return
                 }
-                pageStaffLevel = StaffLevelCase.mod
-                return
             }
-        }
-
-        if let rawPagelessStaffLevel = UserDefaults.standard.string(forKey: "StaffLevel") {
+        } else if let rawPagelessStaffLevel = UserDefaults.standard.string(forKey: "StaffLevel") {
             if let pageStaffLevelFromRaw = StaffLevelCase(rawValue: rawPagelessStaffLevel) {
-                pageStaffLevel = pageStaffLevelFromRaw
+                viewModel.selectedPageStaffLevel = pageStaffLevelFromRaw
                 storeStaffLevelForPage()
                 return
             }
         }
 
-        pageStaffLevel = StaffLevelCase.mod
+        viewModel.selectedPageStaffLevel = StaffLevelCase.mod
         storeStaffLevelForPage()
     }
 
     private func storeStaffLevelForPage() {
-        if !page.isEmpty {
-            UserDefaults.standard.set(pageStaffLevel.rawValue, forKey: "StaffLevel_" + page)
+        if let page = viewModel.selectedPage {
+            UserDefaults.standard.set(viewModel.selectedPageStaffLevel.rawValue, forKey: "StaffLevel_" + page.id)
         } else {
-            UserDefaults.standard.set(pageStaffLevel.rawValue, forKey: "StaffLevel")
+            UserDefaults.standard.set(viewModel.selectedPageStaffLevel.rawValue, forKey: "StaffLevel")
         }
     }
 
@@ -870,11 +484,11 @@ struct ContentView: View {
             var pages = [LoadedPage]()
             for hubPair in (pagesCatalog.hubs) {
                 for hubPage in hubPair.value {
-                    pages.append(LoadedPage.from(hub: hubPair.key, page: hubPage))
+                    pages.append(LoadedPage(hub: hubPair.key, page: hubPage))
                 }
             }
-            loadedCatalogs.loadedPages.removeAll()
-            loadedCatalogs.loadedPages.append(
+            viewModel.loadedCatalogs.loadedPages.removeAll()
+            viewModel.loadedCatalogs.loadedPages.append(
                 contentsOf: pages.sorted(by: {
                     if $0.hub == "other" && $1.hub == "other" {
                         return $0.name < $1.name
@@ -887,11 +501,10 @@ struct ContentView: View {
                     }
                     return "\($0.hub)_\($0.name)" < "\($1.hub)_\($1.name)"
                 }))
-            loadedCatalogs.waitingForPages = false
-            if page.isEmpty {
-                page = loadedCatalogs.loadedPages.first?.id ?? ""
+            viewModel.loadedCatalogs.waitingForPages = false
+            if viewModel.selectedPage == nil {
+                viewModel.selectedPage = viewModel.loadedCatalogs.loadedPages.first ?? nil
             }
-            updatePageTitleAndHashTags()
             updateStaffLevelForPage()
 
             // Delay the start of the templates download so the window can be ready faster
@@ -902,8 +515,8 @@ struct ContentView: View {
             #else
                 let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/templates.json")!
             #endif
-            loadedCatalogs.templatesCatalog = try await URLSession.shared.decode(TemplateCatalog.self, from: templatesUrl)
-            loadedCatalogs.waitingForTemplates = false
+            viewModel.loadedCatalogs.templatesCatalog = try await URLSession.shared.decode(TemplateCatalog.self, from: templatesUrl)
+            viewModel.loadedCatalogs.waitingForTemplates = false
 
             do {
                 // Delay the start of the disallowed list download so the window can be ready faster
@@ -914,8 +527,8 @@ struct ContentView: View {
                 #else
                     let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json")!
                 #endif
-                loadedCatalogs.disallowList = try await URLSession.shared.decode([String: [String]].self, from: disallowListUrl)
-                loadedCatalogs.waitingForDisallowList = false
+                viewModel.loadedCatalogs.disallowList = try await URLSession.shared.decode([String: [String]].self, from: disallowListUrl)
+                viewModel.loadedCatalogs.waitingForDisallowList = false
             } catch {
                 // do nothing, the disallow list is not critical
                 debugPrint(error.localizedDescription)
@@ -935,7 +548,7 @@ struct ContentView: View {
                 .error(.red),
                 "Failed to load pages",
                 subTitle: "The application requires the catalog to perform its operations: \(error.localizedDescription)\n\nClick here to try again.",
-                duration: .LongFailure
+                duration: .Blocking
             ) {
                 DispatchQueue.main.async {
                     Task {
@@ -952,33 +565,32 @@ struct ContentView: View {
             print("No access?")
             return
         }
-
+        
         let fileContents = FileManager.default.contents(atPath: file.path)
         if let json = fileContents {
             let jsonString = String(String(decoding: json, as: UTF8.self))
             do {
                 let decoder = JSONDecoder()
                 let loadedLog = try decoder.decode(Log.self, from: jsonString.data(using: .utf8)!)
-                if let loadedPage = loadedCatalogs.loadedPages.first(where: { $0.id == loadedLog.page }) {
-                    selectedFeature = nil
-                    page = loadedPage.id
-                    featuresViewModel.features = loadedLog.getFeatures()
-                    sortedFeatures = featuresViewModel.sortedFeatures
+                if let loadedPage = viewModel.loadedCatalogs.loadedPages.first(where: { $0.id == loadedLog.page }) {
+                    viewModel.selectedFeature = nil
+                    viewModel.selectedPage = loadedPage
+                    viewModel.features = loadedLog.getFeatures()
                 }
                 logURL = file
                 showToast(
                     .complete(.green),
                     "Loaded features",
-                    subTitle: "Loaded \(sortedFeatures.count) features from the log file",
-                    duration: .Success)
+                    subTitle: "Loaded \(viewModel.sortedFeatures.count) features from the log file",
+                    duration: .Success) {}
             } catch {
                 debugPrint("Error parsing JSON: \(error.localizedDescription)")
             }
         }
-
+        
         file.stopAccessingSecurityScopedResource()
     }
-
+    
     private func saveLog(to file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
         if !gotAccess {
@@ -992,7 +604,7 @@ struct ContentView: View {
             showToast(
                 .complete(.green),
                 "Saved features",
-                subTitle: "Saved \(sortedFeatures.count) features to the log file",
+                subTitle: "Saved \(viewModel.sortedFeatures.count) features to the log file",
                 duration: .Success)
         } catch {
             debugPrint(error)
@@ -1001,284 +613,28 @@ struct ContentView: View {
         file.stopAccessingSecurityScopedResource()
     }
 
-    private func generateReport() -> String {
-        var lines = [String]()
-        var personalLines = [String]()
-        if loadedPage!.hub == "click" {
-            lines.append("Picks for #\(loadedPage!.displayName)")
-            lines.append("")
-            var wasLastItemPicked = true
-            for feature in sortedFeatures {
-                var isPicked = feature.isPicked
-                var indent = ""
-                var prefix = ""
-                if feature.photoFeaturedOnPage {
-                    prefix = "[already featured] "
-                    indent = "    "
-                    isPicked = false
-                } else if feature.tooSoonToFeatureUser {
-                    prefix = "[too soon] "
-                    indent = "    "
-                    isPicked = false
-                } else if feature.tinEyeResults == .matchFound {
-                    prefix = "[tineye match] "
-                    indent = "    "
-                } else if feature.aiCheckResults == .ai {
-                    prefix = "[AI] "
-                    indent = "    "
-                } else if !feature.isPicked {
-                    prefix = "[not picked] "
-                    indent = "    "
-                }
-                if !isPicked && wasLastItemPicked {
-                    lines.append("---------------")
-                    lines.append("")
-                }
-                wasLastItemPicked = isPicked
-                lines.append("\(indent)\(prefix)\(feature.postLink)")
-                lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
-                lines.append("\(indent)member level - \(feature.userLevel.rawValue)")
-                if feature.userHasFeaturesOnPage {
-                    lines.append("\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage))")
-                } else {
-                    lines.append("\(indent)last feature on page - never (features on page 0)")
-                }
-                if feature.userHasFeaturesOnHub {
-                    lines.append("\(indent)last feature - \(feature.lastFeaturedOnHub) \(feature.lastFeaturedPage) (features \(feature.featureCountOnHub))")
-                } else {
-                    lines.append("\(indent)last feature - never (features 0)")
-                }
-                let photoFeaturedOnPage = feature.photoFeaturedOnPage ? "YES" : "no"
-                let photoFeaturedOnHub = feature.photoFeaturedOnHub ? "\(feature.photoLastFeaturedOnHub) \(feature.photoLastFeaturedPage)" : "no"
-                lines.append("\(indent)feature - \(feature.featureDescription), featured on page - \(photoFeaturedOnPage), featured on hub - \(photoFeaturedOnHub)")
-                lines.append("\(indent)teammate - \(feature.userIsTeammate ? "yes" : "no")")
-                switch feature.tagSource {
-                case .commonPageTag:
-                    lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
-                    break
-                case .clickCommunityTag:
-                    lines.append("\(indent)hashtag = #\(loadedPage!.hub)_community")
-                    break
-                case .clickHubTag:
-                    lines.append("\(indent)hashtag = #\(loadedPage!.hub)_hub")
-                    break
-                default:
-                    lines.append("\(indent)hashtag = other")
-                    break
-                }
-                lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
-                lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
-                lines.append("")
-
-                if isPicked {
-                    let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
-                    let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
-                    let fullPersonalMessage =
-                        personalMessageTemplate
-                        .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage!.displayName)
-                        .replacingOccurrences(of: "%%HUBNAME%%", with: loadedPage!.hub)
-                        .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
-                        .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
-                        .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
-                    personalLines.append(fullPersonalMessage)
-                }
-            }
-        } else if loadedPage!.hub == "snap" {
-            lines.append("Picks for #\(loadedPage!.displayName)")
-            lines.append("")
-            var wasLastItemPicked = true
-            for feature in sortedFeatures {
-                var isPicked = feature.isPicked
-                var indent = ""
-                var prefix = ""
-                if feature.photoFeaturedOnPage {
-                    prefix = "[already featured] "
-                    indent = "    "
-                    isPicked = false
-                } else if feature.tooSoonToFeatureUser {
-                    prefix = "[too soon] "
-                    indent = "    "
-                    isPicked = false
-                } else if feature.tinEyeResults == .matchFound {
-                    prefix = "[tineye match] "
-                    indent = "    "
-                } else if feature.aiCheckResults == .ai {
-                    prefix = "[AI] "
-                    indent = "    "
-                } else if !feature.isPicked {
-                    prefix = "[not picked] "
-                    indent = "    "
-                }
-                if !isPicked && wasLastItemPicked {
-                    lines.append("---------------")
-                    lines.append("")
-                }
-                wasLastItemPicked = isPicked
-                lines.append("\(indent)\(prefix)\(feature.postLink)")
-                lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
-                lines.append("\(indent)member level - \(feature.userLevel.rawValue)")
-                if feature.userHasFeaturesOnPage {
-                    lines.append(
-                        "\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage) Snap + \(feature.featureCountOnRawPage) RAW)"
-                    )
-                } else {
-                    lines.append("\(indent)last feature on page - never (features on page 0 Snap + 0 RAW)")
-                }
-                if feature.userHasFeaturesOnHub {
-                    lines.append(
-                        "\(indent)last feature - \(feature.lastFeaturedOnHub) \(feature.lastFeaturedPage) (features \(feature.featureCountOnHub) Snap + \(feature.featureCountOnRawHub) RAW)"
-                    )
-                } else {
-                    lines.append("\(indent)last feature - never (features 0 Snap + 0 RAW)")
-                }
-                let photoFeaturedOnPage = feature.photoFeaturedOnPage ? "YES" : "no"
-                let photoFeaturedOnHub = feature.photoFeaturedOnHub ? "\(feature.photoLastFeaturedOnHub) \(feature.photoLastFeaturedPage)" : "no"
-                lines.append("\(indent)feature - \(feature.featureDescription), featured on page - \(photoFeaturedOnPage), featured on hub - \(photoFeaturedOnHub)")
-                lines.append("\(indent)teammate - \(feature.userIsTeammate ? "yes" : "no")")
-                switch feature.tagSource {
-                case .commonPageTag:
-                    lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
-                    break
-                case .snapRawPageTag:
-                    lines.append("\(indent)hashtag = #raw_\(loadedPage!.pageName ?? loadedPage!.name)")
-                    break
-                case .snapCommunityTag:
-                    lines.append("\(indent)hashtag = #\(loadedPage!.hub)_community")
-                    break
-                case .snapRawCommunityTag:
-                    lines.append("\(indent)hashtag = #raw_community")
-                    break
-                default:
-                    lines.append("\(indent)hashtag = other")
-                    break
-                }
-                lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
-                lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
-                lines.append("")
-
-                if isPicked {
-                    let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
-                    let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
-                    let fullPersonalMessage =
-                        personalMessageTemplate
-                        .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage!.displayName)
-                        .replacingOccurrences(of: "%%HUBNAME%%", with: loadedPage!.hub)
-                        .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
-                        .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
-                        .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
-                    personalLines.append(fullPersonalMessage)
-                }
-            }
-        } else {
-            lines.append("Picks for #\(loadedPage!.displayName)")
-            lines.append("")
-            var wasLastItemPicked = true
-            for feature in sortedFeatures {
-                var isPicked = feature.isPicked
-                var indent = ""
-                var prefix = ""
-                if feature.photoFeaturedOnPage {
-                    prefix = "[already featured] "
-                    indent = "    "
-                    isPicked = false
-                } else if feature.tooSoonToFeatureUser {
-                    prefix = "[too soon] "
-                    indent = "    "
-                    isPicked = false
-                } else if feature.tinEyeResults == .matchFound {
-                    prefix = "[tineye match] "
-                    indent = "    "
-                    isPicked = false
-                } else if feature.aiCheckResults == .ai {
-                    prefix = "[AI] "
-                    indent = "    "
-                    isPicked = false
-                } else if !feature.isPicked {
-                    prefix = "[not picked] "
-                    indent = "    "
-                    isPicked = false
-                }
-                if !isPicked && wasLastItemPicked {
-                    lines.append("---------------")
-                    lines.append("")
-                }
-                wasLastItemPicked = isPicked
-                lines.append("\(indent)\(prefix)\(feature.postLink)")
-                lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
-                lines.append("\(indent)member level - \(feature.userLevel.rawValue)")
-                let photoFeaturedOnPage = feature.photoFeaturedOnPage ? "YES" : "no"
-                lines.append("\(indent)feature - \(feature.featureDescription), featured on page - \(photoFeaturedOnPage)")
-                lines.append("\(indent)teammate - \(feature.userIsTeammate ? "yes" : "no")")
-                switch feature.tagSource {
-                case .commonPageTag:
-                    lines.append("\(indent)hashtag = #\(loadedPage!.hub)_\(loadedPage!.pageName ?? loadedPage!.name)")
-                    break
-                default:
-                    lines.append("\(indent)hashtag = other")
-                    break
-                }
-                lines.append("\(indent)tineye - \(feature.tinEyeResults.rawValue)")
-                lines.append("\(indent)ai check - \(feature.aiCheckResults.rawValue)")
-                lines.append("")
-
-                if isPicked {
-                    let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
-                    let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
-                    let fullPersonalMessage =
-                        personalMessageTemplate
-                        .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage!.displayName)
-                        .replacingOccurrences(of: "%%HUBNAME%%", with: "")
-                        .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
-                        .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
-                        .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
-                    personalLines.append(fullPersonalMessage)
-                }
-            }
-        }
-        var text = ""
-        for line in lines { text = text + line + "\n" }
-        text = text + "---------------\n\n"
-        if !personalLines.isEmpty {
-            for line in personalLines { text = text + line + "\n" }
-            text = text + "\n---------------\n"
-        }
-        return text
-    }
-
-    private func copyReportToClipboard() {
-        let text = generateReport()
-        copyToClipboard(text)
-        showToast(
-            .complete(.green),
-            "Report generated!",
-            subTitle: "Copied the report of features to the clipboard",
-            duration: .Success)
-    }
-
     private func navigateToNextFeature(forward: Bool) {
-        if let selectedFeature, let loadedPage {
-            let currentIndex = sortedFeatures.firstIndex(of: selectedFeature)
+        if viewModel.selectedFeature != nil && viewModel.selectedPage != nil {
+            let currentIndex = viewModel.sortedFeatures.firstIndex(where: { $0.id == viewModel.selectedFeature?.feature.id })
             if let currentIndex {
-                let startingIndex = sortedFeatures.distance(from: sortedFeatures.startIndex, to: currentIndex)
+                let startingIndex = viewModel.sortedFeatures.distance(from: viewModel.sortedFeatures.startIndex, to: currentIndex)
                 var nextIndex = startingIndex
+                let featureCount = viewModel.features.count
                 repeat {
                     if forward {
-                        nextIndex = (nextIndex + 1) % sortedFeatures.count
+                        nextIndex = (nextIndex + 1) % featureCount
                     } else {
-                        nextIndex = (nextIndex + sortedFeatures.count - 1) % sortedFeatures.count
+                        nextIndex = (nextIndex + featureCount - 1) % featureCount
                     }
-                    if sortedFeatures[nextIndex].isPickedAndAllowed {
-                        self.selectedFeature = sortedFeatures[nextIndex]
-
-                        // Store the feature in the shared storage
-                        sharedFeature = CodableFeature(
-                            using: loadedPage,
-                            pageStaffLevel: pageStaffLevel,
-                            from: sortedFeatures[nextIndex])
-
-                        // Ensure the ScriptContentView is still visible
-                        isShowingScriptView = true
-                        return
+                    if let page = viewModel.selectedPage {
+                        if viewModel.sortedFeatures[nextIndex].isPickedAndAllowed {
+                            print("Selecting next feature: \(viewModel.sortedFeatures[nextIndex].postLink)")
+                            viewModel.selectedFeature = SharedFeature(using: page, from: viewModel.sortedFeatures[nextIndex])
+                            
+                            // Ensure the ScriptContentView is visible
+                            isShowingScriptView = true
+                            return
+                        }
                     }
                 } while nextIndex != startingIndex
             }
@@ -1316,5 +672,340 @@ extension ContentView: DocumentManagerDelegate {
             isShowingDocumentDirtyAlert.toggle()
         }
         return !isDirty
+    }
+}
+
+extension ContentView {
+    @Observable
+    class ViewModel {
+        var loadedCatalogs = LoadedCatalogs()
+        var selectedPage: LoadedPage?
+        var selectedPageStaffLevel: StaffLevelCase = .mod
+        var features = [Feature]()
+        var selectedFeature: SharedFeature?
+        var sortedFeatures: [Feature] {
+            return features.sorted(by: compareFeatures)
+        }
+        var pickedFeatures: [Feature] {
+            return sortedFeatures.filter({ $0.isPicked })
+        }
+        
+        init() {}
+
+        func generateReport(
+            _ personalMessageFormat: String,
+            _ personalMessageFirstFormat: String
+        ) -> String {
+            var lines = [String]()
+            var personalLines = [String]()
+            if let selectedPage = selectedPage {
+                if selectedPage.hub == "click" {
+                    lines.append("Picks for #\(selectedPage.displayName)")
+                    lines.append("")
+                    var wasLastItemPicked = true
+                    for feature in sortedFeatures {
+                        var isPicked = feature.isPicked
+                        var indent = ""
+                        var prefix = ""
+                        if feature.photoFeaturedOnPage {
+                            prefix = "[already featured] "
+                            indent = "    "
+                            isPicked = false
+                        } else if feature.tooSoonToFeatureUser {
+                            prefix = "[too soon] "
+                            indent = "    "
+                            isPicked = false
+                        } else if feature.tinEyeResults == .matchFound {
+                            prefix = "[tineye match] "
+                            indent = "    "
+                        } else if feature.aiCheckResults == .ai {
+                            prefix = "[AI] "
+                            indent = "    "
+                        } else if !feature.isPicked {
+                            prefix = "[not picked] "
+                            indent = "    "
+                        }
+                        if !isPicked && wasLastItemPicked {
+                            lines.append("---------------")
+                            lines.append("")
+                        }
+                        wasLastItemPicked = isPicked
+                        lines.append("\(indent)\(prefix)\(feature.postLink)")
+                        lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
+                        lines.append("\(indent)member level - \(feature.userLevel.rawValue)")
+                        if feature.userHasFeaturesOnPage {
+                            lines.append("\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage))")
+                        } else {
+                            lines.append("\(indent)last feature on page - never (features on page 0)")
+                        }
+                        if feature.userHasFeaturesOnHub {
+                            lines.append("\(indent)last feature - \(feature.lastFeaturedOnHub) \(feature.lastFeaturedPage) (features \(feature.featureCountOnHub))")
+                        } else {
+                            lines.append("\(indent)last feature - never (features 0)")
+                        }
+                        let photoFeaturedOnPage = feature.photoFeaturedOnPage ? "YES" : "no"
+                        let photoFeaturedOnHub = feature.photoFeaturedOnHub ? "\(feature.photoLastFeaturedOnHub) \(feature.photoLastFeaturedPage)" : "no"
+                        lines.append("\(indent)feature - \(feature.featureDescription), featured on page - \(photoFeaturedOnPage), featured on hub - \(photoFeaturedOnHub)")
+                        lines.append("\(indent)teammate - \(feature.userIsTeammate ? "yes" : "no")")
+                        switch feature.tagSource {
+                        case .commonPageTag:
+                            lines.append("\(indent)hashtag = #\(selectedPage.hub)_\(selectedPage.pageName ?? selectedPage.name)")
+                            break
+                        case .clickCommunityTag:
+                            lines.append("\(indent)hashtag = #\(selectedPage.hub)_community")
+                            break
+                        case .clickHubTag:
+                            lines.append("\(indent)hashtag = #\(selectedPage.hub)_hub")
+                            break
+                        default:
+                            lines.append("\(indent)hashtag = other")
+                            break
+                        }
+                        lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
+                        lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
+                        lines.append("")
+                        
+                        if isPicked {
+                            let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
+                            let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
+                            let fullPersonalMessage =
+                            personalMessageTemplate
+                                .replacingOccurrences(of: "%%PAGENAME%%", with: selectedPage.displayName)
+                                .replacingOccurrences(of: "%%HUBNAME%%", with: selectedPage.hub)
+                                .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                                .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                                .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+                            personalLines.append(fullPersonalMessage)
+                        }
+                    }
+                } else if selectedPage.hub == "snap" {
+                    lines.append("Picks for #\(selectedPage.displayName)")
+                    lines.append("")
+                    var wasLastItemPicked = true
+                    for feature in sortedFeatures {
+                        var isPicked = feature.isPicked
+                        var indent = ""
+                        var prefix = ""
+                        if feature.photoFeaturedOnPage {
+                            prefix = "[already featured] "
+                            indent = "    "
+                            isPicked = false
+                        } else if feature.tooSoonToFeatureUser {
+                            prefix = "[too soon] "
+                            indent = "    "
+                            isPicked = false
+                        } else if feature.tinEyeResults == .matchFound {
+                            prefix = "[tineye match] "
+                            indent = "    "
+                        } else if feature.aiCheckResults == .ai {
+                            prefix = "[AI] "
+                            indent = "    "
+                        } else if !feature.isPicked {
+                            prefix = "[not picked] "
+                            indent = "    "
+                        }
+                        if !isPicked && wasLastItemPicked {
+                            lines.append("---------------")
+                            lines.append("")
+                        }
+                        wasLastItemPicked = isPicked
+                        lines.append("\(indent)\(prefix)\(feature.postLink)")
+                        lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
+                        lines.append("\(indent)member level - \(feature.userLevel.rawValue)")
+                        if feature.userHasFeaturesOnPage {
+                            lines.append(
+                                "\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage) Snap + \(feature.featureCountOnRawPage) RAW)"
+                            )
+                        } else {
+                            lines.append("\(indent)last feature on page - never (features on page 0 Snap + 0 RAW)")
+                        }
+                        if feature.userHasFeaturesOnHub {
+                            lines.append(
+                                "\(indent)last feature - \(feature.lastFeaturedOnHub) \(feature.lastFeaturedPage) (features \(feature.featureCountOnHub) Snap + \(feature.featureCountOnRawHub) RAW)"
+                            )
+                        } else {
+                            lines.append("\(indent)last feature - never (features 0 Snap + 0 RAW)")
+                        }
+                        let photoFeaturedOnPage = feature.photoFeaturedOnPage ? "YES" : "no"
+                        let photoFeaturedOnHub = feature.photoFeaturedOnHub ? "\(feature.photoLastFeaturedOnHub) \(feature.photoLastFeaturedPage)" : "no"
+                        lines.append("\(indent)feature - \(feature.featureDescription), featured on page - \(photoFeaturedOnPage), featured on hub - \(photoFeaturedOnHub)")
+                        lines.append("\(indent)teammate - \(feature.userIsTeammate ? "yes" : "no")")
+                        switch feature.tagSource {
+                        case .commonPageTag:
+                            lines.append("\(indent)hashtag = #\(selectedPage.hub)_\(selectedPage.pageName ?? selectedPage.name)")
+                            break
+                        case .snapRawPageTag:
+                            lines.append("\(indent)hashtag = #raw_\(selectedPage.pageName ?? selectedPage.name)")
+                            break
+                        case .snapCommunityTag:
+                            lines.append("\(indent)hashtag = #\(selectedPage.hub)_community")
+                            break
+                        case .snapRawCommunityTag:
+                            lines.append("\(indent)hashtag = #raw_community")
+                            break
+                        default:
+                            lines.append("\(indent)hashtag = other")
+                            break
+                        }
+                        lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
+                        lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
+                        lines.append("")
+                        
+                        if isPicked {
+                            let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
+                            let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
+                            let fullPersonalMessage =
+                            personalMessageTemplate
+                                .replacingOccurrences(of: "%%PAGENAME%%", with: selectedPage.displayName)
+                                .replacingOccurrences(of: "%%HUBNAME%%", with: selectedPage.hub)
+                                .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                                .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                                .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+                            personalLines.append(fullPersonalMessage)
+                        }
+                    }
+                } else {
+                    lines.append("Picks for #\(selectedPage.displayName)")
+                    lines.append("")
+                    var wasLastItemPicked = true
+                    for feature in sortedFeatures {
+                        var isPicked = feature.isPicked
+                        var indent = ""
+                        var prefix = ""
+                        if feature.photoFeaturedOnPage {
+                            prefix = "[already featured] "
+                            indent = "    "
+                            isPicked = false
+                        } else if feature.tooSoonToFeatureUser {
+                            prefix = "[too soon] "
+                            indent = "    "
+                            isPicked = false
+                        } else if feature.tinEyeResults == .matchFound {
+                            prefix = "[tineye match] "
+                            indent = "    "
+                            isPicked = false
+                        } else if feature.aiCheckResults == .ai {
+                            prefix = "[AI] "
+                            indent = "    "
+                            isPicked = false
+                        } else if !feature.isPicked {
+                            prefix = "[not picked] "
+                            indent = "    "
+                            isPicked = false
+                        }
+                        if !isPicked && wasLastItemPicked {
+                            lines.append("---------------")
+                            lines.append("")
+                        }
+                        wasLastItemPicked = isPicked
+                        lines.append("\(indent)\(prefix)\(feature.postLink)")
+                        lines.append("\(indent)user - \(feature.userName) @\(feature.userAlias)")
+                        lines.append("\(indent)member level - \(feature.userLevel.rawValue)")
+                        let photoFeaturedOnPage = feature.photoFeaturedOnPage ? "YES" : "no"
+                        lines.append("\(indent)feature - \(feature.featureDescription), featured on page - \(photoFeaturedOnPage)")
+                        lines.append("\(indent)teammate - \(feature.userIsTeammate ? "yes" : "no")")
+                        switch feature.tagSource {
+                        case .commonPageTag:
+                            lines.append("\(indent)hashtag = #\(selectedPage.hub)_\(selectedPage.pageName ?? selectedPage.name)")
+                            break
+                        default:
+                            lines.append("\(indent)hashtag = other")
+                            break
+                        }
+                        lines.append("\(indent)tineye - \(feature.tinEyeResults.rawValue)")
+                        lines.append("\(indent)ai check - \(feature.aiCheckResults.rawValue)")
+                        lines.append("")
+                        
+                        if isPicked {
+                            let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
+                            let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
+                            let fullPersonalMessage =
+                            personalMessageTemplate
+                                .replacingOccurrences(of: "%%PAGENAME%%", with: selectedPage.displayName)
+                                .replacingOccurrences(of: "%%HUBNAME%%", with: "")
+                                .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                                .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                                .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+                            personalLines.append(fullPersonalMessage)
+                        }
+                    }
+                }
+                var text = ""
+                for line in lines { text = text + line + "\n" }
+                text = text + "---------------\n\n"
+                if !personalLines.isEmpty {
+                    for line in personalLines { text = text + line + "\n" }
+                    text = text + "\n---------------\n"
+                }
+                return text
+            }
+            return ""
+        }
+    }
+    
+    static func compareFeatures(_ lhs: Feature, _ rhs: Feature) -> Bool {
+        // Empty names always at the bottom
+        if lhs.userName.isEmpty {
+            return false
+        }
+        if rhs.userName.isEmpty {
+            return true
+        }
+        
+        if lhs.photoFeaturedOnPage && rhs.photoFeaturedOnPage {
+            return lhs.userName < rhs.userName
+        }
+        if lhs.photoFeaturedOnPage {
+            return false
+        }
+        if rhs.photoFeaturedOnPage {
+            return true
+        }
+        
+        let lhsTinEye = lhs.tinEyeResults == .matchFound
+        let rhsTinEye = rhs.tinEyeResults == .matchFound
+        if lhsTinEye && rhsTinEye {
+            return lhs.userName < rhs.userName
+        }
+        if lhsTinEye {
+            return false
+        }
+        if rhsTinEye {
+            return true
+        }
+        
+        let lhAiCheck = lhs.aiCheckResults == .ai
+        let rhAiCheck = rhs.aiCheckResults == .ai
+        if lhAiCheck && rhAiCheck {
+            return lhs.userName < rhs.userName
+        }
+        if lhAiCheck {
+            return false
+        }
+        if rhAiCheck {
+            return true
+        }
+        
+        if lhs.tooSoonToFeatureUser && rhs.tooSoonToFeatureUser {
+            return lhs.userName < rhs.userName
+        }
+        if lhs.tooSoonToFeatureUser {
+            return false
+        }
+        if rhs.tooSoonToFeatureUser {
+            return true
+        }
+        
+        if !lhs.isPicked && !rhs.isPicked {
+            return lhs.userName < rhs.userName
+        }
+        if !lhs.isPicked {
+            return false
+        }
+        if !rhs.isPicked {
+            return true
+        }
+        
+        return lhs.userName < rhs.userName
     }
 }

@@ -31,6 +31,7 @@
 		49D8280D2BB7327200153786 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49D8280C2BB7327200153786 /* Assets.xcassets */; };
 		49D828102BB7327200153786 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49D8280F2BB7327200153786 /* Preview Assets.xcassets */; };
 		49EBB9D52BC0944300D2AE04 /* ValidationLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EBB9D42BC0944300D2AE04 /* ValidationLabel.swift */; };
+		49EC9DC42CF579DC00A50B2D /* MainContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49EC9DC32CF579D200A50B2D /* MainContentView.swift */; };
 		49FA95F82CF195CB0074DE7B /* PostDownloaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FA95F72CF195CB0074DE7B /* PostDownloaderView.swift */; };
 		49FA95FB2CF195E50074DE7B /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 49FA95FA2CF195E50074DE7B /* Kingfisher */; };
 		49FA95FE2CF198A20074DE7B /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 49FA95FD2CF198A20074DE7B /* SwiftSoup */; };
@@ -62,6 +63,7 @@
 		49D8280F2BB7327200153786 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		49D828112BB7327200153786 /* Feature_Logging.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Feature_Logging.entitlements; sourceTree = "<group>"; };
 		49EBB9D42BC0944300D2AE04 /* ValidationLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationLabel.swift; sourceTree = "<group>"; };
+		49EC9DC32CF579D200A50B2D /* MainContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContentView.swift; sourceTree = "<group>"; };
 		49FA95F72CF195CB0074DE7B /* PostDownloaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostDownloaderView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -106,6 +108,7 @@
 				49D8280A2BB7327000153786 /* ContentView.swift */,
 				49D3C0332CF2D32300608566 /* DocumentDirtySheet.swift */,
 				49D3C0312CF2D2E800608566 /* FeatureListRow.swift */,
+				49EC9DC32CF579D200A50B2D /* MainContentView.swift */,
 				495A85892C36E46F00C112C6 /* ScriptContentView.swift */,
 				49FA95F72CF195CB0074DE7B /* PostDownloaderView.swift */,
 				49D3C0352CF2D3E400608566 /* PostDownloaderImageView.swift */,
@@ -241,6 +244,7 @@
 				49D3C0322CF2D2E800608566 /* FeatureListRow.swift in Sources */,
 				4930AB922BB7348F00C72CA9 /* Helpers.swift in Sources */,
 				49D828092BB7327000153786 /* FeatureLoggingApp.swift in Sources */,
+				49EC9DC42CF579DC00A50B2D /* MainContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -314,7 +318,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 41;
+				CURRENT_PROJECT_VERSION = 43;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -467,7 +471,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 41;
+				CURRENT_PROJECT_VERSION = 43;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -500,7 +504,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 41;
+				CURRENT_PROJECT_VERSION = 43;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;

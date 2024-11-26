@@ -16,6 +16,7 @@ struct PostDownloaderImageView: View {
     @State private var data: Data?
     @State private var fileExtension = ".png"
     @State private var scale: Float = 0.000000001
+    
     var imageUrl: URL
     var name: String
     var index: Int

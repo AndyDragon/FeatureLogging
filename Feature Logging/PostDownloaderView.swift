@@ -16,13 +16,12 @@ import SwiftUI
 /// the user's profile is marked as private.
 ///
 struct PostDownloaderView: View {
-    @State private var pageTitle: Binding<String>
-    @State private var pageHashTags: Binding<[String]>
-    @State private var postUrl: Binding<String>
+    @State private var viewModel: ContentView.ViewModel
     @State private var isShowingToast: Binding<Bool>
     private var hideDownloaderView: () -> Void
+    private var updateList: () -> Void
+    private var markDocumentDirty: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
-    private var savePostUserName: (_ userName: String) -> Void
     
     @State private var imageUrls: [(URL, String)] = []
     @State private var tagCheck = ""
@@ -39,80 +38,165 @@ struct PostDownloaderView: View {
     private let languagePrefix = Locale.preferredLanguageCode
     
     init(
-        _ pageTitle: Binding<String>,
-        _ pageHashTags: Binding<[String]>,
-        _ postUrl: Binding<String>,
+        _ viewModel: ContentView.ViewModel,
         _ isShowingToast: Binding<Bool>,
         _ hideDownloaderView: @escaping () -> Void,
-        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void,
-        _ savePostUserName: @escaping (_ userName: String) -> Void
+        _ updateList: @escaping () -> Void,
+        _ markDocumentDirty: @escaping () -> Void,
+        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     ) {
-        self.pageTitle = pageTitle
-        self.pageHashTags = pageHashTags
-        self.postUrl = postUrl
+        self.viewModel = viewModel
         self.isShowingToast = isShowingToast
         self.hideDownloaderView = hideDownloaderView
+        self.updateList = updateList
+        self.markDocumentDirty = markDocumentDirty
         self.showToast = showToast
-        self.savePostUserName = savePostUserName
     }
 
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
 
-            VStack {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading) {
-                        HStack(alignment: .center) {
-                            ValidationLabel("Page: \(pageTitle.wrappedValue)", validation: true, validColor: .green)
-                        }
-                        .frame(height: 20)
-                        HStack(alignment: .center) {
-                            ValidationLabel("Page tags: \(pageHashTags.wrappedValue.joined(separator: ", "))", validation: true, validColor: .green)
-                        }
-                        .frame(height: 20)
-                        HStack(alignment: .center) {
-                            ValidationLabel("Post URL: \(postUrl.wrappedValue)", validation: true, validColor: .green)
-                        }
-                        .frame(height: 20)
-                        Spacer()
-                            .frame(height: 6)
-                        HStack {
-                            Button(action: {
-                                loadFeature()
-                            }) {
-                                HStack(alignment: .center) {
-                                    Image(systemName: "arrow.down.circle.fill")
-                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                    Text("Load post")
-                                }
-                            }
-                        }
-                        Spacer()
-                            .frame(height: 6)
-                        if postLoaded {
+            if viewModel.selectedPage != nil && viewModel.selectedFeature != nil {
+                let selectedPage = Binding<LoadedPage>(
+                    get: { viewModel.selectedPage! },
+                    set: { viewModel.selectedPage = $0 }
+                )
+                
+                let selectedFeature = Binding<SharedFeature>(
+                    get: { viewModel.selectedFeature! },
+                    set: { viewModel.selectedFeature = $0 }
+                )
+                
+                VStack {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading) {
                             HStack(alignment: .center) {
-                                ValidationLabel("User name: \(userName)", validation: !userName.isEmpty, validColor: .green)
-                                HStack(alignment: .center) {
-                                    Button(action: {
-                                        //savePostUserName(userName)
-                                        copyToClipboard(userName)
-                                    }) {
-                                        HStack(alignment: .center) {
-                                            Image(systemName: "pencil.and.list.clipboard" /*"pencil.line"*/)
-                                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                            Text("Copy user name" /* "Save user name" */)
-                                        }
-                                    }
-                                }
+                                ValidationLabel("Page: \(selectedPage.wrappedValue.displayTitle)", validation: true, validColor: .green)
                             }
                             .frame(height: 20)
-                            if userLoaded {
-                                ValidationLabel("User BIO:", validation: !userBio.isEmpty, validColor: .green)
+                            HStack(alignment: .center) {
+                                ValidationLabel("Page tags: \(selectedPage.wrappedValue.hashTags.joined(separator: ", "))", validation: true, validColor: .green)
+                            }
+                            .frame(height: 20)
+                            HStack(alignment: .center) {
+                                ValidationLabel("Post URL: \(selectedFeature.feature.postLink.wrappedValue)", validation: true, validColor: .green)
+                            }
+                            .frame(height: 20)
+                            Spacer()
+                                .frame(height: 6)
+                            if postLoaded {
+                                HStack(alignment: .top) {
+                                    ValidationLabel("User name: \(userName)", validation: !userName.isEmpty, validColor: .green)
+                                    Spacer()
+                                    HStack(alignment: .center) {
+                                        Button(action: {
+                                            selectedFeature.feature.userName.wrappedValue = userName
+                                        }) {
+                                            HStack(alignment: .center) {
+                                                Image(systemName: "pencil.and.list.clipboard" /*"pencil.line"*/)
+                                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                Text("Set user name")
+                                            }
+                                        }
+                                    }
+                                    TextField(
+                                        "enter the user name",
+                                        text: selectedFeature.feature.userName.onChange { value in
+                                            updateList()
+                                            markDocumentDirty()
+                                        }
+                                    )
+                                    .focusable()
+                                    .autocorrectionDisabled(false)
+                                    .textFieldStyle(.plain)
+                                    .padding(4)
+                                    .background(Color.BackgroundColorEditor)
+                                    .border(Color.gray.opacity(0.25))
+                                    .cornerRadius(4)
+                                    .frame(maxWidth: 160)
+                                }
+                                .frame(maxWidth: 640)
+                                .frame(height: 20)
+                                if userLoaded {
+                                    HStack(alignment: .top) {
+                                        ValidationLabel("User BIO:", validation: !userBio.isEmpty, validColor: .green)
+                                        Spacer()
+                                        Picker(
+                                            "",
+                                            selection: selectedFeature.feature.userLevel.onChange { value in
+                                                markDocumentDirty()
+                                            }
+                                        ) {
+                                            ForEach(MembershipCase.casesFor(hub: selectedPage.hub.wrappedValue)) { level in
+                                                Text(level.rawValue)
+                                                    .tag(level)
+                                                    .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                                            }
+                                        }
+                                        .tint(Color.AccentColor)
+                                        .accentColor(Color.AccentColor)
+                                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                                        .focusable()
+                                        .frame(maxWidth: 160)
+                                    }
+                                    .frame(maxWidth: 640)
+                                    if #available(macOS 14.0, *) {
+                                        TextEditor(text: .constant(userBio))
+                                            .scrollIndicators(.never)
+                                            .frame(maxWidth: 640.0, maxHeight: 80.0, alignment: .leading)
+                                            .textEditorStyle(.plain)
+                                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                            .scrollContentBackground(.hidden)
+                                            .padding(4)
+                                            .padding([.bottom], 6)
+                                            .autocorrectionDisabled(false)
+                                            .disableAutocorrection(false)
+                                            .font(.system(size: 18, design: .serif))
+                                    } else {
+                                        TextEditor(text: .constant(userBio))
+                                            .scrollIndicators(.never)
+                                            .frame(maxWidth: 640.0, maxHeight: 80.0, alignment: .leading)
+                                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                            .scrollContentBackground(.hidden)
+                                            .padding(4)
+                                            .padding([.bottom], 6)
+                                            .autocorrectionDisabled(false)
+                                            .disableAutocorrection(false)
+                                            .font(.system(size: 18, design: .serif))
+                                    }
+                                }
+                                HStack(alignment: .center) {
+                                    ValidationLabel(tagCheck, validation: !missingTag, validColor: .green)
+                                }
+                                .frame(height: 20)
+                                HStack(alignment: .center) {
+                                    ValidationLabel("\(imageUrls.count) image\(imageUrls.count == 1 ? "" : "s") found", validation: imageUrls.count > 0, validColor: .green)
+                                }
+                                .frame(height: 20)
+                                HStack(alignment: .top) {
+                                    ValidationLabel("Description:", validation: !description.isEmpty, validColor: .green)
+                                    Spacer()
+                                    TextField(
+                                        "enter the description",
+                                        text: selectedFeature.feature.featureDescription.onChange { value in
+                                            markDocumentDirty()
+                                        }
+                                    )
+                                    .focusable()
+                                    .autocorrectionDisabled(false)
+                                    .textFieldStyle(.plain)
+                                    .padding(4)
+                                    .background(Color.BackgroundColorEditor)
+                                    .border(Color.gray.opacity(0.25))
+                                    .cornerRadius(4)
+                                    .frame(maxWidth: 160)
+                                }
+                                .frame(maxWidth: 640)
                                 if #available(macOS 14.0, *) {
-                                    TextEditor(text: .constant(userBio))
+                                    TextEditor(text: .constant(description))
                                         .scrollIndicators(.never)
-                                        .frame(maxWidth: 640.0, maxHeight: 80.0, alignment: .leading)
+                                        .frame(maxWidth: 640.0, maxHeight: 200.0, alignment: .leading)
                                         .textEditorStyle(.plain)
                                         .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                                         .scrollContentBackground(.hidden)
@@ -120,100 +204,67 @@ struct PostDownloaderView: View {
                                         .padding([.bottom], 6)
                                         .autocorrectionDisabled(false)
                                         .disableAutocorrection(false)
-                                        .font(.system(size: 18, design: .serif))
+                                        .font(.system(size: 14))
                                 } else {
-                                    TextEditor(text: .constant(userBio))
+                                    TextEditor(text: .constant(description))
                                         .scrollIndicators(.never)
-                                        .frame(maxWidth: 640.0, maxHeight: 80.0, alignment: .leading)
+                                        .frame(maxWidth: 640.0, maxHeight: 200.0, alignment: .leading)
                                         .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                                         .scrollContentBackground(.hidden)
                                         .padding(4)
                                         .padding([.bottom], 6)
                                         .autocorrectionDisabled(false)
                                         .disableAutocorrection(false)
-                                        .font(.system(size: 18, design: .serif))
+                                        .font(.system(size: 14))
+                                }
+                                HStack {
+                                    ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
+                                        PostDownloaderImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
+                                            .padding(.all, 0.001)
+                                    }
                                 }
                             }
-                            HStack(alignment: .center) {
-                                ValidationLabel(tagCheck, validation: !missingTag, validColor: .green)
-                            }
-                            .frame(height: 20)
-                            HStack(alignment: .center) {
-                                ValidationLabel("\(imageUrls.count) image\(imageUrls.count == 1 ? "" : "s") found", validation: imageUrls.count > 0, validColor: .green)
-                            }
-                            .frame(height: 20)
-                            ValidationLabel("Description:", validation: !description.isEmpty, validColor: .green)
-                            if #available(macOS 14.0, *) {
-                                TextEditor(text: .constant(description))
-                                    .scrollIndicators(.never)
-                                    .frame(maxWidth: 640.0, maxHeight: 200.0, alignment: .leading)
-                                    .textEditorStyle(.plain)
-                                    .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                    .scrollContentBackground(.hidden)
-                                    .padding(4)
-                                    .padding([.bottom], 6)
-                                    .autocorrectionDisabled(false)
-                                    .disableAutocorrection(false)
-                                    .font(.system(size: 14))
-                            } else {
-                                TextEditor(text: .constant(description))
-                                    .scrollIndicators(.never)
-                                    .frame(maxWidth: 640.0, maxHeight: 200.0, alignment: .leading)
-                                    .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                    .scrollContentBackground(.hidden)
-                                    .padding(4)
-                                    .padding([.bottom], 6)
-                                    .autocorrectionDisabled(false)
-                                    .disableAutocorrection(false)
-                                    .font(.system(size: 14))
-                            }
-                            HStack {
-                                ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
-                                    PostDownloaderImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
-                                        .padding(.all, 0.001)
-                                }
-                            }
-                        }
-                        if loggingComplete {
-                            VStack {
-                                Text("LOGGING:")
-                                    .foregroundStyle(.orange, .black)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                ForEach(Array(logging.enumerated()), id: \.offset) { index, log in
-                                    Text(log.1)
-                                        .foregroundStyle(log.0, .black)
+                            if loggingComplete {
+                                VStack {
+                                    Text("LOGGING:")
+                                        .foregroundStyle(.orange, .black)
                                         .frame(maxWidth: .infinity, alignment: .leading)
+                                    ForEach(Array(logging.enumerated()), id: \.offset) { index, log in
+                                        Text(log.1)
+                                            .foregroundStyle(log.0, .black)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
                                 }
                             }
                         }
+                        .padding()
                     }
-                    .padding()
+                    Spacer()
                 }
-                Spacer()
-            }
-            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-            .padding()
-            .toolbar {
-                Button(action: {
-                    hideDownloaderView()
-                }) {
-                    HStack {
-                        Image(systemName: "xmark")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Close")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
-                            .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                .padding()
+                .toolbar {
+                    Button(action: {
+                        hideDownloaderView()
+                    }) {
+                        HStack {
+                            Image(systemName: "xmark")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Close")
+                                .font(.system(.body, design: .rounded).bold())
+                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
+                                .font(.system(.body, design: .rounded))
+                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                        }
+                        .padding(4)
+                        .buttonStyle(.plain)
                     }
-                    .padding(4)
-                    .buttonStyle(.plain)
+                    .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
+                    .disabled(isShowingToast.wrappedValue)
                 }
-                .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                .disabled(isShowingToast.wrappedValue)
+                .allowsHitTesting(!isShowingToast.wrappedValue)
             }
-            .allowsHitTesting(!isShowingToast.wrappedValue)
         }
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)
@@ -241,7 +292,7 @@ struct PostDownloaderView: View {
         userProfileLink = ""
         userBio = ""
         var likelyPrivate = false
-        if let url = URL(string: postUrl.wrappedValue) {
+        if let url = URL(string: viewModel.selectedFeature!.feature.postLink) {
             do {
                 let contents = try String(contentsOf: url, encoding: .utf8)
                 logging.append((.blue, "Loaded the post from the server"))
@@ -310,8 +361,9 @@ struct PostDownloaderView: View {
                     }
                 }
                 var pageHashTagFound = ""
+                let pageHashTags = viewModel.selectedPage!.hashTags
                 if hashTags.firstIndex(where: { hashTag in
-                    return pageHashTags.wrappedValue.firstIndex(where: { pageHashTag in
+                    return pageHashTags.firstIndex(where: { pageHashTag in
                         if hashTag.lowercased() == pageHashTag.lowercased() {
                             pageHashTagFound = pageHashTag.lowercased()
                             return true

@@ -49,6 +49,7 @@ export interface Links {
         readonly action: string;
         readonly target: string;
         readonly suffix: string;
+        readonly versionKey?: string;
     }[];
 }
 
@@ -72,6 +73,13 @@ export const links: Record<Platform, Links | undefined> = {
                 action: "download",
                 target: "",
                 suffix: "",
+            },
+            {
+                name: "early BETA",
+                action: "download",
+                target: "",
+                suffix: "",
+                versionKey: "beta"
             }
         ]
     },

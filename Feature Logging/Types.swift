@@ -31,33 +31,21 @@ enum FocusedField: Hashable {
 
 enum MembershipCase: String, CaseIterable, Identifiable, Codable {
     case none = "None"
-    case
+    case commonArtist = "Artist"
+    case commonMember = "Member"
+    case commonPlatinumMember = "Platinum Member"
 
-        commonArtist = "Artist"
-    case
-        commonMember = "Member"
-    case
-        commonPlatinumMember = "Platinum Member"
-    case
+    // snap
+    case snapVipMember = "VIP Member"
+    case snapVipGoldMember = "VIP Gold Member"
+    case snapEliteMember = "Elite Member"
+    case snapHallOfFameMember = "Hall of Fame Member"
+    case snapDiamondMember = "Diamond Member"
 
-        // snap
-        snapVipMember = "VIP Member"
-    case
-        snapVipGoldMember = "VIP Gold Member"
-    case
-        snapEliteMember = "Elite Member"
-    case
-        snapHallOfFameMember = "Hall of Fame Member"
-    case
-        snapDiamondMember = "Diamond Member"
-    case
-
-        // click
-        clickBronzeMember = "Bronze Member"
-    case
-        clickSilverMember = "Silver Member"
-    case
-        clickGoldMember = "Gold Member"
+    // click
+    case clickBronzeMember = "Bronze Member"
+    case clickSilverMember = "Silver Member"
+    case clickGoldMember = "Gold Member"
 
     var id: Self { self }
 
@@ -143,22 +131,15 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
 
 enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
     case commonPageTag = "Page tag"
-    case
+    // snap
+    case snapRawPageTag = "RAW page tag"
+    case snapCommunityTag = "Snap community tag"
+    case snapRawCommunityTag = "RAW community tag"
+    case snapMembershipTag = "Snap membership tag"
 
-        // snap
-        snapRawPageTag = "RAW page tag"
-    case
-        snapCommunityTag = "Snap community tag"
-    case
-        snapRawCommunityTag = "RAW community tag"
-    case
-        snapMembershipTag = "Snap membership tag"
-    case
-
-        // click
-        clickCommunityTag = "Click community tag"
-    case
-        clickHubTag = "Click hub tag"
+    // click
+    case clickCommunityTag = "Click community tag"
+    case clickHubTag = "Click hub tag"
 
     var id: Self { self }
 
@@ -209,10 +190,9 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
 
 enum StaffLevelCase: String, CaseIterable, Identifiable, Codable {
     case mod = "Mod"
-    case
-        coadmin = "Co-Admin"
-    case
-        admin = "Admin"
+    case coadmin = "Co-Admin"
+    case admin = "Admin"
+    
     var id: Self { self }
 }
 
@@ -224,28 +204,19 @@ enum PlaceholderSheetCase {
 
 enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
     case none = "None"
-    case
 
-        // snap
-        snapMemberFeature = "Member (feature comment)"
-    case
-        snapMemberOriginalPost = "Member (original post comment)"
-    case
-        snapVipMemberFeature = "VIP Member (feature comment)"
-    case
-        snapVipMemberOriginalPost = "VIP Member (original post comment)"
-    case
+    // snap
+    case snapMemberFeature = "Member (feature comment)"
+    case snapMemberOriginalPost = "Member (original post comment)"
+    case snapVipMemberFeature = "VIP Member (feature comment)"
+    case snapVipMemberOriginalPost = "VIP Member (original post comment)"
 
-        // click
-        clickMember = "Member"
-    case
-        clickBronzeMember = "Bronze Member"
-    case
-        clickSilverMember = "Silver Member"
-    case
-        clickGoldMember = "Gold Member"
-    case
-        clickPlatinumMember = "Platinum Member"
+    // click
+    case clickMember = "Member"
+    case clickBronzeMember = "Bronze Member"
+    case clickSilverMember = "Silver Member"
+    case clickGoldMember = "Gold Member"
+    case clickPlatinumMember = "Platinum Member"
 
     var id: Self { self }
 
@@ -336,81 +307,6 @@ enum AiCheckResults: String, CaseIterable, Identifiable, Codable {
         ai = "ai"
 
     var id: Self { self }
-}
-
-class FeaturesViewModel: ObservableObject {
-    @Published var features = [Feature]()
-    var sortedFeatures: [Feature] {
-        return features.sorted(by: compareFeatures)
-    }
-
-    init() {}
-
-    private func compareFeatures(_ lhs: Feature, _ rhs: Feature) -> Bool {
-        // Empty names always at the bottom
-        if lhs.userName.isEmpty {
-            return false
-        }
-        if rhs.userName.isEmpty {
-            return true
-        }
-
-        if lhs.photoFeaturedOnPage && rhs.photoFeaturedOnPage {
-            return lhs.userName < rhs.userName
-        }
-        if lhs.photoFeaturedOnPage {
-            return false
-        }
-        if rhs.photoFeaturedOnPage {
-            return true
-        }
-
-        let lhsTinEye = lhs.tinEyeResults == .matchFound
-        let rhsTinEye = rhs.tinEyeResults == .matchFound
-        if lhsTinEye && rhsTinEye {
-            return lhs.userName < rhs.userName
-        }
-        if lhsTinEye {
-            return false
-        }
-        if rhsTinEye {
-            return true
-        }
-
-        let lhAiCheck = lhs.aiCheckResults == .ai
-        let rhAiCheck = rhs.aiCheckResults == .ai
-        if lhAiCheck && rhAiCheck {
-            return lhs.userName < rhs.userName
-        }
-        if lhAiCheck {
-            return false
-        }
-        if rhAiCheck {
-            return true
-        }
-
-        if lhs.tooSoonToFeatureUser && rhs.tooSoonToFeatureUser {
-            return lhs.userName < rhs.userName
-        }
-        if lhs.tooSoonToFeatureUser {
-            return false
-        }
-        if rhs.tooSoonToFeatureUser {
-            return true
-        }
-
-        if !lhs.isPicked && !rhs.isPicked {
-            return lhs.userName < rhs.userName
-        }
-        if !lhs.isPicked {
-            return false
-        }
-        if !rhs.isPicked {
-            return true
-        }
-
-        return lhs.userName < rhs.userName
-    }
 }
 
 struct LogFeature: Codable {
@@ -722,27 +618,19 @@ class Feature: Identifiable, Hashable, ObservableObject {
     }
 }
 
-struct CodableFeature: Codable {
-    var page: String
-    var pageStaffLevel: StaffLevelCase
-    var userName: String
-    var userAlias: String
-    var userLevel: MembershipCase
-    var tagSource: TagSourceCase
-    var firstFeature: Bool
-    var newLevel: NewMembershipCase
-    var description: String
-
-    init(using page: LoadedPage, pageStaffLevel: StaffLevelCase, from feature: Feature) {
-        self.page = page.id
-        self.pageStaffLevel = pageStaffLevel
-        self.userName = feature.userName
-        self.userAlias = feature.userAlias
+@Observable
+class SharedFeature: Identifiable, Hashable/*, ObservableObject*/ {
+    var id = UUID()
+    /*@Published*/ var feature: Feature
+    /*@Published*/ var userLevel: MembershipCase
+    /*@Published*/ var firstFeature: Bool
+    /*@Published*/ var newLevel: NewMembershipCase
+    
+    init(using page: LoadedPage, from feature: Feature) {
+        self.feature = feature
         self.userLevel = feature.userLevel
-        self.tagSource = feature.tagSource
         self.firstFeature = !feature.userHasFeaturesOnPage
         self.newLevel = NewMembershipCase.none
-        self.description = feature.featureDescription
         if page.hub == "click" {
             let totalFeatures = calculateFeatureCount(feature.featureCountOnHub)
             if totalFeatures + 1 == 5 {
@@ -772,64 +660,20 @@ struct CodableFeature: Codable {
             }
         }
     }
+    
+    static func == (lhs: SharedFeature, rhs: SharedFeature) -> Bool {
+        return lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 
     func calculateFeatureCount(_ count: String) -> Int {
         if count == "many" {
             return 99999
         }
         return Int(count) ?? 0
-    }
-
-    enum CodingKeys: CodingKey {
-        case page
-        case pageStaffLevel
-        case userName
-        case userAlias
-        case userLevel
-        case tagSource
-        case firstFeature
-        case newLevel
-        case description
-    }
-
-    init(json: Data) throws {
-        let decoder = JSONDecoder()
-        let feature = try decoder.decode(CodableFeature.self, from: json)
-        self.page = feature.page
-        self.pageStaffLevel = feature.pageStaffLevel
-        self.userName = feature.userName
-        self.userAlias = feature.userAlias
-        self.userLevel = feature.userLevel
-        self.tagSource = feature.tagSource
-        self.firstFeature = feature.firstFeature
-        self.newLevel = feature.newLevel
-        self.description = feature.description
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.page = try container.decode(String.self, forKey: .page)
-        self.pageStaffLevel = try container.decodeIfPresent(StaffLevelCase.self, forKey: .pageStaffLevel) ?? StaffLevelCase.mod
-        self.userName = try container.decode(String.self, forKey: .userName)
-        self.userAlias = try container.decode(String.self, forKey: .userAlias)
-        self.userLevel = try container.decode(MembershipCase.self, forKey: .userLevel)
-        self.tagSource = try container.decode(TagSourceCase.self, forKey: .tagSource)
-        self.firstFeature = try container.decode(Bool.self, forKey: .firstFeature)
-        self.newLevel = try container.decode(NewMembershipCase.self, forKey: .newLevel)
-        self.description = try container.decode(String.self, forKey: .description)
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(page, forKey: .page)
-        try container.encode(pageStaffLevel, forKey: .pageStaffLevel)
-        try container.encode(userName, forKey: .userName)
-        try container.encode(userAlias, forKey: .userAlias)
-        try container.encode(userLevel, forKey: .userLevel)
-        try container.encode(tagSource, forKey: .tagSource)
-        try container.encode(firstFeature, forKey: .firstFeature)
-        try container.encode(newLevel, forKey: .newLevel)
-        try container.encode(description, forKey: .description)
     }
 }
 
@@ -843,29 +687,73 @@ struct Page: Codable {
     let pageName: String?
     let title: String?
     let hashTag: String?
+    
+    private init() {
+        name = ""
+        pageName = nil
+        title = nil
+        hashTag = nil
+    }
+    
+    static let dummy = Page()
 }
 
-struct LoadedPage: Codable, Identifiable {
+@Observable
+class LoadedPage: Identifiable, Hashable {
     var id: String {
         if self.hub.isEmpty {
             return self.name
         }
         return "\(self.hub):\(self.name)"
     }
-    let hub: String
-    let name: String
-    let pageName: String?
-    let title: String?
-    let hashTag: String?
+    var hub: String
+    var name: String
+    var pageName: String?
+    var title: String?
+    var hashTag: String?
     var displayName: String {
         if hub == "other" {
             return name
         }
         return "\(hub)_\(name)"
     }
+    var displayTitle: String {
+        return title ?? "\(hub) \(name)"
+    }
+    var hashTags: [String] {
+        if hub == "snap" {
+            return [hashTag ?? "#snap_\(name)", "#raw_\(name)"]
+        } else if hub == "click" {
+            return [hashTag ?? "#click_\(name)"]
+        } else {
+            return [hashTag ?? name]
+        }
+    }
 
-    static func from(hub: String, page: Page) -> LoadedPage {
-        return LoadedPage(hub: hub, name: page.name, pageName: page.pageName, title: page.title, hashTag: page.hashTag)
+    init(hub: String, page: Page) {
+        self.hub = hub
+        self.name = page.name
+        self.pageName = page.pageName
+        self.title = page.title
+        self.hashTag = page.hashTag
+    }
+    
+    private init() {
+        hub = ""
+        name = ""
+        pageName = nil
+        title = nil
+        hashTag = nil
+    }
+    
+    static let dummy = LoadedPage()
+    
+    static func == (lhs: LoadedPage, rhs: LoadedPage) -> Bool {
+        return lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 

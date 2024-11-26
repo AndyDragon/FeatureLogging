@@ -55,6 +55,7 @@ export default function General(props: GeneralProps) {
             </div>
         );
     }
+    const betaVersion = version?.[platform]?.beta;
 
     let index = 0;
 
@@ -62,7 +63,11 @@ export default function General(props: GeneralProps) {
         <div style={{ margin: "10px" }}>
             <Subtitle1>{applicationName} v{currentVersion} for {platformString[platform]} is available for installation now.</Subtitle1><br /><br />
             {links[platform]?.actions.map(flavor => {
-                const location = "https://vero.andydragon.com/app/" + links[platform]?.location(currentVersion, flavor.suffix);
+                const flavorVersion = (version?.[platform] as (Record<string, string> | undefined))?.[flavor.versionKey || "current"];
+                if (!flavorVersion) {
+                    return undefined;
+                }
+                const location = "https://vero.andydragon.com/app/" + links[platform]?.location(flavorVersion, flavor.suffix);
                 return (
                     <>
                         <Subtitle2 key={"link-" + (index++)} style={{ marginLeft: "40px" }}>You can {flavor.action} the <Link target={flavor.target} href={location}>{flavor.name} version here</Link></Subtitle2>

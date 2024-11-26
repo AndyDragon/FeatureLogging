@@ -10,23 +10,12 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct FeatureListRow: View {
-    @ObservedObject var feature: Feature
-    @State var sharedFeature: Binding<CodableFeature?>
-    @State var loadedPage: LoadedPage
-    @State var pageStaffLevel: StaffLevelCase
-    var markDocumentDirty: () -> Void
-    var ensureSelected: () -> Void
-    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
-    var showScriptView: () -> Void
+    @State private var viewModel: ContentView.ViewModel
+    @State private var feature: Feature
+    private var markDocumentDirty: () -> Void
+    private var showScriptView: () -> Void
+    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
-    @State var userName = ""
-    @State var userAlias = ""
-    @State var featureDescription = ""
-    @State var photoFeaturedOnHub = false
-    @State var userIsTeammate = false
-    @State var userHasFeaturesOnPage = false
-    @State var userHasFeaturesOnHub = false
-    @State var postLink = ""
     @State var showingMessageEditor = false
 
     @AppStorage(
@@ -37,6 +26,20 @@ struct FeatureListRow: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+
+    init(
+        _ viewModel: ContentView.ViewModel,
+        _ feature: Feature,
+        _ markDocumentDirty: @escaping () -> Void,
+        _ showScriptView: @escaping () -> Void,
+        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
+    ) {
+        self.viewModel = viewModel
+        self.feature = feature
+        self.markDocumentDirty = markDocumentDirty
+        self.showScriptView = showScriptView
+        self.showToast = showToast
+    }
 
     var body: some View {
         HStack(alignment: .center) {
@@ -82,8 +85,8 @@ struct FeatureListRow: View {
                 HStack {
                     Text("Feature: ")
 
-                    if !userName.isEmpty {
-                        Text(userName)
+                    if !feature.userName.isEmpty {
+                        Text(feature.userName)
                     } else {
                         Text("user name")
                             .foregroundStyle(.gray, .secondary)
@@ -92,8 +95,8 @@ struct FeatureListRow: View {
 
                     Text(" | ")
 
-                    if !userAlias.isEmpty {
-                        Text("@\(userAlias)")
+                    if !feature.userAlias.isEmpty {
+                        Text("@\(feature.userAlias)")
                     } else {
                         Text("user alias")
                             .foregroundStyle(.gray, .secondary)
@@ -102,8 +105,8 @@ struct FeatureListRow: View {
 
                     Text(" | ")
 
-                    if !featureDescription.isEmpty {
-                        Text(featureDescription)
+                    if !feature.featureDescription.isEmpty {
+                        Text(feature.featureDescription)
                     } else {
                         Text("description")
                             .foregroundStyle(.gray, .secondary)
@@ -113,37 +116,37 @@ struct FeatureListRow: View {
                     Text(" | ")
 
                     Image(systemName: "tag.square")
-                        .foregroundStyle(photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary, photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary)
+                        .foregroundStyle(feature.photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary, feature.photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary)
                         .font(.system(size: 14))
                         .frame(width: 16, height: 16)
-                        .help(photoFeaturedOnHub ? "Photo featured on hub" : "Photo not featured on hub")
+                        .help(feature.photoFeaturedOnHub ? "Photo featured on hub" : "Photo not featured on hub")
                     Spacer()
                         .frame(width: 6)
                     Image(systemName: "tag")
-                        .foregroundStyle(userHasFeaturesOnPage ? Color.AccentColor : Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(feature.userHasFeaturesOnPage ? Color.AccentColor : Color.TextColorSecondary, Color.TextColorSecondary)
                         .font(.system(size: 14))
                         .frame(width: 16, height: 16)
-                        .help(userHasFeaturesOnPage ? "User has features on page" : "First feature on page")
+                        .help(feature.userHasFeaturesOnPage ? "User has features on page" : "First feature on page")
                     Spacer()
                         .frame(width: 6)
                     Image(systemName: "tag.fill")
-                        .foregroundStyle(userHasFeaturesOnHub ? Color.AccentColor : Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(feature.userHasFeaturesOnHub ? Color.AccentColor : Color.TextColorSecondary, Color.TextColorSecondary)
                         .font(.system(size: 14))
                         .frame(width: 16, height: 16)
-                        .help(userHasFeaturesOnHub ? "User has features on hub" : "First feature on hub")
+                        .help(feature.userHasFeaturesOnHub ? "User has features on hub" : "First feature on hub")
                     Spacer()
                         .frame(width: 6)
                     Image(systemName: "person.badge.key.fill")
-                        .foregroundStyle(Color.TextColorSecondary, userIsTeammate ? Color.AccentColor : Color.TextColorSecondary)
+                        .foregroundStyle(Color.TextColorSecondary, feature.userIsTeammate ? Color.AccentColor : Color.TextColorSecondary)
                         .font(.system(size: 14))
                         .frame(width: 16, height: 16)
-                        .help(userIsTeammate ? "User is teammate" : "User is not a teammate")
+                        .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
 
                     Spacer()
 
                     if feature.isPickedAndAllowed {
                         Button(action: {
-                            ensureSelected()
+                            viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
                             launchVeroScripts()
                         }) {
                             HStack(alignment: .center) {
@@ -157,7 +160,7 @@ struct FeatureListRow: View {
                             .frame(width: 8)
 
                         Button(action: {
-                            ensureSelected()
+                            viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
                             showingMessageEditor.toggle()
                         }) {
                             HStack(alignment: .center) {
@@ -170,7 +173,7 @@ struct FeatureListRow: View {
                     }
                 }
                 HStack {
-                    Text(postLink)
+                    Text(feature.postLink)
                         .font(.footnote)
 
                     Spacer()
@@ -216,8 +219,8 @@ struct FeatureListRow: View {
                                     let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
                                     let fullPersonalMessage =
                                         personalMessageTemplate
-                                        .replacingOccurrences(of: "%%PAGENAME%%", with: loadedPage.displayName)
-                                        .replacingOccurrences(of: "%%HUBNAME%%", with: loadedPage.hub == "other" ? "" : loadedPage.hub)
+                                        .replacingOccurrences(of: "%%PAGENAME%%", with: viewModel.selectedPage!.displayName)
+                                        .replacingOccurrences(of: "%%HUBNAME%%", with: viewModel.selectedPage!.hub == "other" ? "" : viewModel.selectedPage!.hub)
                                         .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
                                         .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
                                         .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
@@ -249,40 +252,6 @@ struct FeatureListRow: View {
                     .frame(width: 800, height: 160)
                 })
         }
-        .onChange(of: feature, initial: true) {
-            userName = feature.userName
-            userAlias = feature.userAlias
-            featureDescription = feature.featureDescription
-            userIsTeammate = feature.userIsTeammate
-            photoFeaturedOnHub = feature.photoFeaturedOnHub
-            userHasFeaturesOnPage = feature.userHasFeaturesOnPage
-            userHasFeaturesOnHub = feature.userHasFeaturesOnHub
-            postLink = feature.postLink
-        }
-        .onChange(of: feature.userName) {
-            userName = feature.userName
-        }
-        .onChange(of: feature.userAlias) {
-            userAlias = feature.userAlias
-        }
-        .onChange(of: feature.featureDescription) {
-            featureDescription = feature.featureDescription
-        }
-        .onChange(of: feature.userIsTeammate) {
-            userIsTeammate = feature.userIsTeammate
-        }
-        .onChange(of: feature.photoFeaturedOnHub) {
-            photoFeaturedOnHub = feature.photoFeaturedOnHub
-        }
-        .onChange(of: feature.userHasFeaturesOnPage) {
-            userHasFeaturesOnPage = feature.userHasFeaturesOnPage
-        }
-        .onChange(of: feature.userHasFeaturesOnHub) {
-            userHasFeaturesOnHub = feature.userHasFeaturesOnHub
-        }
-        .onChange(of: feature.postLink) {
-            postLink = feature.postLink
-        }
     }
 
     private func launchVeroScripts() {
@@ -311,7 +280,7 @@ struct FeatureListRow: View {
         }
 
         // Store the feature in the shared storage
-        sharedFeature.wrappedValue = CodableFeature(using: loadedPage, pageStaffLevel: pageStaffLevel, from: feature)
+        viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
 
         // Launch the ScriptContentView
         showScriptView()
