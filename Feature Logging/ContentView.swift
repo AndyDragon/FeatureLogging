@@ -170,7 +170,7 @@ struct ContentView: View {
                             loadLog(from: file)
                             isDirty = false
                         case .failure(let error):
-                            print(error)
+                            debugPrint(error.localizedDescription)
                         }
                     }
                     .fileDialogConfirmationLabel("Open log")
@@ -192,7 +192,7 @@ struct ContentView: View {
                             documentDirtyAfterSaveAction = {}
                             documentDirtyAfterDismissAction = {}
                         case .failure(let error):
-                            debugPrint(error)
+                            debugPrint(error.localizedDescription)
                         }
                     }
                     .fileExporterFilenameLabel("Save log as: ") // filename label
@@ -630,7 +630,6 @@ struct ContentView: View {
                     }
                     if let page = viewModel.selectedPage {
                         if viewModel.sortedFeatures[nextIndex].isPickedAndAllowed {
-                            print("Selecting next feature: \(viewModel.sortedFeatures[nextIndex].postLink)")
                             viewModel.selectedFeature = SharedFeature(using: page, from: viewModel.sortedFeatures[nextIndex])
                             
                             // Ensure the ScriptContentView is visible

@@ -91,7 +91,7 @@ struct StatisticsContentView: View {
                                             debugPrint(error.localizedDescription)
                                         }
                                     }
-                                    print("Loaded \(logs.count) logs")
+                                    //print("Loaded \(logs.count) logs")
                                     var pageSet = Set(logs.map { $0.log.page })
                                     pageSet.formUnion(Set(logs.map { log in log.log.page.components(separatedBy: [":"]).first ?? "" }.filter { hub in hub != "" }))
                                     pages = Array(pageSet).sorted()

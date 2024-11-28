@@ -11,18 +11,24 @@ import SwiftUI
 // MARK: - PostData
 struct PostData: Codable {
     let loaderData: LoaderData?
-//    let actionData: JSONNull?
-//    let errors: JSONNull?
+    
+    func print() {
+        Swift.print("loaderData")
+        loaderData?.print(1)
+    }
 }
 
 // MARK: - LoaderData
 struct LoaderData: Codable {
-    let index0: LoaderEntry?
-//    let root: JSONNull?
-
+    let entry0: LoaderEntry?
+    
     enum CodingKeys: String, CodingKey {
-        case index0 = "0-1"
-//        case root
+        case entry0 = "0-1"
+    }
+    
+    fileprivate func print(_ indent: Int) {
+        Swift.print("\("   " * indent)entry[0]")
+        entry0?.print(indent + 1);
     }
 }
 
@@ -30,193 +36,213 @@ struct LoaderData: Codable {
 struct LoaderEntry: Codable {
     let profile: LoaderEntryProfile?
     let post: LoaderEntryPost?
+    
+    fileprivate func print(_ indent: Int) {
+        Swift.print("\("   " * indent)profile")
+        profile?.print(indent + 1);
+        Swift.print("\("   " * indent)post")
+        post?.print(indent + 1);
+    }
 }
 
 // MARK: - LoaderEntryProfile
 struct LoaderEntryProfile: Codable {
     let profile: Profile?
-//    let embeddedMode: Bool?
-//    let posts: [PostElement]?
-}
-
-// MARK: - PostElement
-//struct PostElement: Codable {
-//    let id: String?
-//    let time: Int?
-//    let action: String?
-//    let object: String?
-//    let author: Author?
-//    let title: String?
-//    let caption: [PurpleCaption]?
-//    let nsfwPost: Bool?
-//    let loop: String?
-//    let url: String?
-//    let images: [PostImage]?
-//    let likes: Int?
-//    let comments: Int?
-//    let views: Int?
-//    let timestamp: String?
-//    let language: String?
-//    
-//    enum CodingKeys: String, CodingKey {
-//        case id, time, action, object, author, title, caption
-//        case nsfwPost = "nsfw_post"
-//        case loop, url, images, likes, comments, views, timestamp, language
-//    }
-//}
-
-// MARK: - PurpleCaption
-//struct PurpleCaption: Codable {
-//    let type: String?
-//    let value: String?
-//    let label: String?
-//    let id: String?
-//    let url: String?
-//}
-
-// MARK: - Profile
-struct Profile: Codable {
-//    let browsable: Bool?
-//    let id: String?
-    let firstname: String?
-    let lastname: String?
-    let picture: Picture?
-//    let connectable: Bool?
-    let username: String?
-    let bio: String?
-//    let bioLang: String?
-    let url: String?
-//    let followable: Bool?
-//    let followers: Int?
-//    let leads: Int?
-//    let connectionsCount: Int?
-//    let shorturl: String?
     
-    enum CodingKeys: String, CodingKey {
-//        case browsable
-//        case id
-        case firstname
-        case lastname
-        case picture
-//        case connectable
-        case username
-        case bio
-//        case bioLang = "bio_lang"
-        case url
-//        case followable
-//        case followers
-//        case leads
-//        case connectionsCount = "connections_count"
-//        case shorturl
+    fileprivate func print(_ indent: Int) {
+        Swift.print("\("   " * indent)profile")
+        profile?.print(indent + 1);
     }
 }
 
+// MARK: - Profile
+struct Profile: Codable {
+    let id: String?
+    let name: String?
+    let picture: Picture?
+    let username: String?
+    let bio: String?
+    let url: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name = "firstname"
+        case picture
+        case username
+        case bio
+        case url
+    }
+    
+    fileprivate func print(_ indent: Int) {
+        Swift.print("\("   " * indent)id = \(id ?? "nil")")
+        Swift.print("\("   " * indent)name = \(name ?? "nil")")
+        Swift.print("\("   " * indent)picture")
+        picture?.print(indent + 1);
+        Swift.print("\("   " * indent)username = \(username ?? "nil")")
+        Swift.print("\("   " * indent)bio = \(bio ?? "nil")")
+        Swift.print("\("   " * indent)url = \(url ?? "nil")")
+    }
+}
 
 // MARK: - LoaderEntryPost
 struct LoaderEntryPost: Codable {
     let post: Post?
     let comments: [Comment]?
-//    let embeddedMode: Bool?
+    fileprivate func print(_ indent: Int) {
+        Swift.print("\("   " * indent)post")
+        post?.print(indent + 1);
+        for (index, comment) in (comments ?? []).enumerated() {
+            Swift.print("\("   " * indent)comment[\(index)]")
+            comment.print(indent + 1)
+        }
+    }
 }
 
 // MARK: - Comment
 struct Comment: Codable {
-//    let id: String?
+    let id: String?
     let text: String?
     let timestamp: String?
     let author: Author?
-//    let content: [Content]?
-//    let repliedByAuthor: Bool?
+    let content: [Segment]?
 
     enum CodingKeys: String, CodingKey {
-//        case id
+        case id
         case text
         case timestamp
         case author
-//        case content
-//        case repliedByAuthor = "replied_by_author"
+        case content
+    }
+    
+    fileprivate func print(_ indent: Int) {
+        Swift.print("\("   " * indent)id = \(id ?? "nil")")
+        Swift.print("\("   " * indent)text = \(text ?? "nil")")
+        Swift.print("\("   " * indent)timestamp = \(timestamp ?? "nil")")
+        Swift.print("\("   " * indent)author")
+        author?.print(indent + 1)
+        for (index, segment) in (content ?? []).enumerated() {
+            Swift.print("\("   " * indent)content[\(index)]")
+            segment.print(indent + 1)
+        }
+    }
+}
+
+// MARK: - Picture
+struct Picture: Codable {
+    let url: String?
+
+    fileprivate func print(_ indent: Int) {
+        Swift.print("\("   " * indent)url = \(url ?? "nil")")
+    }
+}
+
+// MARK: - Post
+struct Post: Codable {
+    let id: String?
+    let author: Author?
+    let title: String?
+    let caption: [Segment]?
+    let url: String?
+    let images: [PostImage]?
+    let likes: Int?
+    let comments: Int?
+    let timestamp: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case author
+        case title
+        case caption
+        case url
+        case images
+        case likes
+        case comments
+        case timestamp
+    }
+    
+    fileprivate func print(_ indent: Int) {
+        Swift.print("\("   " * indent)id = \(id ?? "nil")")
+        Swift.print("\("   " * indent)author")
+        author?.print(indent + 1);
+        Swift.print("\("   " * indent)title = \(title ?? "nil")")
+        for (index, segment) in (caption ?? []).enumerated() {
+            Swift.print("\("   " * indent)caption[\(index)]")
+            segment.print(indent + 1)
+        }
+        Swift.print("\("   " * indent)url = \(url ?? "nil")")
+        for (index, image) in (images ?? []).enumerated() {
+            Swift.print("\("   " * indent)image[\(index)]")
+            image.print(indent + 1)
+        }
+        Swift.print("\("   " * indent)likes = \(likes ?? 0)")
+        Swift.print("\("   " * indent)comments = \(comments ?? 0)")
+        Swift.print("\("   " * indent)timestamp = \(timestamp ?? "nil")")
     }
 }
 
 // MARK: - Author
 struct Author: Codable {
-//    let id: String?
-    let firstname: String?
-    let lastname: String?
-    let username: String?
+    let id: String?
+    let name: String?
     let picture: Picture?
-//    let connectable: Bool?
-//    let verified: Bool?
-//    let followable: Bool?
-//    let following: Bool?
-//    let follower: Bool?
+    let username: String?
     let url: String?
-}
-
-// MARK: - Picture
-struct Picture: Codable {
-//    let thumbnail: String?
-    let url: String?
-}
-
-// MARK: - Content
-//struct Content: Codable {
-//    let type: String?
-//    let value: String?
-//    let label: String?
-//    let id: String?
-//    let url: String?
-//}
-
-// MARK: - Post
-struct Post: Codable {
-//    let id: String?
-//    let time: Int?
-//    let action: String?
-//    let object: String?
-    let author: Author?
-//    let title: String?
-    let caption: [Caption]?
-//    let nsfwPost: Bool?
-//    let loop: String?
-    let url: String?
-    let images: [PostImage]?
-    let likes: Int?
-    let comments: Int?
-//    let views: Int?
-//    let timestamp: String?
-
+    
     enum CodingKeys: String, CodingKey {
-//        case id
-//        case time
-//        case action
-//        case object
-        case author
-//        case title
-        case caption
-//        case nsfwPost = "nsfw_post"
-//        case loop
+        case id
+        case name = "firstname"
+        case username
+        case picture
         case url
-        case images
-        case likes
-        case comments
-//        case views
-//        case timestamp
+    }
+    
+    fileprivate func print(_ indent: Int) {
+        Swift.print("\("   " * indent)id = \(id ?? "nil")")
+        Swift.print("\("   " * indent)name = \(name ?? "nil")")
+        Swift.print("\("   " * indent)picture")
+        picture?.print(indent + 1);
+        Swift.print("\("   " * indent)username = \(username ?? "nil")")
+        Swift.print("\("   " * indent)url = \(url ?? "nil")")
     }
 }
 
-// MARK: - Caption
-struct Caption: Codable {
-    let type: String? // text or tag
+// MARK: - Segment
+struct Segment: Codable {
+    let type: String? // [text, tag, person, url]
     let value: String?
+    let label: String?
+    let id: String?
+    let url: String?
+
+    fileprivate func print(_ indent: Int) {
+        Swift.print("\("   " * indent)type = \(type ?? "nil")")
+        if type == "text" {
+            Swift.print("\("   " * indent)value = \(value ?? "nil")")
+        } else if type == "tag" {
+            Swift.print("\("   " * indent)value = \(value ?? "nil")")
+        } else if type == "person" {
+            Swift.print("\("   " * indent)label = \(label ?? "nil")")
+            Swift.print("\("   " * indent)id = \(id ?? "nil")")
+            Swift.print("\("   " * indent)url = \(url ?? "nil")")
+        } else if type == "url" {
+            Swift.print("\("   " * indent)value = \(value ?? "nil")")
+            Swift.print("\("   " * indent)label = \(label ?? "nil")")
+        } else {
+            Swift.print("\("   " * indent)value = \(value ?? "nil")")
+            Swift.print("\("   " * indent)label = \(label ?? "nil")")
+            Swift.print("\("   " * indent)id = \(id ?? "nil")")
+            Swift.print("\("   " * indent)url = \(url ?? "nil")")
+        }
+    }
 }
 
 // MARK: - PostImage
 struct PostImage: Codable {
     let url: String?
-//    let width: Int?
-//    let height: Int?
-//    let thumbnail: String?
+    
+    fileprivate func print(_ indent: Int) {
+        Swift.print("\("   " * indent)url = \(url ?? "nil")")
+    }
 }
 
 // MARK: - Encode/decode helpers

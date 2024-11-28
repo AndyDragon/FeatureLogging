@@ -31,7 +31,7 @@ struct PostDownloaderImageView: View {
                     KFImage(imageUrl)
                         .onSuccess { result in
                             let pixelSize = (result.image.pixelSize ?? result.image.size)
-                            print("result.image: \(pixelSize.width) x \(pixelSize.height)")
+                            //print("result.image: \(pixelSize.width) x \(pixelSize.height)")
                             if let cgImage = result.image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
                                 let imageRepresentation = NSBitmapImageRep(cgImage: cgImage)
                                 imageRepresentation.size = result.image.size

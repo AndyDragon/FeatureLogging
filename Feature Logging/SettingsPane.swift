@@ -183,7 +183,7 @@ struct SettingsPane: View {
                                             cullingAppName = (appBundle["name"] ?? "") ?? ""
                                         }
                                     case .failure(let error):
-                                        print(error)
+                                        debugPrint(error.localizedDescription)
                                     }
                                 }
                             }
@@ -229,7 +229,7 @@ struct SettingsPane: View {
                                             aiCheckAppName = (appBundle["name"] ?? "") ?? ""
                                         }
                                     case .failure(let error):
-                                        print(error)
+                                        debugPrint(error.localizedDescription)
                                     }
                                 }
                             }

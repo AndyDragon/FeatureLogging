@@ -52,7 +52,7 @@ func matches(of regex: String, in text: String) -> [String] {
             String(text[Range($0.range, in: text)!])
         }
     } catch let error {
-        print("invalid regex: \(error.localizedDescription)")
+        debugPrint("invalid regex: \(error.localizedDescription)")
         return []
     }
 }
@@ -139,6 +139,10 @@ extension String {
         dateParserFormatter.dateFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'SSS'Z'"
         dateParserFormatter.timeZone = .gmt
         return dateParserFormatter.date(from: self)
+    }
+    
+    static func * (str: String, repeatTimes: Int) -> String {
+        return String(repeating: str, count: repeatTimes)
     }
 }
 

@@ -304,7 +304,6 @@ struct MainContentView: View {
                             })
                             .onTapGesture {
                                 withAnimation {
-                                    print("Selecting feature: \(feature.postLink)")
                                     viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
                                 }
                             }
@@ -323,7 +322,6 @@ struct MainContentView: View {
                     )
                     .onTapGesture {
                         withAnimation {
-                            print("Clearing selected feature")
                             viewModel.selectedFeature = nil
                         }
                     }

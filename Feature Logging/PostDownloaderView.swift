@@ -622,29 +622,29 @@ struct PostDownloaderView: View {
                 logging.append((.blue, "Loaded the post from the server"))
                 let document = try SwiftSoup.parse(contents)
                 if let user = try! getMetaTagContent(document, "name", "username") {
-                    print("User: \(user)")
+                    //print("User: \(user)")
                     logging.append((.blue, "User: \(user)"))
                 }
                 userName = ""
                 if let title = try! getMetaTagContent(document, "property", "og:title") {
                     if title.hasSuffix(" shared a photo on VERO™") {
                         userName = title.replacingOccurrences(of: " shared a photo on VERO™", with: "")
-                        print("User's name: \(userName)")
+                        //print("User's name: \(userName)")
                         logging.append((.blue, "User's name: \(userName)"))
                     } else if title.hasSuffix(" shared photos on VERO™") {
                         userName = title.replacingOccurrences(of: " shared photos on VERO™", with: "")
-                        print("User's name: \(userName)")
+                        //print("User's name: \(userName)")
                         logging.append((.blue, "User's name: \(userName)"))
                     } else if title.hasSuffix(" on VERO™") {
                         userName = title.replacingOccurrences(of: " on VERO™", with: "")
-                        print("User's name: \(userName)")
+                        //print("User's name: \(userName)")
                         logging.append((.blue, "User's name: \(userName)"))
                         likelyPrivate = true
                     }
                 }
                 if let userProfileUrl = try! getMetaTagContent(document, "property", "og:url") {
                     let urlParts = userProfileUrl.split(separator: "/", omittingEmptySubsequences: true)
-                    print("User profile parts \(urlParts)")
+                    //print("User profile parts \(urlParts)")
                     if urlParts.count == 2 {
                         userProfileLink = "https://vero.co/\(urlParts[0])"
                     }
@@ -717,7 +717,7 @@ struct PostDownloaderView: View {
                         } else if imageSrc.hasSuffix("_thumb.png") {
                             imageSrc = imageSrc.replacingOccurrences(of: "_thumb.png", with: "")
                         }
-                        print("Image source: \(imageSrc)")
+                        //print("Image source: \(imageSrc)")
                         logging.append((.blue, "Image source: \(imageSrc)"))
                         return (URL(string: imageSrc)!, userName)
                     })
@@ -727,6 +727,7 @@ struct PostDownloaderView: View {
                     do {
                         let scriptText = try item.html().trimmingCharacters(in: .whitespaces)
                         if !scriptText.isEmpty {
+                            // Debugging
                             //print(scriptText)
                             let scriptLines = scriptText.split(whereSeparator: \.isNewline)
                             if scriptLines.first!.hasPrefix("window.__staticRouterHydrationData = JSON.parse(") {
@@ -736,10 +737,13 @@ struct PostDownloaderView: View {
                                 let jsonString = String(scriptText[start..<end])
                                     .replacingOccurrences(of: "\\\"", with: "\"")
                                     .replacingOccurrences(of: "\\\"", with: "\"")
-                                print(jsonString)
+                                // Debugging
+                                //print(jsonString)
                                 if let jsonData = jsonString.data(using: .utf8) {
                                     let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
-                                    if let post = postData.loaderData?.index0?.post {
+                                    // Debugging
+                                    //postData.print();
+                                    if let post = postData.loaderData?.entry0?.post {
                                         if viewModel.selectedPage!.hub == "click" || viewModel.selectedPage!.hub == "snap" {
                                             commentCount = post.post?.comments ?? 0
                                             likeCount = post.post?.likes ?? 0
@@ -750,23 +754,23 @@ struct PostDownloaderView: View {
                                                         if userName.lowercased().hasPrefix("\(viewModel.selectedPage!.hub.lowercased())_") {
                                                             if userName.lowercased() == viewModel.selectedPage!.displayName.lowercased() {
                                                                 pageComments.append((
-                                                                    comment.author?.firstname ?? userName,
+                                                                    comment.author?.name ?? userName,
                                                                     comment.text ?? "",
                                                                     (comment.timestamp ?? "").timestamp(),
                                                                     String(userName[userName.index(userName.startIndex, offsetBy: viewModel.selectedPage!.hub.count + 1)..<userName.endIndex].lowercased())
                                                                 ))
-                                                                print("!!! PAGE COMMENT from \(comment.author?.firstname ?? "missing") (\(userName))")
+                                                                //print("!!! PAGE COMMENT from \(comment.author?.name ?? "missing") (\(userName))")
                                                             } else {
                                                                 hubComments.append((
-                                                                    comment.author?.firstname ?? userName,
+                                                                    comment.author?.name ?? userName,
                                                                     comment.text ?? "",
                                                                     (comment.timestamp ?? "").timestamp(),
                                                                     String(userName[userName.index(userName.startIndex, offsetBy: viewModel.selectedPage!.hub.count + 1)..<userName.endIndex].lowercased())
                                                                 ))
-                                                                print("HUB COMMENT from \(comment.author?.firstname ?? "missing") (\(userName))")
+                                                                //print("HUB COMMENT from \(comment.author?.name ?? "missing") (\(userName))")
                                                             }
                                                         } else {
-                                                            print("Comment from \(comment.author?.firstname ?? "missing") (\(userName))")
+                                                            //print("Comment from \(comment.author?.name ?? "missing") (\(userName))")
                                                         }
                                                     }
                                                 }
