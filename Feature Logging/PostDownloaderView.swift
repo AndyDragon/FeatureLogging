@@ -38,7 +38,6 @@ struct PostDownloaderView: View {
     @State private var moreComments = false
     @State private var commentCount = 0
     @State private var likeCount = 0
-    @State private var loggingComplete = false
     @State private var userProfileLink = ""
     @State private var userBio = ""
 
@@ -80,7 +79,7 @@ struct PostDownloaderView: View {
                 ScrollView(.vertical) {
                     VStack {
                         HStack(alignment: .top) {
-                            VStack(alignment: .leading) {
+                            VStack(alignment: .center) {
                                 // Page scope
                                 HStack(alignment: .top) {
                                     VStack(alignment: .leading) {
@@ -158,7 +157,6 @@ struct PostDownloaderView: View {
                                         }
                                     }
                                     .frame(maxWidth: 1280)
-                                    Spacer()
                                 }
                                 .padding(12)
                                 .frame(maxWidth: .infinity)
@@ -174,7 +172,7 @@ struct PostDownloaderView: View {
                                     HStack(alignment: .top) {
                                         VStack(alignment: .leading) {
                                             HStack(alignment: .center) {
-                                                ValidationLabel("User name: ", labelWidth: mainLabelWidth, validation: !userName.isEmpty, validColor: .green)
+                                                ValidationLabel("User name: ", labelWidth: -mainLabelWidth, validation: !userName.isEmpty, validColor: .green)
                                                 ValidationLabel(userName, validation: true, validColor: .AccentColor)
                                                 Spacer()
                                                 ValidationLabel(
@@ -201,7 +199,7 @@ struct PostDownloaderView: View {
                                                     selectedFeature.feature.userName.wrappedValue = userName
                                                 }) {
                                                     HStack(alignment: .center) {
-                                                        Image(systemName: "pencil.and.list.clipboard" /*"pencil.line"*/)
+                                                        Image(systemName: "pencil.line")
                                                             .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                                         Text("Transfer")
                                                     }
@@ -234,32 +232,49 @@ struct PostDownloaderView: View {
                                                     .frame(maxWidth: 240)
                                                 }
                                                 .frame(maxWidth: .infinity)
-                                                if #available(macOS 14.0, *) {
-                                                    TextEditor(text: .constant(userBio))
-                                                        .scrollIndicators(.never)
-                                                        .frame(maxWidth: 640, maxHeight: 80.0, alignment: .leading)
-                                                        .textEditorStyle(.plain)
-                                                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                                        .scrollContentBackground(.hidden)
-                                                        .padding(4)
-                                                        .autocorrectionDisabled(false)
-                                                        .disableAutocorrection(false)
-                                                        .font(.system(size: 18, design: .serif))
-                                                } else {
-                                                    TextEditor(text: .constant(userBio))
-                                                        .scrollIndicators(.never)
-                                                        .frame(maxWidth: 640, maxHeight: 80.0, alignment: .leading)
-                                                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                                        .scrollContentBackground(.hidden)
-                                                        .padding(4)
-                                                        .autocorrectionDisabled(false)
-                                                        .disableAutocorrection(false)
-                                                        .font(.system(size: 18, design: .serif))
+                                                HStack(alignment: .top) {
+                                                    ScrollView {
+                                                        if #available(macOS 14.0, *) {
+                                                            TextEditor(text: .constant(userBio))
+                                                                .scrollIndicators(.never)
+                                                                .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
+                                                                .textEditorStyle(.plain)
+                                                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                                                .scrollContentBackground(.hidden)
+                                                                .padding(4)
+                                                                .autocorrectionDisabled(false)
+                                                                .disableAutocorrection(false)
+                                                                .font(.system(size: 18, design: .serif))
+                                                        } else {
+                                                            TextEditor(text: .constant(userBio))
+                                                                .scrollIndicators(.never)
+                                                                .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
+                                                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                                                .scrollContentBackground(.hidden)
+                                                                .padding(4)
+                                                                .autocorrectionDisabled(false)
+                                                                .disableAutocorrection(false)
+                                                                .font(.system(size: 18, design: .serif))
+                                                        }
+                                                    }
+                                                    .frame(maxHeight: 80)
+                                                    Spacer()
+                                                    Toggle(
+                                                        isOn: selectedFeature.feature.userIsTeammate.onChange { value in
+                                                            markDocumentDirty()
+                                                        }
+                                                    ) {
+                                                        Text("User is a Team Mate")
+                                                            .lineLimit(1)
+                                                            .truncationMode(.tail)
+                                                    }
+                                                    .tint(Color.AccentColor)
+                                                    .accentColor(Color.AccentColor)
+                                                    .focusable()
                                                 }
                                             }
                                         }
                                         .frame(maxWidth: 1280)
-                                        Spacer()
                                     }
                                     .padding(12)
                                     .frame(maxWidth: .infinity)
@@ -298,31 +313,36 @@ struct PostDownloaderView: View {
                                                 .frame(maxWidth: 320)
                                             }
                                             .frame(maxWidth: .infinity)
-                                            if #available(macOS 14.0, *) {
-                                                TextEditor(text: .constant(description))
-                                                    .scrollIndicators(.never)
-                                                    .frame(maxWidth: 800, maxHeight: 200.0, alignment: .leading)
-                                                    .textEditorStyle(.plain)
-                                                    .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                                    .scrollContentBackground(.hidden)
-                                                    .padding(4)
-                                                    .autocorrectionDisabled(false)
-                                                    .disableAutocorrection(false)
-                                                    .font(.system(size: 14))
-                                            } else {
-                                                TextEditor(text: .constant(description))
-                                                    .scrollIndicators(.never)
-                                                    .frame(maxWidth: 800, maxHeight: 200.0, alignment: .leading)
-                                                    .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                                    .scrollContentBackground(.hidden)
-                                                    .padding(4)
-                                                    .autocorrectionDisabled(false)
-                                                    .disableAutocorrection(false)
-                                                    .font(.system(size: 14))
+                                            ScrollView {
+                                                HStack {
+                                                    if #available(macOS 14.0, *) {
+                                                        TextEditor(text: .constant(description))
+                                                            .scrollIndicators(.never)
+                                                            .frame(maxWidth: 960, maxHeight: .infinity, alignment: .leading)
+                                                            .textEditorStyle(.plain)
+                                                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                                            .scrollContentBackground(.hidden)
+                                                            .padding(4)
+                                                            .autocorrectionDisabled(false)
+                                                            .disableAutocorrection(false)
+                                                            .font(.system(size: 14))
+                                                    } else {
+                                                        TextEditor(text: .constant(description))
+                                                            .scrollIndicators(.never)
+                                                            .frame(maxWidth: 960, maxHeight: .infinity, alignment: .leading)
+                                                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                                            .scrollContentBackground(.hidden)
+                                                            .padding(4)
+                                                            .autocorrectionDisabled(false)
+                                                            .disableAutocorrection(false)
+                                                            .font(.system(size: 14))
+                                                    }
+                                                    Spacer()
+                                                }
                                             }
+                                            .frame(maxWidth: .infinity, maxHeight: 200)
                                         }
                                         .frame(maxWidth: 1280)
-                                        Spacer()
                                     }
                                     .padding(12)
                                     .frame(maxWidth: .infinity)
@@ -339,7 +359,7 @@ struct PostDownloaderView: View {
                                             VStack(alignment: .leading) {
                                                 if !pageComments.isEmpty {
                                                     HStack(alignment: .center) {
-                                                        ValidationLabel("Found comments from page: ", validation: true, validColor: .red)
+                                                        ValidationLabel("Found comments from page (possibly already featured on page): ", validation: true, validColor: .red)
                                                         Spacer()
                                                         Toggle(
                                                             isOn: selectedFeature.feature.photoFeaturedOnPage.onChange { value in
@@ -383,7 +403,7 @@ struct PostDownloaderView: View {
                                                 }
                                                 if !hubComments.isEmpty {
                                                     HStack(alignment: .center) {
-                                                        ValidationLabel("Found comments from hub: ", validation: true, validColor: .orange)
+                                                        ValidationLabel("Found comments from hub (possibly already featured on another page): ", validation: true, validColor: .orange)
                                                         Spacer()
                                                         Toggle(
                                                             isOn: selectedFeature.feature.photoFeaturedOnHub.onChange { value in
@@ -473,7 +493,6 @@ struct PostDownloaderView: View {
                                                 }
                                             }
                                             .frame(maxWidth: 1280)
-                                            Spacer()
                                         }
                                         .padding(12)
                                         .frame(maxWidth: .infinity)
@@ -493,7 +512,6 @@ struct PostDownloaderView: View {
                                                 .frame(height: 20)
                                             }
                                             .frame(maxWidth: 1280)
-                                            Spacer()
                                         }
                                         .padding(12)
                                         .frame(maxWidth: .infinity)
@@ -506,24 +524,30 @@ struct PostDownloaderView: View {
                                     }
                                     
                                     // Images
-                                    VStack(alignment: .leading) {
+                                    VStack(alignment: .center) {
                                         HStack(alignment: .center) {
                                             ValidationLabel("Image\(imageUrls.count == 1 ? "" : "s") found: ", validation: imageUrls.count > 0, validColor: .green)
                                             ValidationLabel("\(imageUrls.count)", validation: imageUrls.count > 0, validColor: .AccentColor)
                                             Spacer()
                                         }
                                         .frame(height: 20)
+                                        .frame(maxWidth: 1280)
+                                        .padding([.leading, .trailing])
                                         ScrollView(.horizontal) {
-                                            HStack {
-                                                ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
-                                                    PostDownloaderImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
-                                                        .padding(.all, 0.001)
+                                            VStack(alignment: .center) {
+                                                HStack {
+                                                    ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
+                                                        PostDownloaderImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
+                                                            .padding(.all, 0.001)
+                                                    }
                                                 }
+                                                .frame(minWidth: 20)
                                             }
+                                            .padding([.leading, .bottom, .trailing])
                                         }
-                                        .frame(maxWidth: .infinity)
+                                        .frame(minWidth: 20, maxWidth: 1280)
                                     }
-                                    .padding()
+                                    .padding([.top])
                                     .frame(maxWidth: .infinity)
                                     .background {
                                         Rectangle()
@@ -533,26 +557,38 @@ struct PostDownloaderView: View {
                                     }
                                 }
                                 
-                                if loggingComplete {
-                                    // Logging
-                                    VStack(alignment: .leading) {
+                                // Logging
+                                VStack(alignment: .center) {
+                                    HStack(alignment: .top) {
                                         ValidationLabel("LOGGING: ", validation: true, validColor: .orange)
-                                        ScrollView {
-                                            ForEach(Array(logging.enumerated()), id: \.offset) { index, log in
-                                                Text(log.1)
-                                                    .foregroundStyle(log.0, .black)
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                        Spacer()
+                                        Button(action: {
+                                            copyToClipboard(logging.map { $0.1 }.joined(separator: "\n"))
+                                        }) {
+                                            HStack(alignment: .center) {
+                                                Image(systemName: "pencil.and.list.clipboard")
+                                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                Text("Copy log")
                                             }
                                         }
                                     }
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background {
-                                        Rectangle()
-                                            .foregroundStyle(Color.BackgroundColorList)
-                                            .cornerRadius(8)
-                                            .opacity(0.5)
+                                    .frame(maxWidth: 1280)
+                                    ScrollView(.horizontal) {
+                                        ForEach(Array(logging.enumerated()), id: \.offset) { index, log in
+                                            Text(log.1)
+                                                .foregroundStyle(log.0, .black)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                        }
                                     }
+                                    .frame(maxWidth: 1280, maxHeight: .infinity)
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background {
+                                    Rectangle()
+                                        .foregroundStyle(Color.BackgroundColorList)
+                                        .cornerRadius(8)
+                                        .opacity(0.5)
                                 }
                             }
                             .padding(10)
@@ -588,7 +624,269 @@ struct PostDownloaderView: View {
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)
         .onAppear {
-            loadFeature()
+            postLoaded = false
+            userLoaded = false
+            tagCheck = ""
+            missingTag = false
+            imageUrls = []
+            logging = []
+            userProfileLink = ""
+            userBio = ""
+            pageComments = [];
+            hubComments = [];
+            moreComments = false
+            commentCount = 0
+            likeCount = 0
+            Task.detached {
+                await loadFeature()
+            }
+        }
+    }
+    
+    @MainActor
+    func parsePost(_ contents: String) {
+        var likelyPrivate = false
+        do {
+            logging.append((.blue, "Loaded the post from the server"))
+            let document = try SwiftSoup.parse(contents)
+            if let user = try! getMetaTagContent(document, "name", "username") {
+                logging.append((.blue, "User: \(user)"))
+            }
+            userName = ""
+            if let title = try! getMetaTagContent(document, "property", "og:title") {
+                if title.hasSuffix(" shared a photo on VERO™") {
+                    userName = title.replacingOccurrences(of: " shared a photo on VERO™", with: "")
+                    logging.append((.blue, "User's name: \(userName)"))
+                } else if title.hasSuffix(" shared photos on VERO™") {
+                    userName = title.replacingOccurrences(of: " shared photos on VERO™", with: "")
+                    logging.append((.blue, "User's name: \(userName)"))
+                } else if title.hasSuffix(" on VERO™") {
+                    userName = title.replacingOccurrences(of: " on VERO™", with: "")
+                    logging.append((.blue, "User's name: \(userName)"))
+                    likelyPrivate = true
+                }
+            }
+            if let userProfileUrl = try! getMetaTagContent(document, "property", "og:url") {
+                let urlParts = userProfileUrl.split(separator: "/", omittingEmptySubsequences: true)
+                if urlParts.count == 2 {
+                    userProfileLink = "https://vero.co/\(urlParts[0])"
+                    logging.append((.blue, "User's profile link: \(userProfileLink), loading profile..."))
+                    Task.detached {
+                        await loadUserProfile()
+                    }
+                }
+            }
+            var hashTags: [String] = []
+            if let captionsDiv = try! document.body()?.getElementsByTag("div").first(where: { element in
+                do {
+                    return try element.classNames().contains(where: { className in
+                        return className.hasPrefix("_user-post-captions")
+                    })
+                } catch {
+                    return false
+                }
+            }) {
+                logging.append((.blue, "Parsing post caption"))
+                description = ""
+                var nextSpace = ""
+                captionsDiv.children().forEach { element in
+                    if element.tagNameNormal() == "span" {
+                        let text = try! element.text()
+                        if !text.isEmpty {
+                            description = description + nextSpace + text.trimmingCharacters(in: .whitespacesAndNewlines)
+                            nextSpace = " "
+                        }
+                    } else if element.tagNameNormal() == "br" {
+                        description = description + "\n"
+                        nextSpace = ""
+                    } else if element.tagNameNormal() == "a" {
+                        let text = try! element.text()
+                        if !text.isEmpty {
+                            let linkText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                            description = description + nextSpace + linkText
+                            if linkText.hasPrefix("#") {
+                                hashTags.append(linkText.lowercased())
+                            }
+                            nextSpace = " "
+                        }
+                    }
+                }
+                description = description.removeExtraSpaces(includeNewlines: false)
+            }
+            var pageHashTagFound = ""
+            let pageHashTags = viewModel.selectedPage!.hashTags
+            if hashTags.firstIndex(where: { hashTag in
+                return pageHashTags.firstIndex(where: { pageHashTag in
+                    if hashTag.lowercased() == pageHashTag.lowercased() {
+                        pageHashTagFound = pageHashTag.lowercased()
+                        return true
+                    }
+                    return false
+                }) != nil
+            }) != nil {
+                tagCheck = "Contains page hashtag \(pageHashTagFound)"
+                logging.append((.blue, tagCheck))
+            } else {
+                tagCheck = "MISSING page hashtag!!"
+                logging.append((.orange, tagCheck))
+                missingTag = true
+            }
+            if let imagesInBody = try! document.body()?.getElementsByTag("img") {
+                let carouselImages = imagesInBody.filter({ image in
+                    do {
+                        return try image.classNames().contains(where: { className in
+                            return className.hasPrefix("_carousel-image")
+                        })
+                    } catch {
+                        return false
+                    }
+                })
+                imageUrls = carouselImages.map({ image in
+                    var imageSrc = try! image.attr("src")
+                    if imageSrc.hasSuffix("_thumb.jpg") {
+                        imageSrc = imageSrc.replacingOccurrences(of: "_thumb.jpg", with: "")
+                    } else if imageSrc.hasSuffix("_thumb.png") {
+                        imageSrc = imageSrc.replacingOccurrences(of: "_thumb.png", with: "")
+                    }
+                    logging.append((.blue, "Image source: \(imageSrc)"))
+                    return (URL(string: imageSrc)!, userName)
+                })
+            }
+            
+            for item in try document.select("script") {
+                do {
+                    let scriptText = try item.html().trimmingCharacters(in: .whitespaces)
+                    if !scriptText.isEmpty {
+                        // Debugging
+                        //print(scriptText)
+                        let scriptLines = scriptText.split(whereSeparator: \.isNewline)
+                        if scriptLines.first!.hasPrefix("window.__staticRouterHydrationData = JSON.parse(") {
+                            let prefixLength = "window.__staticRouterHydrationData = JSON.parse(".count
+                            let start = scriptText.index(scriptText.startIndex, offsetBy: prefixLength + 1)
+                            let end = scriptText.index(scriptText.endIndex, offsetBy: -3)
+                            let jsonString = String(scriptText[start..<end])
+                                .replacingOccurrences(of: "\\\"", with: "\"")
+                                .replacingOccurrences(of: "\\\"", with: "\"")
+                            // Debugging
+                            //print(jsonString)
+                            if let jsonData = jsonString.data(using: .utf8) {
+                                let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
+                                // Debugging
+                                //postData.print();
+                                if let post = postData.loaderData?.entry0?.post {
+                                    if viewModel.selectedPage!.hub == "click" || viewModel.selectedPage!.hub == "snap" {
+                                        commentCount = post.post?.comments ?? 0
+                                        likeCount = post.post?.likes ?? 0
+                                        if let comments = post.comments {
+                                            moreComments = comments.count < commentCount
+                                            for comment in comments {
+                                                if let userName = comment.author?.username {
+                                                    if userName.lowercased().hasPrefix("\(viewModel.selectedPage!.hub.lowercased())_") {
+                                                        if userName.lowercased() == viewModel.selectedPage!.displayName.lowercased() {
+                                                            pageComments.append((
+                                                                comment.author?.name ?? userName,
+                                                                comment.text ?? "",
+                                                                (comment.timestamp ?? "").timestamp(),
+                                                                String(userName[userName.index(userName.startIndex, offsetBy: viewModel.selectedPage!.hub.count + 1)..<userName.endIndex].lowercased())
+                                                            ))
+                                                            logging.append((.red, "Found comment from page - possibly already featured on page"))
+                                                        } else {
+                                                            hubComments.append((
+                                                                comment.author?.name ?? userName,
+                                                                comment.text ?? "",
+                                                                (comment.timestamp ?? "").timestamp(),
+                                                                String(userName[userName.index(userName.startIndex, offsetBy: viewModel.selectedPage!.hub.count + 1)..<userName.endIndex].lowercased())
+                                                            ))
+                                                            logging.append((.orange, "Found comment from another hub page - possibly already feature on another page"))
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            moreComments = commentCount != 0
+                                            if moreComments {
+                                                logging.append((.orange, "Not all comments found in post, check VERO app to see all comments"))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch {
+                    debugPrint(error.localizedDescription)
+                    showToast(
+                        .error(.orange),
+                        "Failed to parse the post data on the post",
+                        String {
+                            "Failed to parse the post information from the downloaded post - \(error.localizedDescription)"
+                        },
+                        .Failure
+                    ) {}
+                }
+            }
+            
+            // Debugging
+            //print(try document.outerHtml())
+            
+            if imageUrls.isEmpty && likelyPrivate {
+                throw AccountError.PrivateAccount
+            } else if imageUrls.isEmpty {
+                throw AccountError.MissingImages
+            }
+
+            postLoaded = true
+        } catch let error as AccountError {
+            logging.append((.red, "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"))
+            logging.append((.red, "Post must be handled manually in VERO app"))
+            showToast(
+                .error(.red),
+                "Failed to load and parse post",
+                String {
+                    "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"
+                },
+                .Blocking
+            ) {}
+        } catch {
+            logging.append((.red, "Failed to download and parse the post information - \(error.localizedDescription)"))
+            logging.append((.red, "Post must be handled manually in VERO app"))
+            showToast(
+                .error(.red),
+                "Failed to load and parse post",
+                String {
+                    "Failed to download and parse the post information - \(error.localizedDescription)"
+                },
+                .Failure
+            ) {}
+        }
+    }
+    
+    @MainActor
+    private func parseUserProfile(_ contents: String) {
+        do {
+            logging.append((.blue, "Loaded the user profile from the server"))
+            let document = try SwiftSoup.parse(contents)
+            
+            if let description = try! getMetaTagContent(document, "property", "og:description") {
+                userBio = description.removeExtraSpaces()
+                logging.append((.blue, "Loaded user's BIO from their profile"))
+            }
+            
+            // Debugging
+            //print(try document.outerHtml())
+            
+            userLoaded = true
+        } catch {
+            logging.append((.red, "Failed to download and parse the user profile information - \(error.localizedDescription)"))
+            logging.append((.red, "Profile must be handled manually in VERO app"))
+            showToast(
+                .error(.red),
+                "Failed to load and parse post",
+                String {
+                    "Failed to download and parse the post information - \(error.localizedDescription)"
+                },
+                .Failure
+            ) {}
         }
     }
     
@@ -600,279 +898,62 @@ struct PostDownloaderView: View {
     }
 
     /// Loads the feature using the postUrl.
-    private func loadFeature() {
-        postLoaded = false
-        userLoaded = false
-        tagCheck = ""
-        missingTag = false
-        imageUrls = []
-        logging = []
-        loggingComplete = false
-        userProfileLink = ""
-        userBio = ""
-        pageComments = [];
-        hubComments = [];
-        moreComments = false
-        commentCount = 0
-        likeCount = 0
-        var likelyPrivate = false
+    private func loadFeature() async {
         if let url = URL(string: viewModel.selectedFeature!.feature.postLink) {
-            do {
-                let contents = try String(contentsOf: url, encoding: .utf8)
-                logging.append((.blue, "Loaded the post from the server"))
-                let document = try SwiftSoup.parse(contents)
-                if let user = try! getMetaTagContent(document, "name", "username") {
-                    //print("User: \(user)")
-                    logging.append((.blue, "User: \(user)"))
-                }
-                userName = ""
-                if let title = try! getMetaTagContent(document, "property", "og:title") {
-                    if title.hasSuffix(" shared a photo on VERO™") {
-                        userName = title.replacingOccurrences(of: " shared a photo on VERO™", with: "")
-                        //print("User's name: \(userName)")
-                        logging.append((.blue, "User's name: \(userName)"))
-                    } else if title.hasSuffix(" shared photos on VERO™") {
-                        userName = title.replacingOccurrences(of: " shared photos on VERO™", with: "")
-                        //print("User's name: \(userName)")
-                        logging.append((.blue, "User's name: \(userName)"))
-                    } else if title.hasSuffix(" on VERO™") {
-                        userName = title.replacingOccurrences(of: " on VERO™", with: "")
-                        //print("User's name: \(userName)")
-                        logging.append((.blue, "User's name: \(userName)"))
-                        likelyPrivate = true
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            let session = URLSession.init(configuration: URLSessionConfiguration.default)
+            session.dataTask(with: request) { data, response, error in
+                if let data = data {
+                    let contents = String(data: data, encoding: .utf8)!
+                    Task { @MainActor in
+                        parsePost(contents)
                     }
-                }
-                if let userProfileUrl = try! getMetaTagContent(document, "property", "og:url") {
-                    let urlParts = userProfileUrl.split(separator: "/", omittingEmptySubsequences: true)
-                    //print("User profile parts \(urlParts)")
-                    if urlParts.count == 2 {
-                        userProfileLink = "https://vero.co/\(urlParts[0])"
-                    }
-                }
-                var hashTags: [String] = []
-                if let captionsDiv = try! document.body()?.getElementsByTag("div").first(where: { element in
-                    do {
-                        return try element.classNames().contains(where: { className in
-                            return className.hasPrefix("_user-post-captions")
-                        })
-                    } catch {
-                        return false
-                    }
-                }) {
-                    description = ""
-                    var nextSpace = ""
-                    captionsDiv.children().forEach { element in
-                        if element.tagNameNormal() == "span" {
-                            let text = try! element.text()
-                            if !text.isEmpty {
-                                description = description + nextSpace + text.trimmingCharacters(in: .whitespacesAndNewlines)
-                                nextSpace = " "
-                            }
-                        } else if element.tagNameNormal() == "br" {
-                            description = description + "\n"
-                            nextSpace = ""
-                        } else if element.tagNameNormal() == "a" {
-                            let text = try! element.text()
-                            if !text.isEmpty {
-                                let linkText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-                                description = description + nextSpace + linkText
-                                if linkText.hasPrefix("#") {
-                                    hashTags.append(linkText.lowercased())
-                                }
-                                nextSpace = " "
-                            }
-                        }
-                    }
-                }
-                var pageHashTagFound = ""
-                let pageHashTags = viewModel.selectedPage!.hashTags
-                if hashTags.firstIndex(where: { hashTag in
-                    return pageHashTags.firstIndex(where: { pageHashTag in
-                        if hashTag.lowercased() == pageHashTag.lowercased() {
-                            pageHashTagFound = pageHashTag.lowercased()
-                            return true
-                        }
-                        return false
-                    }) != nil
-                }) != nil {
-                    tagCheck = "Contains page hashtag \(pageHashTagFound)"
-                } else {
-                    tagCheck = "MISSING page hashtag!!"
-                    missingTag = true
-                }
-                if let imagesInBody = try! document.body()?.getElementsByTag("img") {
-                    let carouselImages = imagesInBody.filter({ image in
-                        do {
-                            return try image.classNames().contains(where: { className in
-                                return className.hasPrefix("_carousel-image")
-                            })
-                        } catch {
-                            return false
-                        }
-                    })
-                    imageUrls = carouselImages.map({ image in
-                        var imageSrc = try! image.attr("src")
-                        if imageSrc.hasSuffix("_thumb.jpg") {
-                            imageSrc = imageSrc.replacingOccurrences(of: "_thumb.jpg", with: "")
-                        } else if imageSrc.hasSuffix("_thumb.png") {
-                            imageSrc = imageSrc.replacingOccurrences(of: "_thumb.png", with: "")
-                        }
-                        //print("Image source: \(imageSrc)")
-                        logging.append((.blue, "Image source: \(imageSrc)"))
-                        return (URL(string: imageSrc)!, userName)
-                    })
-                }
-                
-                for item in try document.select("script") {
-                    do {
-                        let scriptText = try item.html().trimmingCharacters(in: .whitespaces)
-                        if !scriptText.isEmpty {
-                            // Debugging
-                            //print(scriptText)
-                            let scriptLines = scriptText.split(whereSeparator: \.isNewline)
-                            if scriptLines.first!.hasPrefix("window.__staticRouterHydrationData = JSON.parse(") {
-                                let prefixLength = "window.__staticRouterHydrationData = JSON.parse(".count
-                                let start = scriptText.index(scriptText.startIndex, offsetBy: prefixLength + 1)
-                                let end = scriptText.index(scriptText.endIndex, offsetBy: -3)
-                                let jsonString = String(scriptText[start..<end])
-                                    .replacingOccurrences(of: "\\\"", with: "\"")
-                                    .replacingOccurrences(of: "\\\"", with: "\"")
-                                // Debugging
-                                //print(jsonString)
-                                if let jsonData = jsonString.data(using: .utf8) {
-                                    let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
-                                    // Debugging
-                                    //postData.print();
-                                    if let post = postData.loaderData?.entry0?.post {
-                                        if viewModel.selectedPage!.hub == "click" || viewModel.selectedPage!.hub == "snap" {
-                                            commentCount = post.post?.comments ?? 0
-                                            likeCount = post.post?.likes ?? 0
-                                            if let comments = post.comments {
-                                                moreComments = comments.count < commentCount
-                                                for comment in comments {
-                                                    if let userName = comment.author?.username {
-                                                        if userName.lowercased().hasPrefix("\(viewModel.selectedPage!.hub.lowercased())_") {
-                                                            if userName.lowercased() == viewModel.selectedPage!.displayName.lowercased() {
-                                                                pageComments.append((
-                                                                    comment.author?.name ?? userName,
-                                                                    comment.text ?? "",
-                                                                    (comment.timestamp ?? "").timestamp(),
-                                                                    String(userName[userName.index(userName.startIndex, offsetBy: viewModel.selectedPage!.hub.count + 1)..<userName.endIndex].lowercased())
-                                                                ))
-                                                                //print("!!! PAGE COMMENT from \(comment.author?.name ?? "missing") (\(userName))")
-                                                            } else {
-                                                                hubComments.append((
-                                                                    comment.author?.name ?? userName,
-                                                                    comment.text ?? "",
-                                                                    (comment.timestamp ?? "").timestamp(),
-                                                                    String(userName[userName.index(userName.startIndex, offsetBy: viewModel.selectedPage!.hub.count + 1)..<userName.endIndex].lowercased())
-                                                                ))
-                                                                //print("HUB COMMENT from \(comment.author?.name ?? "missing") (\(userName))")
-                                                            }
-                                                        } else {
-                                                            //print("Comment from \(comment.author?.name ?? "missing") (\(userName))")
-                                                        }
-                                                    }
-                                                }
-                                            } else {
-                                                moreComments = commentCount != 0
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } catch {
-                        debugPrint(error.localizedDescription)
+                } else if let error = error {
+                    Task { @MainActor in
+                        logging.append((.red, "Failed to download and parse the post information - \(error.localizedDescription)"))
+                        logging.append((.red, "Post must be handled manually in VERO app"))
                         showToast(
-                            .error(.orange),
-                            "Failed to parse the post data on the post",
+                            .error(.red),
+                            "Failed to load and parse post",
                             String {
-                                "Failed to parse the post information from the downloaded post - \(error.localizedDescription)"
+                                "Failed to download and parse the post information - \(error.localizedDescription)"
                             },
-                            .Failure
+                            .Blocking
                         ) {}
                     }
                 }
-
-                // Debugging
-                //print(try document.outerHtml())
-
-                if imageUrls.isEmpty && likelyPrivate {
-                    throw AccountError.PrivateAccount
-                } else if imageUrls.isEmpty {
-                    throw AccountError.MissingImages
-                }
-
-                loadUserProfile()
-
-                postLoaded = true
-            } catch let error as AccountError {
-                logging.append((.red, "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"))
-                logging.append((.red, "Post must be handled manually in VERO app"))
-                showToast(
-                    .error(.red),
-                    "Failed to load and parse post",
-                    String {
-                        "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"
-                    },
-                    .Failure
-                ) {}
-            } catch {
-                logging.append((.red, "Failed to download and parse the post information - \(error.localizedDescription)"))
-                logging.append((.red, "Post must be handled manually in VERO app"))
-                showToast(
-                    .error(.red),
-                    "Failed to load and parse post",
-                    String {
-                        "Failed to download and parse the post information - \(error.localizedDescription)"
-                    },
-                    .Failure
-                ) {}
-            }
-            loggingComplete = true
+            }.resume()
         }
     }
 
     /// Loads the user profile using the userProfileLink.
-    private func loadUserProfile() {
+    private func loadUserProfile() async {
         if let url = URL(string: userProfileLink) {
-            do {
-                let contents = try String(contentsOf: url, encoding: .utf8)
-                logging.append((.blue, "Loaded the user profile from the server"))
-                let document = try SwiftSoup.parse(contents)
-
-                if let description = try! getMetaTagContent(document, "property", "og:description") {
-                    userBio = description
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            let session = URLSession.init(configuration: URLSessionConfiguration.default)
+            session.dataTask(with: request) { data, response, error in
+                if let data = data {
+                    let contents = String(data: data, encoding: .utf8)!
+                    Task { @MainActor in
+                        parseUserProfile(contents)
+                    }
+                } else if let error = error {
+                    Task { @MainActor in
+                        logging.append((.red, "Failed to download and parse the user profile information - \(error.localizedDescription)"))
+                        logging.append((.red, "User info must be handled manually in VERO app"))
+                        showToast(
+                            .error(.red),
+                            "Failed to load and parse user profile",
+                            String {
+                                "Failed to download and parse the user profile information - \(error.localizedDescription)"
+                            },
+                            .Blocking
+                        ) {}
+                    }
                 }
-
-                // Debugging
-                //print(try document.outerHtml())
-
-                userLoaded = true
-            } catch let error as AccountError {
-                logging.append((.red, "Failed to download and parse the user profile information - \(error.errorDescription ?? "unknown")"))
-                logging.append((.red, "User info must be handled manually in VERO app"))
-                showToast(
-                    .error(.red),
-                    "Failed to load and parse user profile",
-                    String {
-                        "Failed to download and parse the user profile information - \(error.errorDescription ?? "unknown")"
-                    },
-                    .Failure
-                ) {}
-            } catch {
-                logging.append((.red, "Failed to download and parse the user profile information - \(error.localizedDescription)"))
-                logging.append((.red, "User info must be handled manually in VERO app"))
-                showToast(
-                    .error(.red),
-                    "Failed to load and parse user profile",
-                    String {
-                        "Failed to download and parse the user profile information - \(error.localizedDescription)"
-                    },
-                    .Failure
-                ) {}
-            }
+            }.resume()
         }
     }
 

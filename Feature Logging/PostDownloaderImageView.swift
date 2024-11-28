@@ -46,6 +46,7 @@ struct PostDownloaderImageView: View {
                             scale = min(400.0 / Float(result.image.size.width), 360.0 / Float(result.image.size.height))
                         }
                         .forceRefresh()
+                        .cornerRadius(2)
                 }
                 .scaleEffect(CGFloat(scale))
                 .frame(width: 400, height: 360)
@@ -56,6 +57,7 @@ struct PostDownloaderImageView: View {
             }
             .frame(width: 400, height: 410)
             .padding(.all, 4)
+            .cornerRadius(4)
             .background(Color(red: 0.9, green: 0.9, blue: 0.92))
             HStack {
                 Button(action: {

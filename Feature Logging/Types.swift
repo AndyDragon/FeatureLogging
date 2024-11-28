@@ -722,6 +722,11 @@ class LoadedPage: Identifiable, Hashable {
     }
     var hashTags: [String] {
         if hub == "snap" {
+            if let basePageName = pageName {
+                if basePageName != name {
+                    return [hashTag ?? "#snap_\(name)", "#raw_\(name)", "#snap_\(basePageName)", "#raw_\(basePageName)"]
+                }
+            }
             return [hashTag ?? "#snap_\(name)", "#raw_\(name)"]
         } else if hub == "click" {
             return [hashTag ?? "#click_\(name)"]

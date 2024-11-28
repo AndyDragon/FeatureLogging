@@ -141,6 +141,15 @@ extension String {
         return dateParserFormatter.date(from: self)
     }
     
+    public func removeExtraSpaces(includeNewlines: Bool = true) -> String {
+        if (includeNewlines) {
+            return self.replacingOccurrences(of: "[\\s]+", with: " ", options: .regularExpression)
+        }
+        return self.split(separator: "\n", omittingEmptySubsequences: false)
+            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "[\\s]+", with: " ", options: .regularExpression) }
+            .joined(separator: "\n")
+    }
+    
     static func * (str: String, repeatTimes: Int) -> String {
         return String(repeating: str, count: repeatTimes)
     }
