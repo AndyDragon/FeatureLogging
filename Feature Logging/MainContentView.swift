@@ -242,7 +242,7 @@ struct MainContentView: View {
                             Text("Add feature")
                         }
                     }
-                    .disabled(isShowingToast.wrappedValue)
+                    .disabled(isShowingToast.wrappedValue || viewModel.loadedCatalogs.waitingForPages)
                     .keyboardShortcut("+", modifiers: .command)
                     
                     Spacer()

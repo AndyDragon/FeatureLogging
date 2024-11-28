@@ -53,7 +53,7 @@ struct ValidationLabel: View {
                     .padding([.trailing], 8)
                     .foregroundStyle(!validation ? Color.TextColorRequired : (validColor ?? Color.TextColorPrimary), Color.TextColorSecondary)
             }
-            .frame(width: width, alignment: .trailing)
+            .frame(width: abs(width), alignment: width < 0 ? .leading : .trailing)
         } else {
             HStack(alignment: .center) {
                 if !validation {

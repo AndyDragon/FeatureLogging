@@ -16,13 +16,15 @@ import SwiftUI
 /// the user's profile is marked as private.
 ///
 struct PostDownloaderView: View {
+    @Environment(\.openURL) private var openURL
+
     @State private var viewModel: ContentView.ViewModel
     @State private var isShowingToast: Binding<Bool>
     private var hideDownloaderView: () -> Void
     private var updateList: () -> Void
     private var markDocumentDirty: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
-    
+
     @State private var imageUrls: [(URL, String)] = []
     @State private var tagCheck = ""
     @State private var missingTag = false
@@ -31,12 +33,19 @@ struct PostDownloaderView: View {
     @State private var description = ""
     @State private var userName = ""
     @State private var logging: [(Color, String)] = []
+    @State private var pageComments: [(String, String, Date?, String)] = []; // Page, Comment, Date
+    @State private var hubComments: [(String, String, Date?, String)] = []; // Page, Comment, Date
+    @State private var moreComments = false
+    @State private var commentCount = 0
+    @State private var likeCount = 0
     @State private var loggingComplete = false
     @State private var userProfileLink = ""
     @State private var userBio = ""
-    
+
     private let languagePrefix = Locale.preferredLanguageCode
-    
+    private let mainLabelWidth: CGFloat = -112
+    private let labelWidth: CGFloat = 108
+
     init(
         _ viewModel: ContentView.ViewModel,
         _ isShowingToast: Binding<Bool>,
@@ -62,187 +71,497 @@ struct PostDownloaderView: View {
                     get: { viewModel.selectedPage! },
                     set: { viewModel.selectedPage = $0 }
                 )
-                
+
                 let selectedFeature = Binding<SharedFeature>(
                     get: { viewModel.selectedFeature! },
                     set: { viewModel.selectedFeature = $0 }
                 )
-                
-                VStack {
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading) {
-                            HStack(alignment: .center) {
-                                ValidationLabel("Page: \(selectedPage.wrappedValue.displayTitle)", validation: true, validColor: .green)
-                            }
-                            .frame(height: 20)
-                            HStack(alignment: .center) {
-                                ValidationLabel("Page tags: \(selectedPage.wrappedValue.hashTags.joined(separator: ", "))", validation: true, validColor: .green)
-                            }
-                            .frame(height: 20)
-                            HStack(alignment: .center) {
-                                ValidationLabel("Post URL: \(selectedFeature.feature.postLink.wrappedValue)", validation: true, validColor: .green)
-                            }
-                            .frame(height: 20)
-                            Spacer()
-                                .frame(height: 6)
-                            if postLoaded {
+
+                ScrollView(.vertical) {
+                    VStack {
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading) {
+                                // Page scope
                                 HStack(alignment: .top) {
-                                    ValidationLabel("User name: \(userName)", validation: !userName.isEmpty, validColor: .green)
-                                    Spacer()
-                                    HStack(alignment: .center) {
-                                        Button(action: {
-                                            selectedFeature.feature.userName.wrappedValue = userName
-                                        }) {
+                                    VStack(alignment: .leading) {
+                                        HStack(alignment: .center) {
+                                            ValidationLabel("Page: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
+                                            ValidationLabel(selectedPage.wrappedValue.displayTitle, validation: true, validColor: .AccentColor)
+                                            Spacer()
+                                        }
+                                        .frame(height: 20)
+                                        HStack(alignment: .center) {
+                                            ValidationLabel("Page tags: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
+                                            ValidationLabel(selectedPage.wrappedValue.hashTags.joined(separator: ", "), validation: true, validColor: .AccentColor)
+                                            Spacer()
+                                        }
+                                        .frame(height: 20)
+                                        HStack(alignment: .center) {
+                                            ValidationLabel("Post URL: ", labelWidth: -mainLabelWidth, validation: !selectedFeature.feature.postLink.wrappedValue.isEmpty, validColor: .green)
+                                            ValidationLabel(selectedFeature.feature.postLink.wrappedValue, validation: true, validColor: .AccentColor)
+                                            Spacer()
+                                            Button(action: {
+                                                copyToClipboard(selectedFeature.feature.postLink.wrappedValue)
+                                            }) {
+                                                HStack(alignment: .center) {
+                                                    Image(systemName: "pencil.and.list.clipboard")
+                                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                    Text("Copy URL")
+                                                }
+                                            }
+                                            Spacer()
+                                                .frame(width: 10)
+                                            Button(action: {
+                                                if let url = URL(string: selectedFeature.feature.postLink.wrappedValue) {
+                                                    openURL(url)
+                                                }
+                                            }) {
+                                                HStack(alignment: .center) {
+                                                    Image(systemName: "globe")
+                                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                    Text("Launch")
+                                                }
+                                            }
+                                            .disabled(selectedFeature.feature.postLink.wrappedValue.isEmpty)
+                                        }
+                                        .frame(height: 20)
+                                        if userLoaded {
                                             HStack(alignment: .center) {
-                                                Image(systemName: "pencil.and.list.clipboard" /*"pencil.line"*/)
-                                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                                Text("Set user name")
+                                                ValidationLabel("User profile URL: ", labelWidth: -mainLabelWidth, validation: !userProfileLink.isEmpty, validColor: .green)
+                                                ValidationLabel(userProfileLink, validation: true, validColor: .AccentColor)
+                                                Spacer()
+                                                Button(action: {
+                                                    copyToClipboard(userProfileLink)
+                                                }) {
+                                                    HStack(alignment: .center) {
+                                                        Image(systemName: "pencil.and.list.clipboard")
+                                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                        Text("Copy URL")
+                                                    }
+                                                }
+                                                Spacer()
+                                                    .frame(width: 10)
+                                                Button(action: {
+                                                    if let url = URL(string: userProfileLink) {
+                                                        openURL(url)
+                                                    }
+                                                }) {
+                                                    HStack(alignment: .center) {
+                                                        Image(systemName: "globe")
+                                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                        Text("Launch")
+                                                    }
+                                                }
+                                                .disabled(userProfileLink.isEmpty)
                                             }
+                                            .frame(height: 20)
                                         }
                                     }
-                                    TextField(
-                                        "enter the user name",
-                                        text: selectedFeature.feature.userName.onChange { value in
-                                            updateList()
-                                            markDocumentDirty()
-                                        }
-                                    )
-                                    .focusable()
-                                    .autocorrectionDisabled(false)
-                                    .textFieldStyle(.plain)
-                                    .padding(4)
-                                    .background(Color.BackgroundColorEditor)
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
-                                    .frame(maxWidth: 160)
-                                }
-                                .frame(maxWidth: 640)
-                                .frame(height: 20)
-                                if userLoaded {
-                                    HStack(alignment: .top) {
-                                        ValidationLabel("User BIO:", validation: !userBio.isEmpty, validColor: .green)
-                                        Spacer()
-                                        Picker(
-                                            "",
-                                            selection: selectedFeature.feature.userLevel.onChange { value in
-                                                markDocumentDirty()
-                                            }
-                                        ) {
-                                            ForEach(MembershipCase.casesFor(hub: selectedPage.hub.wrappedValue)) { level in
-                                                Text(level.rawValue)
-                                                    .tag(level)
-                                                    .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
-                                            }
-                                        }
-                                        .tint(Color.AccentColor)
-                                        .accentColor(Color.AccentColor)
-                                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                                        .focusable()
-                                        .frame(maxWidth: 160)
-                                    }
-                                    .frame(maxWidth: 640)
-                                    if #available(macOS 14.0, *) {
-                                        TextEditor(text: .constant(userBio))
-                                            .scrollIndicators(.never)
-                                            .frame(maxWidth: 640.0, maxHeight: 80.0, alignment: .leading)
-                                            .textEditorStyle(.plain)
-                                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                            .scrollContentBackground(.hidden)
-                                            .padding(4)
-                                            .padding([.bottom], 6)
-                                            .autocorrectionDisabled(false)
-                                            .disableAutocorrection(false)
-                                            .font(.system(size: 18, design: .serif))
-                                    } else {
-                                        TextEditor(text: .constant(userBio))
-                                            .scrollIndicators(.never)
-                                            .frame(maxWidth: 640.0, maxHeight: 80.0, alignment: .leading)
-                                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                            .scrollContentBackground(.hidden)
-                                            .padding(4)
-                                            .padding([.bottom], 6)
-                                            .autocorrectionDisabled(false)
-                                            .disableAutocorrection(false)
-                                            .font(.system(size: 18, design: .serif))
-                                    }
-                                }
-                                HStack(alignment: .center) {
-                                    ValidationLabel(tagCheck, validation: !missingTag, validColor: .green)
-                                }
-                                .frame(height: 20)
-                                HStack(alignment: .center) {
-                                    ValidationLabel("\(imageUrls.count) image\(imageUrls.count == 1 ? "" : "s") found", validation: imageUrls.count > 0, validColor: .green)
-                                }
-                                .frame(height: 20)
-                                HStack(alignment: .top) {
-                                    ValidationLabel("Description:", validation: !description.isEmpty, validColor: .green)
+                                    .frame(maxWidth: 1280)
                                     Spacer()
-                                    TextField(
-                                        "enter the description",
-                                        text: selectedFeature.feature.featureDescription.onChange { value in
-                                            markDocumentDirty()
+                                }
+                                .padding(12)
+                                .frame(maxWidth: .infinity)
+                                .background {
+                                    Rectangle()
+                                        .foregroundStyle(Color.BackgroundColorList)
+                                        .cornerRadius(8)
+                                        .opacity(0.5)
+                                }
+                                
+                                if postLoaded {
+                                    // User name and bio
+                                    HStack(alignment: .top) {
+                                        VStack(alignment: .leading) {
+                                            HStack(alignment: .center) {
+                                                ValidationLabel("User name: ", labelWidth: mainLabelWidth, validation: !userName.isEmpty, validColor: .green)
+                                                ValidationLabel(userName, validation: true, validColor: .AccentColor)
+                                                Spacer()
+                                                ValidationLabel(
+                                                    "User name:", labelWidth: labelWidth,
+                                                    validation: !selectedFeature.feature.userName.wrappedValue.isEmpty && !selectedFeature.feature.userName.wrappedValue.contains(where: \.isNewline))
+                                                HStack(alignment: .center) {
+                                                    TextField(
+                                                        "enter the user name",
+                                                        text: selectedFeature.feature.userName.onChange { value in
+                                                            updateList()
+                                                            markDocumentDirty()
+                                                        }
+                                                    )
+                                                }
+                                                .focusable()
+                                                .autocorrectionDisabled(false)
+                                                .textFieldStyle(.plain)
+                                                .padding(4)
+                                                .background(Color.BackgroundColorEditor)
+                                                .border(Color.gray.opacity(0.25))
+                                                .cornerRadius(4)
+                                                .frame(maxWidth: 240)
+                                                Button(action: {
+                                                    selectedFeature.feature.userName.wrappedValue = userName
+                                                }) {
+                                                    HStack(alignment: .center) {
+                                                        Image(systemName: "pencil.and.list.clipboard" /*"pencil.line"*/)
+                                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                        Text("Transfer")
+                                                    }
+                                                }
+                                                .disabled(userName.isEmpty)
+                                            }
+                                            .frame(maxWidth: .infinity)
+                                            .frame(height: 20)
+                                            if userLoaded {
+                                                HStack(alignment: .center) {
+                                                    ValidationLabel("User BIO:", validation: !userBio.isEmpty, validColor: .green)
+                                                    Spacer()
+                                                    ValidationLabel("User level:", labelWidth: labelWidth, validation: selectedFeature.feature.userLevel.wrappedValue != MembershipCase.none)
+                                                    Picker(
+                                                        "",
+                                                        selection: selectedFeature.feature.userLevel.onChange { value in
+                                                            markDocumentDirty()
+                                                        }
+                                                    ) {
+                                                        ForEach(MembershipCase.casesFor(hub: selectedPage.hub.wrappedValue)) { level in
+                                                            Text(level.rawValue)
+                                                                .tag(level)
+                                                                .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                                                        }
+                                                    }
+                                                    .tint(Color.AccentColor)
+                                                    .accentColor(Color.AccentColor)
+                                                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                                                    .focusable()
+                                                    .frame(maxWidth: 240)
+                                                }
+                                                .frame(maxWidth: .infinity)
+                                                if #available(macOS 14.0, *) {
+                                                    TextEditor(text: .constant(userBio))
+                                                        .scrollIndicators(.never)
+                                                        .frame(maxWidth: 640, maxHeight: 80.0, alignment: .leading)
+                                                        .textEditorStyle(.plain)
+                                                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                                        .scrollContentBackground(.hidden)
+                                                        .padding(4)
+                                                        .autocorrectionDisabled(false)
+                                                        .disableAutocorrection(false)
+                                                        .font(.system(size: 18, design: .serif))
+                                                } else {
+                                                    TextEditor(text: .constant(userBio))
+                                                        .scrollIndicators(.never)
+                                                        .frame(maxWidth: 640, maxHeight: 80.0, alignment: .leading)
+                                                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                                        .scrollContentBackground(.hidden)
+                                                        .padding(4)
+                                                        .autocorrectionDisabled(false)
+                                                        .disableAutocorrection(false)
+                                                        .font(.system(size: 18, design: .serif))
+                                                }
+                                            }
                                         }
-                                    )
-                                    .focusable()
-                                    .autocorrectionDisabled(false)
-                                    .textFieldStyle(.plain)
-                                    .padding(4)
-                                    .background(Color.BackgroundColorEditor)
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
-                                    .frame(maxWidth: 160)
+                                        .frame(maxWidth: 1280)
+                                        Spacer()
+                                    }
+                                    .padding(12)
+                                    .frame(maxWidth: .infinity)
+                                    .background {
+                                        Rectangle()
+                                            .foregroundStyle(Color.BackgroundColorList)
+                                            .cornerRadius(8)
+                                            .opacity(0.5)
+                                    }
+                                    
+                                    // Tag check and description
+                                    HStack(alignment: .top) {
+                                        VStack(alignment: .leading) {
+                                            HStack(alignment: .center) {
+                                                ValidationLabel(tagCheck, validation: !missingTag, validColor: .green)
+                                                Spacer()
+                                            }
+                                            .frame(height: 20)
+                                            HStack(alignment: .center) {
+                                                ValidationLabel("Post description:", validation: !description.isEmpty, validColor: .green)
+                                                Spacer()
+                                                ValidationLabel("Description:", labelWidth: labelWidth, validation: !selectedFeature.feature.featureDescription.wrappedValue.isEmpty)
+                                                TextField(
+                                                    "enter the description",
+                                                    text: selectedFeature.feature.featureDescription.onChange { value in
+                                                        markDocumentDirty()
+                                                    }
+                                                )
+                                                .focusable()
+                                                .autocorrectionDisabled(false)
+                                                .textFieldStyle(.plain)
+                                                .padding(4)
+                                                .background(Color.BackgroundColorEditor)
+                                                .border(Color.gray.opacity(0.25))
+                                                .cornerRadius(4)
+                                                .frame(maxWidth: 320)
+                                            }
+                                            .frame(maxWidth: .infinity)
+                                            if #available(macOS 14.0, *) {
+                                                TextEditor(text: .constant(description))
+                                                    .scrollIndicators(.never)
+                                                    .frame(maxWidth: 800, maxHeight: 200.0, alignment: .leading)
+                                                    .textEditorStyle(.plain)
+                                                    .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                                    .scrollContentBackground(.hidden)
+                                                    .padding(4)
+                                                    .autocorrectionDisabled(false)
+                                                    .disableAutocorrection(false)
+                                                    .font(.system(size: 14))
+                                            } else {
+                                                TextEditor(text: .constant(description))
+                                                    .scrollIndicators(.never)
+                                                    .frame(maxWidth: 800, maxHeight: 200.0, alignment: .leading)
+                                                    .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                                    .scrollContentBackground(.hidden)
+                                                    .padding(4)
+                                                    .autocorrectionDisabled(false)
+                                                    .disableAutocorrection(false)
+                                                    .font(.system(size: 14))
+                                            }
+                                        }
+                                        .frame(maxWidth: 1280)
+                                        Spacer()
+                                    }
+                                    .padding(12)
+                                    .frame(maxWidth: .infinity)
+                                    .background {
+                                        Rectangle()
+                                            .foregroundStyle(Color.BackgroundColorList)
+                                            .cornerRadius(8)
+                                            .opacity(0.5)
+                                    }
+                                    
+                                    // Page and hub comments
+                                    if !pageComments.isEmpty || !hubComments.isEmpty {
+                                        HStack(alignment: .top) {
+                                            VStack(alignment: .leading) {
+                                                if !pageComments.isEmpty {
+                                                    HStack(alignment: .center) {
+                                                        ValidationLabel("Found comments from page: ", validation: true, validColor: .red)
+                                                        Spacer()
+                                                        Toggle(
+                                                            isOn: selectedFeature.feature.photoFeaturedOnPage.onChange { value in
+                                                                updateList()
+                                                                markDocumentDirty()
+                                                            }
+                                                        ) {
+                                                            Text("Photo already featured on page")
+                                                                .lineLimit(1)
+                                                                .truncationMode(.tail)
+                                                        }
+                                                        .tint(Color.AccentColor)
+                                                        .accentColor(Color.AccentColor)
+                                                        .focusable()
+                                                    }
+                                                    .frame(height: 20)
+                                                    ScrollView {
+                                                        ForEach(pageComments.sorted { $0.2 ?? .distantPast < $1.2 ?? .distantPast }, id: \.0) { comment in
+                                                            HStack(alignment: .center) {
+                                                                Text("\(comment.0) [\(comment.2.formatTimestamp())]: \(comment.1)")
+                                                                    .foregroundStyle(.red, .black)
+                                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                                                Spacer()
+                                                                    .frame(width: 10)
+                                                                Button(action: {
+                                                                    selectedFeature.feature.photoFeaturedOnPage.wrappedValue = true
+                                                                }) {
+                                                                    HStack(alignment: .center) {
+                                                                        Image(systemName: "checkmark.square")
+                                                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                                        Text("Mark post")
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    .frame(maxHeight: 40)
+                                                }
+                                                if !pageComments.isEmpty && !hubComments.isEmpty {
+                                                    Divider()
+                                                }
+                                                if !hubComments.isEmpty {
+                                                    HStack(alignment: .center) {
+                                                        ValidationLabel("Found comments from hub: ", validation: true, validColor: .orange)
+                                                        Spacer()
+                                                        Toggle(
+                                                            isOn: selectedFeature.feature.photoFeaturedOnHub.onChange { value in
+                                                                updateList()
+                                                                markDocumentDirty()
+                                                            }
+                                                        ) {
+                                                            Text("Photo featured on hub")
+                                                                .lineLimit(1)
+                                                                .truncationMode(.tail)
+                                                        }
+                                                        .tint(Color.AccentColor)
+                                                        .accentColor(Color.AccentColor)
+                                                        .focusable()
+                                                        
+                                                        if selectedFeature.feature.photoFeaturedOnHub.wrappedValue {
+                                                            Text("|")
+                                                                .padding([.leading, .trailing], 8)
+                                                            
+                                                            ValidationLabel(
+                                                                "Last date featured:",
+                                                                validation: !(selectedFeature.feature.photoLastFeaturedOnHub.wrappedValue.isEmpty || selectedFeature.feature.photoLastFeaturedPage.wrappedValue.isEmpty)
+                                                            )
+                                                            TextField(
+                                                                "",
+                                                                text: selectedFeature.feature.photoLastFeaturedOnHub.onChange { value in
+                                                                    markDocumentDirty()
+                                                                }
+                                                            )
+                                                            .focusable()
+                                                            .autocorrectionDisabled(false)
+                                                            .textFieldStyle(.plain)
+                                                            .padding(4)
+                                                            .background(Color.BackgroundColorEditor)
+                                                            .border(Color.gray.opacity(0.25))
+                                                            .cornerRadius(4)
+                                                            .frame(maxWidth: 160)
+                                                            
+                                                            TextField(
+                                                                "on page",
+                                                                text: selectedFeature.feature.photoLastFeaturedPage.onChange { value in
+                                                                    markDocumentDirty()
+                                                                }
+                                                            )
+                                                            .focusable()
+                                                            .autocorrectionDisabled(false)
+                                                            .textFieldStyle(.plain)
+                                                            .padding(4)
+                                                            .background(Color.BackgroundColorEditor)
+                                                            .border(Color.gray.opacity(0.25))
+                                                            .cornerRadius(4)
+                                                            .frame(maxWidth: 160)
+                                                        }
+                                                    }
+                                                    .frame(height: 20)
+                                                    ScrollView {
+                                                        ForEach(hubComments.sorted { $0.2 ?? .distantPast < $1.2 ?? .distantPast }, id: \.0) { comment in
+                                                            HStack(alignment: .center) {
+                                                                Text("\(comment.0) [\(comment.2.formatTimestamp())]: \(comment.1)")
+                                                                    .foregroundStyle(.orange, .black)
+                                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                                                Spacer()
+                                                                    .frame(width: 10)
+                                                                Button(action: {
+                                                                    selectedFeature.feature.photoFeaturedOnHub.wrappedValue = true
+                                                                    selectedFeature.feature.photoLastFeaturedPage.wrappedValue = comment.3
+                                                                    selectedFeature.feature.photoLastFeaturedOnHub.wrappedValue = comment.2.formatTimestamp()
+                                                                }) {
+                                                                    HStack(alignment: .center) {
+                                                                        Image(systemName: "checkmark.square")
+                                                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                                        Text("Mark post")
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    .frame(maxHeight: 40)
+                                                }
+                                                if moreComments {
+                                                    Divider()
+                                                    HStack(alignment: .center) {
+                                                        ValidationLabel("There were more comments than downloaded in the post, open the post IN VERO to check to previous features.", validation: true, validColor: .orange)
+                                                        Spacer()
+                                                    }
+                                                    .frame(height: 20)
+                                                }
+                                            }
+                                            .frame(maxWidth: 1280)
+                                            Spacer()
+                                        }
+                                        .padding(12)
+                                        .frame(maxWidth: .infinity)
+                                        .background {
+                                            Rectangle()
+                                                .foregroundStyle(Color.BackgroundColorList)
+                                                .cornerRadius(8)
+                                                .opacity(0.5)
+                                        }
+                                    } else if moreComments {
+                                        HStack(alignment: .top) {
+                                            VStack(alignment: .leading) {
+                                                HStack(alignment: .center) {
+                                                    ValidationLabel("There were more comments than downloaded in the post, open the post IN VERO to check to previous features.", validation: true, validColor: .orange)
+                                                    Spacer()
+                                                }
+                                                .frame(height: 20)
+                                            }
+                                            .frame(maxWidth: 1280)
+                                            Spacer()
+                                        }
+                                        .padding(12)
+                                        .frame(maxWidth: .infinity)
+                                        .background {
+                                            Rectangle()
+                                                .foregroundStyle(Color.BackgroundColorList)
+                                                .cornerRadius(8)
+                                                .opacity(0.5)
+                                        }
+                                    }
+                                    
+                                    // Images
+                                    VStack(alignment: .leading) {
+                                        HStack(alignment: .center) {
+                                            ValidationLabel("Image\(imageUrls.count == 1 ? "" : "s") found: ", validation: imageUrls.count > 0, validColor: .green)
+                                            ValidationLabel("\(imageUrls.count)", validation: imageUrls.count > 0, validColor: .AccentColor)
+                                            Spacer()
+                                        }
+                                        .frame(height: 20)
+                                        ScrollView(.horizontal) {
+                                            HStack {
+                                                ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
+                                                    PostDownloaderImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
+                                                        .padding(.all, 0.001)
+                                                }
+                                            }
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                    }
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background {
+                                        Rectangle()
+                                            .foregroundStyle(Color.BackgroundColorList)
+                                            .cornerRadius(8)
+                                            .opacity(0.5)
+                                    }
                                 }
-                                .frame(maxWidth: 640)
-                                if #available(macOS 14.0, *) {
-                                    TextEditor(text: .constant(description))
-                                        .scrollIndicators(.never)
-                                        .frame(maxWidth: 640.0, maxHeight: 200.0, alignment: .leading)
-                                        .textEditorStyle(.plain)
-                                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                        .scrollContentBackground(.hidden)
-                                        .padding(4)
-                                        .padding([.bottom], 6)
-                                        .autocorrectionDisabled(false)
-                                        .disableAutocorrection(false)
-                                        .font(.system(size: 14))
-                                } else {
-                                    TextEditor(text: .constant(description))
-                                        .scrollIndicators(.never)
-                                        .frame(maxWidth: 640.0, maxHeight: 200.0, alignment: .leading)
-                                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                        .scrollContentBackground(.hidden)
-                                        .padding(4)
-                                        .padding([.bottom], 6)
-                                        .autocorrectionDisabled(false)
-                                        .disableAutocorrection(false)
-                                        .font(.system(size: 14))
-                                }
-                                HStack {
-                                    ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
-                                        PostDownloaderImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
-                                            .padding(.all, 0.001)
+                                
+                                if loggingComplete {
+                                    // Logging
+                                    VStack(alignment: .leading) {
+                                        ValidationLabel("LOGGING: ", validation: true, validColor: .orange)
+                                        ScrollView {
+                                            ForEach(Array(logging.enumerated()), id: \.offset) { index, log in
+                                                Text(log.1)
+                                                    .foregroundStyle(log.0, .black)
+                                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                            }
+                                        }
+                                    }
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background {
+                                        Rectangle()
+                                            .foregroundStyle(Color.BackgroundColorList)
+                                            .cornerRadius(8)
+                                            .opacity(0.5)
                                     }
                                 }
                             }
-                            if loggingComplete {
-                                VStack {
-                                    Text("LOGGING:")
-                                        .foregroundStyle(.orange, .black)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                    ForEach(Array(logging.enumerated()), id: \.offset) { index, log in
-                                        Text(log.1)
-                                            .foregroundStyle(log.0, .black)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                }
-                            }
+                            .padding(10)
                         }
-                        .padding()
+                        Spacer()
                     }
-                    Spacer()
+                    .padding()
                 }
                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                .padding()
                 .toolbar {
                     Button(action: {
                         hideDownloaderView()
@@ -272,7 +591,7 @@ struct PostDownloaderView: View {
             loadFeature()
         }
     }
-
+    
     /// Account error enumeration for throwing account-specifc error codes.
     enum AccountError: String, LocalizedError {
         case PrivateAccount = "Could not find any images, this account might be private"
@@ -291,6 +610,11 @@ struct PostDownloaderView: View {
         loggingComplete = false
         userProfileLink = ""
         userBio = ""
+        pageComments = [];
+        hubComments = [];
+        moreComments = false
+        commentCount = 0
+        likeCount = 0
         var likelyPrivate = false
         if let url = URL(string: viewModel.selectedFeature!.feature.postLink) {
             do {
@@ -397,6 +721,74 @@ struct PostDownloaderView: View {
                         logging.append((.blue, "Image source: \(imageSrc)"))
                         return (URL(string: imageSrc)!, userName)
                     })
+                }
+                
+                for item in try document.select("script") {
+                    do {
+                        let scriptText = try item.html().trimmingCharacters(in: .whitespaces)
+                        if !scriptText.isEmpty {
+                            //print(scriptText)
+                            let scriptLines = scriptText.split(whereSeparator: \.isNewline)
+                            if scriptLines.first!.hasPrefix("window.__staticRouterHydrationData = JSON.parse(") {
+                                let prefixLength = "window.__staticRouterHydrationData = JSON.parse(".count
+                                let start = scriptText.index(scriptText.startIndex, offsetBy: prefixLength + 1)
+                                let end = scriptText.index(scriptText.endIndex, offsetBy: -3)
+                                let jsonString = String(scriptText[start..<end])
+                                    .replacingOccurrences(of: "\\\"", with: "\"")
+                                    .replacingOccurrences(of: "\\\"", with: "\"")
+                                print(jsonString)
+                                if let jsonData = jsonString.data(using: .utf8) {
+                                    let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
+                                    if let post = postData.loaderData?.index0?.post {
+                                        if viewModel.selectedPage!.hub == "click" || viewModel.selectedPage!.hub == "snap" {
+                                            commentCount = post.post?.comments ?? 0
+                                            likeCount = post.post?.likes ?? 0
+                                            if let comments = post.comments {
+                                                moreComments = comments.count < commentCount
+                                                for comment in comments {
+                                                    if let userName = comment.author?.username {
+                                                        if userName.lowercased().hasPrefix("\(viewModel.selectedPage!.hub.lowercased())_") {
+                                                            if userName.lowercased() == viewModel.selectedPage!.displayName.lowercased() {
+                                                                pageComments.append((
+                                                                    comment.author?.firstname ?? userName,
+                                                                    comment.text ?? "",
+                                                                    (comment.timestamp ?? "").timestamp(),
+                                                                    String(userName[userName.index(userName.startIndex, offsetBy: viewModel.selectedPage!.hub.count + 1)..<userName.endIndex].lowercased())
+                                                                ))
+                                                                print("!!! PAGE COMMENT from \(comment.author?.firstname ?? "missing") (\(userName))")
+                                                            } else {
+                                                                hubComments.append((
+                                                                    comment.author?.firstname ?? userName,
+                                                                    comment.text ?? "",
+                                                                    (comment.timestamp ?? "").timestamp(),
+                                                                    String(userName[userName.index(userName.startIndex, offsetBy: viewModel.selectedPage!.hub.count + 1)..<userName.endIndex].lowercased())
+                                                                ))
+                                                                print("HUB COMMENT from \(comment.author?.firstname ?? "missing") (\(userName))")
+                                                            }
+                                                        } else {
+                                                            print("Comment from \(comment.author?.firstname ?? "missing") (\(userName))")
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                moreComments = commentCount != 0
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch {
+                        debugPrint(error.localizedDescription)
+                        showToast(
+                            .error(.orange),
+                            "Failed to parse the post data on the post",
+                            String {
+                                "Failed to parse the post information from the downloaded post - \(error.localizedDescription)"
+                            },
+                            .Failure
+                        ) {}
+                    }
                 }
 
                 // Debugging

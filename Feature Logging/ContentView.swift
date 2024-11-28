@@ -502,6 +502,8 @@ struct ContentView: View {
                     return "\($0.hub)_\($0.name)" < "\($1.hub)_\($1.name)"
                 }))
             viewModel.loadedCatalogs.waitingForPages = false
+            let lastPage = UserDefaults.standard.string(forKey: "Page") ?? ""
+            viewModel.selectedPage = viewModel.loadedCatalogs.loadedPages.first(where: { $0.id == lastPage })
             if viewModel.selectedPage == nil {
                 viewModel.selectedPage = viewModel.loadedCatalogs.loadedPages.first ?? nil
             }

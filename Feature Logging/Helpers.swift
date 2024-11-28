@@ -133,6 +133,44 @@ extension String {
     public init(@StringBuilder _ builder: () -> String) {
         self.init(builder())
     }
+    
+    public func timestamp() -> Date? {
+        let dateParserFormatter = DateFormatter()
+        dateParserFormatter.dateFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'SSS'Z'"
+        dateParserFormatter.timeZone = .gmt
+        return dateParserFormatter.date(from: self)
+    }
+}
+
+extension Double {
+    public func formatUsingPrecision(_ precision: Int) -> String {
+        return String(format: "%.\(precision)f", self)
+    }
+}
+
+extension Date? {
+    public func formatTimestamp() -> String {
+        if let date = self {
+            let distance = -date.timeIntervalSinceNow
+            let days = floor(distance / (24 * 60 * 60))
+            if days <= 1 {
+                let hours = floor(distance / (60 * 60))
+                return "\(hours.formatUsingPrecision(0))h"
+            } else if days <= 7 {
+                return "\(days.formatUsingPrecision(0))d"
+            }
+            let components = Calendar.current.dateComponents([.year], from: date)
+            let componentsNow = Calendar.current.dateComponents([.year], from: Date.now)
+            let dateFormatter = DateFormatter()
+            if components.year == componentsNow.year {
+                dateFormatter.dateFormat = "MMM d"
+            } else {
+                dateFormatter.dateFormat = "MMM d, yyyy"
+            }
+            return dateFormatter.string(from: date)
+        }
+        return "-"
+    }
 }
 
 extension [String] {

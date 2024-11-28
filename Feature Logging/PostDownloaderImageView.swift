@@ -11,6 +11,8 @@ import SwiftSoup
 import SwiftUI
 
 struct PostDownloaderImageView: View {
+    @Environment(\.openURL) private var openURL
+    
     @State private var width = 0
     @State private var height = 0
     @State private var data: Data?
@@ -100,6 +102,17 @@ struct PostDownloaderImageView: View {
                         Image(systemName: "pencil.and.list.clipboard")
                             .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                         Text("Copy URL")
+                    }
+                }
+                Spacer()
+                    .frame(width: 10)
+                Button(action: {
+                    openURL(imageUrl)
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "globe")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Launch")
                     }
                 }
             }
