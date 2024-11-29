@@ -173,10 +173,46 @@
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconCoolicons 
+                            <iconPacks:PackIconJamIcons 
                                 Width="20"
                                 Height="20"
-                                Kind="OffClose" />
+                                Kind="CloseCircle" />
+                            <TextBlock Margin="4 0 0 0"
+                                VerticalAlignment="Center"
+                                Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button 
+                Visibility="{Binding StatisticsViewVisibility}"
+                Command="{Binding SwitchToLogViewCommand}" 
+                Content="Close" ToolTip="Closes the statistics (Ctrl+tilda)">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconJamIcons 
+                                Width="20"
+                                Height="20"
+                                Kind="CloseCircle" />
+                            <TextBlock Margin="4 0 0 0"
+                                VerticalAlignment="Center"
+                                Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button 
+                Visibility="{Binding PostDownloaderViewVisibility}"
+                Command="{Binding SwitchToLogViewCommand}" 
+                Content="Close" ToolTip="Closes the post viewer (Ctrl+tilda)">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconJamIcons 
+                                Width="20"
+                                Height="20"
+                                Kind="CloseCircle" />
                             <TextBlock Margin="4 0 0 0"
                                 VerticalAlignment="Center"
                                 Text="{Binding}" />
@@ -299,7 +335,7 @@
                 <mah:DropDownButton
                     Grid.Column="4"
                     BorderThickness="0"
-                    Content="Copy Tag"
+                    Content="Copy tag"
                     FontSize="8pt"
                     ItemsSource="{Binding PageTags}"
                     VerticalAlignment="Center"
@@ -346,6 +382,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                         <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.PostLinkValidation.Error}">
@@ -372,6 +409,17 @@
                                 Height="11"
                                 Foreground="{DynamicResource MahApps.Brushes.Accent}" />
                             <TextBlock VerticalAlignment="Center">Paste</TextBlock>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Column="3" Command="{Binding LoadPostCommand}" Margin="8,0,0,0" VerticalAlignment="Center" Height="26">
+                        <StackPanel Orientation="Horizontal" Margin="8,0">
+                            <iconPacks:PackIconCoolicons 
+                                VerticalAlignment="Center"
+                                Kind="FileDownload"
+                                Margin="0,0,2,0" 
+                                Height="11"
+                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                            <TextBlock VerticalAlignment="Center">Load post</TextBlock>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -870,7 +918,7 @@
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" />
                                         <TextBlock 
                                             VerticalAlignment="Center"
-                                            Margin="0,0,0,2">Edit Scripts</TextBlock>
+                                            Margin="0,0,0,2">Edit scripts</TextBlock>
                                     </StackPanel>
                                 </Button>
                                 <Button 
@@ -1228,6 +1276,22 @@
                 Text="{Binding ScriptViewModel.NewMembershipScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                 Height="Auto" 
                 Foreground="{Binding ScriptViewModel.CanCopyNewMembershipScript, Converter={StaticResource validationBooleanColorConverter}}" />
+        </Grid>
+
+        <!-- STATISTICS VIEW -->
+        <Grid 
+            Visibility="{Binding StatisticsViewVisibility}"
+            Grid.Row="1" 
+            Margin="16,8,16,8">
+            <Label>Statistics view - TODO</Label>
+        </Grid>
+
+        <!-- POST DOWNLOADER VIEW -->
+        <Grid 
+            Visibility="{Binding PostDownloaderViewVisibility}"
+            Grid.Row="1" 
+            Margin="16,8,16,8">
+            <Label>Post downloader view - TODO</Label>
         </Grid>
 
         <notifications:NotificationArea Grid.Row="1" x:Name="WindowArea" Position="TopRight" MaxItems="3" />

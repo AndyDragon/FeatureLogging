@@ -453,6 +453,18 @@ namespace FeatureLogging
                 }
             });
 
+            LoadPostCommand = new Command(() =>
+            {
+                if (SelectedFeature != null && SelectedFeature.PostLink != null && SelectedFeature.PostLink.StartsWith("https://vero.co/"))
+                {
+                    View = ViewMode.PostDownloaderView;
+                }
+            }, 
+            () => 
+            { 
+                return SelectedFeature != null && SelectedFeature.PostLink != null && SelectedFeature.PostLink.StartsWith("https://vero.co/");
+            });
+
             CopyPageFeatureTagCommand = new Command(() =>
             {
                 if (SelectedPage != null && SelectedFeature != null)
@@ -594,9 +606,16 @@ namespace FeatureLogging
 
             void ItemChanged(object? sender, PropertyChangedEventArgs e)
             {
-                if (sender is Feature feature && e.PropertyName == nameof(feature.IsDirty))
+                if (sender is Feature feature)
                 {
-                    IsDirty |= feature.IsDirty;
+                    if (e.PropertyName == nameof(feature.IsDirty))
+                    {
+                        IsDirty |= feature.IsDirty;
+                    }
+                    else if (e.PropertyName == nameof(feature.PostLink))
+                    {
+                        LoadPostCommand.OnCanExecuteChanged();
+                    }
                 }
             }
 
@@ -782,6 +801,8 @@ namespace FeatureLogging
 
         public ICommand PastePostLinkCommand { get; }
 
+        public Command LoadPostCommand { get; }
+
         public ICommand CopyPageFeatureTagCommand { get; }
 
         public ICommand CopyRawPageFeatureTagCommand { get; }
@@ -902,7 +923,7 @@ namespace FeatureLogging
 
         #region View management
 
-        public enum ViewMode {  LogView, ScriptView, StatisticsView }
+        public enum ViewMode {  LogView, ScriptView, StatisticsView, PostDownloaderView }
         private ViewMode view = ViewMode.LogView;
         public ViewMode View 
         {
@@ -914,6 +935,7 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(LogViewVisibility));
                     OnPropertyChanged(nameof(ScriptViewVisibility));
                     OnPropertyChanged(nameof(StatisticsViewVisibility));
+                    OnPropertyChanged(nameof(PostDownloaderViewVisibility));
                     OnPropertyChanged(nameof(FeatureNavigationVisibility));
                     OnPropertyChanged(nameof(Title));
                 }
@@ -923,6 +945,7 @@ namespace FeatureLogging
         public Visibility LogViewVisibility => view == ViewMode.LogView ? Visibility.Visible : Visibility.Collapsed;
         public Visibility ScriptViewVisibility => view == ViewMode.ScriptView ? Visibility.Visible : Visibility.Collapsed;
         public Visibility StatisticsViewVisibility => view == ViewMode.StatisticsView ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility PostDownloaderViewVisibility => view == ViewMode.PostDownloaderView ? Visibility.Visible : Visibility.Collapsed;
 
         #endregion
 
@@ -1095,6 +1118,7 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(HasSelectedFeature));
                     OnPropertyChanged(nameof(SelectedFeatureVisibility));
                     OnPropertyChanged(nameof(Title));
+                    LoadPostCommand.OnCanExecuteChanged();
                 }
             }
         }

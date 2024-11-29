@@ -2,7 +2,7 @@
 
 namespace FeatureLogging
 {
-    internal class Command(Action execute, Func<bool>? canExecute = null) : ICommand
+    public class Command(Action execute, Func<bool>? canExecute = null) : ICommand
     {
         public event EventHandler? CanExecuteChanged;
 
@@ -26,7 +26,7 @@ namespace FeatureLogging
         }
     }
 
-    internal class CommandWithParameter(Action<object?> execute, Func<object?, bool>? canExecute = null) : ICommand
+    public class CommandWithParameter(Action<object?> execute, Func<object?, bool>? canExecute = null) : ICommand
     {
         public event EventHandler? CanExecuteChanged;
 
