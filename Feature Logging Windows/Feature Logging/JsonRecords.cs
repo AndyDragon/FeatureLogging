@@ -52,6 +52,25 @@
                 return $"{HubName}_{Name}";
             }
         }
+        public string[] PageTags
+        {
+            get
+            {
+                if (HubName == "snap")
+                {
+                    if (!string.IsNullOrEmpty(PageName) && PageName != Name)
+                    {
+                        return [HashTag ?? $"snap_{Name}", $"raw_{Name}", $"snap_{PageName}", $"raw_{PageName}"];
+                    }
+                    return [HashTag ?? $"snap_{Name}", $"raw_{Name}"];
+                }
+                if (HubName == "click")
+                {
+                    return [HashTag ?? $"click_{Name}"];
+                }
+                return [HashTag ?? Name];
+            }
+        }
     }
 
     public class TemplatesCatalog

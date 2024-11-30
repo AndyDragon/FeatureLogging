@@ -55,7 +55,6 @@ export default function General(props: GeneralProps) {
             </div>
         );
     }
-    const betaVersion = version?.[platform]?.beta;
 
     let index = 0;
 

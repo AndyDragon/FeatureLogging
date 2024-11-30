@@ -26,8 +26,8 @@ namespace FeatureLogging
             {
                 return userNameValidationResult;
             }
-            if (Validation.DisallowList.ContainsKey(hubName) 
-                && Validation.DisallowList[hubName].FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
+            if (Validation.DisallowList.TryGetValue(hubName, out List<string>? value) && 
+                value.FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
             {
                 return new ValidationResult(false, "User is on the disallow list");
             }
@@ -1036,20 +1036,16 @@ namespace FeatureLogging
         {
             if (hubName == "snap")
             {
-                switch (newMembershipLevel)
+                return newMembershipLevel switch
                 {
-                    case "Member (feature comment)":
-                        return "snap:member feature";
-                    case "Member (original post comment)":
-                        return "snap:member original post";
-                    case "VIP Member (feature comment)":
-                        return "snap:vip member feature";
-                    case "VIP Member (original post comment)":
-                        return "snap:vip member original post";
-                    default:
-                        return "";
-                }
-            } else if (hubName == "click")
+                    "Member (feature comment)" => "snap:member feature",
+                    "Member (original post comment)" => "snap:member original post",
+                    "VIP Member (feature comment)" => "snap:vip member feature",
+                    "VIP Member (original post comment)" => "snap:vip member original post",
+                    _ => "",
+                };
+            }
+            else if (hubName == "click")
             {
                 return hubName + ":" + NewMembership.Replace(" ", "_").ToLowerInvariant();
             }

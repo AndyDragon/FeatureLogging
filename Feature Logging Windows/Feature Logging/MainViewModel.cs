@@ -455,14 +455,15 @@ namespace FeatureLogging
 
             LoadPostCommand = new Command(() =>
             {
-                if (SelectedFeature != null && SelectedFeature.PostLink != null && SelectedFeature.PostLink.StartsWith("https://vero.co/"))
+                if (SelectedPage != null && SelectedFeature != null && SelectedFeature.PostLink != null && SelectedFeature.PostLink.StartsWith("https://vero.co/"))
                 {
+                    LoadedPost = new DownloadedPostViewModel(this);
                     View = ViewMode.PostDownloaderView;
                 }
             }, 
             () => 
             { 
-                return SelectedFeature != null && SelectedFeature.PostLink != null && SelectedFeature.PostLink.StartsWith("https://vero.co/");
+                return SelectedPage != null && SelectedFeature != null && SelectedFeature.PostLink != null && SelectedFeature.PostLink.StartsWith("https://vero.co/");
             });
 
             CopyPageFeatureTagCommand = new Command(() =>
@@ -925,6 +926,7 @@ namespace FeatureLogging
 
         public enum ViewMode {  LogView, ScriptView, StatisticsView, PostDownloaderView }
         private ViewMode view = ViewMode.LogView;
+
         public ViewMode View 
         {
             get => view;
@@ -938,6 +940,10 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(PostDownloaderViewVisibility));
                     OnPropertyChanged(nameof(FeatureNavigationVisibility));
                     OnPropertyChanged(nameof(Title));
+                    if (view != ViewMode.PostDownloaderView)
+                    {
+                        LoadedPost = null;
+                    }
                 }
             }
         }
@@ -1625,9 +1631,21 @@ namespace FeatureLogging
 
         public ScriptsViewModel ScriptViewModel => scriptViewModel;
 
-        public MainWindow? MainWindow { get; internal set; }
+        #endregion
+
+        #region Loaded post
+
+        private DownloadedPostViewModel? loadedPost;
+
+        public DownloadedPostViewModel? LoadedPost 
+        { 
+            get => loadedPost; 
+            private set => Set(ref loadedPost, value); 
+        }
 
         #endregion
+
+        public MainWindow? MainWindow { get; internal set; }
 
         internal void ShowToast(string title, string? message, NotificationType type, TimeSpan? expirationTime = null)
         {

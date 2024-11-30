@@ -45,6 +45,10 @@ namespace FeatureLogging
 
             base.OnStartup(e);
 
+            ThemeManager.Current.ThemeSyncMode = ThemeSyncMode.SyncAll;
+
+            ThemeManager.Current.SyncTheme();
+
             var lastThemeName = UserSettings.Get<string>("theme");
             if (!string.IsNullOrEmpty(lastThemeName))
             {
