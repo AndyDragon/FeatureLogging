@@ -12,6 +12,8 @@ namespace FeatureLogging
         public MainWindow()
         {
             InitializeComponent();
+
+            ResortList();
         }
 
         private void OnActivatedChanged(object sender, EventArgs e)
@@ -93,6 +95,17 @@ namespace FeatureLogging
             {
                 WindowState = WindowState.Maximized;
             }
+        }
+
+        internal void ResortList()
+        {
+            this.FeaturesListBox.Items.SortDescriptions.Clear();
+            var sortDescription = new SortDescription()
+            {
+                Direction = ListSortDirection.Ascending,
+                PropertyName = "SortKey",
+            };
+            this.FeaturesListBox.Items.SortDescriptions.Add(sortDescription);
         }
     }
 }

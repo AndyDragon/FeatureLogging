@@ -577,7 +577,9 @@ namespace FeatureLogging
 
             NavigateToPreviousFeatureCommand = new Command(() =>
             {
-                var pickedAndAllowedFeatures = Features.Where(feature => feature.IsPickedAndAllowed).ToArray();
+                var pickedAndAllowedFeatures = Features.Where(feature => feature.IsPickedAndAllowed)
+                                                       .OrderBy(feature => feature, FeatureComparer.Default)
+                                                       .ToArray();
                 var currentIndex = Array.IndexOf(pickedAndAllowedFeatures, SelectedFeature);
                 if (currentIndex == -1)
                 {
@@ -590,7 +592,9 @@ namespace FeatureLogging
 
             NavigateToNextFeatureCommand = new Command(() =>
             {
-                var pickedAndAllowedFeatures = Features.Where(feature => feature.IsPickedAndAllowed).ToArray();
+                var pickedAndAllowedFeatures = Features.Where(feature => feature.IsPickedAndAllowed)
+                                                       .OrderBy(feature => feature, FeatureComparer.Default)
+                                                       .ToArray();
                 var currentIndex = Array.IndexOf(pickedAndAllowedFeatures, SelectedFeature);
                 if (currentIndex == -1)
                 {
@@ -1118,6 +1122,7 @@ namespace FeatureLogging
             get => selectedFeature;
             set
             {
+                var oldSelectedFeature = selectedFeature;
                 if (Set(ref selectedFeature, value))
                 {
                     Feature = SelectedFeature?.Id ?? string.Empty;
@@ -1125,9 +1130,28 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(SelectedFeatureVisibility));
                     OnPropertyChanged(nameof(Title));
                     LoadPostCommand.OnCanExecuteChanged();
+                    if (oldSelectedFeature != null)
+                    {
+                        oldSelectedFeature.PropertyChanged -= OnSelectedFeaturePropertyChanged;
+                    }
+                    if (selectedFeature != null)
+                    {
+                        selectedFeature.PropertyChanged += OnSelectedFeaturePropertyChanged;
+                    }
                 }
             }
         }
+
+        private void OnSelectedFeaturePropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case "SortKey":
+                    MainWindow?.ResortList();
+                    break;
+            }
+        }
+
         public Visibility SelectedFeatureVisibility => SelectedPage != null && SelectedFeature != null ? Visibility.Visible : Visibility.Collapsed;
 
         public Visibility FeatureNavigationVisibility => Features.Where(feature => feature.IsPickedAndAllowed).Count() > 1 && View == ViewMode.ScriptView ? Visibility.Visible : Visibility.Collapsed;
@@ -1713,80 +1737,38 @@ namespace FeatureLogging
                 return 1;
             }
 
-            // Handle photo featured on page
-            if (x.PhotoFeaturedOnPage && y.PhotoFeaturedOnPage)
-            {
-                return string.Compare(x.UserName, y.UserName);
-            }
-            if (x.PhotoFeaturedOnPage)
-            {
-                return 1;
-            }
-            if (y.PhotoFeaturedOnPage)
-            {
-                return -1;
-            }
-
-            // Handle tin eye results
-            if (x.TinEyeResults == "matches found" && y.TinEyeResults == "matches found")
-            {
-                return string.Compare(x.UserName, y.UserName);
-            }
-            if (x.TinEyeResults == "matches found")
-            {
-                return 1;
-            }
-            if (y.TinEyeResults == "matches found")
-            {
-                return -1;
-            }
-
-            // Handle ai check results
-            if (x.AiCheckResults == "ai" && y.AiCheckResults == "ai")
-            {
-                return string.Compare(x.UserName, y.UserName);
-            }
-            if (x.AiCheckResults == "ai")
-            {
-                return 1;
-            }
-            if (y.AiCheckResults == "ai")
-            {
-                return -1;
-            }
-
-            // Handle too soon to feature
-            if (x.TooSoonToFeatureUser && y.TooSoonToFeatureUser)
-            {
-                return string.Compare(x.UserName, y.UserName);
-            }
-            if (x.TooSoonToFeatureUser)
-            {
-                return 1;
-            }
-            if (y.TooSoonToFeatureUser)
-            {
-                return -1;
-            }
-
-            // Handle picked
-            if (x.IsPicked && y.IsPicked)
-            {
-                return string.Compare(x.UserName, y.UserName);
-            }
-            if (x.IsPicked)
-            {
-                return -1;
-            }
-            if (y.IsPicked)
-            {
-                return 1;
-            }
-
-            return string.Compare(x.UserName, y.UserName);
+            // Use pre-calculated sort key.
+            return string.Compare(x.SortKey, y.SortKey);
         }
 
         public readonly static FeatureComparer Default = new();
+
+        public static string CreateSortingKey(Feature feature)
+        {
+            var key = "";
+
+            if (feature == null)
+            {
+                return key;
+            }
+
+            // Handle photo featured on page
+            key += (feature.PhotoFeaturedOnPage ? "Z|" : "A|");
+
+            // Handle tin eye results
+            key += (feature.TinEyeResults == "matches found" ? "Z|" : "A|");
+
+            // Handle ai check results
+            key += (feature.AiCheckResults == "ai" ? "Z|" : "A|");
+
+            // Handle too soon to feature
+            key += (feature.TooSoonToFeatureUser ? "Z|" : "A|");
+
+            // Handle picked
+            key += (feature.IsPicked ? "A|" : "Z|");
+
+            return key + feature.UserName;
+        }
     }
 
     public class ThemeOption(Theme theme, bool isSelected = false)
@@ -1954,6 +1936,12 @@ namespace FeatureLogging
         }
 
         [JsonIgnore]
+        public string SortKey
+        {
+            get => FeatureComparer.CreateSortingKey(this);
+        }
+
+        [JsonIgnore]
         private bool isDirty = false;
         [JsonIgnore]
         public bool IsDirty
@@ -1967,7 +1955,7 @@ namespace FeatureLogging
         public bool IsPicked
         {
             get => isPicked;
-            set => SetWithDirtyCallback(ref isPicked, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
+            set => SetWithDirtyCallback(ref isPicked, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey)]);
         }
 
         private string postLink = "";
@@ -1985,7 +1973,7 @@ namespace FeatureLogging
         public string UserName
         {
             get => userName;
-            set => SetWithDirtyCallback(ref userName, value, () => IsDirty = true, [nameof(UserNameValidation)]);
+            set => SetWithDirtyCallback(ref userName, value, () => IsDirty = true, [nameof(UserNameValidation), nameof(SortKey)]);
         }
         [JsonIgnore]
         public ValidationResult UserNameValidation => Validation.ValidateValueNotEmptyAndContainsNoNewlines(userName);
@@ -2031,7 +2019,7 @@ namespace FeatureLogging
         public bool PhotoFeaturedOnPage
         {
             get => photoFeaturedOnPage;
-            set => SetWithDirtyCallback(ref photoFeaturedOnPage, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
+            set => SetWithDirtyCallback(ref photoFeaturedOnPage, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey)]);
         }
 
         private bool photoFeaturedOnHub = false;
@@ -2039,7 +2027,7 @@ namespace FeatureLogging
         public bool PhotoFeaturedOnHub
         {
             get => photoFeaturedOnHub;
-            set => SetWithDirtyCallback(ref photoFeaturedOnHub, value, () => IsDirty = true);
+            set => SetWithDirtyCallback(ref photoFeaturedOnHub, value, () => IsDirty = true, [nameof(SortKey)]);
         }
 
         private string photoLastFeaturedOnHub = "";
@@ -2155,7 +2143,7 @@ namespace FeatureLogging
         public bool TooSoonToFeatureUser
         {
             get => tooSoonToFeatureUser;
-            set => SetWithDirtyCallback(ref tooSoonToFeatureUser, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
+            set => SetWithDirtyCallback(ref tooSoonToFeatureUser, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey)]);
         }
 
         private string tinEyeResults = "0 matches";
@@ -2163,7 +2151,7 @@ namespace FeatureLogging
         public string TinEyeResults
         {
             get => tinEyeResults;
-            set => SetWithDirtyCallback(ref tinEyeResults, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
+            set => SetWithDirtyCallback(ref tinEyeResults, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey)]);
         }
 
         private string aiCheckResults = "human";
@@ -2171,7 +2159,7 @@ namespace FeatureLogging
         public string AiCheckResults
         {
             get => aiCheckResults;
-            set => SetWithDirtyCallback(ref aiCheckResults, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed)]);
+            set => SetWithDirtyCallback(ref aiCheckResults, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey)]);
         }
 
         private string personalMessage = "";
