@@ -34,7 +34,7 @@ struct MainContentView: View {
 
     @State private var viewModel: ContentView.ViewModel
     @State private var logURL: Binding<URL?>
-    @State private var focusedField: FocusState<FocusedField?>.Binding
+    @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var isDirty: Binding<Bool>
     @State private var logDocument: Binding<LogDocument>
     @State private var showFileImporter: Binding<Bool>
@@ -62,7 +62,7 @@ struct MainContentView: View {
     init(
         _ viewModel: ContentView.ViewModel,
         _ logURL: Binding<URL?>,
-        _ focusedField: FocusState<FocusedField?>.Binding,
+        _ focusedField: FocusState<FocusField?>.Binding,
         _ isDirty: Binding<Bool>,
         _ logDocument: Binding<LogDocument>,
         _ showFileImporter: Binding<Bool>,

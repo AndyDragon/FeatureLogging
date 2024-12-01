@@ -17,8 +17,10 @@ struct NewMembershipEditor: View {
     var valid: Bool
     var canCopy: Bool
     var copy: () -> Void
-    var focus: FocusState<FocusedField?>.Binding
-    var focusField: FocusedField
+    var focusedField: FocusState<FocusField?>.Binding
+    var editorFocusField: FocusField
+    var pickerFocusField: FocusField
+    var buttonFocusField: FocusField
 
     var body: some View {
         HStack {
@@ -39,6 +41,7 @@ struct NewMembershipEditor: View {
             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
             .frame(width: 320)
             .focusable()
+            .focused(focusedField, equals: pickerFocusField)
             .onKeyPress(phases: .down) { keyPress in
                 let direction = directionFromModifiers(keyPress)
                 if direction != .same {
@@ -59,6 +62,7 @@ struct NewMembershipEditor: View {
             )
             .disabled(!canCopy)
             .focusable()
+            .focused(focusedField, equals: buttonFocusField)
             .onKeyPress(.space) {
                 if canCopy {
                     copy()
@@ -75,7 +79,7 @@ struct NewMembershipEditor: View {
             TextEditor(text: $script)
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
-                .focused(focus, equals: focusField)
+                .focused(focusedField, equals: editorFocusField)
                 .focusable()
                 .textEditorStyle(.plain)
                 .foregroundStyle(valid ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
@@ -90,7 +94,7 @@ struct NewMembershipEditor: View {
             TextEditor(text: $script)
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
-                .focused(focus, equals: focusField)
+                .focused(focusedField, equals: editorFocusField)
                 .focusable()
                 .foregroundStyle(valid ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
                 .scrollContentBackground(.hidden)

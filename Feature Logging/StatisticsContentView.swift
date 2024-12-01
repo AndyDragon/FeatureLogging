@@ -17,7 +17,7 @@ struct LogFile {
 struct StatisticsContentView: View {
     @Environment(\.self) var environment
 
-    @State private var focusedField: FocusState<FocusedField?>.Binding
+    @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var isShowingToast: Binding<Bool>
     private var hideStatisticsView: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
@@ -38,7 +38,7 @@ struct StatisticsContentView: View {
     private let languagePrefix = Locale.preferredLanguageCode
 
     init(
-        _ focusedField: FocusState<FocusedField?>.Binding,
+        _ focusedField: FocusState<FocusField?>.Binding,
         _ isShowingToast: Binding<Bool>,
         _ hideStatisticsView: @escaping () -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void

@@ -17,18 +17,22 @@ import SwiftUI
 ///
 struct PostDownloaderView: View {
     @Environment(\.openURL) private var openURL
-
+    
     @State private var viewModel: ContentView.ViewModel
-    @State private var focusedField: FocusState<FocusedField?>.Binding
+    @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var isShowingToast: Binding<Bool>
     private var hideDownloaderView: () -> Void
     private var updateList: () -> Void
     private var markDocumentDirty: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
-
+    
     @State private var imageUrls: [(URL, String)] = []
-    @State private var tagCheck = ""
+    @State private var pageHashtagCheck = ""
     @State private var missingTag = false
+    @State private var excludedHashtagCheck = ""
+    @State private var hasExcludedHashtag = false
+    @State private var excludedHashtags = ""
+    @State private var postHashtags: [String] = []
     @State private var postLoaded = false
     @State private var userLoaded = false
     @State private var description = ""
@@ -41,14 +45,14 @@ struct PostDownloaderView: View {
     @State private var likeCount = 0
     @State private var userProfileLink = ""
     @State private var userBio = ""
-
+    
     private let languagePrefix = Locale.preferredLanguageCode
-    private let mainLabelWidth: CGFloat = -112
+    private let mainLabelWidth: CGFloat = -128
     private let labelWidth: CGFloat = 108
-
+    
     init(
         _ viewModel: ContentView.ViewModel,
-        _ focusedField: FocusState<FocusedField?>.Binding,
+        _ focusedField: FocusState<FocusField?>.Binding,
         _ isShowingToast: Binding<Bool>,
         _ hideDownloaderView: @escaping () -> Void,
         _ updateList: @escaping () -> Void,
@@ -63,22 +67,22 @@ struct PostDownloaderView: View {
         self.markDocumentDirty = markDocumentDirty
         self.showToast = showToast
     }
-
+    
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-
+            
             if viewModel.selectedPage != nil && viewModel.selectedFeature != nil {
                 let selectedPage = Binding<LoadedPage>(
                     get: { viewModel.selectedPage! },
                     set: { viewModel.selectedPage = $0 }
                 )
-
+                
                 let selectedFeature = Binding<SharedFeature>(
                     get: { viewModel.selectedFeature! },
                     set: { viewModel.selectedFeature = $0 }
                 )
-
+                
                 ScrollView(.vertical) {
                     VStack {
                         HStack(alignment: .top) {
@@ -95,6 +99,28 @@ struct PostDownloaderView: View {
                                         HStack(alignment: .center) {
                                             ValidationLabel("Page tags: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
                                             ValidationLabel(selectedPage.wrappedValue.hashTags.joined(separator: ", "), validation: true, validColor: .AccentColor)
+                                            Spacer()
+                                        }
+                                        .frame(height: 20)
+                                        HStack(alignment: .center) {
+                                            ValidationLabel("Excluded hashtags: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
+                                            HStack(alignment: .center) {
+                                                TextField(
+                                                    "add excluded hashtags without the '#' separated by comma",
+                                                    text: $excludedHashtags.onChange { value in
+                                                        storeExcludedTagsForPage()
+                                                    }
+                                                )
+                                                .focusable()
+                                                .focused(focusedField, equals: .postUserName)
+                                            }
+                                            .autocorrectionDisabled(false)
+                                            .textFieldStyle(.plain)
+                                            .padding(4)
+                                            .background(Color.BackgroundColorEditor)
+                                            .border(Color.gray.opacity(0.25))
+                                            .cornerRadius(4)
+                                            .frame(maxWidth: 480)
                                             Spacer()
                                         }
                                         .frame(height: 20)
@@ -197,7 +223,7 @@ struct PostDownloaderView: View {
                                         .cornerRadius(8)
                                         .opacity(0.5)
                                 }
-
+                                
                                 if postLoaded {
                                     // User name and bio
                                     HStack(alignment: .top) {
@@ -340,12 +366,17 @@ struct PostDownloaderView: View {
                                             .cornerRadius(8)
                                             .opacity(0.5)
                                     }
-
+                                    
                                     // Tag check and description
                                     HStack(alignment: .top) {
                                         VStack(alignment: .leading) {
                                             HStack(alignment: .center) {
-                                                ValidationLabel(tagCheck, validation: !missingTag, validColor: .green)
+                                                ValidationLabel(pageHashtagCheck, validation: !missingTag, validColor: .green)
+                                                Spacer()
+                                            }
+                                            .frame(height: 20)
+                                            HStack(alignment: .center) {
+                                                ValidationLabel(excludedHashtagCheck, validation: !hasExcludedHashtag, validColor: .green)
                                                 Spacer()
                                             }
                                             .frame(height: 20)
@@ -411,7 +442,7 @@ struct PostDownloaderView: View {
                                             .cornerRadius(8)
                                             .opacity(0.5)
                                     }
-
+                                    
                                     // Page and hub comments
                                     if !pageComments.isEmpty || !hubComments.isEmpty {
                                         HStack(alignment: .top) {
@@ -500,11 +531,11 @@ struct PostDownloaderView: View {
                                                             markDocumentDirty()
                                                             return .handled
                                                         }
-
+                                                        
                                                         if selectedFeature.feature.photoFeaturedOnHub.wrappedValue {
                                                             Text("|")
                                                                 .padding([.leading, .trailing], 8)
-
+                                                            
                                                             ValidationLabel(
                                                                 "Last date featured:",
                                                                 validation: !(selectedFeature.feature.photoLastFeaturedOnHub.wrappedValue.isEmpty || selectedFeature.feature.photoLastFeaturedPage.wrappedValue.isEmpty)
@@ -524,7 +555,7 @@ struct PostDownloaderView: View {
                                                             .border(Color.gray.opacity(0.25))
                                                             .cornerRadius(4)
                                                             .frame(maxWidth: 160)
-
+                                                            
                                                             TextField(
                                                                 "on page",
                                                                 text: selectedFeature.feature.photoLastFeaturedPage.onChange { value in
@@ -615,7 +646,7 @@ struct PostDownloaderView: View {
                                                 .opacity(0.5)
                                         }
                                     }
-
+                                    
                                     // Images
                                     VStack(alignment: .center) {
                                         HStack(alignment: .center) {
@@ -649,7 +680,7 @@ struct PostDownloaderView: View {
                                             .opacity(0.5)
                                     }
                                 }
-
+                                
                                 // Logging
                                 VStack(alignment: .center) {
                                     HStack(alignment: .top) {
@@ -726,8 +757,10 @@ struct PostDownloaderView: View {
         .onAppear {
             postLoaded = false
             userLoaded = false
-            tagCheck = ""
+            pageHashtagCheck = ""
             missingTag = false
+            excludedHashtagCheck = ""
+            hasExcludedHashtag = false
             imageUrls = []
             logging = []
             userProfileLink = ""
@@ -737,12 +770,13 @@ struct PostDownloaderView: View {
             moreComments = false
             commentCount = 0
             likeCount = 0
+            loadExcludedTagsForPage()
             Task.detached {
                 await loadFeature()
             }
         }
     }
-
+    
     @MainActor
     func parsePost(_ contents: String) {
         var likelyPrivate = false
@@ -776,7 +810,7 @@ struct PostDownloaderView: View {
                     }
                 }
             }
-            var hashTags: [String] = []
+            postHashtags = []
             if let captionsDiv = try! document.body()?.getElementsByTag("div").first(where: { element in
                 do {
                     return try element.classNames().contains(where: { className in
@@ -805,7 +839,7 @@ struct PostDownloaderView: View {
                             let linkText = text.trimmingCharacters(in: .whitespacesAndNewlines)
                             description = description + nextSpace + linkText
                             if linkText.hasPrefix("#") {
-                                hashTags.append(linkText.lowercased())
+                                postHashtags.append(linkText.lowercased())
                             }
                             nextSpace = " "
                         }
@@ -815,22 +849,23 @@ struct PostDownloaderView: View {
             }
             var pageHashTagFound = ""
             let pageHashTags = viewModel.selectedPage!.hashTags
-            if hashTags.firstIndex(where: { hashTag in
+            if postHashtags.firstIndex(where: { postHashTag in
                 return pageHashTags.firstIndex(where: { pageHashTag in
-                    if hashTag.lowercased() == pageHashTag.lowercased() {
+                    if postHashTag.lowercased() == pageHashTag.lowercased() {
                         pageHashTagFound = pageHashTag.lowercased()
                         return true
                     }
                     return false
                 }) != nil
             }) != nil {
-                tagCheck = "Contains page hashtag \(pageHashTagFound)"
-                logging.append((.blue, tagCheck))
+                pageHashtagCheck = "Contains page hashtag \(pageHashTagFound)"
+                logging.append((.blue, pageHashtagCheck))
             } else {
-                tagCheck = "MISSING page hashtag!!"
-                logging.append((.orange, tagCheck))
+                pageHashtagCheck = "MISSING page hashtag!!"
+                logging.append((.orange, pageHashtagCheck))
                 missingTag = true
             }
+            checkExcludedHashtags()
             if let imagesInBody = try! document.body()?.getElementsByTag("img") {
                 let carouselImages = imagesInBody.filter({ image in
                     do {
@@ -852,7 +887,7 @@ struct PostDownloaderView: View {
                     return (URL(string: imageSrc)!, userName)
                 })
             }
-
+            
             for item in try document.select("script") {
                 do {
                     let scriptText = try item.html().trimmingCharacters(in: .whitespaces)
@@ -925,16 +960,16 @@ struct PostDownloaderView: View {
                     ) {}
                 }
             }
-
+            
             // Debugging
             //print(try document.outerHtml())
-
+            
             if imageUrls.isEmpty && likelyPrivate {
                 throw AccountError.PrivateAccount
             } else if imageUrls.isEmpty {
                 throw AccountError.MissingImages
             }
-
+            
             postLoaded = true
         } catch let error as AccountError {
             logging.append((.red, "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"))
@@ -960,21 +995,21 @@ struct PostDownloaderView: View {
             ) {}
         }
     }
-
+    
     @MainActor
     private func parseUserProfile(_ contents: String) {
         do {
             logging.append((.blue, "Loaded the user profile from the server"))
             let document = try SwiftSoup.parse(contents)
-
+            
             if let description = try! getMetaTagContent(document, "property", "og:description") {
                 userBio = description.removeExtraSpaces()
                 logging.append((.blue, "Loaded user's BIO from their profile"))
             }
-
+            
             // Debugging
             //print(try document.outerHtml())
-
+            
             userLoaded = true
         } catch {
             logging.append((.red, "Failed to download and parse the user profile information - \(error.localizedDescription)"))
@@ -989,14 +1024,14 @@ struct PostDownloaderView: View {
             ) {}
         }
     }
-
+    
     /// Account error enumeration for throwing account-specifc error codes.
     enum AccountError: String, LocalizedError {
         case PrivateAccount = "Could not find any images, this account might be private"
         case MissingImages = "Could not find any images"
         public var errorDescription: String? { self.rawValue }
     }
-
+    
     /// Loads the feature using the postUrl.
     private func loadFeature() async {
         if let url = URL(string: viewModel.selectedFeature!.feature.postLink) {
@@ -1026,7 +1061,7 @@ struct PostDownloaderView: View {
             }.resume()
         }
     }
-
+    
     /// Loads the user profile using the userProfileLink.
     private func loadUserProfile() async {
         if let url = URL(string: userProfileLink) {
@@ -1056,7 +1091,7 @@ struct PostDownloaderView: View {
             }.resume()
         }
     }
-
+    
     /// Gets the `content` value of the `meta` tag with the given `key`/`value` pair.
     /// - Parameters:
     ///   - document: The `SoupSwift` document object.
@@ -1088,6 +1123,44 @@ struct PostDownloaderView: View {
                 selectedFeature.feature.userLevel.wrappedValue = result.1
             }
             markDocumentDirty()
+        }
+    }
+    
+    private func loadExcludedTagsForPage() {
+        if let page = viewModel.selectedPage {
+            excludedHashtags = UserDefaults.standard.string(forKey: "ExcludedHashtags_" + page.id) ?? ""
+        }
+    }
+    
+    private func storeExcludedTagsForPage() {
+        if let page = viewModel.selectedPage {
+            UserDefaults.standard.set(excludedHashtags, forKey: "ExcludedHashtags_" + page.id)
+            checkExcludedHashtags()
+        }
+    }
+    
+    private func checkExcludedHashtags() {
+        hasExcludedHashtag = false
+        excludedHashtagCheck = ""
+        if !excludedHashtags.isEmpty {
+            let excludedTags = excludedHashtags.split(separator: ",", omittingEmptySubsequences: true)
+            for excludedTag in excludedTags {
+                if postHashtags.includes("#\(String(excludedTag))") {
+                    hasExcludedHashtag = true
+                    excludedHashtagCheck = "Post has excluded hashtag \(excludedTag)!"
+                    logging.append((.red, excludedHashtagCheck))
+                    break
+                }
+            }
+        }
+        if excludedHashtagCheck.isEmpty {
+            if excludedHashtags.isEmpty {
+                excludedHashtagCheck = "Post does not contain any excluded hashtags"
+                logging.append((.blue, excludedHashtagCheck))
+            } else {
+                excludedHashtagCheck = "No excluded hashtags to check"
+                logging.append((.blue, excludedHashtagCheck))
+            }
         }
     }
 }

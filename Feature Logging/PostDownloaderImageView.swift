@@ -45,6 +45,8 @@ struct PostDownloaderImageView: View {
                             height = Int(pixelSize.height)
                             scale = min(400.0 / Float(result.image.size.width), 360.0 / Float(result.image.size.height))
                         }
+                        .interpolation(.high)
+                        .antialiased(true)
                         .forceRefresh()
                         .cornerRadius(2)
                 }

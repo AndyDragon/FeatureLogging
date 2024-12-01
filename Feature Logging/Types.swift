@@ -9,10 +9,15 @@ import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
 
-enum FocusedField: Hashable {
-    case featureScript, // ScriptContentView
+enum FocusField: Hashable {
+    case copyFeatureScript, // ScriptContentView
+         featureScript,
+         copyCommentScript,
          commentScript,
+         copyOriginalPostScript,
          originalPostScript,
+         newMembership,
+         copyNewMembershipScript,
          newMembershipScript,
 
          pagePicker, // Content view

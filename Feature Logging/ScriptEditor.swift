@@ -15,8 +15,9 @@ struct ScriptEditor: View {
     var canCopy: Bool
     var hasPlaceholders: Bool
     var copy: (Bool, Bool) -> Void
-    var focus: FocusState<FocusedField?>.Binding
-    var focusField: FocusedField
+    var focusedField: FocusState<FocusField?>.Binding
+    var editorFocusField: FocusField
+    var buttonFocusField: FocusField
 
     var body: some View {
         // Header
@@ -34,6 +35,7 @@ struct ScriptEditor: View {
             )
             .disabled(!canCopy)
             .focusable()
+            .focused(focusedField, equals: buttonFocusField)
             .onKeyPress(.space) {
                 if canCopy {
                     copy(true, false)
@@ -70,7 +72,7 @@ struct ScriptEditor: View {
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
                 .focusable()
-                .focused(focus, equals: focusField)
+                .focused(focusedField, equals: editorFocusField)
                 .textEditorStyle(.plain)
                 .foregroundStyle(canCopy ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
                 .scrollContentBackground(.hidden)
@@ -86,7 +88,7 @@ struct ScriptEditor: View {
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
                 .focusable()
-                .focused(focus, equals: focusField)
+                .focused(focusedField, equals: editorFocusField)
                 .foregroundStyle(canCopy ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
                 .scrollContentBackground(.hidden)
                 .padding(4)

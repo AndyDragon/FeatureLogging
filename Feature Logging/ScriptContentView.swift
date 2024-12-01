@@ -14,7 +14,7 @@ struct ScriptContentView: View {
     @ObservedObject private var featureScriptPlaceholders: PlaceholderList
     @ObservedObject private var commentScriptPlaceholders: PlaceholderList
     @ObservedObject private var originalPostScriptPlaceholders: PlaceholderList
-    @State private var focusedField: FocusState<FocusedField?>.Binding
+    @State private var focusedField: FocusState<FocusField?>.Binding
     private var isShowingToast: Binding<Bool>
     private var hideScriptView: () -> Void
     private var navigateToNextFeature: (_ forward: Bool) -> Void
@@ -57,7 +57,7 @@ struct ScriptContentView: View {
         _ featureScriptPlaceholders: PlaceholderList,
         _ commentScriptPlaceholders: PlaceholderList,
         _ originalPostScriptPlaceholders: PlaceholderList,
-        _ focusedField: FocusState<FocusedField?>.Binding,
+        _ focusedField: FocusState<FocusField?>.Binding,
         _ isShowingToast: Binding<Bool>,
         _ hideScriptView: @escaping () -> Void,
         _ navigateToNextFeature: @escaping (_ forward: Bool) -> Void,
@@ -267,8 +267,9 @@ struct ScriptContentView: View {
                                     ) {}
                                 }
                             },
-                            focus: focusedField,
-                            focusField: .featureScript)
+                            focusedField: focusedField,
+                            editorFocusField: .featureScript,
+                            buttonFocusField: .copyFeatureScript)
 
                         // Comment script output
                         ScriptEditor(
@@ -298,8 +299,9 @@ struct ScriptContentView: View {
                                     ) {}
                                 }
                             },
-                            focus: focusedField,
-                            focusField: .commentScript)
+                            focusedField: focusedField,
+                            editorFocusField: .commentScript,
+                            buttonFocusField: .copyCommentScript)
 
                         // Original post script output
                         ScriptEditor(
@@ -329,8 +331,9 @@ struct ScriptContentView: View {
                                     ) {}
                                 }
                             },
-                            focus: focusedField,
-                            focusField: .originalPostScript)
+                            focusedField: focusedField,
+                            editorFocusField: .originalPostScript,
+                            buttonFocusField: .copyOriginalPostScript)
                     }
 
                     // New membership
@@ -357,8 +360,10 @@ struct ScriptContentView: View {
                                     .Success
                                 ) {}
                             },
-                            focus: focusedField,
-                            focusField: .newMembershipScript)
+                            focusedField: focusedField,
+                            editorFocusField: .newMembershipScript,
+                            pickerFocusField: .newMembership,
+                            buttonFocusField: .copyNewMembershipScript)
                     }
                 }
                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
@@ -418,8 +423,7 @@ struct ScriptContentView: View {
                     if viewModel.pickedFeatures.count >= 2 {
                         Button(action: {
                             navigateToNextFeature(false)
-                            updateScripts()
-                            updateNewMembershipScripts()
+                            populateFromSharedFeature()
                         }) {
                             HStack {
                                 Image(systemName: "arrowtriangle.backward.fill")
@@ -460,8 +464,7 @@ struct ScriptContentView: View {
                     if viewModel.pickedFeatures.count >= 2 {
                         Button(action: {
                             navigateToNextFeature(true)
-                            updateScripts()
-                            updateNewMembershipScripts()
+                            populateFromSharedFeature()
                         }) {
                             HStack {
                                 Image(systemName: "arrowtriangle.forward.fill")
@@ -486,12 +489,11 @@ struct ScriptContentView: View {
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)
         .onAppear {
-            populateFromFeatureUser()
-            focusedField.wrappedValue = .featureScript
+            populateFromSharedFeature()
         }
     }
 
-    private func populateFromFeatureUser() {
+    private func populateFromSharedFeature() {
         pageValidation = validatePage()
         yourNameValidation = validateYourName()
         yourFirstNameValidation = validateYourFirstName()
@@ -505,6 +507,7 @@ struct ScriptContentView: View {
 
         updateScripts()
         updateNewMembershipScripts()
+        focusedField.wrappedValue = .copyFeatureScript
     }
 
     private func clearPlaceholders() {

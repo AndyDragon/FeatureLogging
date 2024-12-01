@@ -10,7 +10,7 @@ import SwiftUI
 
 struct FeatureEditor: View {
     @State private var viewModel: ContentView.ViewModel
-    @State private var focusedField: FocusState<FocusedField?>.Binding
+    @State private var focusedField: FocusState<FocusField?>.Binding
     private var close: () -> Void
     private var updateList: () -> Void
     private var markDocumentDirty: () -> Void
@@ -26,7 +26,7 @@ struct FeatureEditor: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ focusedField: FocusState<FocusedField?>.Binding,
+        _ focusedField: FocusState<FocusField?>.Binding,
         _ close: @escaping () -> Void,
         _ updateList: @escaping () -> Void,
         _ markDocumentDirty: @escaping () -> Void,
@@ -142,13 +142,13 @@ struct FeatureEditor: View {
                             Text("Load post")
                                 .font(.system(.body, design: .rounded).bold())
                                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                            Text("  ⌘ ⇧ ↓")
+                            Text("  ⌘ L")
                                 .font(.system(.body, design: .rounded))
                                 .foregroundStyle(Color.gray, Color.TextColorSecondary)
                         }
                     }
                     .disabled(!selectedFeature.feature.postLink.wrappedValue.starts(with: "https://vero.co/"))
-                    .keyboardShortcut(.downArrow, modifiers: [.command, .shift])
+                    .keyboardShortcut("l", modifiers: .command)
                     .focusable()
                     .onKeyPress(.space) {
                         showDownloaderView()

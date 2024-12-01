@@ -66,7 +66,7 @@ struct ContentView: View {
     @State private var isShowingStatisticsView = false
     @State private var isShowingDownloaderView = false
     @State private var shouldScrollFeatureListToSelection = false
-    @FocusState private var focusedField: FocusedField?
+    @FocusState private var focusedField: FocusField?
     private var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
         isShowingToast || appState.isShowingVersionAvailableToast.wrappedValue || appState.isShowingVersionRequiredToast.wrappedValue
