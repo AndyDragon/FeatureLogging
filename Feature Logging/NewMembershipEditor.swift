@@ -24,7 +24,10 @@ struct NewMembershipEditor: View {
         HStack {
             Text("New membership:")
 
-            Picker("", selection: $newMembership.onChange(onChanged)) {
+            Picker("", selection: $newMembership.onChange { value in
+                navigateToNewMembership(.same)
+                onChanged(value)
+            }) {
                 ForEach(NewMembershipCase.casesFor(hub: currentPage?.hub)) { level in
                     Text(level.rawValue)
                         .tag(level)
@@ -35,6 +38,15 @@ struct NewMembershipEditor: View {
             .accentColor(Color.AccentColor)
             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
             .frame(width: 320)
+            .focusable()
+            .onKeyPress(phases: .down) { keyPress in
+                let direction = directionFromModifiers(keyPress)
+                if direction != .same {
+                    navigateToNewMembership(direction)
+                    return .handled
+                }
+                return .ignored
+            }
 
             Button(
                 action: {
@@ -46,6 +58,13 @@ struct NewMembershipEditor: View {
                 }
             )
             .disabled(!canCopy)
+            .focusable()
+            .onKeyPress(.space) {
+                if canCopy {
+                    copy()
+                }
+                return .handled
+            }
 
             Spacer()
         }
@@ -57,6 +76,7 @@ struct NewMembershipEditor: View {
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
                 .focused(focus, equals: focusField)
+                .focusable()
                 .textEditorStyle(.plain)
                 .foregroundStyle(valid ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
                 .scrollContentBackground(.hidden)
@@ -71,6 +91,7 @@ struct NewMembershipEditor: View {
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
                 .focused(focus, equals: focusField)
+                .focusable()
                 .foregroundStyle(valid ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
                 .scrollContentBackground(.hidden)
                 .padding(4)
@@ -79,6 +100,16 @@ struct NewMembershipEditor: View {
                 .cornerRadius(4)
                 .autocorrectionDisabled(false)
                 .disableAutocorrection(false)
+        }
+    }
+    
+    private func navigateToNewMembership(_ direction: Direction) {
+        let result = navigateGeneric(NewMembershipCase.casesFor(hub: currentPage?.hub), newMembership, direction)
+        if result.0 {
+            if direction != .same {
+                newMembership = result.1
+            }
+            onChanged(newMembership)
         }
     }
 }

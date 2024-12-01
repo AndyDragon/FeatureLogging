@@ -19,6 +19,7 @@ struct PostDownloaderView: View {
     @Environment(\.openURL) private var openURL
 
     @State private var viewModel: ContentView.ViewModel
+    @State private var focusedField: FocusState<FocusedField?>.Binding
     @State private var isShowingToast: Binding<Bool>
     private var hideDownloaderView: () -> Void
     private var updateList: () -> Void
@@ -47,6 +48,7 @@ struct PostDownloaderView: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
+        _ focusedField: FocusState<FocusedField?>.Binding,
         _ isShowingToast: Binding<Bool>,
         _ hideDownloaderView: @escaping () -> Void,
         _ updateList: @escaping () -> Void,
@@ -54,6 +56,7 @@ struct PostDownloaderView: View {
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     ) {
         self.viewModel = viewModel
+        self.focusedField = focusedField
         self.isShowingToast = isShowingToast
         self.hideDownloaderView = hideDownloaderView
         self.updateList = updateList
@@ -101,12 +104,19 @@ struct PostDownloaderView: View {
                                             Spacer()
                                             Button(action: {
                                                 copyToClipboard(selectedFeature.feature.postLink.wrappedValue)
+                                                showToast(.complete(.green), "Copied to clipboard", "Copied the post URL to the clipboard", .Success) {}
                                             }) {
                                                 HStack(alignment: .center) {
                                                     Image(systemName: "pencil.and.list.clipboard")
                                                         .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                                     Text("Copy URL")
                                                 }
+                                            }
+                                            .focusable()
+                                            .onKeyPress(.space) {
+                                                copyToClipboard(selectedFeature.feature.postLink.wrappedValue)
+                                                showToast(.complete(.green), "Copied to clipboard", "Copied the post URL to the clipboard", .Success) {}
+                                                return .handled
                                             }
                                             Spacer()
                                                 .frame(width: 10)
@@ -122,6 +132,13 @@ struct PostDownloaderView: View {
                                                 }
                                             }
                                             .disabled(selectedFeature.feature.postLink.wrappedValue.isEmpty)
+                                            .focusable(!selectedFeature.feature.postLink.wrappedValue.isEmpty)
+                                            .onKeyPress(.space) {
+                                                if let url = URL(string: selectedFeature.feature.postLink.wrappedValue) {
+                                                    openURL(url)
+                                                }
+                                                return .handled
+                                            }
                                         }
                                         .frame(height: 20)
                                         if userLoaded {
@@ -131,12 +148,19 @@ struct PostDownloaderView: View {
                                                 Spacer()
                                                 Button(action: {
                                                     copyToClipboard(userProfileLink)
+                                                    showToast(.complete(.green), "Copied to clipboard", "Copied the user profile URL to the clipboard", .Success) {}
                                                 }) {
                                                     HStack(alignment: .center) {
                                                         Image(systemName: "pencil.and.list.clipboard")
                                                             .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                                         Text("Copy URL")
                                                     }
+                                                }
+                                                .focusable()
+                                                .onKeyPress(.space) {
+                                                    copyToClipboard(userProfileLink)
+                                                    showToast(.complete(.green), "Copied to clipboard", "Copied the user profile URL to the clipboard", .Success) {}
+                                                    return .handled
                                                 }
                                                 Spacer()
                                                     .frame(width: 10)
@@ -152,6 +176,13 @@ struct PostDownloaderView: View {
                                                     }
                                                 }
                                                 .disabled(userProfileLink.isEmpty)
+                                                .focusable(!userProfileLink.isEmpty)
+                                                .onKeyPress(.space) {
+                                                    if let url = URL(string: userProfileLink) {
+                                                        openURL(url)
+                                                    }
+                                                    return .handled
+                                                }
                                             }
                                             .frame(height: 20)
                                         }
@@ -166,7 +197,7 @@ struct PostDownloaderView: View {
                                         .cornerRadius(8)
                                         .opacity(0.5)
                                 }
-                                
+
                                 if postLoaded {
                                     // User name and bio
                                     HStack(alignment: .top) {
@@ -186,8 +217,9 @@ struct PostDownloaderView: View {
                                                             markDocumentDirty()
                                                         }
                                                     )
+                                                    .focusable()
+                                                    .focused(focusedField, equals: .postUserName)
                                                 }
-                                                .focusable()
                                                 .autocorrectionDisabled(false)
                                                 .textFieldStyle(.plain)
                                                 .padding(4)
@@ -205,6 +237,13 @@ struct PostDownloaderView: View {
                                                     }
                                                 }
                                                 .disabled(userName.isEmpty)
+                                                .focusable(!userName.isEmpty)
+                                                .onKeyPress(.space) {
+                                                    if !userName.isEmpty {
+                                                        selectedFeature.feature.userName.wrappedValue = userName
+                                                    }
+                                                    return .handled
+                                                }
                                             }
                                             .frame(maxWidth: .infinity)
                                             .frame(height: 20)
@@ -216,7 +255,7 @@ struct PostDownloaderView: View {
                                                     Picker(
                                                         "",
                                                         selection: selectedFeature.feature.userLevel.onChange { value in
-                                                            markDocumentDirty()
+                                                            navigateToUserLevel(selectedPage.hub.wrappedValue, selectedFeature, .same)
                                                         }
                                                     ) {
                                                         ForEach(MembershipCase.casesFor(hub: selectedPage.hub.wrappedValue)) { level in
@@ -229,7 +268,16 @@ struct PostDownloaderView: View {
                                                     .accentColor(Color.AccentColor)
                                                     .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                                                     .focusable()
+                                                    .focused(focusedField, equals: .postUserLevel)
                                                     .frame(maxWidth: 240)
+                                                    .onKeyPress(phases: .down) { keyPress in
+                                                        let direction = directionFromModifiers(keyPress)
+                                                        if direction != .same {
+                                                            navigateToUserLevel(selectedPage.hub.wrappedValue, selectedFeature, direction)
+                                                            return .handled
+                                                        }
+                                                        return .ignored
+                                                    }
                                                 }
                                                 .frame(maxWidth: .infinity)
                                                 HStack(alignment: .top) {
@@ -237,6 +285,7 @@ struct PostDownloaderView: View {
                                                         if #available(macOS 14.0, *) {
                                                             TextEditor(text: .constant(userBio))
                                                                 .scrollIndicators(.never)
+                                                                .focusable(false)
                                                                 .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
                                                                 .textEditorStyle(.plain)
                                                                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
@@ -248,6 +297,7 @@ struct PostDownloaderView: View {
                                                         } else {
                                                             TextEditor(text: .constant(userBio))
                                                                 .scrollIndicators(.never)
+                                                                .focusable(false)
                                                                 .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
                                                                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                                                                 .scrollContentBackground(.hidden)
@@ -271,6 +321,12 @@ struct PostDownloaderView: View {
                                                     .tint(Color.AccentColor)
                                                     .accentColor(Color.AccentColor)
                                                     .focusable()
+                                                    .focused(focusedField, equals: .postTeammate)
+                                                    .onKeyPress(.space) {
+                                                        selectedFeature.feature.userIsTeammate.wrappedValue.toggle();
+                                                        markDocumentDirty()
+                                                        return .handled
+                                                    }
                                                 }
                                             }
                                         }
@@ -284,7 +340,7 @@ struct PostDownloaderView: View {
                                             .cornerRadius(8)
                                             .opacity(0.5)
                                     }
-                                    
+
                                     // Tag check and description
                                     HStack(alignment: .top) {
                                         VStack(alignment: .leading) {
@@ -304,6 +360,7 @@ struct PostDownloaderView: View {
                                                     }
                                                 )
                                                 .focusable()
+                                                .focused(focusedField, equals: .postDescription)
                                                 .autocorrectionDisabled(false)
                                                 .textFieldStyle(.plain)
                                                 .padding(4)
@@ -318,6 +375,7 @@ struct PostDownloaderView: View {
                                                     if #available(macOS 14.0, *) {
                                                         TextEditor(text: .constant(description))
                                                             .scrollIndicators(.never)
+                                                            .focusable(false)
                                                             .frame(maxWidth: 960, maxHeight: .infinity, alignment: .leading)
                                                             .textEditorStyle(.plain)
                                                             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
@@ -329,6 +387,7 @@ struct PostDownloaderView: View {
                                                     } else {
                                                         TextEditor(text: .constant(description))
                                                             .scrollIndicators(.never)
+                                                            .focusable(false)
                                                             .frame(maxWidth: 960, maxHeight: .infinity, alignment: .leading)
                                                             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                                                             .scrollContentBackground(.hidden)
@@ -352,7 +411,7 @@ struct PostDownloaderView: View {
                                             .cornerRadius(8)
                                             .opacity(0.5)
                                     }
-                                    
+
                                     // Page and hub comments
                                     if !pageComments.isEmpty || !hubComments.isEmpty {
                                         HStack(alignment: .top) {
@@ -374,6 +433,13 @@ struct PostDownloaderView: View {
                                                         .tint(Color.AccentColor)
                                                         .accentColor(Color.AccentColor)
                                                         .focusable()
+                                                        .focused(focusedField, equals: .postPhotoFeaturedOnPage)
+                                                        .onKeyPress(.space) {
+                                                            selectedFeature.feature.photoFeaturedOnPage.wrappedValue.toggle();
+                                                            updateList()
+                                                            markDocumentDirty()
+                                                            return .handled
+                                                        }
                                                     }
                                                     .frame(height: 20)
                                                     ScrollView {
@@ -386,12 +452,21 @@ struct PostDownloaderView: View {
                                                                     .frame(width: 10)
                                                                 Button(action: {
                                                                     selectedFeature.feature.photoFeaturedOnPage.wrappedValue = true
+                                                                    updateList()
+                                                                    markDocumentDirty()
                                                                 }) {
                                                                     HStack(alignment: .center) {
                                                                         Image(systemName: "checkmark.square")
                                                                             .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                                                         Text("Mark post")
                                                                     }
+                                                                }
+                                                                .focusable()
+                                                                .onKeyPress(.space) {
+                                                                    selectedFeature.feature.photoFeaturedOnPage.wrappedValue = true
+                                                                    updateList()
+                                                                    markDocumentDirty()
+                                                                    return .handled
                                                                 }
                                                             }
                                                         }
@@ -418,11 +493,18 @@ struct PostDownloaderView: View {
                                                         .tint(Color.AccentColor)
                                                         .accentColor(Color.AccentColor)
                                                         .focusable()
-                                                        
+                                                        .focused(focusedField, equals: .postPhotoFeaturedOnHub)
+                                                        .onKeyPress(.space) {
+                                                            selectedFeature.feature.photoFeaturedOnHub.wrappedValue.toggle();
+                                                            updateList()
+                                                            markDocumentDirty()
+                                                            return .handled
+                                                        }
+
                                                         if selectedFeature.feature.photoFeaturedOnHub.wrappedValue {
                                                             Text("|")
                                                                 .padding([.leading, .trailing], 8)
-                                                            
+
                                                             ValidationLabel(
                                                                 "Last date featured:",
                                                                 validation: !(selectedFeature.feature.photoLastFeaturedOnHub.wrappedValue.isEmpty || selectedFeature.feature.photoLastFeaturedPage.wrappedValue.isEmpty)
@@ -434,6 +516,7 @@ struct PostDownloaderView: View {
                                                                 }
                                                             )
                                                             .focusable()
+                                                            .focused(focusedField, equals: .postPhotoLastFeaturedOnHub)
                                                             .autocorrectionDisabled(false)
                                                             .textFieldStyle(.plain)
                                                             .padding(4)
@@ -441,7 +524,7 @@ struct PostDownloaderView: View {
                                                             .border(Color.gray.opacity(0.25))
                                                             .cornerRadius(4)
                                                             .frame(maxWidth: 160)
-                                                            
+
                                                             TextField(
                                                                 "on page",
                                                                 text: selectedFeature.feature.photoLastFeaturedPage.onChange { value in
@@ -449,6 +532,7 @@ struct PostDownloaderView: View {
                                                                 }
                                                             )
                                                             .focusable()
+                                                            .focused(focusedField, equals: .postPhotoLastFeaturedPage)
                                                             .autocorrectionDisabled(false)
                                                             .textFieldStyle(.plain)
                                                             .padding(4)
@@ -471,12 +555,21 @@ struct PostDownloaderView: View {
                                                                     selectedFeature.feature.photoFeaturedOnHub.wrappedValue = true
                                                                     selectedFeature.feature.photoLastFeaturedPage.wrappedValue = comment.3
                                                                     selectedFeature.feature.photoLastFeaturedOnHub.wrappedValue = comment.2.formatTimestamp()
+                                                                    markDocumentDirty()
                                                                 }) {
                                                                     HStack(alignment: .center) {
                                                                         Image(systemName: "checkmark.square")
                                                                             .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                                                         Text("Mark post")
                                                                     }
+                                                                }
+                                                                .focusable()
+                                                                .onKeyPress(.space) {
+                                                                    selectedFeature.feature.photoFeaturedOnHub.wrappedValue = true
+                                                                    selectedFeature.feature.photoLastFeaturedPage.wrappedValue = comment.3
+                                                                    selectedFeature.feature.photoLastFeaturedOnHub.wrappedValue = comment.2.formatTimestamp()
+                                                                    markDocumentDirty()
+                                                                    return .handled
                                                                 }
                                                             }
                                                         }
@@ -522,7 +615,7 @@ struct PostDownloaderView: View {
                                                 .opacity(0.5)
                                         }
                                     }
-                                    
+
                                     // Images
                                     VStack(alignment: .center) {
                                         HStack(alignment: .center) {
@@ -556,7 +649,7 @@ struct PostDownloaderView: View {
                                             .opacity(0.5)
                                     }
                                 }
-                                
+
                                 // Logging
                                 VStack(alignment: .center) {
                                     HStack(alignment: .top) {
@@ -564,12 +657,19 @@ struct PostDownloaderView: View {
                                         Spacer()
                                         Button(action: {
                                             copyToClipboard(logging.map { $0.1 }.joined(separator: "\n"))
+                                            showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
                                         }) {
                                             HStack(alignment: .center) {
                                                 Image(systemName: "pencil.and.list.clipboard")
                                                     .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                                 Text("Copy log")
                                             }
+                                        }
+                                        .focusable()
+                                        .onKeyPress(.space) {
+                                            copyToClipboard(logging.map { $0.1 }.joined(separator: "\n"))
+                                            showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
+                                            return .handled
                                         }
                                     }
                                     .frame(maxWidth: 1280)
@@ -642,7 +742,7 @@ struct PostDownloaderView: View {
             }
         }
     }
-    
+
     @MainActor
     func parsePost(_ contents: String) {
         var likelyPrivate = false
@@ -752,7 +852,7 @@ struct PostDownloaderView: View {
                     return (URL(string: imageSrc)!, userName)
                 })
             }
-            
+
             for item in try document.select("script") {
                 do {
                     let scriptText = try item.html().trimmingCharacters(in: .whitespaces)
@@ -825,10 +925,10 @@ struct PostDownloaderView: View {
                     ) {}
                 }
             }
-            
+
             // Debugging
             //print(try document.outerHtml())
-            
+
             if imageUrls.isEmpty && likelyPrivate {
                 throw AccountError.PrivateAccount
             } else if imageUrls.isEmpty {
@@ -860,21 +960,21 @@ struct PostDownloaderView: View {
             ) {}
         }
     }
-    
+
     @MainActor
     private func parseUserProfile(_ contents: String) {
         do {
             logging.append((.blue, "Loaded the user profile from the server"))
             let document = try SwiftSoup.parse(contents)
-            
+
             if let description = try! getMetaTagContent(document, "property", "og:description") {
                 userBio = description.removeExtraSpaces()
                 logging.append((.blue, "Loaded user's BIO from their profile"))
             }
-            
+
             // Debugging
             //print(try document.outerHtml())
-            
+
             userLoaded = true
         } catch {
             logging.append((.red, "Failed to download and parse the user profile information - \(error.localizedDescription)"))
@@ -889,7 +989,7 @@ struct PostDownloaderView: View {
             ) {}
         }
     }
-    
+
     /// Account error enumeration for throwing account-specifc error codes.
     enum AccountError: String, LocalizedError {
         case PrivateAccount = "Could not find any images, this account might be private"
@@ -974,5 +1074,20 @@ struct PostDownloaderView: View {
             }
         })
         return try! ogImageTag?.attr("content")
+    }
+    
+    /// Navigates to a user level using the given direction.
+    /// - Parameters:
+    ///   - hub: The page hub value.
+    ///   - selectedFeature: The selected feature being edited.
+    ///   - direction: The `Direction` for the navigation.
+    private func navigateToUserLevel(_ hub: String, _ selectedFeature: Binding<SharedFeature>, _ direction: Direction) {
+        let result = navigateGeneric(MembershipCase.casesFor(hub: hub), selectedFeature.feature.userLevel.wrappedValue, direction)
+        if result.0 {
+            if direction != .same {
+                selectedFeature.feature.userLevel.wrappedValue = result.1
+            }
+            markDocumentDirty()
+        }
     }
 }

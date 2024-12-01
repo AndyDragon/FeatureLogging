@@ -133,14 +133,14 @@ extension String {
     public init(@StringBuilder _ builder: () -> String) {
         self.init(builder())
     }
-    
+
     public func timestamp() -> Date? {
         let dateParserFormatter = DateFormatter()
         dateParserFormatter.dateFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'SSS'Z'"
         dateParserFormatter.timeZone = .gmt
         return dateParserFormatter.date(from: self)
     }
-    
+
     public func removeExtraSpaces(includeNewlines: Bool = true) -> String {
         if (includeNewlines) {
             return self.replacingOccurrences(of: "[\\s]+", with: " ", options: .regularExpression)
@@ -149,7 +149,7 @@ extension String {
             .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "[\\s]+", with: " ", options: .regularExpression) }
             .joined(separator: "\n")
     }
-    
+
     static func * (str: String, repeatTimes: Int) -> String {
         return String(repeating: str, count: repeatTimes)
     }
@@ -253,4 +253,63 @@ extension NSImage {
         }
         return nil
     }
+}
+
+enum Direction {
+    case first, previous, same, next, last
+}
+
+func directionFromModifiers(_ keyPress: KeyPress, horizontal: Bool = false) -> Direction {
+    let maskedModifiers = keyPress.modifiers.rawValue &
+    (EventModifiers.shift.rawValue | EventModifiers.control.rawValue | EventModifiers.option.rawValue | EventModifiers.command.rawValue);
+    if (keyPress.key == .downArrow && !horizontal) || (keyPress.key == .rightArrow && horizontal) {
+        if maskedModifiers == EventModifiers.command.rawValue {
+            return .last
+        }
+        if maskedModifiers == 0 {
+            return .next
+        }
+    } else if (keyPress.key == .upArrow && !horizontal) || (keyPress.key == .leftArrow && horizontal) {
+        if maskedModifiers == EventModifiers.command.rawValue {
+            return .first
+        }
+        if maskedModifiers == 0 {
+            return .previous
+        }
+    }
+    return .same
+}
+
+func navigateGeneric<T>(_ values: [T], _ selected: T, _ direction: Direction, allowWrap: Bool = true) -> (Bool, T) where T: Equatable {
+    let count = values.count
+    if count != 0 {
+        if direction == .last {
+            return (true, values.last!)
+        }
+        if direction == .next {
+            if let current = values.firstIndex(where: { $0 == selected }) {
+                if !allowWrap && current == (count - 1) {
+                    return (false, selected)
+                }
+                return (true, values[(current + 1) % count])
+            } else {
+                return (true, values.first!)
+            }
+        }
+        if direction == .previous {
+            if let current = values.firstIndex(where: { $0 == selected }) {
+                if !allowWrap && current == 0 {
+                    return (false, selected)
+                }
+                return (true, values[(current - 1 + count) % count])
+            } else {
+                return (true, values.last!)
+            }
+        }
+        if direction == .first {
+            return (true, values.first!)
+        }
+        return (true, selected)
+    }
+    return (false, selected)
 }

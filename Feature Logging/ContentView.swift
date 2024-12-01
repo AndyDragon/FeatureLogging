@@ -95,12 +95,12 @@ struct ContentView: View {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }
-    
+
 
     init(_ appState: VersionCheckAppState) {
         self.appState = appState
     }
-    
+
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
@@ -112,6 +112,7 @@ struct ContentView: View {
                         featureScriptPlaceholders,
                         commentScriptPlaceholders,
                         originalPostScriptPlaceholders,
+                        $focusedField,
                         $isShowingToast,
                         { isShowingScriptView.toggle() },
                         navigateToNextFeature,
@@ -120,6 +121,7 @@ struct ContentView: View {
                 } else if isShowingDownloaderView {
                     PostDownloaderView(
                         viewModel,
+                        $focusedField,
                         $isShowingToast,
                         { isShowingDownloaderView.toggle() },
                         { shouldScrollFeatureListToSelection.toggle() },
@@ -128,6 +130,7 @@ struct ContentView: View {
                     )
                 } else if isShowingStatisticsView {
                     StatisticsContentView(
+                        $focusedField,
                         $isShowingToast,
                         { commandModel.showStatistics = false },
                         showToast
@@ -158,6 +161,7 @@ struct ContentView: View {
                         showToast
                     )
                 }
+
                 // Log importer
                 HStack { }
                     .frame(width: 0, height: 0)
@@ -174,6 +178,7 @@ struct ContentView: View {
                         }
                     }
                     .fileDialogConfirmationLabel("Open log")
+
                 // Log exporter
                 HStack { }
                     .frame(width: 0, height: 0)
@@ -197,6 +202,7 @@ struct ContentView: View {
                     }
                     .fileExporterFilenameLabel("Save log as: ") // filename label
                     .fileDialogConfirmationLabel("Save log")
+
                 // Report exporter
                 HStack { }
                     .frame(width: 0, height: 0)
@@ -365,7 +371,6 @@ struct ContentView: View {
         )
         .onAppear(perform: {
             setTheme(theme)
-            focusedField = .pagePicker
             DocumentManager.default.registerReceiver(receiver: self)
         })
         .navigationSubtitle(isDirty ? "edited" : "")
@@ -567,7 +572,7 @@ struct ContentView: View {
             print("No access?")
             return
         }
-        
+
         let fileContents = FileManager.default.contents(atPath: file.path)
         if let json = fileContents {
             let jsonString = String(String(decoding: json, as: UTF8.self))
@@ -589,10 +594,10 @@ struct ContentView: View {
                 debugPrint("Error parsing JSON: \(error.localizedDescription)")
             }
         }
-        
+
         file.stopAccessingSecurityScopedResource()
     }
-    
+
     private func saveLog(to file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
         if !gotAccess {
@@ -631,7 +636,7 @@ struct ContentView: View {
                     if let page = viewModel.selectedPage {
                         if viewModel.sortedFeatures[nextIndex].isPickedAndAllowed {
                             viewModel.selectedFeature = SharedFeature(using: page, from: viewModel.sortedFeatures[nextIndex])
-                            
+
                             // Ensure the ScriptContentView is visible
                             isShowingScriptView = true
                             return
@@ -690,7 +695,9 @@ extension ContentView {
         var pickedFeatures: [Feature] {
             return sortedFeatures.filter({ $0.isPicked })
         }
-        
+        var yourName = UserDefaults.standard.string(forKey: "YourName") ?? ""
+        var yourFirstName = UserDefaults.standard.string(forKey: "YourFirstName") ?? ""
+
         init() {}
 
         func generateReport(
@@ -765,7 +772,7 @@ extension ContentView {
                         lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
                         lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
                         lines.append("")
-                        
+
                         if isPicked {
                             let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                             let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -851,7 +858,7 @@ extension ContentView {
                         lines.append("\(indent)tineye: \(feature.tinEyeResults.rawValue)")
                         lines.append("\(indent)ai check: \(feature.aiCheckResults.rawValue)")
                         lines.append("")
-                        
+
                         if isPicked {
                             let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                             let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -916,7 +923,7 @@ extension ContentView {
                         lines.append("\(indent)tineye - \(feature.tinEyeResults.rawValue)")
                         lines.append("\(indent)ai check - \(feature.aiCheckResults.rawValue)")
                         lines.append("")
-                        
+
                         if isPicked {
                             let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                             let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
@@ -943,7 +950,7 @@ extension ContentView {
             return ""
         }
     }
-    
+
     static func compareFeatures(_ lhs: Feature, _ rhs: Feature) -> Bool {
         // Empty names always at the bottom
         if lhs.userName.isEmpty {
@@ -952,7 +959,7 @@ extension ContentView {
         if rhs.userName.isEmpty {
             return true
         }
-        
+
         if lhs.photoFeaturedOnPage && rhs.photoFeaturedOnPage {
             return lhs.userName < rhs.userName
         }
@@ -962,7 +969,7 @@ extension ContentView {
         if rhs.photoFeaturedOnPage {
             return true
         }
-        
+
         let lhsTinEye = lhs.tinEyeResults == .matchFound
         let rhsTinEye = rhs.tinEyeResults == .matchFound
         if lhsTinEye && rhsTinEye {
@@ -974,7 +981,7 @@ extension ContentView {
         if rhsTinEye {
             return true
         }
-        
+
         let lhAiCheck = lhs.aiCheckResults == .ai
         let rhAiCheck = rhs.aiCheckResults == .ai
         if lhAiCheck && rhAiCheck {
@@ -986,7 +993,7 @@ extension ContentView {
         if rhAiCheck {
             return true
         }
-        
+
         if lhs.tooSoonToFeatureUser && rhs.tooSoonToFeatureUser {
             return lhs.userName < rhs.userName
         }
@@ -996,7 +1003,7 @@ extension ContentView {
         if rhs.tooSoonToFeatureUser {
             return true
         }
-        
+
         if !lhs.isPicked && !rhs.isPicked {
             return lhs.userName < rhs.userName
         }
@@ -1006,7 +1013,7 @@ extension ContentView {
         if !rhs.isPicked {
             return true
         }
-        
+
         return lhs.userName < rhs.userName
     }
 }

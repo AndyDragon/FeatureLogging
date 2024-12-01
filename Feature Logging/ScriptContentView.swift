@@ -14,6 +14,7 @@ struct ScriptContentView: View {
     @ObservedObject private var featureScriptPlaceholders: PlaceholderList
     @ObservedObject private var commentScriptPlaceholders: PlaceholderList
     @ObservedObject private var originalPostScriptPlaceholders: PlaceholderList
+    @State private var focusedField: FocusState<FocusedField?>.Binding
     private var isShowingToast: Binding<Bool>
     private var hideScriptView: () -> Void
     private var navigateToNextFeature: (_ forward: Bool) -> Void
@@ -21,9 +22,7 @@ struct ScriptContentView: View {
 
     @State private var membershipValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var userNameValidation: (valid: Bool, reason: String?) = (true, nil)
-    @State private var yourName = UserDefaults.standard.string(forKey: "YourName") ?? ""
     @State private var yourNameValidation: (valid: Bool, reason: String?) = (true, nil)
-    @State private var yourFirstName = UserDefaults.standard.string(forKey: "YourFirstName") ?? ""
     @State private var yourFirstNameValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var pageValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var featureScript = ""
@@ -36,9 +35,6 @@ struct ScriptContentView: View {
     @State private var showingPlaceholderSheet = false
     @State private var scriptWithPlaceholdersInPlace = ""
     @State private var scriptWithPlaceholders = ""
-    @State private var lastYourName = ""
-    @State private var lastYourFirstName = ""
-    @FocusState private var focusedField: FocusedField?
 
     private let languagePrefix = Locale.preferredLanguageCode
 
@@ -61,6 +57,7 @@ struct ScriptContentView: View {
         _ featureScriptPlaceholders: PlaceholderList,
         _ commentScriptPlaceholders: PlaceholderList,
         _ originalPostScriptPlaceholders: PlaceholderList,
+        _ focusedField: FocusState<FocusedField?>.Binding,
         _ isShowingToast: Binding<Bool>,
         _ hideScriptView: @escaping () -> Void,
         _ navigateToNextFeature: @escaping (_ forward: Bool) -> Void,
@@ -70,130 +67,31 @@ struct ScriptContentView: View {
         self.featureScriptPlaceholders = featureScriptPlaceholders
         self.commentScriptPlaceholders = commentScriptPlaceholders
         self.originalPostScriptPlaceholders = originalPostScriptPlaceholders
+        self.focusedField = focusedField
         self.isShowingToast = isShowingToast
         self.hideScriptView = hideScriptView
         self.navigateToNextFeature = navigateToNextFeature
         self.showToast = showToast
     }
-    
+
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-            
+
             if viewModel.selectedPage != nil && viewModel.selectedFeature != nil {
                 let selectedPage = Binding<LoadedPage>(
                     get: { viewModel.selectedPage! },
                     set: { viewModel.selectedPage = $0 }
                 )
-                
+
                 let selectedFeature = Binding<SharedFeature>(
                     get: { viewModel.selectedFeature! },
                     set: { viewModel.selectedFeature = $0 }
                 )
-                
+
                 VStack {
                     // Fields
                     Group {
-                        // Page and staff level
-                        HStack {
-                            // Page
-                            if !pageValidation.valid {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorRequired)
-                                    .help(pageValidation.reason ?? "unknown error")
-                                    .imageScale(.small)
-                            }
-                            Text("Page: ")
-                                .foregroundStyle(
-                                    pageValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
-                                    Color.TextColorSecondary
-                                )
-                                .frame(width: !pageValidation.valid ? 42 : 60, alignment: .leading)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .padding([.leading], !pageValidation.valid ? 8 : 0)
-                            ZStack {
-                                Text(selectedPage.wrappedValue.displayName)
-                                    .tint(Color.AccentColor)
-                                    .accentColor(Color.AccentColor)
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding([.leading, .trailing], 4)
-                                Spacer()
-                            }
-                            .frame(maxWidth: .infinity)
-                            .overlay(VStack{
-                                Rectangle()
-                                    .frame(height: 0.5)
-                                    .foregroundStyle(Color.gray.opacity(0.25))
-                            }, alignment: .bottom)
-
-                            // Page staff level
-                            Text("Page staff level: ")
-                                .foregroundStyle(
-                                    Color.TextColorPrimary,
-                                    Color.TextColorSecondary
-                                )
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .padding([.leading], 8)
-                            ZStack {
-                                Text(viewModel.selectedPageStaffLevel.rawValue)
-                                    .tint(Color.AccentColor)
-                                    .accentColor(Color.AccentColor)
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding([.leading, .trailing], 4)
-                                Spacer()
-                            }
-                            .frame(maxWidth: 200)
-                            .overlay(VStack{
-                                Rectangle()
-                                    .frame(height: 0.5)
-                                    .foregroundStyle(Color.gray.opacity(0.25))
-                            }, alignment: .bottom)
-                        }
-                        
-                        // You
-                        HStack {
-                            // Your name editor
-                            FieldEditor(
-                                title: "You:",
-                                titleWidth: [42, 60],
-                                placeholder: "Enter your user name without '@'",
-                                field: $yourName,
-                                fieldChanged: yourNameChanged,
-                                fieldValidation: $yourNameValidation,
-                                validate: { value in
-                                    if value.count == 0 {
-                                        return (false, "Required value")
-                                    } else if value.first! == "@" {
-                                        return (false, "Don't include the '@' in user names")
-                                    }
-                                    return (true, nil)
-                                },
-                                focus: $focusedField,
-                                focusField: .yourName
-                            )
-                            
-                            // Your first name editor
-                            FieldEditor(
-                                title: "Your first name:",
-                                placeholder: "Enter your first name (capitalized)",
-                                field: $yourFirstName,
-                                fieldChanged: yourFirstNameChanged,
-                                fieldValidation: $yourFirstNameValidation,
-                                validate: { value in
-                                    if value.count == 0 {
-                                        return (false, "Required value")
-                                    }
-                                    return (true, nil)
-                                },
-                                focus: $focusedField,
-                                focusField: .yourFirstName
-                            ).padding([.leading], 8)
-                        }
-                        
                         // User / Options
                         HStack {
                             // User name
@@ -334,11 +232,11 @@ struct ScriptContentView: View {
                                 }
                                 .padding([.leading], 8)
                             }
-                            
+
                             Spacer()
                         }
                     }
-                    
+
                     // Scripts
                     Group {
                         // Feature script output
@@ -369,9 +267,9 @@ struct ScriptContentView: View {
                                     ) {}
                                 }
                             },
-                            focus: $focusedField,
+                            focus: focusedField,
                             focusField: .featureScript)
-                        
+
                         // Comment script output
                         ScriptEditor(
                             title: "Comment script:",
@@ -400,9 +298,9 @@ struct ScriptContentView: View {
                                     ) {}
                                 }
                             },
-                            focus: $focusedField,
+                            focus: focusedField,
                             focusField: .commentScript)
-                        
+
                         // Original post script output
                         ScriptEditor(
                             title: "Original post script:",
@@ -431,10 +329,10 @@ struct ScriptContentView: View {
                                     ) {}
                                 }
                             },
-                            focus: $focusedField,
+                            focus: focusedField,
                             focusField: .originalPostScript)
                     }
-                    
+
                     // New membership
                     Group {
                         // New membership picker and script output
@@ -459,7 +357,7 @@ struct ScriptContentView: View {
                                     .Success
                                 ) {}
                             },
-                            focus: $focusedField,
+                            focus: focusedField,
                             focusField: .newMembershipScript)
                     }
                 }
@@ -539,7 +437,7 @@ struct ScriptContentView: View {
                         .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
                         .disabled(isShowingToast.wrappedValue)
                     }
-                    
+
                     Button(action: {
                         hideScriptView()
                     }) {
@@ -558,7 +456,7 @@ struct ScriptContentView: View {
                     }
                     .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
                     .disabled(isShowingToast.wrappedValue)
-                    
+
                     if viewModel.pickedFeatures.count >= 2 {
                         Button(action: {
                             navigateToNextFeature(true)
@@ -588,17 +486,15 @@ struct ScriptContentView: View {
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)
         .onAppear {
-            focusedField = .userName
-        }
-        .task {
-            // Update the scripts
-            updateScripts()
-            updateNewMembershipScripts()
+            populateFromFeatureUser()
+            focusedField.wrappedValue = .featureScript
         }
     }
 
     private func populateFromFeatureUser() {
         pageValidation = validatePage()
+        yourNameValidation = validateYourName()
+        yourFirstNameValidation = validateYourFirstName()
         userNameValidation = validateUserName()
         membershipValidation = validateMembership()
         newMembership = viewModel.selectedFeature!.newLevel
@@ -606,7 +502,6 @@ struct ScriptContentView: View {
 
         clearPlaceholders()
         copyToClipboard("")
-        focusedField = .userName
 
         updateScripts()
         updateNewMembershipScripts()
@@ -620,14 +515,30 @@ struct ScriptContentView: View {
         originalPostScriptPlaceholders.placeholderDict.removeAll()
         originalPostScriptPlaceholders.longPlaceholderDict.removeAll()
     }
-    
+
     private func validatePage() -> (valid: Bool, reason: String?) {
         if viewModel.selectedPage == nil {
             return (false, "Page is required")
         }
         return (true, nil)
     }
- 
+
+    private func validateYourName() -> (valid: Bool, reason: String?) {
+        if viewModel.yourName.count == 0 {
+            return (false, "Required value")
+        } else if viewModel.yourName.first == "@" {
+            return (false, "Don't include the '@' in user names")
+        }
+        return (true, nil)
+    }
+
+    private func validateYourFirstName() -> (valid: Bool, reason: String?) {
+        if viewModel.yourFirstName.count == 0 {
+            return (false, "Required value")
+        }
+        return (true, nil)
+    }
+
     private func validateMembership() -> (valid: Bool, reason: String?) {
         if let page = viewModel.selectedPage {
             if let value = viewModel.selectedFeature?.userLevel {
@@ -661,26 +572,6 @@ struct ScriptContentView: View {
             return (false, "No feature user name")
         }
         return (false, "No page")
-    }
-
-    private func yourNameChanged(to value: String) {
-        if value != lastYourName {
-            clearPlaceholders()
-            UserDefaults.standard.set(yourName, forKey: "YourName")
-            updateScripts()
-            updateNewMembershipScripts()
-            lastYourName = value
-        }
-    }
-
-    private func yourFirstNameChanged(to value: String) {
-        if value != lastYourFirstName {
-            clearPlaceholders()
-            UserDefaults.standard.set(yourFirstName, forKey: "YourFirstName")
-            updateScripts()
-            updateNewMembershipScripts()
-            lastYourFirstName = value
-        }
     }
 
     private func newMembershipChanged(to value: NewMembershipCase) {
@@ -856,7 +747,7 @@ struct ScriptContentView: View {
                 communityTag = tagSource == .snapCommunityTag
                 hubTag = tagSource == .snapMembershipTag
             }
-            
+
             featureScript = getTemplateFromCatalog(
                 "feature",
                 from: currentPageName,
@@ -870,12 +761,12 @@ struct ScriptContentView: View {
             .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
             .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: viewModel.selectedFeature?.userLevel.rawValue ?? MembershipCase.commonArtist.rawValue)
             .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
-            .replacingOccurrences(of: "%%YOURNAME%%", with: yourName)
-            .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: yourFirstName)
+            .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
+            .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
             // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: yourFirstName)
+            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
             .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
-            
+
             commentScript = getTemplateFromCatalog(
                 "comment",
                 from: currentPageName,
@@ -889,12 +780,12 @@ struct ScriptContentView: View {
             .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
             .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: viewModel.selectedFeature?.userLevel.rawValue ?? MembershipCase.commonArtist.rawValue)
             .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
-            .replacingOccurrences(of: "%%YOURNAME%%", with: yourName)
-            .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: yourFirstName)
+            .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
+            .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
             // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: yourFirstName)
+            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
             .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
-            
+
             originalPostScript = getTemplateFromCatalog(
                 "original post",
                 from: currentPageName,
@@ -908,10 +799,10 @@ struct ScriptContentView: View {
             .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
             .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: viewModel.selectedFeature?.userLevel.rawValue ?? MembershipCase.commonArtist.rawValue)
             .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
-            .replacingOccurrences(of: "%%YOURNAME%%", with: yourName)
-            .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: yourFirstName)
+            .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
+            .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
             // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: yourFirstName)
+            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
             .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
         }
     }
@@ -1041,10 +932,10 @@ struct ScriptContentView: View {
                 .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
                 .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
                 .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userName ?? "")
-                .replacingOccurrences(of: "%%YOURNAME%%", with: yourName)
-                .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: yourFirstName)
+                .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
+                .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
                 // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: yourFirstName)
+                .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
                 .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
         }
     }

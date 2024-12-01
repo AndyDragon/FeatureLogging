@@ -15,11 +15,13 @@ struct LogFile {
 }
 
 struct StatisticsContentView: View {
+    @Environment(\.self) var environment
+
+    @State private var focusedField: FocusState<FocusedField?>.Binding
     @State private var isShowingToast: Binding<Bool>
     private var hideStatisticsView: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
-    
-    @Environment(\.self) var environment
+
     @State private var showDirectoryPicker = false
     @State private var location = ""
     @State private var logs = [LogFile]()
@@ -36,10 +38,12 @@ struct StatisticsContentView: View {
     private let languagePrefix = Locale.preferredLanguageCode
 
     init(
+        _ focusedField: FocusState<FocusedField?>.Binding,
         _ isShowingToast: Binding<Bool>,
         _ hideStatisticsView: @escaping () -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     ) {
+        self.focusedField = focusedField
         self.isShowingToast = isShowingToast
         self.hideStatisticsView = hideStatisticsView
         self.showToast = showToast
@@ -60,6 +64,12 @@ struct StatisticsContentView: View {
                             Text("Open folder containing your log files...")
                         }
                         .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                    }
+                    .focusable()
+                    .focused(focusedField, equals: .openFolder)
+                    .onKeyPress(.space) {
+                        showDirectoryPicker.toggle()
+                        return .handled
                     }
                     .fileImporter(
                         isPresented: $showDirectoryPicker, allowedContentTypes: [.folder],
@@ -96,6 +106,8 @@ struct StatisticsContentView: View {
                                     pageSet.formUnion(Set(logs.map { log in log.log.page.components(separatedBy: [":"]).first ?? "" }.filter { hub in hub != "" }))
                                     pages = Array(pageSet).sorted()
                                     pages.insert("all", at: 0)
+                                    selectedPage = pages.first!
+                                    navigateToStatsPage(.same)
                                 } catch {
                                     debugPrint(error.localizedDescription)
                                 }
@@ -119,22 +131,7 @@ struct StatisticsContentView: View {
                         Picker(
                             "",
                             selection: $selectedPage.onChange({ page in
-                                let pageLogs = logs.filter({ log in
-                                    if page == "all" {
-                                        return true
-                                    }
-                                    if !page.contains(":") {
-                                        return log.log.page.starts(with: page)
-                                    }
-                                    return log.log.page == page
-                                })
-
-                                pickedFeaturePieChart = makePickedFeatureChartData(pageLogs)
-                                firstFeaturePieChart = makeFirstFeatureChartData(pageLogs)
-                                photoFeaturedPieChart = makePhotoFeaturedChartData(pageLogs)
-                                userLevelPieChart = makeUserLevelChartData(pageLogs)
-                                pageFeatureCountPieChart = makePageFeatureCountChartData(pageLogs)
-                                hubFeatureCountPieChart = makeHubFeatureCountChartData(pageLogs)
+                                navigateToStatsPage(.same)
                             })
                         ) {
                             ForEach(pages, id: \.self) { page in
@@ -147,10 +144,19 @@ struct StatisticsContentView: View {
                                 }
                             }
                         }
+                        .focusable()
+                        .focused(focusedField, equals: .statsPagePicker)
+                        .onKeyPress(phases: .down) { keyPress in
+                            let direction = directionFromModifiers(keyPress)
+                            if direction != .same {
+                                navigateToStatsPage(direction)
+                                return .handled
+                            }
+                            return .ignored
+                        }
                         .tint(Color.AccentColor)
                         .accentColor(Color.AccentColor)
                         .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                        .focusable()
                     }
                 }
                 if let pickedFeaturePieChart,
@@ -243,6 +249,32 @@ struct StatisticsContentView: View {
         }
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)
+        .onAppear(perform: {
+            focusedField.wrappedValue = .openFolder
+        })
+    }
+
+    private func navigateToStatsPage(_ direction: Direction) {
+        let result = navigateGeneric(pages, selectedPage, direction)
+        if result.0 {
+            selectedPage = result.1
+            let pageLogs = logs.filter({ log in
+                if selectedPage == "all" {
+                    return true
+                }
+                if !selectedPage.contains(":") {
+                    return log.log.page.starts(with: selectedPage)
+                }
+                return log.log.page == selectedPage
+            })
+
+            pickedFeaturePieChart = makePickedFeatureChartData(pageLogs)
+            firstFeaturePieChart = makeFirstFeatureChartData(pageLogs)
+            photoFeaturedPieChart = makePhotoFeaturedChartData(pageLogs)
+            userLevelPieChart = makeUserLevelChartData(pageLogs)
+            pageFeatureCountPieChart = makePageFeatureCountChartData(pageLogs)
+            hubFeatureCountPieChart = makeHubFeatureCountChartData(pageLogs)
+        }
     }
 
     private func makePickedFeatureChartData(_ logs: [LogFile]) -> PieChartData {

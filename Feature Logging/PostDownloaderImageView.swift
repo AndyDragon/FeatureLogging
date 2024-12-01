@@ -12,13 +12,13 @@ import SwiftUI
 
 struct PostDownloaderImageView: View {
     @Environment(\.openURL) private var openURL
-    
+
     @State private var width = 0
     @State private var height = 0
     @State private var data: Data?
     @State private var fileExtension = ".png"
     @State private var scale: Float = 0.000000001
-    
+
     var imageUrl: URL
     var name: String
     var index: Int
@@ -61,33 +61,7 @@ struct PostDownloaderImageView: View {
             .background(Color(red: 0.9, green: 0.9, blue: 0.92))
             HStack {
                 Button(action: {
-                    let folderURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("VERO")
-                    do {
-                        if !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil) {
-                            try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: false, attributes: nil)
-                        }
-                        let fileURL = folderURL.appendingPathComponent("\(name).\(fileExtension)")
-                        try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
-                        showToast(
-                            .complete(.green),
-                            "Saved",
-                            String {
-                                "Saved the image to file \(fileURL)"
-                            },
-                            .Success
-                        ) {}
-                    } catch {
-                        print("Failed to save file")
-                        debugPrint(error.localizedDescription)
-                        showToast(
-                            .error(.red),
-                            "Failed to save",
-                            String {
-                                "Failed to saved the image to your Pictures folder - \(error.localizedDescription)"
-                            },
-                            .Failure
-                        ) {}
-                    }
+                    saveImage()
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "square.and.arrow.down.fill")
@@ -95,16 +69,28 @@ struct PostDownloaderImageView: View {
                         Text("Save image")
                     }
                 }
+                .focusable()
+                .onKeyPress(.space) {
+                    saveImage()
+                    return .handled
+                }
                 Spacer()
                     .frame(width: 10)
                 Button(action: {
                     copyToClipboard(imageUrl.absoluteString)
+                    showToast(.complete(.green), "Copied to clipboard", "Copied the image URL to the clipboard", .Success) {}
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "pencil.and.list.clipboard")
                             .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                         Text("Copy URL")
                     }
+                }
+                .focusable()
+                .onKeyPress(.space) {
+                    copyToClipboard(imageUrl.absoluteString)
+                    showToast(.complete(.green), "Copied to clipboard", "Copied the image URL to the clipboard", .Success) {}
+                    return .handled
                 }
                 Spacer()
                     .frame(width: 10)
@@ -117,7 +103,42 @@ struct PostDownloaderImageView: View {
                         Text("Launch")
                     }
                 }
+                .focusable()
+                .onKeyPress(.space) {
+                    openURL(imageUrl)
+                    return .handled
+                }
             }
+        }
+    }
+    
+    private func saveImage() {
+        let folderURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("VERO")
+        do {
+            if !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil) {
+                try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: false, attributes: nil)
+            }
+            let fileURL = folderURL.appendingPathComponent("\(name).\(fileExtension)")
+            try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
+            showToast(
+                .complete(.green),
+                "Saved",
+                String {
+                    "Saved the image to file \(fileURL)"
+                },
+                .Success
+            ) {}
+        } catch {
+            print("Failed to save file")
+            debugPrint(error.localizedDescription)
+            showToast(
+                .error(.red),
+                "Failed to save",
+                String {
+                    "Failed to saved the image to your Pictures folder - \(error.localizedDescription)"
+                },
+                .Failure
+            ) {}
         }
     }
 }

@@ -31,7 +31,7 @@ struct MainContentView: View {
         "preference_includehash",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var includeHash = false
-    
+
     @State private var viewModel: ContentView.ViewModel
     @State private var logURL: Binding<URL?>
     @State private var focusedField: FocusState<FocusedField?>.Binding
@@ -47,6 +47,8 @@ struct MainContentView: View {
     @State private var documentDirtyAfterSaveAction: Binding<() -> Void>
     @State private var documentDirtyAfterDismissAction: Binding<() -> Void>
     @State private var shouldScrollFeatureListToSelection: Binding<Bool>
+    @State private var yourNameValidation: (valid: Bool, reason: String?) = (true, nil)
+    @State private var yourFirstNameValidation: (valid: Bool, reason: String?) = (true, nil)
     private var showScriptView: () -> Void
     private var showDownloaderView: () -> Void
     private var updateStaffLevelForPage: () -> Void
@@ -54,9 +56,9 @@ struct MainContentView: View {
     private var saveLog: (_ file: URL) -> Void
     private var setTheme: (_ newTheme: Theme) -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
-    
+
     @State private var hoveredFeature: Feature? = nil
-    
+
     init(
         _ viewModel: ContentView.ViewModel,
         _ logURL: Binding<URL?>,
@@ -104,24 +106,22 @@ struct MainContentView: View {
         self.setTheme = setTheme
         self.showToast = showToast
     }
-    
+
+    private let labelWidth: CGFloat = 80
+
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-            
+
             VStack {
                 // Page / staff level picker
                 HStack(alignment: .center) {
                     Text("Page:")
-                        .frame(width: 108, alignment: .trailing)
+                        .frame(width: labelWidth - 5, alignment: .trailing)
                     Picker(
                         "",
                         selection: $viewModel.selectedPage.onChange { value in
-                            UserDefaults.standard.set(viewModel.selectedPage?.id ?? "", forKey: "Page")
-                            logURL.wrappedValue = nil
-                            viewModel.selectedFeature = nil
-                            viewModel.features = [Feature]()
-                            updateStaffLevelForPage()
+                            navigateToPage(.same)
                         }
                     ) {
                         ForEach(viewModel.loadedCatalogs.loadedPages) { page in
@@ -133,20 +133,28 @@ struct MainContentView: View {
                     .tint(Color.AccentColor)
                     .accentColor(Color.AccentColor)
                     .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                    .focusable()
+                    .focusable(viewModel.features.isEmpty)
                     .focused(focusedField, equals: .pagePicker)
+                    .onKeyPress(phases: .down) { keyPress in
+                        let direction = directionFromModifiers(keyPress)
+                        if direction != .same {
+                            navigateToPage(direction)
+                            return .handled
+                        }
+                        return .ignored
+                    }
                     .disabled(!viewModel.features.isEmpty)
-                    
+
                     // Page staff level picker
                     Text("Page staff level: ")
-                        .padding([.leading], 8)
+                        .padding([.leading])
                         .lineLimit(1)
                         .truncationMode(.tail)
-                    
+
                     Picker(
                         "",
                         selection: $viewModel.selectedPageStaffLevel.onChange { value in
-                            storeStaffLevelForPage()
+                            navigateToPageStaffLevel(.same)
                         }
                     ) {
                         ForEach(StaffLevelCase.allCases) { staffLevelCase in
@@ -160,8 +168,16 @@ struct MainContentView: View {
                     .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
                     .focusable()
                     .focused(focusedField, equals: .staffLevel)
+                    .onKeyPress(phases: .down) { keyPress in
+                        let direction = directionFromModifiers(keyPress)
+                        if direction != .same {
+                            navigateToPageStaffLevel(direction)
+                            return .handled
+                        }
+                        return .ignored
+                    }
                     .frame(maxWidth: 144)
-                    
+
                     Menu("Copy tag", systemImage: "tag.fill") {
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage?.hub ?? "")_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "")")
@@ -212,12 +228,77 @@ struct MainContentView: View {
                     .disabled(isShowingToast.wrappedValue || (viewModel.selectedPage?.hub != "click" && viewModel.selectedPage?.hub != "snap"))
                     .frame(maxWidth: 132)
                     .focusable()
+                    .focused(focusedField, equals: .copyTag)
+                    .onKeyPress(.space) {
+                        copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage?.hub ?? "")_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "")")
+                        showToast(.complete(.green), "Copied to clipboard", "Copied the page tag to the clipboard", .Success) {}
+                        return .handled
+                    }
+                    .padding([.leading])
                 }
-                
+
+                // You
+                HStack(alignment: .center) {
+                    // Your name editor
+                    ValidationLabel(
+                        "You:",
+                        labelWidth: labelWidth,
+                        validation: yourNameValidation.valid)
+                    TextField(
+                        "Enter your user name without '@'",
+                        text: $viewModel.yourName.onChange { value in
+                            if value.count == 0 {
+                                yourNameValidation = (false, "Required value")
+                            } else if value.first! == "@" {
+                                yourNameValidation = (false, "Don't include the '@' in user names")
+                            } else {
+                                yourNameValidation = (true, nil)
+                            }
+                            UserDefaults.standard.set(viewModel.yourName, forKey: "YourName")
+                        }
+                    )
+                    .focusable()
+                    .focused(focusedField, equals: .yourName)
+                    .lineLimit(1)
+                    .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                    .textFieldStyle(.plain)
+                    .padding(4)
+                    .background(Color.BackgroundColorEditor)
+                    .border(Color.gray.opacity(0.25))
+                    .cornerRadius(4)
+
+                    // Your first name editor
+                    ValidationLabel(
+                        "Your first name:",
+                        validation: yourFirstNameValidation.valid)
+                        .padding([.leading])
+                    TextField(
+                        "Enter your first name (capitalized)",
+                        text: $viewModel.yourFirstName.onChange { value in
+                            if value.count == 0 {
+                                yourFirstNameValidation = (false, "Required value")
+                            } else {
+                                yourFirstNameValidation = (true, nil)
+                            }
+                            UserDefaults.standard.set(viewModel.yourFirstName, forKey: "YourFirstName")
+                        }
+                    )
+                    .focusable()
+                    .focused(focusedField, equals: .yourFirstName)
+                    .lineLimit(1)
+                    .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                    .textFieldStyle(.plain)
+                    .padding(4)
+                    .background(Color.BackgroundColorEditor)
+                    .border(Color.gray.opacity(0.25))
+                    .cornerRadius(4)
+                }
+
                 // Feature editor
                 VStack {
                     FeatureEditor(
                         viewModel,
+                        focusedField,
                         { viewModel.selectedFeature = nil },
                         { shouldScrollFeatureListToSelection.wrappedValue.toggle() },
                         { isDirty.wrappedValue = true },
@@ -225,12 +306,17 @@ struct MainContentView: View {
                         showToast
                     )
                 }
-                .frame(height: 380)
-                
+                .frame(height: 360)
+                .frame(maxWidth: .infinity)
+                .background(Color.BackgroundColorEditor)
+                .border(Color.gray.opacity(0.25), width: 1)
+                .cornerRadius(2)
+                .padding([.bottom], 4)
+
                 // Feature list buttons
                 HStack {
                     Spacer()
-                    
+
                     // Add feature
                     Button(action: {
                         addFeature()
@@ -244,10 +330,17 @@ struct MainContentView: View {
                     }
                     .disabled(isShowingToast.wrappedValue || viewModel.loadedCatalogs.waitingForPages)
                     .keyboardShortcut("+", modifiers: .command)
-                    
+                    .focusable()
+                    .focused(focusedField, equals: .addFeature)
+                    .onKeyPress(.space) {
+                        addFeature()
+                        shouldScrollFeatureListToSelection.wrappedValue.toggle()
+                        return .handled
+                    }
+
                     Spacer()
                         .frame(width: 16)
-                    
+
                     // Remove feature
                     Button(action: {
                         if let currentFeature = viewModel.selectedFeature {
@@ -264,8 +357,19 @@ struct MainContentView: View {
                     }
                     .disabled(isShowingToast.wrappedValue || viewModel.selectedFeature == nil)
                     .keyboardShortcut("-", modifiers: .command)
+                    .focusable()
+                    .focused(focusedField, equals: .removeFeature)
+                    .onKeyPress(.space) {
+                        if let currentFeature = viewModel.selectedFeature {
+                            viewModel.selectedFeature = nil
+                            viewModel.features.removeAll(where: { $0.id == currentFeature.feature.id })
+                            isDirty.wrappedValue = true
+                        }
+                        return .handled
+                    }
                 }
-                
+                .padding([.trailing], 2)
+
                 // Feature list
                 ScrollViewReader { proxy in
                     List {
@@ -326,6 +430,7 @@ struct MainContentView: View {
                         }
                     }
                     .focusable()
+                    .focused(focusedField, equals: .featureList)
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color.BackgroundColorList)
@@ -362,7 +467,7 @@ struct MainContentView: View {
                     .buttonStyle(.plain)
                 }
                 .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
-                
+
                 // Save log
                 Button(action: {
                     logDocument.wrappedValue = LogDocument(page: viewModel.selectedPage!, features: viewModel.features)
@@ -387,7 +492,7 @@ struct MainContentView: View {
                     .buttonStyle(.plain)
                 }
                 .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
-                
+
                 // Copy report
                 Button(action: {
                     copyReportToClipboard()
@@ -403,7 +508,7 @@ struct MainContentView: View {
                     .buttonStyle(.plain)
                 }
                 .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
-                
+
                 // Save report
                 Button(action: {
                     reportDocument.wrappedValue = ReportDocument(initialText: viewModel.generateReport(personalMessageFormat, personalMessageFirstFormat))
@@ -423,7 +528,7 @@ struct MainContentView: View {
                     .buttonStyle(.plain)
                 }
                 .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
-                
+
                 // Theme
                 Menu("Theme", systemImage: "paintpalette") {
                     Picker("Theme:", selection: $theme.onChange({ newTheme in
@@ -441,9 +546,10 @@ struct MainContentView: View {
                 .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                 .disabled(isShowingToast.wrappedValue)
             }
-            .padding()
+            .padding([.leading, .top, .trailing])
         }
         .onAppear(perform: {
+            focusedField.wrappedValue = .pagePicker
             setTheme(theme)
         })
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
@@ -459,6 +565,30 @@ struct MainContentView: View {
                 isDarkModeOn = details.darkTheme
                 theme = newTheme
             }
+        }
+    }
+
+    private func navigateToPage(_ direction: Direction) {
+        let result = navigateGeneric(viewModel.loadedCatalogs.loadedPages, viewModel.selectedPage, direction)
+        if result.0 {
+            if direction != .same {
+                viewModel.selectedPage = result.1
+            }
+            UserDefaults.standard.set(viewModel.selectedPage?.id ?? "", forKey: "Page")
+            logURL.wrappedValue = nil
+            viewModel.selectedFeature = nil
+            viewModel.features = [Feature]()
+            updateStaffLevelForPage()
+        }
+    }
+
+    private func navigateToPageStaffLevel(_ direction: Direction) {
+        let result = navigateGeneric(StaffLevelCase.allCases, viewModel.selectedPageStaffLevel, direction)
+        if result.0 {
+            if direction != .same {
+                viewModel.selectedPageStaffLevel = result.1
+            }
+            storeStaffLevelForPage()
         }
     }
 
@@ -487,7 +617,7 @@ struct MainContentView: View {
         viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
         isDirty.wrappedValue = true
     }
-    
+
     private func copyReportToClipboard() {
         let text = viewModel.generateReport(personalMessageFormat, personalMessageFirstFormat)
         copyToClipboard(text)

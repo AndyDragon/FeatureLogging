@@ -10,23 +10,56 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum FocusedField: Hashable {
-    case userName,  // ScriptContentView
-        level,
-        yourName,
-        yourFirstName,
-        page,
-        pageName,
-        staffLevel,
-        firstFeature,
-        rawTag,
-        communityTag,
-        hubTag,
-        featureScript,
-        commentScript,
-        originalPostScript,
-        newMembershipScript,
+    case featureScript, // ScriptContentView
+         commentScript,
+         originalPostScript,
+         newMembershipScript,
 
-        pagePicker  // Content view
+         pagePicker, // Content view
+         staffLevel,
+         copyTag,
+         yourName,
+         yourFirstName,
+         addFeature,
+         removeFeature,
+         featureList,
+
+         picked, // Feature editor
+         postLink,
+         userAlias,
+         userName,
+         userLevel,
+         teammate,
+         tagSource,
+         photoFeatureOnPage,
+         photoFeatureOnHub,
+         photoLastFeaturedOnHub,
+         photoLastFeaturedPage,
+         description,
+         userHasFeaturesOnPage,
+         lastFeaturedOnPage,
+         featureCountOnPage,
+         userHasFeaturesOnHub,
+         lastFeaturedOnHub,
+         lastFeaturedPage,
+         featureCountOnHub,
+         featureCountOnRawPage,
+         featureCountOnRawHub,
+         tooSoonToFeatureUser,
+         tinEyeResults,
+         aiCheckResults,
+
+         postUserName, // Post downloader
+         postUserLevel,
+         postTeammate,
+         postDescription,
+         postPhotoFeaturedOnPage,
+         postPhotoFeaturedOnHub,
+         postPhotoLastFeaturedOnHub,
+         postPhotoLastFeaturedPage,
+
+         openFolder, // Statistics
+         statsPagePicker
 }
 
 enum MembershipCase: String, CaseIterable, Identifiable, Codable {
@@ -192,7 +225,7 @@ enum StaffLevelCase: String, CaseIterable, Identifiable, Codable {
     case mod = "Mod"
     case coadmin = "Co-Admin"
     case admin = "Admin"
-    
+
     var id: Self { self }
 }
 
@@ -625,7 +658,7 @@ class SharedFeature: Identifiable, Hashable/*, ObservableObject*/ {
     /*@Published*/ var userLevel: MembershipCase
     /*@Published*/ var firstFeature: Bool
     /*@Published*/ var newLevel: NewMembershipCase
-    
+
     init(using page: LoadedPage, from feature: Feature) {
         self.feature = feature
         self.userLevel = feature.userLevel
@@ -660,7 +693,7 @@ class SharedFeature: Identifiable, Hashable/*, ObservableObject*/ {
             }
         }
     }
-    
+
     static func == (lhs: SharedFeature, rhs: SharedFeature) -> Bool {
         return lhs.id == rhs.id
     }
@@ -687,14 +720,14 @@ struct Page: Codable {
     let pageName: String?
     let title: String?
     let hashTag: String?
-    
+
     private init() {
         name = ""
         pageName = nil
         title = nil
         hashTag = nil
     }
-    
+
     static let dummy = Page()
 }
 
@@ -742,7 +775,7 @@ class LoadedPage: Identifiable, Hashable {
         self.title = page.title
         self.hashTag = page.hashTag
     }
-    
+
     private init() {
         hub = ""
         name = ""
@@ -750,13 +783,13 @@ class LoadedPage: Identifiable, Hashable {
         title = nil
         hashTag = nil
     }
-    
+
     static let dummy = LoadedPage()
-    
+
     static func == (lhs: LoadedPage, rhs: LoadedPage) -> Bool {
         return lhs.id == rhs.id
     }
-    
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }

@@ -40,7 +40,7 @@ struct FeatureListRow: View {
         self.showScriptView = showScriptView
         self.showToast = showToast
     }
-
+    
     var body: some View {
         HStack(alignment: .center) {
             if feature.photoFeaturedOnPage {
@@ -155,6 +155,12 @@ struct FeatureListRow: View {
                                 Text("Edit scripts")
                             }
                         }
+                        .focusable()
+                        .onKeyPress(.space) {
+                            viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
+                            launchVeroScripts()
+                            return .handled
+                        }
 
                         Spacer()
                             .frame(width: 8)
@@ -169,7 +175,12 @@ struct FeatureListRow: View {
                                 Text("Edit personal message")
                             }
                         }
-                        .disabled(!feature.isPickedAndAllowed)
+                        .focusable()
+                        .onKeyPress(.space) {
+                            viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
+                            showingMessageEditor.toggle()
+                            return .handled
+                        }
                     }
                 }
                 HStack {
@@ -215,24 +226,18 @@ struct FeatureListRow: View {
                                 Spacer()
 
                                 Button(action: {
-                                    let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
-                                    let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
-                                    let fullPersonalMessage =
-                                        personalMessageTemplate
-                                        .replacingOccurrences(of: "%%PAGENAME%%", with: viewModel.selectedPage!.displayName)
-                                        .replacingOccurrences(of: "%%HUBNAME%%", with: viewModel.selectedPage!.hub == "other" ? "" : viewModel.selectedPage!.hub)
-                                        .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
-                                        .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
-                                        .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
-                                    copyToClipboard(fullPersonalMessage)
-                                    showingMessageEditor.toggle()
-                                    showToast(.complete(.green), "Copied to clipboard", "The personal message was copied to the clipboard", .Success) {}
+                                    copyPersonalMessage()
                                 }) {
                                     HStack(alignment: .center) {
                                         Image(systemName: "pencil.and.list.clipboard")
                                             .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                                         Text("Copy full text")
                                     }
+                                }
+                                .focusable()
+                                .onKeyPress(.space) {
+                                    copyPersonalMessage()
+                                    return .handled
                                 }
 
                                 Button(action: {
@@ -244,6 +249,11 @@ struct FeatureListRow: View {
                                         Text("Close")
                                     }
                                 }
+                                .focusable()
+                                .onKeyPress(.space) {
+                                    showingMessageEditor.toggle()
+                                    return .handled
+                                }
                             }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -252,6 +262,21 @@ struct FeatureListRow: View {
                     .frame(width: 800, height: 160)
                 })
         }
+    }
+
+    private func copyPersonalMessage() {
+        let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
+        let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
+        let fullPersonalMessage =
+        personalMessageTemplate
+            .replacingOccurrences(of: "%%PAGENAME%%", with: viewModel.selectedPage!.displayName)
+            .replacingOccurrences(of: "%%HUBNAME%%", with: viewModel.selectedPage!.hub == "other" ? "" : viewModel.selectedPage!.hub)
+            .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+            .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+            .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+        copyToClipboard(fullPersonalMessage)
+        showingMessageEditor.toggle()
+        showToast(.complete(.green), "Copied to clipboard", "The personal message was copied to the clipboard", .Success) {}
     }
 
     private func launchVeroScripts() {

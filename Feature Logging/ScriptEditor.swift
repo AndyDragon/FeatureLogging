@@ -33,6 +33,13 @@ struct ScriptEditor: View {
                 }
             )
             .disabled(!canCopy)
+            .focusable()
+            .onKeyPress(.space) {
+                if canCopy {
+                    copy(true, false)
+                }
+                return .handled
+            }
 
             Button(
                 action: {
@@ -44,6 +51,13 @@ struct ScriptEditor: View {
                 }
             )
             .disabled(!hasPlaceholders)
+            .focusable()
+            .onKeyPress(.space) {
+                if hasPlaceholders {
+                    copy(false, false)
+                }
+                return .handled
+            }
 
             Spacer()
         }
@@ -55,6 +69,7 @@ struct ScriptEditor: View {
             TextEditor(text: $script)
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
+                .focusable()
                 .focused(focus, equals: focusField)
                 .textEditorStyle(.plain)
                 .foregroundStyle(canCopy ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
@@ -70,6 +85,7 @@ struct ScriptEditor: View {
             TextEditor(text: $script)
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
+                .focusable()
                 .focused(focus, equals: focusField)
                 .foregroundStyle(canCopy ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
                 .scrollContentBackground(.hidden)
