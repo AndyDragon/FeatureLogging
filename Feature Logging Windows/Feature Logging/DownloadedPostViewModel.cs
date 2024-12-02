@@ -21,9 +21,11 @@ namespace FeatureLogging
         static readonly Color? defaultLogColor = null;// Colors.Blue;
         private readonly HttpClient httpClient = new();
         private readonly NotificationManager notificationManager = new();
+        private readonly MainViewModel vm;
 
         public DownloadedPostViewModel(MainViewModel vm)
         {
+            this.vm = vm;
             #region Commands
 
             copyPostUrlCommand = new Command(() =>
@@ -151,10 +153,10 @@ namespace FeatureLogging
                                             var post = postData.LoaderData?.Entry?.Post?.Post;
                                             if (post != null)
                                             {
-                                                var hashTags = new List<string>();
-                                                Description = post.Caption != null ? JoinSegments(post.Caption, hashTags).StripExtraSpaces() : "";
+                                                pageHashTags.Clear();
+                                                Description = post.Caption != null ? JoinSegments(post.Caption, pageHashTags).StripExtraSpaces() : "";
                                                 var pageTagFound = "";
-                                                if (hashTags.FirstOrDefault(hashTag =>
+                                                if (pageHashTags.FirstOrDefault(hashTag =>
                                                 {
                                                     return selectedPage.PageTags.FirstOrDefault(pageHashTag =>
                                                     {
@@ -167,14 +169,15 @@ namespace FeatureLogging
                                                     }) != null;
                                                 }) != null)
                                                 {
-                                                    TagCheck = new ValidationResult(true, message: $"Contains page hashtag {pageTagFound}");
-                                                    LogEntries.Add(new LogEntry(TagCheck.Message!, defaultLogColor));
+                                                    PageHashtagCheck = new ValidationResult(true, message: $"Contains page hashtag {pageTagFound}");
+                                                    LogEntries.Add(new LogEntry(PageHashtagCheck.Message!, defaultLogColor));
                                                 }
                                                 else
                                                 {
-                                                    TagCheck = new ValidationResult(false, "MISSING page hashtag");
-                                                    LogEntries.Add(new LogEntry(TagCheck.Error!, Colors.Red));
+                                                    PageHashtagCheck = new ValidationResult(false, "MISSING page hashtag");
+                                                    LogEntries.Add(new LogEntry(PageHashtagCheck.Error!, Colors.Red));
                                                 }
+                                                UpdateExcludedTags();
 
                                                 var imageUrls = post?.Images?.Select(image => image.Url).Where(url => url != null && url.ToString().StartsWith("https://"));
                                                 if (imageUrls?.Count() > 0)
@@ -318,6 +321,8 @@ namespace FeatureLogging
             return builder.ToString().Replace("\\n", "\n");
         }
 
+        private List<string> pageHashTags = new();
+
         #region Logging
 
         private readonly ObservableCollection<LogEntry> logEntries = [];
@@ -435,13 +440,20 @@ namespace FeatureLogging
 
         #endregion
 
-        #region Tag Check
+        #region Tag Checks
 
-        private ValidationResult tagCheck = new(true);
-        public ValidationResult TagCheck
+        private ValidationResult pageHashtagCheck = new(true);
+        public ValidationResult PageHashtagCheck
         {
-            get => tagCheck;
-            set => Set(ref tagCheck, value);
+            get => pageHashtagCheck;
+            set => Set(ref pageHashtagCheck, value);
+        }
+
+        private ValidationResult excludedHashtagCheck = new(true);
+        public ValidationResult ExcludedHashtagCheck
+        {
+            get => excludedHashtagCheck;
+            set => Set(ref excludedHashtagCheck, value);
         }
 
         #endregion
@@ -549,6 +561,33 @@ namespace FeatureLogging
                     expirationTime: TimeSpan.FromSeconds(12));
             }
         }
+
+        public void UpdateExcludedTags()
+        {
+            var excludedHashtags = vm.ExcludedTags.Split(",", StringSplitOptions.RemoveEmptyEntries);
+            if (excludedHashtags.Length != 0)
+            {
+                ExcludedHashtagCheck = new ValidationResult(true, message: "Post does not contain any excluded hashtags");
+                foreach (var excludedHashtag in excludedHashtags)
+                {
+                    if (pageHashTags.IndexOf(excludedHashtag) != -1)
+                    {
+                        ExcludedHashtagCheck = new ValidationResult(false, error: $"Post contains excluded hashtag {excludedHashtag}");
+                        LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Error!, Colors.Red));
+                        break;
+                    }
+                }
+                if (ExcludedHashtagCheck.Valid)
+                {
+                    LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Message!, defaultLogColor));
+                }
+            } 
+            else
+            {
+                ExcludedHashtagCheck = new ValidationResult(true, message: "There are no excluded hashtags");
+                LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Error!, defaultLogColor));
+            }
+        }
     }
 
     public static partial class StringExtensions
@@ -624,11 +663,19 @@ namespace FeatureLogging
         {
             this.source = source;
             frame = BitmapFrame.Create(source);
-            frame.DownloadCompleted += (object? sender, EventArgs e) =>
+            if (!frame.IsFrozen && frame.IsDownloading)
+            {
+                frame.DownloadCompleted += (object? sender, EventArgs e) =>
+                {
+                    Width = frame.PixelWidth;
+                    Height = frame.PixelHeight;
+                };
+            } 
+            else
             {
                 Width = frame.PixelWidth;
                 Height = frame.PixelHeight;
-            };
+            }
 
             saveImageCommand = new Command(() =>
             {

@@ -989,6 +989,15 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(SnapOrClickHubVisibility));
                     OnPropertyChanged(nameof(HasSelectedPage));
                     OnPropertyChanged(nameof(PageTags));
+                    if (SelectedPage != null)
+                    {
+                        excludedTags = UserSettings.Get(nameof(ExcludedTags) + ":" + SelectedPage.Id, "");
+                    }
+                    else
+                    {
+                        excludedTags = "";
+                    }
+                    OnPropertyChanged(nameof(ExcludedTags));
                 }
             }
         }
@@ -1070,7 +1079,31 @@ namespace FeatureLogging
             {
                 if (Set(ref staffLevel, value))
                 {
-                    UserSettings.Store(nameof(StaffLevel), StaffLevel);
+                    if (SelectedPage != null)
+                    {
+                        UserSettings.Store(nameof(StaffLevel) + ":" + SelectedPage.Id, StaffLevel);
+                    }
+                    else
+                    {
+                        UserSettings.Store(nameof(StaffLevel), StaffLevel);
+                    }
+                }
+            }
+        }
+
+        private string excludedTags = "";
+        public string ExcludedTags
+        {
+            get => excludedTags;
+            set
+            {
+                if (Set(ref excludedTags, value))
+                {
+                    if (SelectedPage != null)
+                    {
+                        UserSettings.Store(nameof(ExcludedTags) + ":" + SelectedPage.Id, ExcludedTags);
+                    }
+                    LoadedPost?.UpdateExcludedTags();
                 }
             }
         }

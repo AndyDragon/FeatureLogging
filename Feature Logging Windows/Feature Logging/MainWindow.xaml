@@ -59,6 +59,7 @@
         <KeyBinding Key="OemMinus" Modifiers="Ctrl" Command="{Binding RemoveFeatureCommand}" />
         <KeyBinding Key="C" Modifiers="Ctrl+Alt" Command="{Binding LaunchCullingAppCommand}" />
         <KeyBinding Key="A" Modifiers="Ctrl+Alt" Command="{Binding LaunchAiCheckAppCommand}" />
+        <KeyBinding Key="L" Modifiers="Ctrl" Command="{Binding LoadPostCommand}" />
 
         <KeyBinding Key="OemTilde" Modifiers="Ctrl" Command="{Binding SwitchToLogViewCommand}" />
         <KeyBinding Key="Left" Modifiers="Ctrl" Command="{Binding NavigateToPreviousFeatureCommand}" />
@@ -1495,6 +1496,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />         <!-- Page -->
                             <RowDefinition Height="Auto" />         <!-- Page tags -->
+                            <RowDefinition Height="Auto" />         <!-- Excluded tags -->
                             <RowDefinition Height="Auto" />         <!-- Post URL -->
                             <RowDefinition Height="Auto" />         <!-- User profile URL-->
                         </Grid.RowDefinitions>
@@ -1563,9 +1565,34 @@
                                     FontWeight="Bold" 
                                     VerticalAlignment="Center" />
                         </Label>
-                        <!-- Post URL -->
+                        <!-- Excluded tags -->
                         <Label 
                             Grid.Row="2" 
+                            Grid.Column="0" 
+                            VerticalAlignment="Center" 
+                            HorizontalContentAlignment="Right"
+                            FontSize="11" 
+                            Margin="0,0,4,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock 
+                                    Text="Excluded tags:" 
+                                    FontWeight="Bold" 
+                                    VerticalAlignment="Center"
+                                    Foreground="Lime" />
+                            </StackPanel>
+                        </Label>
+                        <TextBox 
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            Text="{Binding ExcludedTags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Left"
+                            FontSize="11"
+                            FontWeight="Bold"
+                            Width="480" />
+                        <!-- Post URL -->
+                        <Label 
+                            Grid.Row="3" 
                             Grid.Column="0" 
                             VerticalAlignment="Center" 
                             HorizontalContentAlignment="Right"
@@ -1586,7 +1613,7 @@
                             </StackPanel>
                         </Label>
                         <Label 
-                            Grid.Row="2" 
+                            Grid.Row="3" 
                             Grid.Column="1"
                             VerticalAlignment="Center" 
                             FontSize="11" 
@@ -1597,7 +1624,7 @@
                                 VerticalAlignment="Center" />
                         </Label>
                         <StackPanel 
-                            Grid.Row="2"
+                            Grid.Row="3"
                             Grid.Column="2"
                             Orientation="Horizontal" HorizontalAlignment="Right"
                             Height="22"
@@ -1636,7 +1663,7 @@
                         </StackPanel>
                         <!-- User profile URL -->
                         <Label 
-                            Grid.Row="3" 
+                            Grid.Row="4" 
                             Grid.Column="0" 
                             VerticalAlignment="Center" 
                             HorizontalContentAlignment="Right"
@@ -1657,7 +1684,7 @@
                             </StackPanel>
                         </Label>
                         <Label 
-                            Grid.Row="3" 
+                            Grid.Row="4" 
                             Grid.Column="1"
                             VerticalAlignment="Center" 
                             FontSize="11" 
@@ -1668,7 +1695,7 @@
                                 VerticalAlignment="Center" />
                         </Label>
                         <StackPanel 
-                            Grid.Row="3"
+                            Grid.Row="4"
                             Grid.Column="2"
                             Orientation="Horizontal" HorizontalAlignment="Right"
                             Height="22"
@@ -1891,7 +1918,7 @@
                         </ScrollViewer>
                     </Grid>
                 </Border>
-                <!-- Tag check and description -->
+                <!-- Tag checks and description -->
                 <Border 
                     Grid.Row="2"
                     Margin="0,10"
@@ -1899,7 +1926,8 @@
                     CornerRadius="8">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />         <!-- Tag check -->
+                            <RowDefinition Height="Auto" />         <!-- Page tag check -->
+                            <RowDefinition Height="Auto" />         <!-- Excluded tags check -->
                             <RowDefinition Height="Auto" />         <!-- Description label -->
                             <RowDefinition Height="Auto" />         <!-- Description -->
                         </Grid.RowDefinitions>
@@ -1907,7 +1935,7 @@
                             <ColumnDefinition Width="*" />          <!-- Label -->
                             <ColumnDefinition Width="Auto" />       <!-- Buttons -->
                         </Grid.ColumnDefinitions>
-                        <!-- Tag check -->
+                        <!-- Page tag check -->
                         <Label 
                             Grid.Row="0" 
                             Grid.Column="0" 
@@ -1915,28 +1943,55 @@
                             HorizontalContentAlignment="Left"
                             FontSize="11" 
                             Margin="0,0,4,0">
-                            <StackPanel Orientation="Horizontal" ToolTip="{Binding LoadedPost.TagCheck.Error}">
+                            <StackPanel Orientation="Horizontal" ToolTip="{Binding LoadedPost.PageHashtagCheck.Error}">
                                 <iconPacks:PackIconModern 
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
-                                    Visibility="{Binding LoadedPost.TagCheck, Converter={StaticResource validationResultVisibilityConverter}}" />
+                                    Visibility="{Binding LoadedPost.PageHashtagCheck, Converter={StaticResource validationResultVisibilityConverter}}" />
                                 <TextBlock 
-                                    Text="{Binding LoadedPost.TagCheck.Message}" 
+                                    Text="{Binding LoadedPost.PageHashtagCheck.Message}" 
                                     FontWeight="Bold" 
                                     VerticalAlignment="Center"
-                                    Foreground="{Binding LoadedPost.TagCheck, Converter={StaticResource greenValidationResultColorConverter}}" />
+                                    Foreground="{Binding LoadedPost.PageHashtagCheck, Converter={StaticResource greenValidationResultColorConverter}}" />
                                 <TextBlock 
-                                    Text="{Binding LoadedPost.TagCheck.Error}" 
+                                    Text="{Binding LoadedPost.PageHashtagCheck.Error}" 
                                     FontWeight="Bold" 
                                     VerticalAlignment="Center"
-                                    Foreground="{Binding LoadedPost.TagCheck, Converter={StaticResource validationResultColorConverter}}" />
+                                    Foreground="{Binding LoadedPost.PageHashtagCheck, Converter={StaticResource validationResultColorConverter}}" />
+                            </StackPanel>
+                        </Label>
+                        <!-- Excluded tags check -->
+                        <Label 
+                            Grid.Row="1" 
+                            Grid.Column="0" 
+                            VerticalAlignment="Center" 
+                            HorizontalContentAlignment="Left"
+                            FontSize="11" 
+                            Margin="0,0,4,0">
+                            <StackPanel Orientation="Horizontal" ToolTip="{Binding LoadedPost.ExcludedHashtagCheck.Error}">
+                                <iconPacks:PackIconModern 
+                                    VerticalAlignment="Center"
+                                    Kind="Warning"
+                                    Margin="0,0,6,0"
+                                    Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
+                                    Visibility="{Binding LoadedPost.ExcludedHashtagCheck, Converter={StaticResource validationResultVisibilityConverter}}" />
+                                <TextBlock 
+                                    Text="{Binding LoadedPost.ExcludedHashtagCheck.Message}" 
+                                    FontWeight="Bold" 
+                                    VerticalAlignment="Center"
+                                    Foreground="{Binding LoadedPost.ExcludedHashtagCheck, Converter={StaticResource greenValidationResultColorConverter}}" />
+                                <TextBlock 
+                                    Text="{Binding LoadedPost.ExcludedHashtagCheck.Error}" 
+                                    FontWeight="Bold" 
+                                    VerticalAlignment="Center"
+                                    Foreground="{Binding LoadedPost.ExcludedHashtagCheck, Converter={StaticResource validationResultColorConverter}}" />
                             </StackPanel>
                         </Label>
                         <!-- Description -->
                         <Label 
-                            Grid.Row="1" 
+                            Grid.Row="2" 
                             Grid.Column="0" 
                             VerticalAlignment="Center" 
                             HorizontalContentAlignment="Left"
@@ -1951,7 +2006,7 @@
                             </StackPanel>
                         </Label>
                         <ScrollViewer
-                            Grid.Row="2" 
+                            Grid.Row="3" 
                             Grid.Column="0" 
                             Grid.ColumnSpan="2"
                             HorizontalAlignment="Left"
@@ -1971,7 +2026,7 @@
                                 Margin="12,0,0,8" />
                         </ScrollViewer>
                         <StackPanel 
-                            Grid.Row="1"
+                            Grid.Row="2"
                             Grid.Column="1"
                             Orientation="Horizontal" 
                             HorizontalAlignment="Right"
@@ -2354,7 +2409,9 @@
                                                     Grid.Row="0"
                                                     VerticalAlignment="Center"
                                                     Margin="8"
-                                                    Source="{Binding Source}" />
+                                                    RenderOptions.BitmapScalingMode="HighQuality"
+                                                    Source="{Binding Source}">
+                                                </Image>
                                                 <StackPanel 
                                                     Grid.Row="1"
                                                     Orientation="Horizontal"
@@ -2463,7 +2520,9 @@
                                             Text="{Binding Messsage}"
                                             Foreground="{Binding Color, Converter={StaticResource nullableColorToBrushConverter}}"
                                             Background="Transparent"
-                                            FontWeight="Bold" />
+                                            FontWeight="Bold" 
+                                            MaxWidth="780"
+                                            TextWrapping="Wrap" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
