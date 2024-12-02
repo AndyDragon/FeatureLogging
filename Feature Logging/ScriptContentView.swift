@@ -934,7 +934,7 @@ struct ScriptContentView: View {
                 .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageName)
                 .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
                 .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
-                .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userName ?? "")
+                .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
                 .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
                 .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
                 // Special case for 'YOUR FIRST NAME' since it's now autofilled.
