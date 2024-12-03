@@ -185,6 +185,25 @@ struct ImageValidationView: View {
                         }
                         
                         if !returnedJson.isEmpty {
+                            HStack {
+                                Spacer()
+                                Button(action: {
+                                    copyToClipboard(returnedJson)
+                                    showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
+                                }) {
+                                    HStack(alignment: .center) {
+                                        Image(systemName: "pencil.and.list.clipboard")
+                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                        Text("Copy result")
+                                    }
+                                }
+                                .focusable()
+                                .onKeyPress(.space) {
+                                    copyToClipboard(returnedJson)
+                                    showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
+                                    return .handled
+                                }
+                            }
                             ScrollView(.vertical) {
                                 HStack {
                                     VStack(alignment: .leading) {
@@ -383,7 +402,6 @@ struct ImageValidationView: View {
             toggleProgressToast()
             if image != nil {
                 sendToHiveServer()
-                openInTinEye()
             }
         }
     }
