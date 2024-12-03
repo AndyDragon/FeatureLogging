@@ -16,24 +16,15 @@ namespace FeatureLogging
         static readonly Color? defaultLogColor = null;// Colors.Blue;
         private readonly HttpClient httpClient = new();
         private readonly NotificationManager notificationManager = new();
+        private readonly MainViewModel vm;
         private readonly ImageEntry imageEntry;
 
-        public ImageValidationViewModel(ImageEntry imageEntry) 
+        public ImageValidationViewModel(MainViewModel vm, ImageEntry imageEntry) 
         {
+            this.vm = vm;
             this.imageEntry = imageEntry;
 
             #region Commands
-
-            OpenTinEyeCommand = new Command(() => 
-            {
-                var encodedImageUri = Uri.EscapeDataString(imageEntry.Source.AbsoluteUri);
-                var tinEyeUri = $"https://www.tineye.com/search/?pluginver=chrome-2.0.4&sort=score&order=desc&url={encodedImageUri}";
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = tinEyeUri,
-                    UseShellExecute = true
-                });
-            });
 
             CopyLogCommand = new Command(() =>
             {
@@ -42,6 +33,8 @@ namespace FeatureLogging
 
             #endregion
 
+            var encodedImageUri = Uri.EscapeDataString(imageEntry.Source.AbsoluteUri);
+            TinEyeUri = $"https://www.tineye.com/search/?pluginver=chrome-2.0.4&sort=score&order=desc&url={encodedImageUri}";
             _ = LoadImageValidation();
         }
 
@@ -135,17 +128,24 @@ namespace FeatureLogging
 
         #endregion
 
-        #region Size Information
+        #region TinEye
 
-        public string SizeInformation
+        private string tinEyeUri = "";
+        public string TinEyeUri
         {
-            get => $"{imageEntry.Width} x {imageEntry.Height}";
+            get => tinEyeUri;
+            set
+            {
+                if (Set(ref tinEyeUri, value))
+                {
+                    vm.TriggerTinEyeSource();
+                }
+            }
         }
 
-        public Uri ImageSource
-        {
-            get => imageEntry.Source;
-        }
+        #endregion
+
+        #region HIVE results
 
         private Visibility verdictVisibility = Visibility.Collapsed;
         public Visibility VerdictVisibility
@@ -164,8 +164,6 @@ namespace FeatureLogging
         #endregion
 
         #region Commands
-
-        public Command OpenTinEyeCommand { get; }
 
         public Command CopyLogCommand { get; }
 

@@ -11,7 +11,6 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
@@ -1717,9 +1716,11 @@ namespace FeatureLogging
 
         public DownloadedPostViewModel? LoadedPost 
         { 
-            get => loadedPost; 
-            private set => Set(ref loadedPost, value); 
+            get => loadedPost;
+            private set => Set(ref loadedPost, value, [nameof(TinEyeSource)]);
         }
+
+        public string TinEyeSource { get => LoadedPost?.ImageValidation?.TinEyeUri ?? "about:blank"; }
 
         #endregion
 
@@ -1770,6 +1771,11 @@ namespace FeatureLogging
                 sleepTime += SleepStep;
                 await Task.Delay(SleepStep);
             }
+        }
+
+        internal void TriggerTinEyeSource()
+        {
+            OnPropertyChanged(nameof(TinEyeSource));
         }
     }
 

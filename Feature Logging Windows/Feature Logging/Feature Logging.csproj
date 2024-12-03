@@ -16,7 +16,7 @@
     <Copyright>Copyright (c) 2024 AndyDragon Software, all rights reserved</Copyright>
     <Company>AndyDragon Software</Company>
     <Authors>Andrew Forget</Authors>
-    <Version>2.1.15</Version>
+    <Version>2.1.16</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +27,7 @@
     <PackageReference Include="Emoji.Wpf" Version="0.3.4" />
     <PackageReference Include="MahApps.Metro" Version="2.4.10" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="5.1.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Notification.Wpf" Version="8.0.0" />
     <PackageReference Include="SgmlReader" Version="1.8.11" />

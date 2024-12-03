@@ -543,7 +543,13 @@ namespace FeatureLogging
         public ImageValidationViewModel? ImageValidation
         {
             get => imageValidation;
-            set => Set(ref imageValidation, value);
+            set
+            {
+                if (Set(ref imageValidation, value))
+                {
+                    vm.TriggerTinEyeSource();
+                }
+            }
         }
 
         #endregion
@@ -621,7 +627,7 @@ namespace FeatureLogging
 
         public void ValidateImage(ImageEntry imageEntry)
         {
-            this.ImageValidation = new ImageValidationViewModel(imageEntry);
+            this.ImageValidation = new ImageValidationViewModel(vm, imageEntry);
             vm.View = MainViewModel.ViewMode.ImageValidationView;
         }
     }
