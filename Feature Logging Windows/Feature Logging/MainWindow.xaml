@@ -60,8 +60,9 @@
         <KeyBinding Key="C" Modifiers="Ctrl+Alt" Command="{Binding LaunchCullingAppCommand}" />
         <KeyBinding Key="A" Modifiers="Ctrl+Alt" Command="{Binding LaunchAiCheckAppCommand}" />
         <KeyBinding Key="L" Modifiers="Ctrl" Command="{Binding LoadPostCommand}" />
+        <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding LoadedPost.ImageValidation.OpenTinEyeCommand}" />
 
-        <KeyBinding Key="OemTilde" Modifiers="Ctrl" Command="{Binding SwitchToLogViewCommand}" />
+        <KeyBinding Key="OemTilde" Modifiers="Ctrl" Command="{Binding CloseCurrentViewCommand}" />
         <KeyBinding Key="Left" Modifiers="Ctrl" Command="{Binding NavigateToPreviousFeatureCommand}" />
         <KeyBinding Key="Right" Modifiers="Ctrl" Command="{Binding NavigateToNextFeatureCommand}" />
     </Window.InputBindings>
@@ -185,7 +186,7 @@
             </Button>
             <Button 
                 Visibility="{Binding ScriptViewVisibility}"
-                Command="{Binding SwitchToLogViewCommand}" 
+                Command="{Binding CloseCurrentViewCommand}" 
                 Content="Close" ToolTip="Closes the script editor (Ctrl+tilda)">
                 <Button.ContentTemplate>
                     <DataTemplate>
@@ -203,7 +204,7 @@
             </Button>
             <Button 
                 Visibility="{Binding StatisticsViewVisibility}"
-                Command="{Binding SwitchToLogViewCommand}" 
+                Command="{Binding CloseCurrentViewCommand}" 
                 Content="Close" ToolTip="Closes the statistics (Ctrl+tilda)">
                 <Button.ContentTemplate>
                     <DataTemplate>
@@ -221,8 +222,44 @@
             </Button>
             <Button 
                 Visibility="{Binding PostDownloaderViewVisibility}"
-                Command="{Binding SwitchToLogViewCommand}" 
+                Command="{Binding CloseCurrentViewCommand}" 
                 Content="Close" ToolTip="Closes the post viewer (Ctrl+tilda)">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconJamIcons 
+                                Width="20"
+                                Height="20"
+                                Kind="CloseCircle" />
+                            <TextBlock Margin="4 0 0 0"
+                                VerticalAlignment="Center"
+                                Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button 
+                Visibility="{Binding ImageValidationViewVisibility}"
+                Command="{Binding LoadedPost.ImageValidation.OpenTinEyeCommand}" 
+                Content="Open TinEye" ToolTip="Opens TinEye in the browse with the image (Ctrl+Alt+T)">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconFeatherIcons 
+                                Width="20"
+                                Height="20"
+                                Kind="Globe" />
+                            <TextBlock Margin="4 0 0 0"
+                                VerticalAlignment="Center"
+                                Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button 
+                Visibility="{Binding ImageValidationViewVisibility}"
+                Command="{Binding CloseCurrentViewCommand}" 
+                Content="Close" ToolTip="Closes the image validator (Ctrl+tilda)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -2428,6 +2465,17 @@
                                                     Grid.Row="2"
                                                     Orientation="Horizontal"
                                                     HorizontalAlignment="Center">
+                                                    <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding ValidateImageCommand}">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <iconPacks:PackIconFeatherIcons
+                                                                VerticalAlignment="Center"
+                                                                Kind="CheckSquare"
+                                                                Margin="0,0,0,0"
+                                                                Height="11"
+                                                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                                            <TextBlock Text="Validate" VerticalAlignment="Center" Padding="4,0,4,2" />
+                                                        </StackPanel>
+                                                    </Button>
                                                     <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding SaveImageCommand}">
                                                         <StackPanel Orientation="Horizontal">
                                                             <iconPacks:PackIconFeatherIcons
@@ -2556,7 +2604,201 @@
                 </Border>
             </Grid>
         </ScrollViewer>
-        
+
+        <!-- IMAGE VALIDATION VIEW -->
+        <Grid
+            Visibility="{Binding ImageValidationViewVisibility}"
+            Grid.Row="1" 
+            Margin="16,8,16,8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />         <!-- Image -->
+                <RowDefinition Height="Auto" />         <!-- Validation -->
+                <RowDefinition Height="*" />            <!-- Logging -->
+            </Grid.RowDefinitions>
+            <!-- Image -->
+            <Border 
+                Grid.Row="0"
+                Margin="0,10"
+                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />     <!-- Image size -->
+                        <RowDefinition Height="300" />      <!-- Image -->
+                    </Grid.RowDefinitions>
+                    <Label 
+                        Grid.Row="0"
+                        Content="{Binding LoadedPost.ImageValidation.SizeInformation}"
+                        HorizontalAlignment="Center" />
+                    <Image
+                        Grid.Row="1"
+                        HorizontalAlignment="Center"
+                        Margin="8"
+                        RenderOptions.BitmapScalingMode="HighQuality"
+                        Source="{Binding LoadedPost.ImageValidation.ImageSource}">
+                    </Image>
+                </Grid>
+            </Border>
+            <!-- Validation -->
+            <Border 
+                Grid.Row="1"
+                Margin="0,10"
+                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                CornerRadius="8">
+                <StackPanel Orientation="Horizontal" Margin="4,12">
+                    <Label 
+                        VerticalAlignment="Center" 
+                        FontSize="11" 
+                        Margin="0, 0, 4, 0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock 
+                                Text="TinEye:" 
+                                FontWeight="Bold" 
+                                VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Label>
+                    <ComboBox 
+                        ItemsSource="{Binding TinEyeResults}"
+                        SelectedItem="{Binding SelectedFeature.TinEyeResults, Mode=TwoWay}" 
+                        Width="160"
+                        VerticalAlignment="Center" />
+                    <TextBlock Text="|" Margin="20,0,0,4" FontSize="18" VerticalAlignment="Center"  />
+                    <Label 
+                        VerticalAlignment="Center" 
+                        FontSize="11" 
+                        Margin="10, 0, 4, 0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock 
+                                Text="AI check:" 
+                                FontWeight="Bold" 
+                                VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Label>
+                    <ComboBox 
+                        ItemsSource="{Binding AiCheckResults}" 
+                        SelectedItem="{Binding SelectedFeature.AiCheckResults, Mode=TwoWay}" 
+                        Width="160"
+                        VerticalAlignment="Center" />
+                    <Label 
+                        VerticalAlignment="Center" 
+                        FontSize="14" 
+                        Margin="10, 0, 4, 0"
+                        Visibility="{Binding LoadedPost.ImageValidation.VerdictVisibility}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="|" Margin="10,0,20,4" FontSize="18" VerticalAlignment="Center"  />
+                            <iconPacks:PackIconJamIcons
+                                Kind="{Binding LoadedPost.ImageValidation.Verdict.Icon}"
+                                Margin="0,0,6,0"
+                                Width="28"
+                                Height="28"
+                                Foreground="{Binding LoadedPost.ImageValidation.Verdict.Color}" 
+                                VerticalAlignment="Center" />
+                            <TextBlock 
+                                Text="Verdict:" 
+                                Foreground="{Binding LoadedPost.ImageValidation.Verdict.Color}"
+                                FontWeight="Bold" 
+                                VerticalAlignment="Center" />
+                            <TextBlock 
+                                Text="{Binding LoadedPost.ImageValidation.Verdict.Message}" 
+                                Margin="8,0,0,0"
+                                FontWeight="Bold" 
+                                Foreground="{Binding LoadedPost.ImageValidation.Verdict.Color}"
+                                VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Label>
+                </StackPanel>
+            </Border>
+            <!-- Logging -->
+            <Border 
+                Grid.Row="2"
+                Margin="0, 10"
+                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />     <!-- Logging label -->
+                        <RowDefinition Height="*" />        <!-- Logging -->
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />    <!-- Label -->
+                        <ColumnDefinition Width="Auto" /> <!-- Buttons -->
+                    </Grid.ColumnDefinitions>
+                    <!-- Logging label -->
+                    <Label 
+                        Grid.Row="0" 
+                        Grid.Column="0" 
+                        VerticalAlignment="Top" 
+                        HorizontalContentAlignment="Left"
+                        FontSize="11" 
+                        Margin="0,0,4,0">
+                        <TextBlock 
+                            Text="LOGGING:" 
+                            FontWeight="Bold" 
+                            VerticalAlignment="Center"
+                            Foreground="Orange" />
+                    </Label>
+                    <ScrollViewer
+                        Grid.Row="1" 
+                        Grid.Column="0" 
+                        CanContentScroll="True"
+                        VerticalScrollBarVisibility="Auto">
+                        <ItemsControl
+                            HorizontalAlignment="Left"
+                            Width="800"
+                            Padding="0,0,0,10"
+                            Margin="12,0,0,8"
+                            ItemsSource="{Binding LoadedPost.ImageValidation.LogEntries, Mode=OneWay}"
+                            Background="Transparent">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="local:LogEntry">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            Text="●"
+                                            Background="Transparent"
+                                            FontWeight="Bold"
+                                            Margin="0,0,8,0"
+                                            Visibility="{Binding SkipBullet, Converter={StaticResource validationBooleanVisibilityConverter}}"/>
+                                        <TextBlock
+                                            Text="{Binding Messsage}"
+                                            Foreground="{Binding Color, Converter={StaticResource nullableColorToBrushConverter}}"
+                                            Background="Transparent"
+                                            FontWeight="Bold" 
+                                            MaxWidth="780"
+                                            TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <StackPanel 
+                        Grid.Row="0"
+                        Grid.RowSpan="2"
+                        Grid.Column="1"
+                        Orientation="Horizontal" 
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Height="22"
+                        Margin="0,12,12,6">
+                        <Button 
+                            Height="22" 
+                            Padding="4,0,4,0" 
+                            Command="{Binding LoadedPost.ImageValidation.CopyLogCommand}" 
+                            MinHeight="22">
+                            <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
+                                <iconPacks:PackIconFeatherIcons
+                                    VerticalAlignment="Center"
+                                    Kind="Clipboard"
+                                    Margin="0,0,6,0"
+                                    Height="13"
+                                    Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                <TextBlock Margin="0,0,0,1" FontSize="11" FontWeight="Bold" Padding="0" VerticalAlignment="Center">Copy Log</TextBlock>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
         <notifications:NotificationArea Grid.Row="1" x:Name="WindowArea" Position="TopRight" MaxItems="3" />
 
         <!-- Footer -->

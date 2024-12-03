@@ -47,12 +47,17 @@ namespace FeatureLogging
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            bool inverted = false;
+            if (parameter is bool isInverted)
+            {
+                inverted = isInverted;
+            }
             var validationResult = value as ValidationResult?;
             if (validationResult == null || !(validationResult?.Valid ?? false))
             {
-                return Visibility.Visible;
+                return inverted ? Visibility.Collapsed : Visibility.Visible;
             }
-            return Visibility.Collapsed;
+            return inverted ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

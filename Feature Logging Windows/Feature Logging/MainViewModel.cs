@@ -573,7 +573,20 @@ namespace FeatureLogging
                     return !string.IsNullOrEmpty(Settings.AiCheckApp) && File.Exists(Settings.AiCheckApp);
                 });
 
-            SwitchToLogViewCommand = new Command(() => { View = ViewMode.LogView; });
+            CloseCurrentViewCommand = new Command(() => 
+            {
+                switch (View)
+                {
+                    case ViewMode.ScriptView:
+                    case ViewMode.StatisticsView:
+                    case ViewMode.PostDownloaderView:
+                        View = ViewMode.LogView;
+                        break;
+                    case ViewMode.ImageValidationView:
+                        View = ViewMode.PostDownloaderView;
+                        break;
+                }
+            });
 
             NavigateToPreviousFeatureCommand = new Command(() =>
             {
@@ -824,7 +837,7 @@ namespace FeatureLogging
 
         public ICommand LaunchAiCheckAppCommand { get; }
 
-        public ICommand SwitchToLogViewCommand { get; }
+        public ICommand CloseCurrentViewCommand { get; }
 
         public ICommand NavigateToPreviousFeatureCommand { get; }
 
@@ -841,16 +854,22 @@ namespace FeatureLogging
             set => Set(ref isDirty, value, [nameof(Title)]);
         }
 
-        public string Title => 
-            View == ViewMode.ScriptView 
-            ? $"Feature Logging{(IsDirty ? " - edited" : string.Empty)}{(string.IsNullOrEmpty(SelectedFeature?.UserName) 
-                ? " - scripts" 
-                : (" - scripts for: " + SelectedFeature?.UserName))}{(string.IsNullOrEmpty(SelectedFeature?.FeatureDescription) 
-                ? "" 
-                : " - description: " + SelectedFeature?.FeatureDescription)}"
-            : View == ViewMode.StatisticsView
-            ? $"Feature Logging{(IsDirty ? " - edited" : string.Empty)} - statistics"
-            : $"Feature Logging{(IsDirty ? " - edited" : string.Empty)}";
+        public string Title =>
+            View == ViewMode.ScriptView
+                ? $"Feature Logging{(IsDirty ? " - edited" : string.Empty)}{(string.IsNullOrEmpty(SelectedFeature?.UserName)
+                    ? " - scripts"
+                    : (" - scripts for: " + SelectedFeature?.UserName))}{(string.IsNullOrEmpty(SelectedFeature?.FeatureDescription)
+                    ? ""
+                    : " - description: " + SelectedFeature?.FeatureDescription)}"
+                : View == ViewMode.PostDownloaderView || View == ViewMode.ImageValidationView
+                    ? $"Feature Logging{(IsDirty ? " - edited" : string.Empty)}{(string.IsNullOrEmpty(SelectedFeature?.UserName)
+                        ? " - post viewer"
+                        : (" - post viewer: " + SelectedFeature?.UserName))}{(string.IsNullOrEmpty(SelectedFeature?.FeatureDescription)
+                        ? ""
+                        : " - description: " + SelectedFeature?.FeatureDescription)}"
+                    : View == ViewMode.StatisticsView
+                        ? $"Feature Logging{(IsDirty ? " - edited" : string.Empty)} - statistics"
+                        : $"Feature Logging{(IsDirty ? " - edited" : string.Empty)}";
 
         public void HandleDirtyAction(string action, Action<bool> onConfirmAction)
         {
@@ -928,7 +947,7 @@ namespace FeatureLogging
 
         #region View management
 
-        public enum ViewMode {  LogView, ScriptView, StatisticsView, PostDownloaderView }
+        public enum ViewMode {  LogView, ScriptView, StatisticsView, PostDownloaderView, ImageValidationView }
         private ViewMode view = ViewMode.LogView;
 
         public ViewMode View 
@@ -942,9 +961,10 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(ScriptViewVisibility));
                     OnPropertyChanged(nameof(StatisticsViewVisibility));
                     OnPropertyChanged(nameof(PostDownloaderViewVisibility));
+                    OnPropertyChanged(nameof(ImageValidationViewVisibility));
                     OnPropertyChanged(nameof(FeatureNavigationVisibility));
                     OnPropertyChanged(nameof(Title));
-                    if (view != ViewMode.PostDownloaderView)
+                    if (view != ViewMode.PostDownloaderView && view != ViewMode.ImageValidationView)
                     {
                         LoadedPost = null;
                     }
@@ -956,6 +976,7 @@ namespace FeatureLogging
         public Visibility ScriptViewVisibility => view == ViewMode.ScriptView ? Visibility.Visible : Visibility.Collapsed;
         public Visibility StatisticsViewVisibility => view == ViewMode.StatisticsView ? Visibility.Visible : Visibility.Collapsed;
         public Visibility PostDownloaderViewVisibility => view == ViewMode.PostDownloaderView ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility ImageValidationViewVisibility => view == ViewMode.ImageValidationView ? Visibility.Visible : Visibility.Collapsed;
 
         #endregion
 

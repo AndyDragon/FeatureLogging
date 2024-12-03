@@ -12,7 +12,6 @@ using System.Text.RegularExpressions;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Notification.Wpf;
-using System.Security.AccessControl;
 
 namespace FeatureLogging
 {
@@ -26,6 +25,7 @@ namespace FeatureLogging
         public DownloadedPostViewModel(MainViewModel vm)
         {
             this.vm = vm;
+
             #region Commands
 
             copyPostUrlCommand = new Command(() =>
@@ -81,13 +81,18 @@ namespace FeatureLogging
             #endregion
 
             // Load the post asyncly.
-            _ = LoadPost(vm);
+            _ = LoadPost();
         }
 
-        private async Task LoadPost(MainViewModel vm)
+        private async Task LoadPost()
         {
             var postUrl = vm.SelectedFeature!.PostLink!;
             var selectedPage = vm.SelectedPage!;
+            using var progress = notificationManager.ShowProgressBar(
+                "Loading the post",
+                ShowCancelButton: false,
+                areaName: "WindowArea");
+            await Task.Delay(TimeSpan.FromSeconds(0.5), progress.Cancel);
             try
             {
                 // Disable client-side caching.
@@ -95,8 +100,12 @@ namespace FeatureLogging
                 {
                     NoCache = true
                 };
-                var templatesUri = new Uri(postUrl);
-                var content = await httpClient.GetStringAsync(templatesUri);
+                // Accept JSON result
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var postUri = new Uri(postUrl);
+                progress.Report((20, "Waiting for server", null, null));
+                var content = await httpClient.GetStringAsync(postUri);
                 if (!string.IsNullOrEmpty(content))
                 {
                     try
@@ -114,6 +123,7 @@ namespace FeatureLogging
                         };
                         document.Load(sgmlReader);
 
+                        progress.Report((40, "Looking for script", null, null));
                         var scriptElements = document.GetElementsByTagName("script");
                         foreach (var scriptElement in scriptElements)
                         {
@@ -185,7 +195,7 @@ namespace FeatureLogging
                                                     foreach (var imageUrl in imageUrls)
                                                     {
                                                         LogProgress(imageUrl!.ToString(), "Image source");
-                                                        ImageUrls.Add(new ImageEntry(imageUrl, userName ?? "unknown", notificationManager));
+                                                        ImageUrls.Add(new ImageEntry(imageUrl, userName ?? "unknown", this, notificationManager));
                                                     }
                                                     ShowImages = true;
                                                 }
@@ -258,12 +268,6 @@ namespace FeatureLogging
                                 }
                             }
                         }
-
-                        // Debugging
-                        foreach (var logEntry in LogEntries)
-                        {
-                            Debug.WriteLine(logEntry.Messsage, logEntry.Color?.ToString() ?? "Info");
-                        }
                     }
                     catch (Exception ex)
                     {
@@ -276,6 +280,7 @@ namespace FeatureLogging
                 // Do nothing, not vital
                 Console.WriteLine("Error occurred: {0}", ex.Message);
             }
+            progress.Report((100, null, null, null));
         }
 
         private void LogProgress(string? value, string label)
@@ -321,7 +326,7 @@ namespace FeatureLogging
             return builder.ToString().Replace("\\n", "\n");
         }
 
-        private List<string> pageHashTags = new();
+        private readonly List<string> pageHashTags = [];
 
         #region Logging
 
@@ -518,6 +523,17 @@ namespace FeatureLogging
 
         #endregion
 
+        #region Image Validation
+
+        private ImageValidationViewModel? imageValidation;
+        public ImageValidationViewModel? ImageValidation
+        {
+            get => imageValidation;
+            set => Set(ref imageValidation, value);
+        }
+
+        #endregion
+
         #region Commands
 
         private readonly Command copyPostUrlCommand;
@@ -588,6 +604,12 @@ namespace FeatureLogging
                 LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Error!, defaultLogColor));
             }
         }
+
+        public void ValidateImage(ImageEntry imageEntry)
+        {
+            this.ImageValidation = new ImageValidationViewModel(imageEntry);
+            vm.View = MainViewModel.ViewMode.ImageValidationView;
+        }
     }
 
     public static partial class StringExtensions
@@ -640,7 +662,7 @@ namespace FeatureLogging
         }
     }
 
-    public class LogEntry(string message, Color? color = null) : NotifyPropertyChanged
+    public class LogEntry(string message, Color? color = null, bool skipBullet = false) : NotifyPropertyChanged
     {
         private Color? color = color;
         public Color? Color
@@ -655,12 +677,22 @@ namespace FeatureLogging
             get => message;
             set => Set(ref message, value);
         }
+
+        private bool skipBullet = skipBullet;
+        public bool SkipBullet
+        {
+            get => skipBullet;
+            set => Set(ref skipBullet, value);
+        }
     }
 
     public class ImageEntry : NotifyPropertyChanged
     {
-        public ImageEntry(Uri source, string username, NotificationManager notificationManager)
+        private readonly DownloadedPostViewModel postVm;
+
+        public ImageEntry(Uri source, string username, DownloadedPostViewModel postVm, NotificationManager notificationManager)
         {
+            this.postVm = postVm;
             this.source = source;
             frame = BitmapFrame.Create(source);
             if (!frame.IsFrozen && frame.IsDownloading)
@@ -677,6 +709,10 @@ namespace FeatureLogging
                 Height = frame.PixelHeight;
             }
 
+            ValidateImageCommand = new Command(() =>
+            {
+                this.postVm.ValidateImage(this);
+            });
             saveImageCommand = new Command(() =>
             {
                 PngBitmapEncoder png = new();
@@ -745,6 +781,8 @@ namespace FeatureLogging
             get => height;
             private set => Set(ref height, value);
         }
+
+        public ICommand ValidateImageCommand { get; }
 
         private readonly ICommand saveImageCommand;
         public ICommand SaveImageCommand { get => saveImageCommand; }
