@@ -334,3 +334,59 @@ extension FileManager {
         return URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent(fileName)
     }
 }
+
+struct MultipartFormDataRequest {
+    private let boundary: String = UUID().uuidString
+    var httpBody = NSMutableData()
+    var headers = [String:String]()
+    let url: URL
+    
+    init(url: URL) {
+        self.url = url
+    }
+    
+    func addTextField(named name: String, value: String) {
+        httpBody.appendString(textFormField(named: name, value: value))
+    }
+    
+    private func textFormField(named name: String, value: String) -> String {
+        var fieldString = "--\(boundary)\r\n"
+        fieldString += "Content-Disposition: form-data; name=\"\(name)\"\r\n"
+        fieldString += "Content-Type: text/plain; charset=ISO-8859-1\r\n"
+        fieldString += "Content-Transfer-Encoding: 8bit\r\n"
+        fieldString += "\r\n"
+        fieldString += "\(value)\r\n"
+        
+        return fieldString
+    }
+    
+    func addDataField(fieldName: String, fieldValue: String) {
+        httpBody.append(dataFormField(fieldName: fieldName, fieldValue: fieldValue))
+    }
+    
+    private func dataFormField(fieldName: String, fieldValue: String) -> Data {
+        let fieldData = NSMutableData()
+        fieldData.appendString("--\(boundary)\r\n")
+        fieldData.appendString("Content-Disposition: form-data; name=\"\(fieldName)\"\r\n")
+        fieldData.appendString("\r\n")
+        fieldData.appendString(fieldValue)
+        fieldData.appendString("\r\n")
+        return fieldData as Data
+    }
+    
+    mutating func addHeader(header: String, value: String) {
+        headers[header] = value
+    }
+    
+    func asURLRequest() -> URLRequest {
+        var request = URLRequest(url: url)
+        for header in headers {
+            request.addValue(header.value, forHTTPHeaderField: header.key)
+        }
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        httpBody.appendString("--\(boundary)--")
+        request.httpBody = httpBody as Data
+        return request
+    }
+}

@@ -23,7 +23,7 @@ struct PostDownloaderImageView: View {
     var name: String
     var index: Int
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
-    var showImageValidationView: (_ imageData: Data, _ imageUrl: URL) -> Void
+    var showImageValidationView: (_ imageUrl: URL) -> Void
 
     var body: some View {
         VStack {
@@ -63,9 +63,7 @@ struct PostDownloaderImageView: View {
             .background(Color(red: 0.9, green: 0.9, blue: 0.92))
             HStack {
                 Button(action: {
-                    if let imageData = self.data {
-                        showImageValidationView(imageData, imageUrl)
-                    }
+                    showImageValidationView(imageUrl)
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "photo.badge.checkmark.fill")
@@ -76,8 +74,8 @@ struct PostDownloaderImageView: View {
                 .focusable()
                 .disabled(data == nil)
                 .onKeyPress(.space) {
-                    if let imageData = self.data {
-                        showImageValidationView(imageData, imageUrl)
+                    if self.data != nil {
+                        showImageValidationView(imageUrl)
                     }
                     return .handled
                 }

@@ -47,7 +47,7 @@ namespace FeatureLogging
                     });
                 }
             }, () => !string.IsNullOrEmpty(vm.SelectedFeature?.PostLink));
-            
+
             copyUserProfileUrlCommand = new Command(() =>
             {
                 if (!string.IsNullOrEmpty(UserProfileUrl))
@@ -55,7 +55,7 @@ namespace FeatureLogging
                     CopyTextToClipboard(UserProfileUrl, "Copied the user profile URL to the clipboard", notificationManager);
                 }
             }, () => !string.IsNullOrEmpty(UserProfileUrl));
-            
+
             launchUserProfileUrlCommand = new Command(() =>
             {
                 if (!string.IsNullOrEmpty(UserProfileUrl))
@@ -216,8 +216,8 @@ namespace FeatureLogging
                                                         {
                                                             var commentSegments = JoinSegments(comment?.Content).StripExtraSpaces(true);
                                                             localPageComments.Add(new CommentEntry(
-                                                                commentUserName, 
-                                                                comment?.Timestamp, 
+                                                                commentUserName,
+                                                                comment?.Timestamp,
                                                                 commentSegments,
                                                                 (page, timestamp) => { vm.SelectedFeature!.PhotoFeaturedOnPage = true; }));
                                                             PageCommentsValidation = new ValidationResult(false, "Found page comments - possibly already featured on page");
@@ -231,7 +231,7 @@ namespace FeatureLogging
                                                                 commentUserName,
                                                                 comment?.Timestamp,
                                                                 commentSegments,
-                                                                (page, timestamp) => 
+                                                                (page, timestamp) =>
                                                                 {
                                                                     vm.SelectedFeature!.PhotoFeaturedOnHub = true;
                                                                     vm.SelectedFeature!.PhotoLastFeaturedPage = page[(selectedPage.HubName.Length + 1)..];
@@ -315,11 +315,25 @@ namespace FeatureLogging
                         break;
 
                     case "person":
-                        builder.Append($"@{segment.Label}");
+                        if (segment.Label != null)
+                        {
+                            builder.Append($"@{segment.Label}");
+                        }
+                        else
+                        {
+                            builder.Append(segment.Value);
+                        }
                         break;
 
                     case "url":
-                        builder.Append(segment.Label);
+                        if (segment.Label != null)
+                        {
+                            builder.Append(segment.Label);
+                        }
+                        else
+                        {
+                            builder.Append(segment.Value);
+                        }
                         break;
                 }
             }
@@ -335,7 +349,7 @@ namespace FeatureLogging
 
         #endregion
 
-        #region User Alias 
+        #region User Alias
 
         private string? userAlias;
         public string? UserAlias
@@ -597,7 +611,7 @@ namespace FeatureLogging
                 {
                     LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Message!, defaultLogColor));
                 }
-            } 
+            }
             else
             {
                 ExcludedHashtagCheck = new ValidationResult(true, message: "There are no excluded hashtags");
@@ -702,7 +716,7 @@ namespace FeatureLogging
                     Width = frame.PixelWidth;
                     Height = frame.PixelHeight;
                 };
-            } 
+            }
             else
             {
                 Width = frame.PixelWidth;

@@ -56,7 +56,6 @@ struct ContentView: View {
     @State private var documentDirtyAlertConfirmation = "Would you like to save this log file?"
     @State private var documentDirtyAfterSaveAction: () -> Void = {}
     @State private var documentDirtyAfterDismissAction: () -> Void = {}
-    @State private var imageValidationImageData: Data?
     @State private var imageValidationImageUrl: URL?
     @State private var showFileImporter = false
     @State private var showFileExporter = false
@@ -129,11 +128,9 @@ struct ContentView: View {
                             $focusedField,
                             $isShowingToast,
                             $isShowingProgressToast,
-                            $imageValidationImageData,
                             $imageValidationImageUrl,
                             {
                                 isShowingImageValidationView.toggle()
-                                imageValidationImageData = nil
                             },
                             { shouldScrollFeatureListToSelection.toggle() },
                             { isDirty = true },
@@ -147,8 +144,7 @@ struct ContentView: View {
                             $focusedField,
                             $isShowingToast,
                             { isShowingDownloaderView.toggle() },
-                            { imageData, imageUrl in
-                                imageValidationImageData = imageData
+                            { imageUrl in
                                 imageValidationImageUrl = imageUrl
                                 isShowingImageValidationView.toggle()
                             },

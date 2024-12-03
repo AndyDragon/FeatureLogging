@@ -22,7 +22,7 @@ struct PostDownloaderView: View {
     @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var isShowingToast: Binding<Bool>
     private var hideDownloaderView: () -> Void
-    private var showImageValidationView: (_ imageData: Data, _ imageUrl: URL) -> Void
+    private var showImageValidationView: (_ imageUrl: URL) -> Void
     private var updateList: () -> Void
     private var markDocumentDirty: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
@@ -35,8 +35,8 @@ struct PostDownloaderView: View {
     @State private var excludedHashtags = ""
     @State private var postHashtags: [String] = []
     @State private var postLoaded = false
-    @State private var userLoaded = false
     @State private var description = ""
+    @State private var userAlias = ""
     @State private var userName = ""
     @State private var logging: [(Color, String)] = []
     @State private var pageComments: [(String, String, Date?, String)] = []; // Page, Comment, Date
@@ -56,7 +56,7 @@ struct PostDownloaderView: View {
         _ focusedField: FocusState<FocusField?>.Binding,
         _ isShowingToast: Binding<Bool>,
         _ hideDownloaderView: @escaping () -> Void,
-        _ showImageValidationView: @escaping (_ imageData: Data, _ imageUrl: URL) -> Void,
+        _ showImageValidationView: @escaping (_ imageUrl: URL) -> Void,
         _ updateList: @escaping () -> Void,
         _ markDocumentDirty: @escaping () -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
@@ -170,51 +170,49 @@ struct PostDownloaderView: View {
                                             }
                                         }
                                         .frame(height: 20)
-                                        if userLoaded {
-                                            HStack(alignment: .center) {
-                                                ValidationLabel("User profile URL: ", labelWidth: -mainLabelWidth, validation: !userProfileLink.isEmpty, validColor: .green)
-                                                ValidationLabel(userProfileLink, validation: true, validColor: .AccentColor)
-                                                Spacer()
-                                                Button(action: {
-                                                    copyToClipboard(userProfileLink)
-                                                    showToast(.complete(.green), "Copied to clipboard", "Copied the user profile URL to the clipboard", .Success) {}
-                                                }) {
-                                                    HStack(alignment: .center) {
-                                                        Image(systemName: "pencil.and.list.clipboard")
-                                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                                        Text("Copy URL")
-                                                    }
-                                                }
-                                                .focusable()
-                                                .onKeyPress(.space) {
-                                                    copyToClipboard(userProfileLink)
-                                                    showToast(.complete(.green), "Copied to clipboard", "Copied the user profile URL to the clipboard", .Success) {}
-                                                    return .handled
-                                                }
-                                                Spacer()
-                                                    .frame(width: 10)
-                                                Button(action: {
-                                                    if let url = URL(string: userProfileLink) {
-                                                        openURL(url)
-                                                    }
-                                                }) {
-                                                    HStack(alignment: .center) {
-                                                        Image(systemName: "globe")
-                                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                                        Text("Launch")
-                                                    }
-                                                }
-                                                .disabled(userProfileLink.isEmpty)
-                                                .focusable(!userProfileLink.isEmpty)
-                                                .onKeyPress(.space) {
-                                                    if let url = URL(string: userProfileLink) {
-                                                        openURL(url)
-                                                    }
-                                                    return .handled
+                                        HStack(alignment: .center) {
+                                            ValidationLabel("User profile URL: ", labelWidth: -mainLabelWidth, validation: !userProfileLink.isEmpty, validColor: .green)
+                                            ValidationLabel(userProfileLink, validation: true, validColor: .AccentColor)
+                                            Spacer()
+                                            Button(action: {
+                                                copyToClipboard(userProfileLink)
+                                                showToast(.complete(.green), "Copied to clipboard", "Copied the user profile URL to the clipboard", .Success) {}
+                                            }) {
+                                                HStack(alignment: .center) {
+                                                    Image(systemName: "pencil.and.list.clipboard")
+                                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                    Text("Copy URL")
                                                 }
                                             }
-                                            .frame(height: 20)
+                                            .focusable()
+                                            .onKeyPress(.space) {
+                                                copyToClipboard(userProfileLink)
+                                                showToast(.complete(.green), "Copied to clipboard", "Copied the user profile URL to the clipboard", .Success) {}
+                                                return .handled
+                                            }
+                                            Spacer()
+                                                .frame(width: 10)
+                                            Button(action: {
+                                                if let url = URL(string: userProfileLink) {
+                                                    openURL(url)
+                                                }
+                                            }) {
+                                                HStack(alignment: .center) {
+                                                    Image(systemName: "globe")
+                                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                    Text("Launch")
+                                                }
+                                            }
+                                            .disabled(userProfileLink.isEmpty)
+                                            .focusable(!userProfileLink.isEmpty)
+                                            .onKeyPress(.space) {
+                                                if let url = URL(string: userProfileLink) {
+                                                    openURL(url)
+                                                }
+                                                return .handled
+                                            }
                                         }
+                                        .frame(height: 20)
                                     }
                                     .frame(maxWidth: 1280)
                                 }
@@ -276,86 +274,84 @@ struct PostDownloaderView: View {
                                             }
                                             .frame(maxWidth: .infinity)
                                             .frame(height: 20)
-                                            if userLoaded {
-                                                HStack(alignment: .center) {
-                                                    ValidationLabel("User BIO:", validation: !userBio.isEmpty, validColor: .green)
-                                                    Spacer()
-                                                    ValidationLabel("User level:", labelWidth: labelWidth, validation: selectedFeature.feature.userLevel.wrappedValue != MembershipCase.none)
-                                                    Picker(
-                                                        "",
-                                                        selection: selectedFeature.feature.userLevel.onChange { value in
-                                                            navigateToUserLevel(selectedPage.hub.wrappedValue, selectedFeature, .same)
-                                                        }
-                                                    ) {
-                                                        ForEach(MembershipCase.casesFor(hub: selectedPage.hub.wrappedValue)) { level in
-                                                            Text(level.rawValue)
-                                                                .tag(level)
-                                                                .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
-                                                        }
+                                            HStack(alignment: .center) {
+                                                ValidationLabel("User BIO:", validation: !userBio.isEmpty, validColor: .green)
+                                                Spacer()
+                                                ValidationLabel("User level:", labelWidth: labelWidth, validation: selectedFeature.feature.userLevel.wrappedValue != MembershipCase.none)
+                                                Picker(
+                                                    "",
+                                                    selection: selectedFeature.feature.userLevel.onChange { value in
+                                                        navigateToUserLevel(selectedPage.hub.wrappedValue, selectedFeature, .same)
                                                     }
-                                                    .tint(Color.AccentColor)
-                                                    .accentColor(Color.AccentColor)
-                                                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                                                    .focusable()
-                                                    .focused(focusedField, equals: .postUserLevel)
-                                                    .frame(maxWidth: 240)
-                                                    .onKeyPress(phases: .down) { keyPress in
-                                                        let direction = directionFromModifiers(keyPress)
-                                                        if direction != .same {
-                                                            navigateToUserLevel(selectedPage.hub.wrappedValue, selectedFeature, direction)
-                                                            return .handled
-                                                        }
-                                                        return .ignored
+                                                ) {
+                                                    ForEach(MembershipCase.casesFor(hub: selectedPage.hub.wrappedValue)) { level in
+                                                        Text(level.rawValue)
+                                                            .tag(level)
+                                                            .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
                                                     }
                                                 }
-                                                .frame(maxWidth: .infinity)
-                                                HStack(alignment: .top) {
-                                                    ScrollView {
-                                                        if #available(macOS 14.0, *) {
-                                                            TextEditor(text: .constant(userBio))
-                                                                .scrollIndicators(.never)
-                                                                .focusable(false)
-                                                                .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
-                                                                .textEditorStyle(.plain)
-                                                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                                                .scrollContentBackground(.hidden)
-                                                                .padding(4)
-                                                                .autocorrectionDisabled(false)
-                                                                .disableAutocorrection(false)
-                                                                .font(.system(size: 18, design: .serif))
-                                                        } else {
-                                                            TextEditor(text: .constant(userBio))
-                                                                .scrollIndicators(.never)
-                                                                .focusable(false)
-                                                                .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
-                                                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                                                .scrollContentBackground(.hidden)
-                                                                .padding(4)
-                                                                .autocorrectionDisabled(false)
-                                                                .disableAutocorrection(false)
-                                                                .font(.system(size: 18, design: .serif))
-                                                        }
-                                                    }
-                                                    .frame(maxHeight: 80)
-                                                    Spacer()
-                                                    Toggle(
-                                                        isOn: selectedFeature.feature.userIsTeammate.onChange { value in
-                                                            markDocumentDirty()
-                                                        }
-                                                    ) {
-                                                        Text("User is a Team Mate")
-                                                            .lineLimit(1)
-                                                            .truncationMode(.tail)
-                                                    }
-                                                    .tint(Color.AccentColor)
-                                                    .accentColor(Color.AccentColor)
-                                                    .focusable()
-                                                    .focused(focusedField, equals: .postTeammate)
-                                                    .onKeyPress(.space) {
-                                                        selectedFeature.feature.userIsTeammate.wrappedValue.toggle();
-                                                        markDocumentDirty()
+                                                .tint(Color.AccentColor)
+                                                .accentColor(Color.AccentColor)
+                                                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                                                .focusable()
+                                                .focused(focusedField, equals: .postUserLevel)
+                                                .frame(maxWidth: 240)
+                                                .onKeyPress(phases: .down) { keyPress in
+                                                    let direction = directionFromModifiers(keyPress)
+                                                    if direction != .same {
+                                                        navigateToUserLevel(selectedPage.hub.wrappedValue, selectedFeature, direction)
                                                         return .handled
                                                     }
+                                                    return .ignored
+                                                }
+                                            }
+                                            .frame(maxWidth: .infinity)
+                                            HStack(alignment: .top) {
+                                                ScrollView {
+                                                    if #available(macOS 14.0, *) {
+                                                        TextEditor(text: .constant(userBio))
+                                                            .scrollIndicators(.never)
+                                                            .focusable(false)
+                                                            .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
+                                                            .textEditorStyle(.plain)
+                                                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                                            .scrollContentBackground(.hidden)
+                                                            .padding(4)
+                                                            .autocorrectionDisabled(false)
+                                                            .disableAutocorrection(false)
+                                                            .font(.system(size: 18, design: .serif))
+                                                    } else {
+                                                        TextEditor(text: .constant(userBio))
+                                                            .scrollIndicators(.never)
+                                                            .focusable(false)
+                                                            .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
+                                                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                                            .scrollContentBackground(.hidden)
+                                                            .padding(4)
+                                                            .autocorrectionDisabled(false)
+                                                            .disableAutocorrection(false)
+                                                            .font(.system(size: 18, design: .serif))
+                                                    }
+                                                }
+                                                .frame(maxHeight: 80)
+                                                Spacer()
+                                                Toggle(
+                                                    isOn: selectedFeature.feature.userIsTeammate.onChange { value in
+                                                        markDocumentDirty()
+                                                    }
+                                                ) {
+                                                    Text("User is a Team Mate")
+                                                        .lineLimit(1)
+                                                        .truncationMode(.tail)
+                                                }
+                                                .tint(Color.AccentColor)
+                                                .accentColor(Color.AccentColor)
+                                                .focusable()
+                                                .focused(focusedField, equals: .postTeammate)
+                                                .onKeyPress(.space) {
+                                                    selectedFeature.feature.userIsTeammate.wrappedValue.toggle();
+                                                    markDocumentDirty()
+                                                    return .handled
                                                 }
                                             }
                                         }
@@ -670,7 +666,7 @@ struct PostDownloaderView: View {
                                                             index: index,
                                                             showToast: showToast,
                                                             showImageValidationView: showImageValidationView)
-                                                            .padding(.all, 0.001)
+                                                        .padding(.all, 0.001)
                                                     }
                                                 }
                                                 .frame(minWidth: 20)
@@ -763,7 +759,6 @@ struct PostDownloaderView: View {
         .background(Color.BackgroundColor)
         .onAppear {
             postLoaded = false
-            userLoaded = false
             pageHashtagCheck = ""
             missingTag = false
             excludedHashtagCheck = ""
@@ -786,115 +781,9 @@ struct PostDownloaderView: View {
     
     @MainActor
     func parsePost(_ contents: String) {
-        var likelyPrivate = false
         do {
             logging.append((.blue, "Loaded the post from the server"))
             let document = try SwiftSoup.parse(contents)
-            if let user = try! getMetaTagContent(document, "name", "username") {
-                logging.append((.blue, "User: \(user)"))
-            }
-            userName = ""
-            if let title = try! getMetaTagContent(document, "property", "og:title") {
-                if title.hasSuffix(" shared a photo on VERO™") {
-                    userName = title.replacingOccurrences(of: " shared a photo on VERO™", with: "")
-                    logging.append((.blue, "User's name: \(userName)"))
-                } else if title.hasSuffix(" shared photos on VERO™") {
-                    userName = title.replacingOccurrences(of: " shared photos on VERO™", with: "")
-                    logging.append((.blue, "User's name: \(userName)"))
-                } else if title.hasSuffix(" on VERO™") {
-                    userName = title.replacingOccurrences(of: " on VERO™", with: "")
-                    logging.append((.blue, "User's name: \(userName)"))
-                    likelyPrivate = true
-                }
-            }
-            if let userProfileUrl = try! getMetaTagContent(document, "property", "og:url") {
-                let urlParts = userProfileUrl.split(separator: "/", omittingEmptySubsequences: true)
-                if urlParts.count == 2 {
-                    userProfileLink = "https://vero.co/\(urlParts[0])"
-                    logging.append((.blue, "User's profile link: \(userProfileLink), loading profile..."))
-                    Task.detached {
-                        await loadUserProfile()
-                    }
-                }
-            }
-            postHashtags = []
-            if let captionsDiv = try! document.body()?.getElementsByTag("div").first(where: { element in
-                do {
-                    return try element.classNames().contains(where: { className in
-                        return className.hasPrefix("_user-post-captions")
-                    })
-                } catch {
-                    return false
-                }
-            }) {
-                logging.append((.blue, "Parsing post caption"))
-                description = ""
-                var nextSpace = ""
-                captionsDiv.children().forEach { element in
-                    if element.tagNameNormal() == "span" {
-                        let text = try! element.text()
-                        if !text.isEmpty {
-                            description = description + nextSpace + text.trimmingCharacters(in: .whitespacesAndNewlines)
-                            nextSpace = " "
-                        }
-                    } else if element.tagNameNormal() == "br" {
-                        description = description + "\n"
-                        nextSpace = ""
-                    } else if element.tagNameNormal() == "a" {
-                        let text = try! element.text()
-                        if !text.isEmpty {
-                            let linkText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-                            description = description + nextSpace + linkText
-                            if linkText.hasPrefix("#") {
-                                postHashtags.append(linkText.lowercased())
-                            }
-                            nextSpace = " "
-                        }
-                    }
-                }
-                description = description.removeExtraSpaces(includeNewlines: false)
-            }
-            var pageHashTagFound = ""
-            let pageHashTags = viewModel.selectedPage!.hashTags
-            if postHashtags.firstIndex(where: { postHashTag in
-                return pageHashTags.firstIndex(where: { pageHashTag in
-                    if postHashTag.lowercased() == pageHashTag.lowercased() {
-                        pageHashTagFound = pageHashTag.lowercased()
-                        return true
-                    }
-                    return false
-                }) != nil
-            }) != nil {
-                pageHashtagCheck = "Contains page hashtag \(pageHashTagFound)"
-                logging.append((.blue, pageHashtagCheck))
-            } else {
-                pageHashtagCheck = "MISSING page hashtag!!"
-                logging.append((.orange, pageHashtagCheck))
-                missingTag = true
-            }
-            checkExcludedHashtags()
-            if let imagesInBody = try! document.body()?.getElementsByTag("img") {
-                let carouselImages = imagesInBody.filter({ image in
-                    do {
-                        return try image.classNames().contains(where: { className in
-                            return className.hasPrefix("_carousel-image")
-                        })
-                    } catch {
-                        return false
-                    }
-                })
-                imageUrls = carouselImages.map({ image in
-                    var imageSrc = try! image.attr("src")
-                    if imageSrc.hasSuffix("_thumb.jpg") {
-                        imageSrc = imageSrc.replacingOccurrences(of: "_thumb.jpg", with: "")
-                    } else if imageSrc.hasSuffix("_thumb.png") {
-                        imageSrc = imageSrc.replacingOccurrences(of: "_thumb.png", with: "")
-                    }
-                    logging.append((.blue, "Image source: \(imageSrc)"))
-                    return (URL(string: imageSrc)!, userName)
-                })
-            }
-            
             for item in try document.select("script") {
                 do {
                     let scriptText = try item.html().trimmingCharacters(in: .whitespaces)
@@ -915,7 +804,35 @@ struct PostDownloaderView: View {
                                 let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
                                 // Debugging
                                 //postData.print();
+                                if let profile = postData.loaderData?.entry0?.profile?.profile {
+                                    userAlias = profile.username ?? ""
+                                    logging.append((.blue, "User's alias: \(userAlias)"))
+                                    userName = profile.name ?? ""
+                                    logging.append((.blue, "User's name: \(userName)"))
+                                    userProfileLink = profile.url ?? ""
+                                    logging.append((.blue, "User's profile link: \(userProfileLink)"))
+                                    userBio = (profile.bio ?? "").removeExtraSpaces()
+                                    logging.append((.blue, "User's bio: \(userBio)"))
+                                } else {
+                                    logging.append((.red, "Failed to find the profile information, the account is likely private"))
+                                    logging.append((.red, "Post must be handled manually in VERO app"))
+                                }
                                 if let post = postData.loaderData?.entry0?.post {
+                                    postHashtags = []
+                                    description = joinSegments(post.post?.caption, &postHashtags).removeExtraSpaces(includeNewlines: false)
+                                    // DEBUG: logging.append((.purple, postHashtags.joined(separator: ",")))
+                                    
+                                    checkPageHashtags()
+                                    checkExcludedHashtags()
+                                    
+                                    if let postImages = post.post?.images {
+                                        let postImageUrls = postImages.filter({ $0.url != nil && $0.url!.hasPrefix("https://") }).map { $0.url! }
+                                        for imageUrl in postImageUrls {
+                                            logging.append((.blue, "Image source: \(imageUrl)"))
+                                            imageUrls.append((URL(string: imageUrl)!, imageUrl))
+                                        }
+                                    }
+                                    
                                     if viewModel.selectedPage!.hub == "click" || viewModel.selectedPage!.hub == "snap" {
                                         commentCount = post.post?.comments ?? 0
                                         likeCount = post.post?.likes ?? 0
@@ -927,7 +844,7 @@ struct PostDownloaderView: View {
                                                         if userName.lowercased() == viewModel.selectedPage!.displayName.lowercased() {
                                                             pageComments.append((
                                                                 comment.author?.name ?? userName,
-                                                                comment.text ?? "",
+                                                                joinSegments(comment.content).removeExtraSpaces(),
                                                                 (comment.timestamp ?? "").timestamp(),
                                                                 String(userName[userName.index(userName.startIndex, offsetBy: viewModel.selectedPage!.hub.count + 1)..<userName.endIndex].lowercased())
                                                             ))
@@ -935,7 +852,7 @@ struct PostDownloaderView: View {
                                                         } else {
                                                             hubComments.append((
                                                                 comment.author?.name ?? userName,
-                                                                comment.text ?? "",
+                                                                joinSegments(comment.content).removeExtraSpaces(),
                                                                 (comment.timestamp ?? "").timestamp(),
                                                                 String(userName[userName.index(userName.startIndex, offsetBy: viewModel.selectedPage!.hub.count + 1)..<userName.endIndex].lowercased())
                                                             ))
@@ -970,11 +887,12 @@ struct PostDownloaderView: View {
             
             // Debugging
             //print(try document.outerHtml())
+            //for log in logging {
+            //    print(log.1)
+            //}
             
-            if imageUrls.isEmpty && likelyPrivate {
+            if imageUrls.isEmpty {
                 throw AccountError.PrivateAccount
-            } else if imageUrls.isEmpty {
-                throw AccountError.MissingImages
             }
             
             postLoaded = true
@@ -1003,39 +921,9 @@ struct PostDownloaderView: View {
         }
     }
     
-    @MainActor
-    private func parseUserProfile(_ contents: String) {
-        do {
-            logging.append((.blue, "Loaded the user profile from the server"))
-            let document = try SwiftSoup.parse(contents)
-            
-            if let description = try! getMetaTagContent(document, "property", "og:description") {
-                userBio = description.removeExtraSpaces()
-                logging.append((.blue, "Loaded user's BIO from their profile"))
-            }
-            
-            // Debugging
-            //print(try document.outerHtml())
-            
-            userLoaded = true
-        } catch {
-            logging.append((.red, "Failed to download and parse the user profile information - \(error.localizedDescription)"))
-            logging.append((.red, "Profile must be handled manually in VERO app"))
-            showToast(
-                .error(.red),
-                "Failed to load and parse post",
-                String {
-                    "Failed to download and parse the post information - \(error.localizedDescription)"
-                },
-                .Failure
-            ) {}
-        }
-    }
-    
     /// Account error enumeration for throwing account-specifc error codes.
     enum AccountError: String, LocalizedError {
         case PrivateAccount = "Could not find any images, this account might be private"
-        case MissingImages = "Could not find any images"
         public var errorDescription: String? { self.rawValue }
     }
     
@@ -1069,55 +957,6 @@ struct PostDownloaderView: View {
         }
     }
     
-    /// Loads the user profile using the userProfileLink.
-    private func loadUserProfile() async {
-        if let url = URL(string: userProfileLink) {
-            var request = URLRequest(url: url)
-            request.httpMethod = "GET"
-            let session = URLSession.init(configuration: URLSessionConfiguration.default)
-            session.dataTask(with: request) { data, response, error in
-                if let data = data {
-                    let contents = String(data: data, encoding: .utf8)!
-                    Task { @MainActor in
-                        parseUserProfile(contents)
-                    }
-                } else if let error = error {
-                    Task { @MainActor in
-                        logging.append((.red, "Failed to download and parse the user profile information - \(error.localizedDescription)"))
-                        logging.append((.red, "User info must be handled manually in VERO app"))
-                        showToast(
-                            .error(.red),
-                            "Failed to load and parse user profile",
-                            String {
-                                "Failed to download and parse the user profile information - \(error.localizedDescription)"
-                            },
-                            .Blocking
-                        ) {}
-                    }
-                }
-            }.resume()
-        }
-    }
-    
-    /// Gets the `content` value of the `meta` tag with the given `key`/`value` pair.
-    /// - Parameters:
-    ///   - document: The `SoupSwift` document object.
-    ///   - key: The key for the match in the `meta` tags.
-    ///   - value: The value for the match in the `meta` tags.
-    /// - Returns: The `content` value for the meta tag if found.
-    private func getMetaTagContent(_ document: Document, _ key: String, _ value: String) throws -> String? {
-        let headMetaTags = try document.head()?.getElementsByTag("meta")
-        let ogImageTag = headMetaTags?.first(where: { element in
-            do {
-                let tagProperty = try element.attr(key)
-                return tagProperty == value
-            } catch {
-                return false
-            }
-        })
-        return try! ogImageTag?.attr("content")
-    }
-    
     /// Navigates to a user level using the given direction.
     /// - Parameters:
     ///   - hub: The page hub value.
@@ -1133,12 +972,14 @@ struct PostDownloaderView: View {
         }
     }
     
+    /// Loads the excluded hashtags for the current page.
     private func loadExcludedTagsForPage() {
         if let page = viewModel.selectedPage {
             excludedHashtags = UserDefaults.standard.string(forKey: "ExcludedHashtags_" + page.id) ?? ""
         }
     }
     
+    /// Stores the excluded hashtags for the current page.
     private func storeExcludedTagsForPage() {
         if let page = viewModel.selectedPage {
             UserDefaults.standard.set(excludedHashtags, forKey: "ExcludedHashtags_" + page.id)
@@ -1146,6 +987,29 @@ struct PostDownloaderView: View {
         }
     }
     
+    /// Checks for the page hashtag.
+    private func checkPageHashtags() {
+        var pageHashTagFound = ""
+        let pageHashTags = viewModel.selectedPage!.hashTags
+        if postHashtags.firstIndex(where: { postHashTag in
+            return pageHashTags.firstIndex(where: { pageHashTag in
+                if postHashTag.lowercased() == pageHashTag.lowercased() {
+                    pageHashTagFound = pageHashTag.lowercased()
+                    return true
+                }
+                return false
+            }) != nil
+        }) != nil {
+            pageHashtagCheck = "Contains page hashtag \(pageHashTagFound)"
+            logging.append((.blue, pageHashtagCheck))
+        } else {
+            pageHashtagCheck = "MISSING page hashtag!!"
+            logging.append((.orange, "\(pageHashtagCheck)"))
+            missingTag = true
+        }
+    }
+    
+    /// Checks for any excluded hashtags.
     private func checkExcludedHashtags() {
         hasExcludedHashtag = false
         excludedHashtagCheck = ""

@@ -269,3 +269,39 @@ class JSONNull: Codable, Hashable {
         try container.encodeNil()
     }
 }
+
+func joinSegments(_ segments: [Segment]?) -> String {
+    var ignored: [String] = []
+    return joinSegments(segments, &ignored)
+}
+
+func joinSegments(_ segments: [Segment]?, _ hashTags: inout [String]) -> String {
+    var result = ""
+    if segments == nil {
+        return result
+    }
+    for segment in segments! {
+        switch segment.type {
+        case "text":
+            result = result + segment.value!
+        case "tag":
+            result = result + "#\(segment.value!)"
+            hashTags.append("#\(segment.value!)")
+        case "person":
+            if let label = segment.label {
+                result = result + "@\(label)"
+            } else {
+                result = result + segment.value!
+            }
+        case "url":
+            if let label = segment.label {
+                result = result + label
+            } else {
+                result = result + segment.value!
+            }
+        default:
+            debugPrint("Unhandled segment type: \(segment.type!)")
+        }
+    }
+    return result.replacingOccurrences(of: "\\n", with: "\n")
+}

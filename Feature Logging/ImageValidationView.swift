@@ -5,9 +5,9 @@
 //  Created by Andrew Forget on 2024-03-11.
 //
 
+import AlertToast
 import SwiftUI
 import UniformTypeIdentifiers
-import AlertToast
 
 enum AiVerdict {
     case notAi
@@ -22,7 +22,6 @@ struct ImageValidationView: View {
     @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var isShowingToast: Binding<Bool>
     @State private var isShowingProgressToast: Binding<Bool>
-    @State private var imageValidationImageData: Binding<Data?>
     @State private var imageValidationImageUrl: Binding<URL?>
     private var hideImageValidationView: () -> Void
     private var updateList: () -> Void
@@ -30,15 +29,15 @@ struct ImageValidationView: View {
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     private var toggleProgressToast: () -> Void
 
-    @State private var image: NSImage?
-    @State private var size = NSSize()
-    @State private var dataSize = 0
     @State private var aiVerdictString = ""
     @State private var aiVerdict = AiVerdict.indeterminate
     @State private var returnedJson = ""
     @State private var errorFromServer = ""
     @State private var uploadToServer: String? = nil
-    
+    @State private var loadedImageUrl: URL?
+    @State private var isLoading = false
+    @State private var error: Error?
+
     private let languagePrefix = Locale.preferredLanguageCode
 
     init(
@@ -46,7 +45,6 @@ struct ImageValidationView: View {
         _ focusedField: FocusState<FocusField?>.Binding,
         _ isShowingToast: Binding<Bool>,
         _ isShowingProgressToast: Binding<Bool>,
-        _ imageValidationImageData: Binding<Data?>,
         _ imageValidationImageUrl: Binding<URL?>,
         _ hideImageValidationView: @escaping () -> Void,
         _ updateList: @escaping () -> Void,
@@ -58,7 +56,6 @@ struct ImageValidationView: View {
         self.focusedField = focusedField
         self.isShowingToast = isShowingToast
         self.isShowingProgressToast = isShowingProgressToast
-        self.imageValidationImageData = imageValidationImageData
         self.imageValidationImageUrl = imageValidationImageUrl
         self.hideImageValidationView = hideImageValidationView
         self.updateList = updateList
@@ -66,45 +63,18 @@ struct ImageValidationView: View {
         self.showToast = showToast
         self.toggleProgressToast = toggleProgressToast
     }
-    
+
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-            
+
             if viewModel.selectedFeature != nil {
                 let selectedFeature = Binding<SharedFeature>(
                     get: { viewModel.selectedFeature! },
                     set: { viewModel.selectedFeature = $0 }
                 )
-                
+
                 VStack(alignment: .leading) {
-                    HStack {
-                        if let image = self.image {
-                            VStack(alignment: .center) {
-                                Spacer()
-                                    .frame(height: 8)
-                                Text("Image size: \(Int(size.width)) x \(Int(size.height)) | \(String(format: "%.2f", Double(dataSize) / (1024.0 * 1024.0))) MB | png")
-                                    .padding([.bottom], 4)
-                                Image(nsImage: image)
-                                    .antialiased(true)
-                                    .interpolation(.high)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 480)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(8)
-                                    .background(Color(nsColor: .controlBackgroundColor))
-                                    .cornerRadius(4)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .background(Color.BackgroundColorList)
-                            .cornerRadius(10)
-                        }
-                    }
-
-                    Spacer()
-                        .frame(height: 8)
-
                     VStack(alignment: .leading) {
                         HStack(alignment: .center) {
                             Spacer()
@@ -136,10 +106,10 @@ struct ImageValidationView: View {
                                 }
                                 return .ignored
                             }
-                            
+
                             Text("|")
                                 .padding([.leading, .trailing])
-                            
+
                             Text("AI Check:")
                             Picker(
                                 "",
@@ -167,78 +137,112 @@ struct ImageValidationView: View {
                                 }
                                 return .ignored
                             }
-                            
+
                             if !aiVerdictString.isEmpty {
                                 Text("|")
                                     .padding([.leading, .trailing])
-                                
+
                                 HStack {
-                                    Text("Verdict: ")
+                                    Text("HIVE verdict: ")
                                     Text(aiVerdictString)
                                     Image(systemName: aiVerdict == .notAi ? "checkmark.shield" : aiVerdict == .ai ? "exclamationmark.warninglight" : "questionmark.diamond")
                                 }
                                 .font(.system(size: 24))
                                 .foregroundStyle(aiVerdict == .notAi ? .green : aiVerdict == .ai ? .red : .yellow, .secondary)
                             }
-                            
+
                             Spacer()
                         }
-                        
-                        if !returnedJson.isEmpty {
-                            HStack {
-                                Spacer()
-                                Button(action: {
-                                    copyToClipboard(returnedJson)
-                                    showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
-                                }) {
-                                    HStack(alignment: .center) {
-                                        Image(systemName: "pencil.and.list.clipboard")
-                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                        Text("Copy result")
+
+                        CustomTabView(tabBarPosition: .top, content: [
+                            (
+                                tabText: "TinEye Results",
+                                tabIconName: "globe",
+                                tabIconColors: (.accentColor, .secondary),
+                                view: AnyView(
+                                    VStack {
+                                        if let realizedImageUrl = loadedImageUrl {
+                                            ZStack {
+                                                PlatformIndependentWebView(url: realizedImageUrl, isLoading: $isLoading, error: $error)
+                                                    .cornerRadius(4)
+                                                if isLoading {
+                                                    ProgressView()
+                                                        .scaleEffect(2)
+                                                }
+                                            }
+                                        } else {
+                                            Spacer()
+                                            Text("Enter an image URL to search")
+                                            Spacer()
+                                        }
                                     }
-                                }
-                                .focusable()
-                                .onKeyPress(.space) {
-                                    copyToClipboard(returnedJson)
-                                    showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
-                                    return .handled
-                                }
-                            }
-                            ScrollView(.vertical) {
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        Text("Result from server: ")
-                                            .font(.system(size: 16))
-                                            .bold()
-                                            .padding([.top, .leading], 8)
-                                        Spacer().frame(height: 0) // fix bug with text being truncated
-                                        Text(returnedJson)
-                                            .lineLimit(...2048)
-                                            .padding(8)
-                                        Spacer().frame(height: 0) // fix bug with text being truncated
+                                )
+                            ),
+                            (
+                                tabText: "HIVE Results",
+                                tabIconName: "photo.badge.checkmark.fill",
+                                tabIconColors: (.secondary, .accentColor),
+                                view: AnyView(
+                                    VStack {
+                                        if !returnedJson.isEmpty {
+                                            HStack {
+                                                Spacer()
+                                                Button(action: {
+                                                    copyToClipboard(returnedJson)
+                                                    showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
+                                                }) {
+                                                    HStack(alignment: .center) {
+                                                        Image(systemName: "pencil.and.list.clipboard")
+                                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                        Text("Copy result")
+                                                    }
+                                                }
+                                                .focusable()
+                                                .onKeyPress(.space) {
+                                                    copyToClipboard(returnedJson)
+                                                    showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
+                                                    return .handled
+                                                }
+                                            }
+                                            ScrollView(.vertical) {
+                                                HStack {
+                                                    VStack(alignment: .leading) {
+                                                        Text("Result from server: ")
+                                                            .font(.system(size: 16))
+                                                            .bold()
+                                                            .padding([.top, .leading], 8)
+                                                        Spacer().frame(height: 0) // fix bug with text being truncated
+                                                        Text(returnedJson)
+                                                            .lineLimit(...2048)
+                                                            .padding(8)
+                                                        Spacer().frame(height: 0) // fix bug with text being truncated
+                                                    }
+                                                    Spacer()
+                                                }
+                                            }
+                                            .background(Color.BackgroundColorList)
+                                            .cornerRadius(10)
+                                        }
+
+                                        if !errorFromServer.isEmpty {
+                                            HStack {
+                                                Text("Error: ")
+                                                Text(errorFromServer)
+                                            }
+                                            .font(.system(size: 32))
+                                            .foregroundStyle(.red, .secondary)
+                                        }
+
+                                        Spacer()
                                     }
-                                    Spacer()
-                                }
-                            }
-                            .background(Color.BackgroundColorList)
-                            .cornerRadius(10)
-                        }
-                        
-                        if !errorFromServer.isEmpty {
-                            HStack {
-                                Text("Error: ")
-                                Text(errorFromServer)
-                            }
-                            .font(.system(size: 32))
-                            .foregroundStyle(.red, .secondary)
-                        }
-                        
-                        Spacer()
+                                )
+                            )
+                        ])
                     }
-                    
+
                     Spacer()
                         .frame(height: 8)
-                    
+
                     HStack {
                         Image(systemName: uploadToServer != nil ? "arrow.triangle.2.circlepath.icloud" : "icloud")
                             .foregroundColor(uploadToServer != nil ? .yellow : .green)
@@ -254,48 +258,6 @@ struct ImageValidationView: View {
                 .padding([.leading, .top, .trailing])
                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                 .toolbar {
-                    Button(action: {
-                        openInTinEye()
-                    }, label: {
-                        HStack {
-                            Image(systemName: "link")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Open in Tin Eye")
-                                .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                            Text("    ⌘ T")
-                                .font(.system(.body, design: .rounded))
-                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
-                        }
-                        .padding(4)
-                    })
-                    .disabled(image == nil)
-                    .keyboardShortcut("T", modifiers: .command)
-                    
-                    Spacer()
-                        .frame(width: 16)
-                    
-                    Button(action: {
-                        sendToHiveServer()
-                    }, label: {
-                        HStack {
-                            Image(systemName: "icloud.and.arrow.up")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Send to Hive")
-                                .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                            Text("    ⌘ ↑")
-                                .font(.system(.body, design: .rounded))
-                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
-                        }
-                        .padding(4)
-                    })
-                    .disabled(uploadToServer != nil || image == nil)
-                    .keyboardShortcut(.upArrow, modifiers: .command)
-                    
-                    Spacer()
-                        .frame(width: 16)
-                    
                     Button(action: {
                         hideImageValidationView()
                     }) {
@@ -320,10 +282,31 @@ struct ImageValidationView: View {
         .frame(minWidth: 1280, minHeight: 800)
         .background(Color.BackgroundColor)
         .onAppear {
-            loadImage()
+            openTinEyeResults()
+            prepareHiveResults()
         }
     }
-    
+
+    private func openTinEyeResults() {
+        let imageUrlToEncode = imageValidationImageUrl.wrappedValue
+        if imageUrlToEncode != nil {
+            let finalUrl = imageUrlToEncode!.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+            loadedImageUrl = URL(string: "https://www.tineye.com/search/?pluginver=chrome-2.0.4&sort=score&order=desc&url=\(finalUrl!)")
+        }
+    }
+
+    private func prepareHiveResults() {
+        toggleProgressToast()
+        Task {
+            aiVerdict = .indeterminate
+            aiVerdictString = ""
+            errorFromServer = ""
+            returnedJson = ""
+            sendToHiveServer()
+            toggleProgressToast()
+        }
+    }
+
     private func sendToHiveServer() {
         uploadToServer = "Hive"
         returnedJson = ""
@@ -332,7 +315,7 @@ struct ImageValidationView: View {
         errorFromServer = ""
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-M-d-HH-mm-ss"
-        uploadFileToHive() { data, urlResponse, error in
+        sendRequestToHive() { data, urlResponse, error in
             uploadToServer = nil
             if let errorResult = error {
                 errorFromServer = "Error result: " + errorResult.localizedDescription
@@ -371,42 +354,8 @@ struct ImageValidationView: View {
             }
         }
     }
-    
-    private func openInTinEye() {
-        if let imageUrl = imageValidationImageUrl.wrappedValue {
-            let finalUrl = imageUrl.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
-            if let url = URL(string: "https://www.tineye.com/search/?pluginver=chrome-2.0.4&sort=score&order=desc&url=\(finalUrl!)") {
-                openURL(url)
-            }
-        } else {
-            if let url = URL(string: "https://www.tineye.com") {
-                openURL(url)
-            }
-        }
-    }
 
-    private func loadImage() {
-        toggleProgressToast()
-        Task {
-            if let imageData = imageValidationImageData.wrappedValue {
-                aiVerdict = .indeterminate
-                aiVerdictString = ""
-                errorFromServer = ""
-                returnedJson = ""
-                if let loadedImage = NSImage(data: imageData) {
-                    image = loadedImage
-                    size = image!.size
-                    dataSize = imageData.count
-                }
-            }
-            toggleProgressToast()
-            if image != nil {
-                sendToHiveServer()
-            }
-        }
-    }
-    
-    private func uploadFileToHive(
+    private func sendRequestToHive(
         completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
     ) {
         aiVerdict = .indeterminate
@@ -430,7 +379,7 @@ struct ImageValidationView: View {
             markDocumentDirty()
         }
     }
-    
+
     private func navigateToAiCheckResult(_ selectedFeature: Binding<SharedFeature>, _ direction: Direction) {
         let result = navigateGeneric(AiCheckResults.allCases, selectedFeature.feature.aiCheckResults.wrappedValue, direction)
         if result.0 {
@@ -443,58 +392,3 @@ struct ImageValidationView: View {
     }
 }
 
-struct MultipartFormDataRequest {
-    private let boundary: String = UUID().uuidString
-    var httpBody = NSMutableData()
-    var headers = [String:String]()
-    let url: URL
-    
-    init(url: URL) {
-        self.url = url
-    }
-    
-    func addTextField(named name: String, value: String) {
-        httpBody.appendString(textFormField(named: name, value: value))
-    }
-    
-    private func textFormField(named name: String, value: String) -> String {
-        var fieldString = "--\(boundary)\r\n"
-        fieldString += "Content-Disposition: form-data; name=\"\(name)\"\r\n"
-        fieldString += "Content-Type: text/plain; charset=ISO-8859-1\r\n"
-        fieldString += "Content-Transfer-Encoding: 8bit\r\n"
-        fieldString += "\r\n"
-        fieldString += "\(value)\r\n"
-        
-        return fieldString
-    }
-    
-    func addDataField(fieldName: String, fieldValue: String) {
-        httpBody.append(dataFormField(fieldName: fieldName, fieldValue: fieldValue))
-    }
-
-    private func dataFormField(fieldName: String, fieldValue: String) -> Data {
-        let fieldData = NSMutableData()
-        fieldData.appendString("--\(boundary)\r\n")
-        fieldData.appendString("Content-Disposition: form-data; name=\"\(fieldName)\"\r\n")
-        fieldData.appendString("\r\n")
-        fieldData.appendString(fieldValue)
-        fieldData.appendString("\r\n")
-        return fieldData as Data
-    }
-    
-    mutating func addHeader(header: String, value: String) {
-        headers[header] = value
-    }
-    
-    func asURLRequest() -> URLRequest {
-        var request = URLRequest(url: url)
-        for header in headers {
-            request.addValue(header.value, forHTTPHeaderField: header.key)
-        }
-        request.httpMethod = "POST"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        httpBody.appendString("--\(boundary)--")
-        request.httpBody = httpBody as Data
-        return request
-    }
-}
