@@ -22,6 +22,7 @@ struct PostDownloaderView: View {
     @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var isShowingToast: Binding<Bool>
     private var hideDownloaderView: () -> Void
+    private var showImageValidationView: (_ imageData: Data, _ imageUrl: URL) -> Void
     private var updateList: () -> Void
     private var markDocumentDirty: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
@@ -55,6 +56,7 @@ struct PostDownloaderView: View {
         _ focusedField: FocusState<FocusField?>.Binding,
         _ isShowingToast: Binding<Bool>,
         _ hideDownloaderView: @escaping () -> Void,
+        _ showImageValidationView: @escaping (_ imageData: Data, _ imageUrl: URL) -> Void,
         _ updateList: @escaping () -> Void,
         _ markDocumentDirty: @escaping () -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
@@ -63,6 +65,7 @@ struct PostDownloaderView: View {
         self.focusedField = focusedField
         self.isShowingToast = isShowingToast
         self.hideDownloaderView = hideDownloaderView
+        self.showImageValidationView = showImageValidationView
         self.updateList = updateList
         self.markDocumentDirty = markDocumentDirty
         self.showToast = showToast
@@ -661,7 +664,12 @@ struct PostDownloaderView: View {
                                             VStack(alignment: .center) {
                                                 HStack {
                                                     ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
-                                                        PostDownloaderImageView(imageUrl: imageUrl.0, name: imageUrl.1, index: index, showToast: showToast)
+                                                        PostDownloaderImageView(
+                                                            imageUrl: imageUrl.0,
+                                                            name: imageUrl.1,
+                                                            index: index,
+                                                            showToast: showToast,
+                                                            showImageValidationView: showImageValidationView)
                                                             .padding(.all, 0.001)
                                                     }
                                                 }
@@ -744,7 +752,6 @@ struct PostDownloaderView: View {
                                 .foregroundStyle(Color.gray, Color.TextColorSecondary)
                         }
                         .padding(4)
-                        .buttonStyle(.plain)
                     }
                     .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
                     .disabled(isShowingToast.wrappedValue)

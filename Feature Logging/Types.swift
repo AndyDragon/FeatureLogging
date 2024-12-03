@@ -835,3 +835,154 @@ struct LoadedCatalogs {
     var waitingForDisallowList = true
     var disallowList = [String: [String]]()
 }
+
+struct ServerResponse: Decodable {
+    var id: String
+    var created_at: String
+    var report: ServerReport
+    var facets: ResultFacets
+}
+
+struct ServerMessage: Decodable {
+    var request_id: String
+    var message: String
+    var current_limit: String?
+    var current_usage: String?
+}
+
+struct ServerReport: Decodable {
+    var verdict: String
+    var ai: DetectionResult
+    var human: DetectionResult
+}
+
+struct DetectionResult: Decodable {
+    var is_detected: Bool
+}
+
+struct ResultFacets: Decodable {
+    var quality: Facet?
+    var nsfw: Facet
+}
+
+struct Facet: Decodable {
+    var version: String
+    var is_detected: Bool
+}
+
+// Hive response sample
+//{
+//    "data": {
+//        "classes": [
+//            {
+//                "class": "not_ai_generated",
+//                "score": 0.9693848106949524
+//            },
+//            {
+//                "class": "ai_generated",
+//                "score": 0.030615189305047447
+//            },
+//            {
+//                "class": "bingimagecreator",
+//                "score": 4.447964208631009e-6
+//            },
+//            {
+//                "class": "adobefirefly",
+//                "score": 0.0006803195345384442
+//            },
+//            {
+//                "class": "lcm",
+//                "score": 3.1231433663692784e-8
+//            },
+//            {
+//                "class": "dalle",
+//                "score": 0.00003966318182581463
+//            },
+//            {
+//                "class": "pixart",
+//                "score": 5.551102965745605e-9
+//            },
+//            {
+//                "class": "glide",
+//                "score": 1.6027302158245824e-8
+//            },
+//            {
+//                "class": "stablediffusion",
+//                "score": 0.026461982953911948
+//            },
+//            {
+//                "class": "imagen",
+//                "score": 2.0150044870977677e-7
+//            },
+//            {
+//                "class": "inconclusive",
+//                "score": 0.0007316304156370474
+//            },
+//            {
+//                "class": "amused",
+//                "score": 5.797843840265209e-9
+//            },
+//            {
+//                "class": "stablecascade",
+//                "score": 1.8435211880087412e-8
+//            },
+//            {
+//                "class": "midjourney",
+//                "score": 0.00011036623754636568
+//            },
+//            {
+//                "class": "hive",
+//                "score": 6.0945842729890835e-6
+//            },
+//            {
+//                "class": "deepfloyd",
+//                "score": 7.780853317893922e-9
+//            },
+//            {
+//                "class": "gan",
+//                "score": 8.79620019163719e-6
+//            },
+//            {
+//                "class": "stablediffusionxl",
+//                "score": 0.000023775003147293175
+//            },
+//            {
+//                "class": "vqdiffusion",
+//                "score": 1.142599946654217e-7
+//            },
+//            {
+//                "class": "kandinsky",
+//                "score": 1.899167144949832e-6
+//            },
+//            {
+//                "class": "wuerstchen",
+//                "score": 5.14374021779188e-7
+//            },
+//            {
+//                "class": "titan",
+//                "score": 4.6770593033650576e-8
+//            },
+//            {
+//                "class": "none",
+//                "score": 0.9719300630287688
+//            }
+//        ]
+//    },
+//    "message": "success",
+//    "status_code": 200
+//}
+
+struct HiveResponse: Decodable {
+    var data: HiveData
+    var message: String
+    var status_code: Int
+}
+
+struct HiveData: Decodable {
+    var classes: [HiveClass]
+}
+
+struct HiveClass: Decodable {
+    var `class`: String
+    var score: Double
+}

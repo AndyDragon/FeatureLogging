@@ -23,6 +23,7 @@ struct PostDownloaderImageView: View {
     var name: String
     var index: Int
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
+    var showImageValidationView: (_ imageData: Data, _ imageUrl: URL) -> Void
 
     var body: some View {
         VStack {
@@ -31,7 +32,6 @@ struct PostDownloaderImageView: View {
                     KFImage(imageUrl)
                         .onSuccess { result in
                             let pixelSize = (result.image.pixelSize ?? result.image.size)
-                            //print("result.image: \(pixelSize.width) x \(pixelSize.height)")
                             if let cgImage = result.image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
                                 let imageRepresentation = NSBitmapImageRep(cgImage: cgImage)
                                 imageRepresentation.size = result.image.size
@@ -63,6 +63,27 @@ struct PostDownloaderImageView: View {
             .background(Color(red: 0.9, green: 0.9, blue: 0.92))
             HStack {
                 Button(action: {
+                    if let imageData = self.data {
+                        showImageValidationView(imageData, imageUrl)
+                    }
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "photo.badge.checkmark.fill")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Validate")
+                    }
+                }
+                .focusable()
+                .disabled(data == nil)
+                .onKeyPress(.space) {
+                    if let imageData = self.data {
+                        showImageValidationView(imageData, imageUrl)
+                    }
+                    return .handled
+                }
+                Spacer()
+                    .frame(width: 10)
+                Button(action: {
                     saveImage()
                 }) {
                     HStack(alignment: .center) {
@@ -72,8 +93,11 @@ struct PostDownloaderImageView: View {
                     }
                 }
                 .focusable()
+                .disabled(data == nil)
                 .onKeyPress(.space) {
-                    saveImage()
+                    if data != nil {
+                        saveImage()
+                    }
                     return .handled
                 }
                 Spacer()

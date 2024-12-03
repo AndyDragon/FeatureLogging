@@ -464,7 +464,6 @@ struct MainContentView: View {
                             .foregroundStyle(Color.gray, Color.TextColorSecondary)
                     }
                     .padding(4)
-                    .buttonStyle(.plain)
                 }
                 .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
 
@@ -489,7 +488,6 @@ struct MainContentView: View {
                             .foregroundStyle(Color.gray, Color.TextColorSecondary)
                     }
                     .padding(4)
-                    .buttonStyle(.plain)
                 }
                 .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
 
@@ -505,7 +503,6 @@ struct MainContentView: View {
                             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                     }
                     .padding(4)
-                    .buttonStyle(.plain)
                 }
                 .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
 
@@ -525,7 +522,6 @@ struct MainContentView: View {
                             .foregroundStyle(Color.gray, Color.TextColorSecondary)
                     }
                     .padding(4)
-                    .buttonStyle(.plain)
                 }
                 .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
 

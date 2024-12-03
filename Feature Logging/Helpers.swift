@@ -91,6 +91,21 @@ extension URLSession {
         let decoded = try decoder.decode(T.self, from: data)
         return decoded
     }
+
+    func dataTask(
+        with request: MultipartFormDataRequest,
+        completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
+    ) -> URLSessionDataTask {
+        return dataTask(with: request.asURLRequest(), completionHandler: completionHandler)
+    }
+}
+
+extension NSMutableData {
+    func appendString(_ string: String) {
+        if let data = string.data(using: .utf8) {
+            self.append(data)
+        }
+    }
 }
 
 func copyToClipboard(_ text: String) {
@@ -312,4 +327,10 @@ func navigateGeneric<T>(_ values: [T], _ selected: T, _ direction: Direction, al
         return (true, selected)
     }
     return (false, selected)
+}
+
+extension FileManager {
+    func temporaryFileURL(fileName: String = UUID().uuidString) -> URL? {
+        return URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent(fileName)
+    }
 }

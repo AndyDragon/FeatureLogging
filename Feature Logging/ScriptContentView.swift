@@ -436,7 +436,6 @@ struct ScriptContentView: View {
                                     .foregroundStyle(Color.gray, Color.TextColorSecondary)
                             }
                             .padding(4)
-                            .buttonStyle(.plain)
                         }
                         .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
                         .disabled(isShowingToast.wrappedValue)
@@ -456,7 +455,6 @@ struct ScriptContentView: View {
                                 .foregroundStyle(Color.gray, Color.TextColorSecondary)
                         }
                         .padding(4)
-                        .buttonStyle(.plain)
                     }
                     .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
                     .disabled(isShowingToast.wrappedValue)
@@ -477,7 +475,6 @@ struct ScriptContentView: View {
                                     .foregroundStyle(Color.gray, Color.TextColorSecondary)
                             }
                             .padding(4)
-                            .buttonStyle(.plain)
                         }
                         .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
                         .disabled(isShowingToast.wrappedValue)

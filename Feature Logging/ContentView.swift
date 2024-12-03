@@ -47,6 +47,7 @@ struct ContentView: View {
     @State private var toastDuration = 3.0
     @State private var toastTapAction: () -> Void = {}
     @State private var isShowingToast = false
+    @State private var isShowingProgressToast = false
     @State private var toastId: UUID? = nil
     @ObservedObject var featureScriptPlaceholders = PlaceholderList()
     @ObservedObject var commentScriptPlaceholders = PlaceholderList()
@@ -55,6 +56,8 @@ struct ContentView: View {
     @State private var documentDirtyAlertConfirmation = "Would you like to save this log file?"
     @State private var documentDirtyAfterSaveAction: () -> Void = {}
     @State private var documentDirtyAfterDismissAction: () -> Void = {}
+    @State private var imageValidationImageData: Data?
+    @State private var imageValidationImageUrl: URL?
     @State private var showFileImporter = false
     @State private var showFileExporter = false
     @State private var isDirty = false
@@ -65,6 +68,7 @@ struct ContentView: View {
     @State private var isShowingScriptView = false
     @State private var isShowingStatisticsView = false
     @State private var isShowingDownloaderView = false
+    @State private var isShowingImageValidationView = false
     @State private var shouldScrollFeatureListToSelection = false
     @FocusState private var focusedField: FocusField?
     private var appState: VersionCheckAppState
@@ -119,15 +123,40 @@ struct ContentView: View {
                         showToast
                     )
                 } else if isShowingDownloaderView {
-                    PostDownloaderView(
-                        viewModel,
-                        $focusedField,
-                        $isShowingToast,
-                        { isShowingDownloaderView.toggle() },
-                        { shouldScrollFeatureListToSelection.toggle() },
-                        { isDirty = true },
-                        showToast
-                    )
+                    if isShowingImageValidationView {
+                        ImageValidationView(
+                            viewModel,
+                            $focusedField,
+                            $isShowingToast,
+                            $isShowingProgressToast,
+                            $imageValidationImageData,
+                            $imageValidationImageUrl,
+                            {
+                                isShowingImageValidationView.toggle()
+                                imageValidationImageData = nil
+                            },
+                            { shouldScrollFeatureListToSelection.toggle() },
+                            { isDirty = true },
+                            showToast, // show toast
+                            {
+                                isShowingProgressToast.toggle()
+                            })
+                    } else {
+                        PostDownloaderView(
+                            viewModel,
+                            $focusedField,
+                            $isShowingToast,
+                            { isShowingDownloaderView.toggle() },
+                            { imageData, imageUrl in
+                                imageValidationImageData = imageData
+                                imageValidationImageUrl = imageUrl
+                                isShowingImageValidationView.toggle()
+                            },
+                            { shouldScrollFeatureListToSelection.toggle() },
+                            { isDirty = true },
+                            showToast
+                        )
+                    }
                 } else if isShowingStatisticsView {
                     StatisticsContentView(
                         $focusedField,
@@ -325,6 +354,18 @@ struct ContentView: View {
                     subTitle: toastSubTitle)
             },
             onTap: toastTapAction
+        )
+        .toast(
+            isPresenting: $isShowingProgressToast,
+            duration: 0,
+            tapToDismiss: false,
+            offsetY: 32,
+            alert: {
+                AlertToast(
+                    displayMode: .hud,
+                    type: .loading,
+                    title: "Loading image data...")
+            }
         )
         .toast(
             isPresenting: appState.isShowingVersionAvailableToast,
