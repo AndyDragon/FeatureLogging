@@ -662,7 +662,7 @@ struct PostDownloaderView: View {
                                                     ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
                                                         PostDownloaderImageView(
                                                             imageUrl: imageUrl.0,
-                                                            name: imageUrl.1,
+                                                            userName: userName,
                                                             index: index,
                                                             showToast: showToast,
                                                             showImageValidationView: showImageValidationView)

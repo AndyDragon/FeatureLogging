@@ -5,8 +5,7 @@
         "vital": false
     },
     "macOS_v2": {
-        "current": "2.0.35",
-        "beta": "2.1.52",
+        "current": "2.1.54",
         "link": "https://vero.andydragon.com/app/featurelogging/macInstall_v2",
         "vital": false
     },
@@ -16,8 +15,7 @@
         "vital": false
     },
     "windows_v2": {
-        "current": "2.0.10",
-        "beta": "2.1.16",
+        "current": "2.1.16",
         "link": "https://vero.andydragon.com/app/featurelogging/windowsInstall_v2",
         "vital": false
     }

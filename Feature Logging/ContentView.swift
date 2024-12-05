@@ -13,6 +13,7 @@ enum ToastDuration: Int {
     case Blocking = 0
     case Success = 1
     case Failure = 5
+    case CatalogLoadFailure = 10
     case LongFailure = 30
 }
 
@@ -46,9 +47,10 @@ struct ContentView: View {
     @State private var toastSubTitle = ""
     @State private var toastDuration = 3.0
     @State private var toastTapAction: () -> Void = {}
+    @State private var toastCompletionAction: () -> Void = {}
     @State private var isShowingToast = false
     @State private var isShowingProgressToast = false
-    @State private var toastId: UUID? = nil
+    @State private var toastId: UUID?
     @ObservedObject var featureScriptPlaceholders = PlaceholderList()
     @ObservedObject var commentScriptPlaceholders = PlaceholderList()
     @ObservedObject var originalPostScriptPlaceholders = PlaceholderList()
@@ -70,6 +72,7 @@ struct ContentView: View {
     @State private var isShowingImageValidationView = false
     @State private var shouldScrollFeatureListToSelection = false
     @FocusState private var focusedField: FocusField?
+    @State private var savedFocusFieldForVersionToast: FocusField?
     private var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
         isShowingToast || appState.isShowingVersionAvailableToast.wrappedValue || appState.isShowingVersionRequiredToast.wrappedValue
@@ -320,6 +323,12 @@ struct ContentView: View {
         .onChange(of: commandModel.showStatistics) {
             isShowingStatisticsView = commandModel.showStatistics
         }
+        .onChange(of: appState.isShowingVersionAvailableToast.wrappedValue) {
+            clearFocusForVersionToast(appState.isShowingVersionAvailableToast.wrappedValue)
+        }
+        .onChange(of: appState.isShowingVersionRequiredToast.wrappedValue) {
+            clearFocusForVersionToast(appState.isShowingVersionRequiredToast.wrappedValue)
+        }
         .sheet(isPresented: $isShowingDocumentDirtyAlert) {
             DocumentDirtySheet(
                 isShowing: $isShowingDocumentDirtyAlert,
@@ -349,7 +358,8 @@ struct ContentView: View {
                     title: toastText,
                     subTitle: toastSubTitle)
             },
-            onTap: toastTapAction
+            onTap: toastTapAction,
+            completion: toastCompletionAction
         )
         .toast(
             isPresenting: $isShowingProgressToast,
@@ -382,6 +392,7 @@ struct ContentView: View {
             },
             completion: {
                 appState.resetCheckingForUpdates()
+                focusedField = savedFocusFieldForVersionToast
             }
         )
         .toast(
@@ -404,6 +415,7 @@ struct ContentView: View {
             },
             completion: {
                 appState.resetCheckingForUpdates()
+                focusedField = savedFocusFieldForVersionToast
             }
         )
         .onAppear(perform: {
@@ -424,6 +436,13 @@ struct ContentView: View {
             execute: {
                 NSApplication.shared.terminate(nil)
             })
+    }
+
+    private func clearFocusForVersionToast(_ value: Bool) {
+        if value {
+            savedFocusFieldForVersionToast = focusedField
+            focusedField = nil
+        }
     }
 
     private func setTheme(_ newTheme: Theme) {
@@ -457,6 +476,45 @@ struct ContentView: View {
             toastText = text
             toastSubTitle = subTitle
             toastTapAction = onTap
+            toastCompletionAction = {}
+            focusedField = nil
+            toastId = UUID()
+            isShowingToast.toggle()
+        }
+
+        if duration != .Blocking {
+            let expectedToastId = toastId
+            DispatchQueue.main.asyncAfter(
+                deadline: .now() + .seconds(duration.rawValue),
+                execute: {
+                    if isShowingToast && toastId == expectedToastId {
+                        toastId = nil
+                        isShowingToast.toggle()
+                        focusedField = savedFocusedField
+                    }
+                })
+        }
+    }
+
+    private func showToastWithCompletion(
+        _ type: AlertToast.AlertType,
+        _ text: String,
+        subTitle: String = "",
+        duration: ToastDuration = .Success,
+        onTap: @escaping () -> Void = {},
+        onCompletion: @escaping () -> Void = {}
+    ) {
+        if isShowingToast {
+            toastId = nil
+            isShowingToast.toggle()
+        }
+        let savedFocusedField = focusedField
+        withAnimation {
+            toastType = type
+            toastText = text
+            toastSubTitle = subTitle
+            toastTapAction = onTap
+            toastCompletionAction = onCompletion
             focusedField = nil
             toastId = UUID()
             isShowingToast.toggle()
@@ -588,18 +646,27 @@ struct ContentView: View {
                 debugPrint(error.localizedDescription)
             }
         } catch {
-            showToast(
+            showToastWithCompletion(
                 .error(.red),
                 "Failed to load pages",
-                subTitle: "The application requires the catalog to perform its operations: \(error.localizedDescription)\n\nClick here to try again.",
-                duration: .Blocking
-            ) {
-                DispatchQueue.main.async {
-                    Task {
-                        await loadPageCatalog()
+                subTitle: "The application requires the catalog to perform its operations: \(error.localizedDescription)\n\n" +
+                    "Click here to try again immediately or wait \(ToastDuration.CatalogLoadFailure.rawValue) seconds to automatically try again.",
+                duration: .CatalogLoadFailure,
+                onTap: {
+                    DispatchQueue.main.async {
+                        Task {
+                            await loadPageCatalog()
+                        }
+                    }
+                },
+                onCompletion: {
+                    DispatchQueue.main.async {
+                        Task {
+                            await loadPageCatalog()
+                        }
                     }
                 }
-            }
+            )
         }
     }
 

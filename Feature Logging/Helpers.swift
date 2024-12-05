@@ -10,7 +10,7 @@ import CommonCrypto
 import SwiftUI
 
 extension Binding {
-    func onChange(_ handler: @escaping (Value) -> Void) -> Binding<Value> {
+    @discardableResult func onChange(_ handler: @escaping (Value) -> Void) -> Binding<Value> {
         Binding(
             get: { self.wrappedValue },
             set: { newValue in
@@ -390,3 +390,16 @@ struct MultipartFormDataRequest {
         return request
     }
 }
+
+struct RuntimeError: LocalizedError {
+    let description: String
+
+    init(_ description: String) {
+        self.description = description
+    }
+
+    var errorDescription: String? {
+        description
+    }
+}
+

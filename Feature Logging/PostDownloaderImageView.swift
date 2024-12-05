@@ -20,7 +20,7 @@ struct PostDownloaderImageView: View {
     @State private var scale: Float = 0.000000001
 
     var imageUrl: URL
-    var name: String
+    var userName: String
     var index: Int
     var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     var showImageValidationView: (_ imageUrl: URL) -> Void
@@ -142,7 +142,7 @@ struct PostDownloaderImageView: View {
             if !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil) {
                 try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: false, attributes: nil)
             }
-            let fileURL = folderURL.appendingPathComponent("\(name).\(fileExtension)")
+            let fileURL = folderURL.appendingPathComponent("\(userName).\(fileExtension)")
             try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
             showToast(
                 .complete(.green),
