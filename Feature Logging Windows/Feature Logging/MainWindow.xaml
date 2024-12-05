@@ -12,6 +12,7 @@
     xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf" 
     xmlns:system="clr-namespace:System;assembly=netstandard"
     xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+    xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
     mc:Ignorable="d"
     Title="{Binding Title}"
     Icon="pack://application:,,,/Feature Logging;component/App.ico"
@@ -39,9 +40,11 @@
         <local:ValueVisibilityConverter x:Key="valueVisibilityConverter"></local:ValueVisibilityConverter>
         <local:StringJoinConverter x:Key="stringJoinConverter"></local:StringJoinConverter>
         <local:NullableColorToBrushConverter x:Key="nullableColorToBrushConverter"></local:NullableColorToBrushConverter>
-        <local:BooleanToFontWeightConverter x:Key="booleanToFontWeightConvertor"></local:BooleanToFontWeightConverter>
-        <local:BooleanToAccentColorConverter x:Key="booleanToAccentColorConvertor"></local:BooleanToAccentColorConverter>
-        <local:BooleanToBorderColorConverter x:Key="booleanToBorderColorConvertor"></local:BooleanToBorderColorConverter>
+        <local:BooleanToFontWeightConverter x:Key="booleanToFontWeightConverter"></local:BooleanToFontWeightConverter>
+        <local:BooleanToAccentColorConverter x:Key="booleanToAccentColorConverter"></local:BooleanToAccentColorConverter>
+        <local:BooleanToBorderColorConverter x:Key="booleanToBorderColorConverter"></local:BooleanToBorderColorConverter>
+        <local:CountToVisibilityConverter x:Key="countToVisibilityConverter"></local:CountToVisibilityConverter>
+        <local:MinHeightToLegendLocationConverter x:Key="minHeightToLegendLocationConverter"></local:MinHeightToLegendLocationConverter>
 
         <ObjectDataProvider x:Key="SyncModePreferenceEnumValues"
                                 MethodName="GetValues"
@@ -65,6 +68,7 @@
         <KeyBinding Key="C" Modifiers="Ctrl+Alt" Command="{Binding LaunchCullingAppCommand}" />
         <KeyBinding Key="A" Modifiers="Ctrl+Alt" Command="{Binding LaunchAiCheckAppCommand}" />
         <KeyBinding Key="L" Modifiers="Ctrl" Command="{Binding LoadPostCommand}" />
+        <KeyBinding Key="T" Modifiers="Ctrl+Shift" Command="{Binding ShowStatisticsViewCommand}" />
 
         <KeyBinding Key="OemTilde" Modifiers="Ctrl" Command="{Binding CloseCurrentViewCommand}" />
         <KeyBinding Key="Left" Modifiers="Ctrl" Command="{Binding NavigateToPreviousFeatureCommand}" />
@@ -307,6 +311,9 @@
             </MenuItem>
             <MenuItem Header="Edit">
                 <MenuItem Header="Settings..." Command="{Binding LaunchSettingsCommand}" InputGestureText="Ctrl+," />
+            </MenuItem>
+            <MenuItem Header="View">
+                <MenuItem Header="Show statistics" Command="{Binding ShowStatisticsViewCommand}" InputGestureText="Ctrl+Shift+T" />
             </MenuItem>
         </Menu>
         
@@ -1490,7 +1497,360 @@
             Visibility="{Binding StatisticsViewVisibility}"
             Grid.Row="1" 
             Margin="16,8,16,8">
-            <Label>Statistics view - TODO</Label>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Border
+                Grid.Row="0"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                Margin="10"
+                Padding="10"
+                CornerRadius="8">
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <Button 
+                            HorizontalAlignment="Left"
+                            Height="22" 
+                            Padding="4,0,4,0" 
+                            Command="{Binding PickStatisticsFolderCommand}" 
+                            MinHeight="22">
+                            <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
+                                <iconPacks:PackIconJamIcons
+                                    VerticalAlignment="Center"
+                                    Kind="FolderOpen"
+                                    Margin="0,0,6,0"
+                                    Height="13"
+                                    Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                <TextBlock 
+                                    Text="Open folder containing your log files..."
+                                    Margin="0,0,0,1" 
+                                    FontSize="11" 
+                                    FontWeight="Bold" 
+                                    Padding="0" 
+                                    VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <TextBlock 
+                            Text="{Binding StatisticsFolder}" 
+                            FontSize="11" 
+                            FontWeight="Bold" 
+                            Padding="0" 
+                            Margin="20,0"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel 
+                        Orientation="Horizontal" 
+                        Margin="0,8" 
+                        Visibility="{Binding StatisticsPages.Count, Converter={StaticResource countToVisibilityConverter}}">
+                        <Label 
+                            VerticalAlignment="Center" 
+                            FontSize="11" 
+                            Margin="0,0,4,0">
+                            <TextBlock 
+                                Text="Choose a page:" 
+                                FontWeight="Bold" 
+                                VerticalAlignment="Center" />
+                        </Label>
+                        <ComboBox 
+                            Width="240"
+                            ItemsSource="{Binding StatisticsPages}" 
+                            SelectedItem="{Binding SelectedStatisticsPage, Mode=TwoWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate DataType="local:MainViewModel:StatisticsPage">
+                                    <StackPanel Orientation="Horizontal">
+                                        <iconPacks:PackIconModern
+                                            VerticalAlignment="Center"
+                                            Kind="Page"
+                                            Margin="0,0,6,0"
+                                            Height="13"
+                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                        <TextBlock Text="{Binding Display}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            <Border
+                Grid.Row="1"
+                Grid.Column="0"
+                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                Margin="10"
+                Visibility="{Binding ChartVisibility}"
+                CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Grid.Row="0" 
+                        HorizontalAlignment="Center"
+                        FontSize="28"
+                        Text="{Binding PickedFeatureChart.Title}" />
+                    <TextBlock
+                        Grid.Row="1" 
+                        HorizontalAlignment="Center"
+                        FontSize="14"
+                        Text="{Binding PickedFeatureChart.SubTitle}" />
+                    <lvc:PieChart 
+                        Grid.Row="2"
+                        Series="{Binding PickedFeatureChart.Data}"
+                        StartingRotationAngle="0"
+                        LegendLocation="Right" 
+                        Margin="12, 15">
+                        <lvc:PieChart.ChartLegend>
+                            <lvc:DefaultLegend 
+                                BulletSize="12"
+                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
+                                FontSize="10" />
+                        </lvc:PieChart.ChartLegend>
+                        <lvc:PieChart.DataTooltip>
+                            <lvc:DefaultTooltip 
+                                BulletSize="12"
+                                Background="DarkGray"
+                                Foreground="White"
+                                FontSize="10" />
+                        </lvc:PieChart.DataTooltip>
+                    </lvc:PieChart>
+                </Grid>
+            </Border>
+            <Border
+                Grid.Row="1"
+                Grid.Column="1"
+                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                Margin="10"
+                Visibility="{Binding ChartVisibility}"
+                CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Grid.Row="0" 
+                        HorizontalAlignment="Center"
+                        FontSize="28"
+                        Text="{Binding FirstFeatureChart.Title}" />
+                    <TextBlock
+                        Grid.Row="1" 
+                        HorizontalAlignment="Center"
+                        FontSize="14"
+                        Text="{Binding FirstFeatureChart.SubTitle}" />
+                    <lvc:PieChart 
+                        Grid.Row="2"
+                        Series="{Binding FirstFeatureChart.Data}"
+                        StartingRotationAngle="0"
+                        LegendLocation="Right" 
+                        Margin="12, 15">
+                        <lvc:PieChart.ChartLegend>
+                            <lvc:DefaultLegend 
+                                BulletSize="12"
+                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
+                                FontSize="10" />
+                        </lvc:PieChart.ChartLegend>
+                        <lvc:PieChart.DataTooltip>
+                            <lvc:DefaultTooltip 
+                                BulletSize="12"
+                                Background="DarkGray"
+                                Foreground="White"
+                                FontSize="10" />
+                        </lvc:PieChart.DataTooltip>
+                    </lvc:PieChart>
+                </Grid>
+            </Border>
+            <Border
+                Grid.Row="1"
+                Grid.Column="2"
+                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                Margin="10"
+                Visibility="{Binding ChartVisibility}"
+                CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Grid.Row="0" 
+                        HorizontalAlignment="Center"
+                        FontSize="20"
+                        Text="{Binding UserLevelChart.Title}" />
+                    <TextBlock
+                        Grid.Row="1" 
+                        HorizontalAlignment="Center"
+                        FontSize="11"
+                        Text="{Binding UserLevelChart.SubTitle}" />
+                    <lvc:PieChart 
+                        Grid.Row="2"
+                        Series="{Binding UserLevelChart.Data}"
+                        StartingRotationAngle="0"
+                        LegendLocation="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}, Converter={StaticResource minHeightToLegendLocationConverter}}" 
+                        Margin="12, 15">
+                        <lvc:PieChart.ChartLegend>
+                            <lvc:DefaultLegend 
+                                BulletSize="12"
+                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
+                                FontSize="10" />
+                        </lvc:PieChart.ChartLegend>
+                        <lvc:PieChart.DataTooltip>
+                            <lvc:DefaultTooltip 
+                                BulletSize="12"
+                                Background="DarkGray"
+                                Foreground="White"
+                                FontSize="10" />
+                        </lvc:PieChart.DataTooltip>
+                    </lvc:PieChart>
+                </Grid>                
+            </Border>
+            <Border
+                Grid.Row="2"
+                Grid.Column="0"
+                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                Margin="10"
+                Visibility="{Binding ChartVisibility}"
+                CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Grid.Row="0" 
+                        HorizontalAlignment="Center"
+                        FontSize="28"
+                        Text="{Binding PhotoFeaturedChart.Title}" />
+                    <TextBlock
+                        Grid.Row="1" 
+                        HorizontalAlignment="Center"
+                        FontSize="14"
+                        Text="{Binding PhotoFeaturedChart.SubTitle}" />
+                    <lvc:PieChart 
+                        Grid.Row="2"
+                        Series="{Binding PhotoFeaturedChart.Data}"
+                        StartingRotationAngle="0"
+                        LegendLocation="Right" 
+                        Margin="12, 15">
+                        <lvc:PieChart.ChartLegend>
+                            <lvc:DefaultLegend 
+                                BulletSize="12"
+                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
+                                FontSize="10" />
+                        </lvc:PieChart.ChartLegend>
+                        <lvc:PieChart.DataTooltip>
+                            <lvc:DefaultTooltip 
+                                BulletSize="12"
+                                Background="DarkGray"
+                                Foreground="White"
+                                FontSize="10" />
+                        </lvc:PieChart.DataTooltip>
+                    </lvc:PieChart>
+                </Grid>
+            </Border>
+            <Border
+                Grid.Row="2"
+                Grid.Column="1"
+                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                Margin="10"
+                Visibility="{Binding ChartVisibility}"
+                CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Grid.Row="0" 
+                        HorizontalAlignment="Center"
+                        FontSize="28"
+                        Text="{Binding PageFeatureCountChart.Title}" />
+                    <TextBlock
+                        Grid.Row="1" 
+                        HorizontalAlignment="Center"
+                        FontSize="14"
+                        Text="{Binding PageFeatureCountChart.SubTitle}" />
+                    <lvc:PieChart 
+                        Grid.Row="2"
+                        Series="{Binding PageFeatureCountChart.Data}"
+                        StartingRotationAngle="0"
+                        LegendLocation="Right" 
+                        Margin="12, 15">
+                        <lvc:PieChart.ChartLegend>
+                            <lvc:DefaultLegend 
+                                BulletSize="12"
+                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
+                                FontSize="10" />
+                        </lvc:PieChart.ChartLegend>
+                        <lvc:PieChart.DataTooltip>
+                            <lvc:DefaultTooltip 
+                                BulletSize="12"
+                                Background="DarkGray"
+                                Foreground="White"
+                                FontSize="10" />
+                        </lvc:PieChart.DataTooltip>
+                    </lvc:PieChart>
+                </Grid>
+            </Border>
+            <Border
+                Grid.Row="2"
+                Grid.Column="2"
+                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                Margin="10"
+                Visibility="{Binding ChartVisibility}"
+                CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Grid.Row="0" 
+                        HorizontalAlignment="Center"
+                        FontSize="28"
+                        Text="{Binding HubFeatureCountChart.Title}" />
+                    <TextBlock
+                        Grid.Row="1" 
+                        HorizontalAlignment="Center"
+                        FontSize="14"
+                        Text="{Binding HubFeatureCountChart.SubTitle}" />
+                    <lvc:PieChart 
+                        Grid.Row="2"
+                        Series="{Binding HubFeatureCountChart.Data}"
+                        StartingRotationAngle="0"
+                        LegendLocation="Right" 
+                        Margin="12, 15">
+                        <lvc:PieChart.ChartLegend>
+                            <lvc:DefaultLegend 
+                                BulletSize="12"
+                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
+                                FontSize="10" />
+                        </lvc:PieChart.ChartLegend>
+                        <lvc:PieChart.DataTooltip>
+                            <lvc:DefaultTooltip 
+                                BulletSize="12"
+                                Background="DarkGray"
+                                Foreground="White"
+                                FontSize="10" />
+                        </lvc:PieChart.DataTooltip>
+                    </lvc:PieChart>
+                </Grid>
+            </Border>
         </Grid>
 
         <!-- POST DOWNLOADER VIEW -->
@@ -2681,7 +3041,7 @@
                     <TabItem>
                         <TabItem.Header>
                             <Border
-                                Background="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToBorderColorConvertor}}"
+                                Background="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToBorderColorConverter}}"
                                 CornerRadius="8"
                                 Margin="0,0,0,4">
                                 <StackPanel 
@@ -2694,14 +3054,14 @@
                                         Margin="0,0,8,0"
                                         Width="20"
                                         Height="20"
-                                        Foreground="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToAccentColorConvertor}}" />
+                                        Foreground="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToAccentColorConverter}}" />
                                     <TextBlock 
                                         Text="TinEye Results"
                                         VerticalAlignment="Center"
                                         Margin="0,0,0,2"
                                         FontSize="14"
                                         Foreground="{DynamicResource MahApps.Brushes.Text}"
-                                        FontWeight="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToFontWeightConvertor}}"/>
+                                        FontWeight="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToFontWeightConverter}}"/>
                                 </StackPanel>
                             </Border>
                         </TabItem.Header>
@@ -2717,7 +3077,7 @@
                     <TabItem>
                         <TabItem.Header>
                             <Border
-                                Background="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToBorderColorConvertor}}"
+                                Background="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToBorderColorConverter}}"
                                 CornerRadius="8"
                                 Margin="0,0,0,4">
                                 <StackPanel 
@@ -2730,14 +3090,14 @@
                                         Margin="0,0,6,0"
                                         Width="20"
                                         Height="20"
-                                        Foreground="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToAccentColorConvertor}}" />
+                                        Foreground="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToAccentColorConverter}}" />
                                     <TextBlock 
                                         Text="HIVE Results"
                                         VerticalAlignment="Center"
                                         Margin="0,0,0,2"
                                         FontSize="14"
                                         Foreground="{DynamicResource MahApps.Brushes.Text}"
-                                        FontWeight="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToFontWeightConvertor}}"/>
+                                        FontWeight="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToFontWeightConverter}}"/>
                                 </StackPanel>
                             </Border>
                         </TabItem.Header>
