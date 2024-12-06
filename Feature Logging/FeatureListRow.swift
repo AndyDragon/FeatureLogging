@@ -12,7 +12,6 @@ import UniformTypeIdentifiers
 struct FeatureListRow: View {
     @State private var viewModel: ContentView.ViewModel
     @State private var feature: Feature
-    private var markDocumentDirty: () -> Void
     private var showScriptView: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
@@ -30,13 +29,11 @@ struct FeatureListRow: View {
     init(
         _ viewModel: ContentView.ViewModel,
         _ feature: Feature,
-        _ markDocumentDirty: @escaping () -> Void,
         _ showScriptView: @escaping () -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     ) {
         self.viewModel = viewModel
         self.feature = feature
-        self.markDocumentDirty = markDocumentDirty
         self.showScriptView = showScriptView
         self.showToast = showToast
     }
@@ -207,7 +204,7 @@ struct FeatureListRow: View {
                                 TextField(
                                     "",
                                     text: $feature.personalMessage.onChange { value in
-                                        markDocumentDirty()
+                                        viewModel.markDocumentDirty()
                                     }
                                 )
                                 .focusable()

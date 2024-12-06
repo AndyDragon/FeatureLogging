@@ -48,20 +48,16 @@ struct ContentView: View {
     @State private var toastDuration = 3.0
     @State private var toastTapAction: () -> Void = {}
     @State private var toastCompletionAction: () -> Void = {}
-    @State private var isShowingToast = false
-    @State private var isShowingProgressToast = false
     @State private var toastId: UUID?
     @ObservedObject var featureScriptPlaceholders = PlaceholderList()
     @ObservedObject var commentScriptPlaceholders = PlaceholderList()
     @ObservedObject var originalPostScriptPlaceholders = PlaceholderList()
-    @State private var isShowingDocumentDirtyAlert = false
     @State private var documentDirtyAlertConfirmation = "Would you like to save this log file?"
     @State private var documentDirtyAfterSaveAction: () -> Void = {}
     @State private var documentDirtyAfterDismissAction: () -> Void = {}
     @State private var imageValidationImageUrl: URL?
     @State private var showFileImporter = false
     @State private var showFileExporter = false
-    @State private var isDirty = false
     @State private var logDocument = LogDocument()
     @State private var logURL: URL? = nil
     @State private var showReportFileExporter = false
@@ -75,7 +71,7 @@ struct ContentView: View {
     @State private var savedFocusFieldForVersionToast: FocusField?
     private var appState: VersionCheckAppState
     private var isAnyToastShowing: Bool {
-        isShowingToast || appState.isShowingVersionAvailableToast.wrappedValue || appState.isShowingVersionRequiredToast.wrappedValue
+        viewModel.isShowingToast || appState.isShowingVersionAvailableToast.wrappedValue || appState.isShowingVersionRequiredToast.wrappedValue
     }
     private var descriptionSuffix: String {
         if let description = viewModel.selectedFeature?.feature.featureDescription {
@@ -119,8 +115,7 @@ struct ContentView: View {
                         commentScriptPlaceholders,
                         originalPostScriptPlaceholders,
                         $focusedField,
-                        $isShowingToast,
-                        { isShowingScriptView.toggle() },
+                        { isShowingScriptView = false },
                         navigateToNextFeature,
                         showToast
                     )
@@ -129,37 +124,29 @@ struct ContentView: View {
                         ImageValidationView(
                             viewModel,
                             $focusedField,
-                            $isShowingToast,
-                            $isShowingProgressToast,
                             $imageValidationImageUrl,
-                            {
-                                isShowingImageValidationView.toggle()
-                            },
+                            { isShowingImageValidationView = false },
                             { shouldScrollFeatureListToSelection.toggle() },
-                            { isDirty = true },
-                            showToast, // show toast
-                            {
-                                isShowingProgressToast.toggle()
-                            })
+                            showToast,
+                            { viewModel.isShowingProgressToast.toggle() }
+                        )
                     } else {
                         PostDownloaderView(
                             viewModel,
                             $focusedField,
-                            $isShowingToast,
-                            { isShowingDownloaderView.toggle() },
+                            { isShowingDownloaderView = false },
                             { imageUrl in
                                 imageValidationImageUrl = imageUrl
-                                isShowingImageValidationView.toggle()
+                                isShowingImageValidationView = true
                             },
                             { shouldScrollFeatureListToSelection.toggle() },
-                            { isDirty = true },
                             showToast
                         )
                     }
                 } else if isShowingStatisticsView {
                     StatisticsContentView(
+                        viewModel,
                         $focusedField,
-                        $isShowingToast,
                         { commandModel.showStatistics = false },
                         showToast
                     )
@@ -168,20 +155,17 @@ struct ContentView: View {
                         viewModel,
                         $logURL,
                         $focusedField,
-                        $isDirty,
                         $logDocument,
                         $showFileImporter,
                         $showFileExporter,
                         $reportDocument,
                         $showReportFileExporter,
-                        $isShowingToast,
-                        $isShowingDocumentDirtyAlert,
                         $documentDirtyAlertConfirmation,
                         $documentDirtyAfterSaveAction,
                         $documentDirtyAfterDismissAction,
                         $shouldScrollFeatureListToSelection,
-                        { isShowingScriptView.toggle() },
-                        { isShowingDownloaderView.toggle() },
+                        { isShowingScriptView = true },
+                        { isShowingDownloaderView = true },
                         updateStaffLevelForPage,
                         storeStaffLevelForPage,
                         saveLog,
@@ -200,7 +184,7 @@ struct ContentView: View {
                         switch result {
                         case .success(let file):
                             loadLog(from: file)
-                            isDirty = false
+                            viewModel.clearDocumentDirty()
                         case .failure(let error):
                             debugPrint(error.localizedDescription)
                         }
@@ -218,9 +202,8 @@ struct ContentView: View {
                     ) { result in
                         switch result {
                         case .success(let url):
-                            print("Saved to \(url)")
                             logURL = url
-                            isDirty = false
+                            viewModel.clearDocumentDirty()
                             documentDirtyAfterSaveAction()
                             documentDirtyAfterSaveAction = {}
                             documentDirtyAfterDismissAction = {}
@@ -243,8 +226,8 @@ struct ContentView: View {
                         : "\(viewModel.selectedPage?.hub ?? "hub")_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).features"
                     ) { result in
                         switch result {
-                        case .success(let url):
-                            print("Exported to \(url)")
+                        case .success:
+                            break
                         case .failure(let error):
                             debugPrint(error)
                         }
@@ -255,7 +238,7 @@ struct ContentView: View {
             .allowsHitTesting(!isAnyToastShowing)
             ToastDismissShield(
                 isAnyToastShowing: isAnyToastShowing,
-                isShowingToast: $isShowingToast,
+                isShowingToast: $viewModel.isShowingToast,
                 toastId: $toastId,
                 isShowingVersionAvailableToast: appState.isShowingVersionAvailableToast)
         }
@@ -268,30 +251,30 @@ struct ContentView: View {
         .frame(minWidth: 1024, minHeight: 720)
         .background(Color.BackgroundColor)
         .onChange(of: commandModel.newLog) {
-            if isDirty {
+            if viewModel.isDirty {
                 documentDirtyAfterSaveAction = {
                     logURL = nil
                     viewModel.selectedFeature = nil
                     viewModel.features = [Feature]()
-                    isDirty = false
+                    viewModel.clearDocumentDirty()
                 }
                 documentDirtyAfterDismissAction = {
                     logURL = nil
                     viewModel.selectedFeature = nil
                     viewModel.features = [Feature]()
-                    isDirty = false
+                    viewModel.clearDocumentDirty()
                 }
                 documentDirtyAlertConfirmation = "Would you like to save this log file before creating a new log?"
-                isShowingDocumentDirtyAlert.toggle()
+                viewModel.isShowingDocumentDirtyAlert.toggle()
             } else {
                 logURL = nil
                 viewModel.selectedFeature = nil
                 viewModel.features = [Feature]()
-                isDirty = false
+                viewModel.clearDocumentDirty()
             }
         }
         .onChange(of: commandModel.openLog) {
-            if isDirty {
+            if viewModel.isDirty {
                 documentDirtyAfterSaveAction = {
                     showFileImporter.toggle()
                 }
@@ -299,7 +282,7 @@ struct ContentView: View {
                     showFileImporter.toggle()
                 }
                 documentDirtyAlertConfirmation = "Would you like to save this log file before opening another log?"
-                isShowingDocumentDirtyAlert.toggle()
+                viewModel.isShowingDocumentDirtyAlert.toggle()
             } else {
                 showFileImporter.toggle()
             }
@@ -311,7 +294,7 @@ struct ContentView: View {
                 documentDirtyAfterSaveAction()
                 documentDirtyAfterSaveAction = {}
                 documentDirtyAfterDismissAction = {}
-                isDirty = false
+                viewModel.clearDocumentDirty()
             } else {
                 showFileExporter.toggle()
             }
@@ -329,9 +312,9 @@ struct ContentView: View {
         .onChange(of: appState.isShowingVersionRequiredToast.wrappedValue) {
             clearFocusForVersionToast(appState.isShowingVersionRequiredToast.wrappedValue)
         }
-        .sheet(isPresented: $isShowingDocumentDirtyAlert) {
+        .sheet(isPresented: $viewModel.isShowingDocumentDirtyAlert) {
             DocumentDirtySheet(
-                isShowing: $isShowingDocumentDirtyAlert,
+                isShowing: $viewModel.isShowingDocumentDirtyAlert,
                 confirmationText: $documentDirtyAlertConfirmation,
                 saveAction: {
                     commandModel.saveLog.toggle()
@@ -347,7 +330,7 @@ struct ContentView: View {
                 })
         }
         .toast(
-            isPresenting: $isShowingToast,
+            isPresenting: $viewModel.isShowingToast,
             duration: 0,
             tapToDismiss: true,
             offsetY: 32,
@@ -362,7 +345,7 @@ struct ContentView: View {
             completion: toastCompletionAction
         )
         .toast(
-            isPresenting: $isShowingProgressToast,
+            isPresenting: $viewModel.isShowingProgressToast,
             duration: 0,
             tapToDismiss: false,
             offsetY: 32,
@@ -422,7 +405,7 @@ struct ContentView: View {
             setTheme(theme)
             DocumentManager.default.registerReceiver(receiver: self)
         })
-        .navigationSubtitle(isDirty ? "edited" : "")
+        .navigationSubtitle(viewModel.isDirty ? "edited" : "")
         .task {
             await loadPageCatalog()
         }
@@ -430,7 +413,7 @@ struct ContentView: View {
     }
 
     private func delayAndTerminate() {
-        isDirty = false
+        viewModel.clearDocumentDirty()
         DispatchQueue.main.asyncAfter(
             deadline: .now() + 0.2,
             execute: {
@@ -466,9 +449,9 @@ struct ContentView: View {
         duration: ToastDuration = .Success,
         onTap: @escaping () -> Void = {}
     ) {
-        if isShowingToast {
+        if viewModel.isShowingToast {
             toastId = nil
-            isShowingToast.toggle()
+            viewModel.isShowingToast.toggle()
         }
         let savedFocusedField = focusedField
         withAnimation {
@@ -479,7 +462,7 @@ struct ContentView: View {
             toastCompletionAction = {}
             focusedField = nil
             toastId = UUID()
-            isShowingToast.toggle()
+            viewModel.isShowingToast.toggle()
         }
 
         if duration != .Blocking {
@@ -487,9 +470,9 @@ struct ContentView: View {
             DispatchQueue.main.asyncAfter(
                 deadline: .now() + .seconds(duration.rawValue),
                 execute: {
-                    if isShowingToast && toastId == expectedToastId {
+                    if viewModel.isShowingToast && toastId == expectedToastId {
                         toastId = nil
-                        isShowingToast.toggle()
+                        viewModel.isShowingToast.toggle()
                         focusedField = savedFocusedField
                     }
                 })
@@ -504,9 +487,9 @@ struct ContentView: View {
         onTap: @escaping () -> Void = {},
         onCompletion: @escaping () -> Void = {}
     ) {
-        if isShowingToast {
+        if viewModel.isShowingToast {
             toastId = nil
-            isShowingToast.toggle()
+            viewModel.isShowingToast.toggle()
         }
         let savedFocusedField = focusedField
         withAnimation {
@@ -517,7 +500,7 @@ struct ContentView: View {
             toastCompletionAction = onCompletion
             focusedField = nil
             toastId = UUID()
-            isShowingToast.toggle()
+            viewModel.isShowingToast.toggle()
         }
 
         if duration != .Blocking {
@@ -525,9 +508,9 @@ struct ContentView: View {
             DispatchQueue.main.asyncAfter(
                 deadline: .now() + .seconds(duration.rawValue),
                 execute: {
-                    if isShowingToast && toastId == expectedToastId {
+                    if viewModel.isShowingToast && toastId == expectedToastId {
                         toastId = nil
-                        isShowingToast.toggle()
+                        viewModel.isShowingToast.toggle()
                         focusedField = savedFocusedField
                     }
                 })
@@ -673,7 +656,7 @@ struct ContentView: View {
     private func loadLog(from file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
         if !gotAccess {
-            print("No access?")
+            debugPrint("No access to load log")
             return
         }
 
@@ -705,7 +688,7 @@ struct ContentView: View {
     private func saveLog(to file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
         if !gotAccess {
-            print("No access?")
+            debugPrint("No access to save log")
             return
         }
 
@@ -771,7 +754,7 @@ struct ContentView: View {
 
 extension ContentView: DocumentManagerDelegate {
     func onCanTerminate() -> Bool {
-        if isDirty {
+        if viewModel.isDirty {
             documentDirtyAfterDismissAction = {
                 delayAndTerminate()
             }
@@ -779,9 +762,9 @@ extension ContentView: DocumentManagerDelegate {
                 delayAndTerminate()
             }
             documentDirtyAlertConfirmation = "Would you like to save this log file before leaving the app?"
-            isShowingDocumentDirtyAlert.toggle()
+            viewModel.isShowingDocumentDirtyAlert.toggle()
         }
-        return !isDirty
+        return !viewModel.isDirty
     }
 }
 
@@ -801,8 +784,20 @@ extension ContentView {
         }
         var yourName = UserDefaults.standard.string(forKey: "YourName") ?? ""
         var yourFirstName = UserDefaults.standard.string(forKey: "YourFirstName") ?? ""
+        var isShowingToast = false
+        var isShowingProgressToast = false
+        private(set) var isDirty = false
+        var isShowingDocumentDirtyAlert = false
 
         init() {}
+
+        func markDocumentDirty() {
+            isDirty = true
+        }
+
+        func clearDocumentDirty() {
+            isDirty = false
+        }
 
         func generateReport(
             _ personalMessageFormat: String,

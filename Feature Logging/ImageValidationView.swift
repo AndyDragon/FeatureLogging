@@ -20,12 +20,9 @@ struct ImageValidationView: View {
 
     @State private var viewModel: ContentView.ViewModel
     @State private var focusedField: FocusState<FocusField?>.Binding
-    @State private var isShowingToast: Binding<Bool>
-    @State private var isShowingProgressToast: Binding<Bool>
     @State private var imageValidationImageUrl: Binding<URL?>
     private var hideImageValidationView: () -> Void
     private var updateList: () -> Void
-    private var markDocumentDirty: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     private var toggleProgressToast: () -> Void
 
@@ -43,23 +40,17 @@ struct ImageValidationView: View {
     init(
         _ viewModel: ContentView.ViewModel,
         _ focusedField: FocusState<FocusField?>.Binding,
-        _ isShowingToast: Binding<Bool>,
-        _ isShowingProgressToast: Binding<Bool>,
         _ imageValidationImageUrl: Binding<URL?>,
         _ hideImageValidationView: @escaping () -> Void,
         _ updateList: @escaping () -> Void,
-        _ markDocumentDirty: @escaping () -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void,
         _ toggleProgressToast: @escaping () -> Void
     ) {
         self.viewModel = viewModel
         self.focusedField = focusedField
-        self.isShowingToast = isShowingToast
-        self.isShowingProgressToast = isShowingProgressToast
         self.imageValidationImageUrl = imageValidationImageUrl
         self.hideImageValidationView = hideImageValidationView
         self.updateList = updateList
-        self.markDocumentDirty = markDocumentDirty
         self.showToast = showToast
         self.toggleProgressToast = toggleProgressToast
     }
@@ -273,10 +264,10 @@ struct ImageValidationView: View {
                         }
                         .padding(4)
                     }
-                    .disabled(isShowingToast.wrappedValue || isShowingProgressToast.wrappedValue || uploadToServer != nil)
+                    .disabled(viewModel.isShowingToast || viewModel.isShowingProgressToast || uploadToServer != nil)
                     .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
                 }
-                .allowsHitTesting(!isShowingToast.wrappedValue && !isShowingProgressToast.wrappedValue)
+                .allowsHitTesting(!viewModel.isShowingToast && !viewModel.isShowingProgressToast)
             }
         }
         .frame(minWidth: 1280, minHeight: 800)
@@ -376,7 +367,7 @@ struct ImageValidationView: View {
                 selectedFeature.feature.tinEyeResults.wrappedValue = result.1
             }
             updateList()
-            markDocumentDirty()
+            viewModel.markDocumentDirty()
         }
     }
 
@@ -387,7 +378,7 @@ struct ImageValidationView: View {
                 selectedFeature.feature.aiCheckResults.wrappedValue = result.1
             }
             updateList()
-            markDocumentDirty()
+            viewModel.markDocumentDirty()
         }
     }
 }

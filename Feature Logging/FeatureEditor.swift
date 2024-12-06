@@ -13,7 +13,6 @@ struct FeatureEditor: View {
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var close: () -> Void
     private var updateList: () -> Void
-    private var markDocumentDirty: () -> Void
     private var showDownloaderView: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
@@ -29,7 +28,6 @@ struct FeatureEditor: View {
         _ focusedField: FocusState<FocusField?>.Binding,
         _ close: @escaping () -> Void,
         _ updateList: @escaping () -> Void,
-        _ markDocumentDirty: @escaping () -> Void,
         _ showDownloaderView: @escaping () -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     ) {
@@ -37,7 +35,6 @@ struct FeatureEditor: View {
         self.focusedField = focusedField
         self.close = close
         self.updateList = updateList
-        self.markDocumentDirty = markDocumentDirty
         self.showDownloaderView = showDownloaderView
         self.showToast = showToast
     }
@@ -63,7 +60,7 @@ struct FeatureEditor: View {
                     Toggle(
                         isOn: selectedFeature.feature.isPicked.onChange { value in
                             updateList()
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                         }
                     ) {
                         Text("Picked as feature")
@@ -77,7 +74,7 @@ struct FeatureEditor: View {
                     .onKeyPress(.space) {
                         selectedFeature.feature.isPicked.wrappedValue.toggle()
                         updateList()
-                        markDocumentDirty()
+                        viewModel.markDocumentDirty()
                         return .handled
                     }
 
@@ -104,7 +101,7 @@ struct FeatureEditor: View {
                     TextField(
                         "enter the post link",
                         text: selectedFeature.feature.postLink.onChange { value in
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                         }
                     )
                     .focusable()
@@ -166,7 +163,7 @@ struct FeatureEditor: View {
                     TextField(
                         "enter the user alias",
                         text: selectedFeature.feature.userAlias.onChange { value in
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                         }
                     )
                     .focusable()
@@ -203,7 +200,7 @@ struct FeatureEditor: View {
                         "enter the user name",
                         text: selectedFeature.feature.userName.onChange { value in
                             updateList()
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                         }
                     )
                     .focusable()
@@ -265,7 +262,7 @@ struct FeatureEditor: View {
 
                     Toggle(
                         isOn: selectedFeature.feature.userIsTeammate.onChange { value in
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                         }
                     ) {
                         Text("User is a Team Mate")
@@ -278,7 +275,7 @@ struct FeatureEditor: View {
                     .focused(focusedField, equals: .teammate)
                     .onKeyPress(.space) {
                         selectedFeature.feature.userIsTeammate.wrappedValue.toggle();
-                        markDocumentDirty()
+                        viewModel.markDocumentDirty()
                         return .handled
                     }
                 }
@@ -321,7 +318,7 @@ struct FeatureEditor: View {
                     Toggle(
                         isOn: selectedFeature.feature.photoFeaturedOnPage.onChange { value in
                             updateList()
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                         }
                     ) {
                         Text("Photo already featured on page")
@@ -335,7 +332,7 @@ struct FeatureEditor: View {
                     .onKeyPress(.space) {
                         selectedFeature.feature.photoFeaturedOnPage.wrappedValue.toggle();
                         updateList()
-                        markDocumentDirty()
+                        viewModel.markDocumentDirty()
                         return .handled
                     }
 
@@ -346,7 +343,7 @@ struct FeatureEditor: View {
                     Toggle(
                         isOn: selectedFeature.feature.photoFeaturedOnHub.onChange { value in
                             updateList()
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                         }
                     ) {
                         Text("Photo featured on hub")
@@ -360,7 +357,7 @@ struct FeatureEditor: View {
                     .onKeyPress(.space) {
                         selectedFeature.feature.photoFeaturedOnHub.wrappedValue.toggle();
                         updateList()
-                        markDocumentDirty()
+                        viewModel.markDocumentDirty()
                         return .handled
                     }
 
@@ -375,7 +372,7 @@ struct FeatureEditor: View {
                         TextField(
                             "",
                             text: selectedFeature.feature.photoLastFeaturedOnHub.onChange { value in
-                                markDocumentDirty()
+                                viewModel.markDocumentDirty()
                             }
                         )
                         .focusable()
@@ -390,7 +387,7 @@ struct FeatureEditor: View {
                         TextField(
                             "on page",
                             text: selectedFeature.feature.photoLastFeaturedPage.onChange { value in
-                                markDocumentDirty()
+                                viewModel.markDocumentDirty()
                             }
                         )
                         .focusable()
@@ -412,7 +409,7 @@ struct FeatureEditor: View {
                     TextField(
                         "enter the description of the feature (not used in scripts)",
                         text: selectedFeature.feature.featureDescription.onChange { value in
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                         }
                     )
                     .focusable()
@@ -434,7 +431,7 @@ struct FeatureEditor: View {
 
                         Toggle(
                             isOn: selectedFeature.feature.userHasFeaturesOnPage.onChange { value in
-                                markDocumentDirty()
+                                viewModel.markDocumentDirty()
                             }
                         ) {
                             Text("User featured on page")
@@ -447,7 +444,7 @@ struct FeatureEditor: View {
                         .focused(focusedField, equals: .userHasFeaturesOnPage)
                         .onKeyPress(.space) {
                             selectedFeature.feature.userHasFeaturesOnPage.wrappedValue.toggle();
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                             return .handled
                         }
 
@@ -462,7 +459,7 @@ struct FeatureEditor: View {
                             TextField(
                                 "",
                                 text: selectedFeature.feature.lastFeaturedOnPage.onChange { value in
-                                    markDocumentDirty()
+                                    viewModel.markDocumentDirty()
                                 }
                             )
                             .focusable()
@@ -482,7 +479,7 @@ struct FeatureEditor: View {
                                 "",
                                 selection: selectedFeature.feature.featureCountOnPage.onChange { value in
                                     navigateToFeatureCountOnPage(75, selectedFeature, .same)
-                                    markDocumentDirty()
+                                    viewModel.markDocumentDirty()
                                 }
                             ) {
                                 Text("many").tag("many")
@@ -533,7 +530,7 @@ struct FeatureEditor: View {
 
                         Toggle(
                             isOn: selectedFeature.feature.userHasFeaturesOnHub.onChange { value in
-                                markDocumentDirty()
+                                viewModel.markDocumentDirty()
                             }
                         ) {
                             Text("User featured on Click")
@@ -546,7 +543,7 @@ struct FeatureEditor: View {
                         .focused(focusedField, equals: .userHasFeaturesOnHub)
                         .onKeyPress(.space) {
                             selectedFeature.feature.userHasFeaturesOnHub.wrappedValue.toggle();
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                             return .handled
                         }
 
@@ -561,7 +558,7 @@ struct FeatureEditor: View {
                             TextField(
                                 "",
                                 text: selectedFeature.feature.lastFeaturedOnHub.onChange { value in
-                                    markDocumentDirty()
+                                    viewModel.markDocumentDirty()
                                 }
                             )
                             .focusable()
@@ -576,7 +573,7 @@ struct FeatureEditor: View {
                             TextField(
                                 "on page",
                                 text: selectedFeature.feature.lastFeaturedPage.onChange { value in
-                                    markDocumentDirty()
+                                    viewModel.markDocumentDirty()
                                 }
                             )
                             .focusable()
@@ -646,7 +643,7 @@ struct FeatureEditor: View {
 
                         Toggle(
                             isOn: selectedFeature.feature.userHasFeaturesOnPage.onChange { value in
-                                markDocumentDirty()
+                                viewModel.markDocumentDirty()
                             }
                         ) {
                             Text("User featured on page")
@@ -659,7 +656,7 @@ struct FeatureEditor: View {
                         .focused(focusedField, equals: .userHasFeaturesOnPage)
                         .onKeyPress(.space) {
                             selectedFeature.feature.userHasFeaturesOnPage.wrappedValue.toggle();
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                             return .handled
                         }
 
@@ -674,7 +671,7 @@ struct FeatureEditor: View {
                             TextField(
                                 "",
                                 text: selectedFeature.feature.lastFeaturedOnPage.onChange { value in
-                                    markDocumentDirty()
+                                    viewModel.markDocumentDirty()
                                 }
                             )
                             .focusable()
@@ -797,7 +794,7 @@ struct FeatureEditor: View {
 
                         Toggle(
                             isOn: selectedFeature.feature.userHasFeaturesOnHub.onChange { value in
-                                markDocumentDirty()
+                                viewModel.markDocumentDirty()
                             }
                         ) {
                             Text("User featured on Snap / RAW")
@@ -810,7 +807,7 @@ struct FeatureEditor: View {
                         .focused(focusedField, equals: .userHasFeaturesOnHub)
                         .onKeyPress(.space) {
                             selectedFeature.feature.userHasFeaturesOnHub.wrappedValue.toggle();
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                             return .handled
                         }
 
@@ -825,7 +822,7 @@ struct FeatureEditor: View {
                             TextField(
                                 "",
                                 text: selectedFeature.feature.lastFeaturedOnHub.onChange { value in
-                                    markDocumentDirty()
+                                    viewModel.markDocumentDirty()
                                 }
                             )
                             .focusable()
@@ -840,7 +837,7 @@ struct FeatureEditor: View {
                             TextField(
                                 "on page",
                                 text: selectedFeature.feature.lastFeaturedPage.onChange { value in
-                                    markDocumentDirty()
+                                    viewModel.markDocumentDirty()
                                 }
                             )
                             .focusable()
@@ -958,7 +955,7 @@ struct FeatureEditor: View {
                     Toggle(
                         isOn: selectedFeature.feature.tooSoonToFeatureUser.onChange { value in
                             updateList()
-                            markDocumentDirty()
+                            viewModel.markDocumentDirty()
                         }
                     ) {
                         Text("Too soon to feature user")
@@ -972,7 +969,7 @@ struct FeatureEditor: View {
                     .onKeyPress(.space) {
                         selectedFeature.feature.tooSoonToFeatureUser.wrappedValue.toggle();
                         updateList()
-                        markDocumentDirty()
+                        viewModel.markDocumentDirty()
                         return .handled
                     }
 
@@ -1062,7 +1059,7 @@ struct FeatureEditor: View {
         } else {
             selectedFeature.feature.userAlias.wrappedValue = aliasText
         }
-        markDocumentDirty()
+        viewModel.markDocumentDirty()
     }
 
     private func pasteClipboardToUserName(_ selectedFeature: Binding<SharedFeature>) {
@@ -1073,7 +1070,7 @@ struct FeatureEditor: View {
         } else {
             selectedFeature.feature.userName.wrappedValue = userText
         }
-        markDocumentDirty()
+        viewModel.markDocumentDirty()
     }
 
     private func navigateToUserLevel(_ selectedHub: String, _ selectedFeature: Binding<SharedFeature>, _ direction: Direction) {
@@ -1082,7 +1079,7 @@ struct FeatureEditor: View {
             if direction != .same {
                 selectedFeature.feature.userLevel.wrappedValue = result.1
             }
-            markDocumentDirty()
+            viewModel.markDocumentDirty()
         }
     }
 
@@ -1092,7 +1089,7 @@ struct FeatureEditor: View {
             if direction != .same {
                 selectedFeature.feature.tagSource.wrappedValue = result.1
             }
-            markDocumentDirty()
+            viewModel.markDocumentDirty()
         }
     }
 
@@ -1106,7 +1103,7 @@ struct FeatureEditor: View {
             if direction != .same {
                 selectedFeature.feature.featureCountOnPage.wrappedValue = result.1
             }
-            markDocumentDirty()
+            viewModel.markDocumentDirty()
         }
     }
 
@@ -1120,7 +1117,7 @@ struct FeatureEditor: View {
             if direction != .same {
                 selectedFeature.feature.featureCountOnHub.wrappedValue = result.1
             }
-            markDocumentDirty()
+            viewModel.markDocumentDirty()
         }
     }
 
@@ -1134,7 +1131,7 @@ struct FeatureEditor: View {
             if direction != .same {
                 selectedFeature.feature.featureCountOnRawPage.wrappedValue = result.1
             }
-            markDocumentDirty()
+            viewModel.markDocumentDirty()
         }
     }
 
@@ -1148,7 +1145,7 @@ struct FeatureEditor: View {
             if direction != .same {
                 selectedFeature.feature.featureCountOnRawHub.wrappedValue = result.1
             }
-            markDocumentDirty()
+            viewModel.markDocumentDirty()
         }
     }
 
@@ -1159,7 +1156,7 @@ struct FeatureEditor: View {
                 selectedFeature.feature.tinEyeResults.wrappedValue = result.1
             }
             updateList()
-            markDocumentDirty()
+            viewModel.markDocumentDirty()
         }
     }
 
@@ -1170,7 +1167,7 @@ struct FeatureEditor: View {
                 selectedFeature.feature.aiCheckResults.wrappedValue = result.1
             }
             updateList()
-            markDocumentDirty()
+            viewModel.markDocumentDirty()
         }
     }
 }

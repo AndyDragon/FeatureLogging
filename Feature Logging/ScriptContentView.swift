@@ -15,7 +15,6 @@ struct ScriptContentView: View {
     @ObservedObject private var commentScriptPlaceholders: PlaceholderList
     @ObservedObject private var originalPostScriptPlaceholders: PlaceholderList
     @State private var focusedField: FocusState<FocusField?>.Binding
-    private var isShowingToast: Binding<Bool>
     private var hideScriptView: () -> Void
     private var navigateToNextFeature: (_ forward: Bool) -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
@@ -58,7 +57,6 @@ struct ScriptContentView: View {
         _ commentScriptPlaceholders: PlaceholderList,
         _ originalPostScriptPlaceholders: PlaceholderList,
         _ focusedField: FocusState<FocusField?>.Binding,
-        _ isShowingToast: Binding<Bool>,
         _ hideScriptView: @escaping () -> Void,
         _ navigateToNextFeature: @escaping (_ forward: Bool) -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
@@ -68,7 +66,6 @@ struct ScriptContentView: View {
         self.commentScriptPlaceholders = commentScriptPlaceholders
         self.originalPostScriptPlaceholders = originalPostScriptPlaceholders
         self.focusedField = focusedField
-        self.isShowingToast = isShowingToast
         self.hideScriptView = hideScriptView
         self.navigateToNextFeature = navigateToNextFeature
         self.showToast = showToast
@@ -438,7 +435,7 @@ struct ScriptContentView: View {
                             .padding(4)
                         }
                         .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
-                        .disabled(isShowingToast.wrappedValue)
+                        .disabled(viewModel.isShowingToast)
                     }
 
                     Button(action: {
@@ -457,7 +454,7 @@ struct ScriptContentView: View {
                         .padding(4)
                     }
                     .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                    .disabled(isShowingToast.wrappedValue)
+                    .disabled(viewModel.isShowingToast)
 
                     if viewModel.pickedFeatures.count >= 2 {
                         Button(action: {
@@ -477,10 +474,10 @@ struct ScriptContentView: View {
                             .padding(4)
                         }
                         .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
-                        .disabled(isShowingToast.wrappedValue)
+                        .disabled(viewModel.isShowingToast)
                     }
                 }
-                .allowsHitTesting(!isShowingToast.wrappedValue)
+                .allowsHitTesting(!viewModel.isShowingToast)
             }
         }
         .frame(minWidth: 1024, minHeight: 600)

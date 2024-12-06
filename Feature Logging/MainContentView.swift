@@ -35,14 +35,11 @@ struct MainContentView: View {
     @State private var viewModel: ContentView.ViewModel
     @State private var logURL: Binding<URL?>
     @State private var focusedField: FocusState<FocusField?>.Binding
-    @State private var isDirty: Binding<Bool>
     @State private var logDocument: Binding<LogDocument>
     @State private var showFileImporter: Binding<Bool>
     @State private var showFileExporter: Binding<Bool>
     @State private var reportDocument: Binding<ReportDocument>
     @State private var showReportFileExporter: Binding<Bool>
-    @State private var isShowingToast: Binding<Bool>
-    @State private var isShowingDocumentDirtyAlert: Binding<Bool>
     @State private var documentDirtyAlertConfirmation: Binding<String>
     @State private var documentDirtyAfterSaveAction: Binding<() -> Void>
     @State private var documentDirtyAfterDismissAction: Binding<() -> Void>
@@ -63,14 +60,11 @@ struct MainContentView: View {
         _ viewModel: ContentView.ViewModel,
         _ logURL: Binding<URL?>,
         _ focusedField: FocusState<FocusField?>.Binding,
-        _ isDirty: Binding<Bool>,
         _ logDocument: Binding<LogDocument>,
         _ showFileImporter: Binding<Bool>,
         _ showFileExporter: Binding<Bool>,
         _ reportDocument: Binding<ReportDocument>,
         _ showReportFileExporter: Binding<Bool>,
-        _ isShowingToast: Binding<Bool>,
-        _ isShowingDocumentDirtyAlert: Binding<Bool>,
         _ documentDirtyAlertConfirmation: Binding<String>,
         _ documentDirtyAfterSaveAction: Binding<() -> Void>,
         _ documentDirtyAfterDismissAction: Binding<() -> Void>,
@@ -86,14 +80,11 @@ struct MainContentView: View {
         self.viewModel = viewModel
         self.logURL = logURL
         self.focusedField = focusedField
-        self.isDirty = isDirty
         self.logDocument = logDocument
         self.showFileImporter = showFileImporter
         self.showFileExporter = showFileExporter
         self.reportDocument = reportDocument
         self.showReportFileExporter = showReportFileExporter
-        self.isShowingToast = isShowingToast
-        self.isShowingDocumentDirtyAlert = isShowingDocumentDirtyAlert
         self.documentDirtyAlertConfirmation = documentDirtyAlertConfirmation
         self.documentDirtyAfterSaveAction = documentDirtyAfterSaveAction
         self.documentDirtyAfterDismissAction = documentDirtyAfterDismissAction
@@ -225,7 +216,7 @@ struct MainContentView: View {
                     .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                     .tint(Color.AccentColor)
                     .accentColor(Color.AccentColor)
-                    .disabled(isShowingToast.wrappedValue || (viewModel.selectedPage?.hub != "click" && viewModel.selectedPage?.hub != "snap"))
+                    .disabled(viewModel.isShowingToast || (viewModel.selectedPage?.hub != "click" && viewModel.selectedPage?.hub != "snap"))
                     .frame(maxWidth: 132)
                     .focusable()
                     .focused(focusedField, equals: .copyTag)
@@ -301,7 +292,6 @@ struct MainContentView: View {
                         focusedField,
                         { viewModel.selectedFeature = nil },
                         { shouldScrollFeatureListToSelection.wrappedValue.toggle() },
-                        { isDirty.wrappedValue = true },
                         showDownloaderView,
                         showToast
                     )
@@ -328,7 +318,7 @@ struct MainContentView: View {
                             Text("Add feature")
                         }
                     }
-                    .disabled(isShowingToast.wrappedValue || viewModel.loadedCatalogs.waitingForPages)
+                    .disabled(viewModel.isShowingToast || viewModel.loadedCatalogs.waitingForPages)
                     .keyboardShortcut("+", modifiers: .command)
                     .focusable()
                     .focused(focusedField, equals: .addFeature)
@@ -346,7 +336,7 @@ struct MainContentView: View {
                         if let currentFeature = viewModel.selectedFeature {
                             viewModel.selectedFeature = nil
                             viewModel.features.removeAll(where: { $0.id == currentFeature.feature.id })
-                            isDirty.wrappedValue = true
+                            viewModel.markDocumentDirty()
                         }
                     }) {
                         HStack(alignment: .center) {
@@ -355,7 +345,7 @@ struct MainContentView: View {
                             Text("Remove feature")
                         }
                     }
-                    .disabled(isShowingToast.wrappedValue || viewModel.selectedFeature == nil)
+                    .disabled(viewModel.isShowingToast || viewModel.selectedFeature == nil)
                     .keyboardShortcut("-", modifiers: .command)
                     .focusable()
                     .focused(focusedField, equals: .removeFeature)
@@ -363,7 +353,7 @@ struct MainContentView: View {
                         if let currentFeature = viewModel.selectedFeature {
                             viewModel.selectedFeature = nil
                             viewModel.features.removeAll(where: { $0.id == currentFeature.feature.id })
-                            isDirty.wrappedValue = true
+                            viewModel.markDocumentDirty()
                         }
                         return .handled
                     }
@@ -377,7 +367,6 @@ struct MainContentView: View {
                             FeatureListRow(
                                 viewModel,
                                 feature,
-                                { isDirty.wrappedValue = true },
                                 showScriptView,
                                 showToast
                             )
@@ -440,7 +429,7 @@ struct MainContentView: View {
             .toolbar {
                 // Open log
                 Button(action: {
-                    if isDirty.wrappedValue {
+                    if viewModel.isDirty {
                         documentDirtyAfterSaveAction.wrappedValue = {
                             showFileImporter.wrappedValue.toggle()
                         }
@@ -448,7 +437,7 @@ struct MainContentView: View {
                             showFileImporter.wrappedValue.toggle()
                         }
                         documentDirtyAlertConfirmation.wrappedValue = "Would you like to save this log file before opening another log?"
-                        isShowingDocumentDirtyAlert.wrappedValue.toggle()
+                        viewModel.isShowingDocumentDirtyAlert.toggle()
                     } else {
                         showFileImporter.wrappedValue.toggle()
                     }
@@ -465,14 +454,14 @@ struct MainContentView: View {
                     }
                     .padding(4)
                 }
-                .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
+                .disabled(viewModel.isShowingToast || viewModel.selectedPage == nil)
 
                 // Save log
                 Button(action: {
                     logDocument.wrappedValue = LogDocument(page: viewModel.selectedPage!, features: viewModel.features)
                     if let file = logURL.wrappedValue {
                         saveLog(file)
-                        isDirty.wrappedValue = false
+                        viewModel.clearDocumentDirty()
                     } else {
                         showFileExporter.wrappedValue.toggle()
                     }
@@ -489,7 +478,7 @@ struct MainContentView: View {
                     }
                     .padding(4)
                 }
-                .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
+                .disabled(viewModel.isShowingToast || viewModel.selectedPage == nil)
 
                 // Copy report
                 Button(action: {
@@ -504,7 +493,7 @@ struct MainContentView: View {
                     }
                     .padding(4)
                 }
-                .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
+                .disabled(viewModel.isShowingToast || viewModel.selectedPage == nil)
 
                 // Save report
                 Button(action: {
@@ -523,7 +512,7 @@ struct MainContentView: View {
                     }
                     .padding(4)
                 }
-                .disabled(isShowingToast.wrappedValue || viewModel.selectedPage == nil)
+                .disabled(viewModel.isShowingToast || viewModel.selectedPage == nil)
 
                 // Theme
                 Menu("Theme", systemImage: "paintpalette") {
@@ -540,7 +529,7 @@ struct MainContentView: View {
                     .pickerStyle(.inline)
                 }
                 .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                .disabled(isShowingToast.wrappedValue)
+                .disabled(viewModel.isShowingToast)
             }
             .padding([.leading, .top, .trailing])
         }
@@ -611,7 +600,7 @@ struct MainContentView: View {
         }
         viewModel.features.append(feature)
         viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
-        isDirty.wrappedValue = true
+        viewModel.markDocumentDirty()
     }
 
     private func copyReportToClipboard() {

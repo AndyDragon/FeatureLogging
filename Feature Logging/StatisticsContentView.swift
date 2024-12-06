@@ -17,8 +17,8 @@ struct LogFile {
 struct StatisticsContentView: View {
     @Environment(\.self) var environment
 
+    @State private var viewModel: ContentView.ViewModel
     @State private var focusedField: FocusState<FocusField?>.Binding
-    @State private var isShowingToast: Binding<Bool>
     private var hideStatisticsView: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
@@ -38,13 +38,13 @@ struct StatisticsContentView: View {
     private let languagePrefix = Locale.preferredLanguageCode
 
     init(
+        _ viewModel: ContentView.ViewModel,
         _ focusedField: FocusState<FocusField?>.Binding,
-        _ isShowingToast: Binding<Bool>,
         _ hideStatisticsView: @escaping () -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     ) {
+        self.viewModel = viewModel
         self.focusedField = focusedField
-        self.isShowingToast = isShowingToast
         self.hideStatisticsView = hideStatisticsView
         self.showToast = showToast
     }
@@ -101,7 +101,6 @@ struct StatisticsContentView: View {
                                             debugPrint(error.localizedDescription)
                                         }
                                     }
-                                    //print("Loaded \(logs.count) logs")
                                     var pageSet = Set(logs.map { $0.log.page })
                                     pageSet.formUnion(Set(logs.map { log in log.log.page.components(separatedBy: [":"]).first ?? "" }.filter { hub in hub != "" }))
                                     pages = Array(pageSet).sorted()
@@ -242,9 +241,9 @@ struct StatisticsContentView: View {
                     .padding(4)
                 }
                 .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                .disabled(isShowingToast.wrappedValue)
+                .disabled(viewModel.isShowingToast)
             }
-            .allowsHitTesting(!isShowingToast.wrappedValue)
+            .allowsHitTesting(!viewModel.isShowingToast)
         }
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)

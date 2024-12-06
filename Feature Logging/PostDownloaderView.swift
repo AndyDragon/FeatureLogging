@@ -20,11 +20,9 @@ struct PostDownloaderView: View {
     
     @State private var viewModel: ContentView.ViewModel
     @State private var focusedField: FocusState<FocusField?>.Binding
-    @State private var isShowingToast: Binding<Bool>
     private var hideDownloaderView: () -> Void
     private var showImageValidationView: (_ imageUrl: URL) -> Void
     private var updateList: () -> Void
-    private var markDocumentDirty: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     
     @State private var imageUrls: [(URL, String)] = []
@@ -54,20 +52,16 @@ struct PostDownloaderView: View {
     init(
         _ viewModel: ContentView.ViewModel,
         _ focusedField: FocusState<FocusField?>.Binding,
-        _ isShowingToast: Binding<Bool>,
         _ hideDownloaderView: @escaping () -> Void,
         _ showImageValidationView: @escaping (_ imageUrl: URL) -> Void,
         _ updateList: @escaping () -> Void,
-        _ markDocumentDirty: @escaping () -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     ) {
         self.viewModel = viewModel
         self.focusedField = focusedField
-        self.isShowingToast = isShowingToast
         self.hideDownloaderView = hideDownloaderView
         self.showImageValidationView = showImageValidationView
         self.updateList = updateList
-        self.markDocumentDirty = markDocumentDirty
         self.showToast = showToast
     }
     
@@ -241,7 +235,7 @@ struct PostDownloaderView: View {
                                                         "enter the user name",
                                                         text: selectedFeature.feature.userName.onChange { value in
                                                             updateList()
-                                                            markDocumentDirty()
+                                                            viewModel.markDocumentDirty()
                                                         }
                                                     )
                                                     .focusable()
@@ -337,7 +331,7 @@ struct PostDownloaderView: View {
                                                 Spacer()
                                                 Toggle(
                                                     isOn: selectedFeature.feature.userIsTeammate.onChange { value in
-                                                        markDocumentDirty()
+                                                        viewModel.markDocumentDirty()
                                                     }
                                                 ) {
                                                     Text("User is a Team Mate")
@@ -350,7 +344,7 @@ struct PostDownloaderView: View {
                                                 .focused(focusedField, equals: .postTeammate)
                                                 .onKeyPress(.space) {
                                                     selectedFeature.feature.userIsTeammate.wrappedValue.toggle();
-                                                    markDocumentDirty()
+                                                    viewModel.markDocumentDirty()
                                                     return .handled
                                                 }
                                             }
@@ -386,7 +380,7 @@ struct PostDownloaderView: View {
                                                 TextField(
                                                     "enter the description",
                                                     text: selectedFeature.feature.featureDescription.onChange { value in
-                                                        markDocumentDirty()
+                                                        viewModel.markDocumentDirty()
                                                     }
                                                 )
                                                 .focusable()
@@ -453,7 +447,7 @@ struct PostDownloaderView: View {
                                                         Toggle(
                                                             isOn: selectedFeature.feature.photoFeaturedOnPage.onChange { value in
                                                                 updateList()
-                                                                markDocumentDirty()
+                                                                viewModel.markDocumentDirty()
                                                             }
                                                         ) {
                                                             Text("Photo already featured on page")
@@ -467,7 +461,7 @@ struct PostDownloaderView: View {
                                                         .onKeyPress(.space) {
                                                             selectedFeature.feature.photoFeaturedOnPage.wrappedValue.toggle();
                                                             updateList()
-                                                            markDocumentDirty()
+                                                            viewModel.markDocumentDirty()
                                                             return .handled
                                                         }
                                                     }
@@ -483,7 +477,7 @@ struct PostDownloaderView: View {
                                                                 Button(action: {
                                                                     selectedFeature.feature.photoFeaturedOnPage.wrappedValue = true
                                                                     updateList()
-                                                                    markDocumentDirty()
+                                                                    viewModel.markDocumentDirty()
                                                                 }) {
                                                                     HStack(alignment: .center) {
                                                                         Image(systemName: "checkmark.square")
@@ -495,7 +489,7 @@ struct PostDownloaderView: View {
                                                                 .onKeyPress(.space) {
                                                                     selectedFeature.feature.photoFeaturedOnPage.wrappedValue = true
                                                                     updateList()
-                                                                    markDocumentDirty()
+                                                                    viewModel.markDocumentDirty()
                                                                     return .handled
                                                                 }
                                                             }
@@ -513,7 +507,7 @@ struct PostDownloaderView: View {
                                                         Toggle(
                                                             isOn: selectedFeature.feature.photoFeaturedOnHub.onChange { value in
                                                                 updateList()
-                                                                markDocumentDirty()
+                                                                viewModel.markDocumentDirty()
                                                             }
                                                         ) {
                                                             Text("Photo featured on hub")
@@ -527,7 +521,7 @@ struct PostDownloaderView: View {
                                                         .onKeyPress(.space) {
                                                             selectedFeature.feature.photoFeaturedOnHub.wrappedValue.toggle();
                                                             updateList()
-                                                            markDocumentDirty()
+                                                            viewModel.markDocumentDirty()
                                                             return .handled
                                                         }
                                                         
@@ -542,7 +536,7 @@ struct PostDownloaderView: View {
                                                             TextField(
                                                                 "",
                                                                 text: selectedFeature.feature.photoLastFeaturedOnHub.onChange { value in
-                                                                    markDocumentDirty()
+                                                                    viewModel.markDocumentDirty()
                                                                 }
                                                             )
                                                             .focusable()
@@ -558,7 +552,7 @@ struct PostDownloaderView: View {
                                                             TextField(
                                                                 "on page",
                                                                 text: selectedFeature.feature.photoLastFeaturedPage.onChange { value in
-                                                                    markDocumentDirty()
+                                                                    viewModel.markDocumentDirty()
                                                                 }
                                                             )
                                                             .focusable()
@@ -585,7 +579,7 @@ struct PostDownloaderView: View {
                                                                     selectedFeature.feature.photoFeaturedOnHub.wrappedValue = true
                                                                     selectedFeature.feature.photoLastFeaturedPage.wrappedValue = comment.3
                                                                     selectedFeature.feature.photoLastFeaturedOnHub.wrappedValue = comment.2.formatTimestamp()
-                                                                    markDocumentDirty()
+                                                                    viewModel.markDocumentDirty()
                                                                 }) {
                                                                     HStack(alignment: .center) {
                                                                         Image(systemName: "checkmark.square")
@@ -598,7 +592,7 @@ struct PostDownloaderView: View {
                                                                     selectedFeature.feature.photoFeaturedOnHub.wrappedValue = true
                                                                     selectedFeature.feature.photoLastFeaturedPage.wrappedValue = comment.3
                                                                     selectedFeature.feature.photoLastFeaturedOnHub.wrappedValue = comment.2.formatTimestamp()
-                                                                    markDocumentDirty()
+                                                                    viewModel.markDocumentDirty()
                                                                     return .handled
                                                                 }
                                                             }
@@ -750,9 +744,9 @@ struct PostDownloaderView: View {
                         .padding(4)
                     }
                     .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                    .disabled(isShowingToast.wrappedValue)
+                    .disabled(viewModel.isShowingToast)
                 }
-                .allowsHitTesting(!isShowingToast.wrappedValue)
+                .allowsHitTesting(!viewModel.isShowingToast)
             }
         }
         .frame(minWidth: 1024, minHeight: 600)
@@ -788,8 +782,6 @@ struct PostDownloaderView: View {
                 do {
                     let scriptText = try item.html().trimmingCharacters(in: .whitespaces)
                     if !scriptText.isEmpty {
-                        // Debugging
-                        //print(scriptText)
                         let scriptLines = scriptText.split(whereSeparator: \.isNewline)
                         if scriptLines.first!.hasPrefix("window.__staticRouterHydrationData = JSON.parse(") {
                             let prefixLength = "window.__staticRouterHydrationData = JSON.parse(".count
@@ -798,12 +790,8 @@ struct PostDownloaderView: View {
                             let jsonString = String(scriptText[start..<end])
                                 .replacingOccurrences(of: "\\\"", with: "\"")
                                 .replacingOccurrences(of: "\\\"", with: "\"")
-                            // Debugging
-                            //print(jsonString)
                             if let jsonData = jsonString.data(using: .utf8) {
                                 let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
-                                // Debugging
-                                //postData.print();
                                 if let profile = postData.loaderData?.entry0?.profile?.profile {
                                     userAlias = profile.username ?? ""
                                     logging.append((.blue, "User's alias: \(userAlias)"))
@@ -820,8 +808,7 @@ struct PostDownloaderView: View {
                                 if let post = postData.loaderData?.entry0?.post {
                                     postHashtags = []
                                     description = joinSegments(post.post?.caption, &postHashtags).removeExtraSpaces(includeNewlines: false)
-                                    // DEBUG: logging.append((.purple, postHashtags.joined(separator: ",")))
-                                    
+
                                     checkPageHashtags()
                                     checkExcludedHashtags()
                                     
@@ -885,12 +872,6 @@ struct PostDownloaderView: View {
                 }
             }
             
-            // Debugging
-            //print(try document.outerHtml())
-            //for log in logging {
-            //    print(log.1)
-            //}
-            
             if imageUrls.isEmpty {
                 throw AccountError.PrivateAccount
             }
@@ -905,7 +886,7 @@ struct PostDownloaderView: View {
                 String {
                     "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"
                 },
-                .Blocking
+                .Failure
             ) {}
         } catch {
             logging.append((.red, "Failed to download and parse the post information - \(error.localizedDescription)"))
@@ -949,7 +930,7 @@ struct PostDownloaderView: View {
                             String {
                                 "Failed to download and parse the post information - \(error.localizedDescription)"
                             },
-                            .Blocking
+                            .Failure
                         ) {}
                     }
                 }
@@ -968,7 +949,7 @@ struct PostDownloaderView: View {
             if direction != .same {
                 selectedFeature.feature.userLevel.wrappedValue = result.1
             }
-            markDocumentDirty()
+            viewModel.markDocumentDirty()
         }
     }
     

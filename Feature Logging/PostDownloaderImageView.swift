@@ -153,7 +153,7 @@ struct PostDownloaderImageView: View {
                 .Success
             ) {}
         } catch {
-            print("Failed to save file")
+            debugPrint("Failed to save file")
             debugPrint(error.localizedDescription)
             showToast(
                 .error(.red),

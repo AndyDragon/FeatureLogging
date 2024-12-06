@@ -20,8 +20,8 @@ struct ToastDismissShield: View {
             }
             .onTapGesture {
                 if isShowingToast {
-                    isShowingToast.toggle()
                     toastId = nil
+                    isShowingToast.toggle()
                 } else if isShowingVersionAvailableToast {
                     isShowingVersionAvailableToast.toggle()
                 }
