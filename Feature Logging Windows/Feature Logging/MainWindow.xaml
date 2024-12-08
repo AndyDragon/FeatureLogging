@@ -1858,9 +1858,9 @@
             CanContentScroll="True"
             VerticalScrollBarVisibility="Auto"
             Visibility="{Binding PostDownloaderViewVisibility}"
-            Grid.Row="1" 
-            Margin="16,8,16,8">
-            <Grid>
+            Grid.Row="1">
+            <Grid
+                Margin="16,8,16,8">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />                 <!-- Page scope -->
                     <RowDefinition Height="Auto" />                 <!-- User name and bio -->
@@ -2283,6 +2283,7 @@
                             Grid.ColumnSpan="2"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
+                            CanContentScroll="True"
                             VerticalScrollBarVisibility="Auto"
                             Width="800"
                             MaxHeight="80"
@@ -2486,6 +2487,7 @@
                             Grid.Column="0" 
                             HorizontalAlignment="Left"
                             CanContentScroll="True"
+                            VerticalScrollBarVisibility="Auto"
                             Width="800"
                             MaxHeight="80"
                             Padding="0,0,0,10"
@@ -2579,6 +2581,7 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
                             CanContentScroll="True"
+                            VerticalScrollBarVisibility="Auto"
                             Width="720"
                             MaxHeight="80"
                             Padding="0"
@@ -2759,13 +2762,12 @@
                         </Label>
                         <ScrollViewer
                             Grid.Row="1"
-                            Style="{DynamicResource MahApps.Styles.ScrollViewer}"
                             CanContentScroll="True"
-                            HorizontalScrollBarVisibility="Auto"
+                            HorizontalScrollBarVisibility="Visible"
                             VerticalScrollBarVisibility="Hidden"
-                            mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True"
-                            Margin="12, 0, 12, 6">
+                            mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
                             <ItemsControl
+                                Margin="12, 0, 12, 6"
                                 Width="Auto"
                                 ItemsSource="{Binding LoadedPost.ImageUrls}">
                                 <ItemsControl.ItemsPanel>
