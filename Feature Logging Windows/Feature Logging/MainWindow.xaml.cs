@@ -1,7 +1,4 @@
-﻿using Microsoft.Web.WebView2.Core;
-using Notification.Wpf;
-using Notification.Wpf.Classes;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 
