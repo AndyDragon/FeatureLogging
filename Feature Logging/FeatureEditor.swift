@@ -813,7 +813,7 @@ struct FeatureEditor: View {
 
                         Text("|")
                             .padding([.leading, .trailing])
-                            .opacity(selectedFeature.feature.userHasFeaturesOnPage.wrappedValue ? 1 : 0)
+                            .opacity(selectedFeature.feature.userHasFeaturesOnHub.wrappedValue ? 1 : 0)
 
                         if selectedFeature.feature.userHasFeaturesOnHub.wrappedValue {
                             ValidationLabel(
