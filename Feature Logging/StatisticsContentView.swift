@@ -17,7 +17,7 @@ struct LogFile {
 struct StatisticsContentView: View {
     @Environment(\.self) var environment
 
-    @State private var viewModel: ContentView.ViewModel
+    private var viewModel: ContentView.ViewModel
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var hideStatisticsView: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
@@ -145,17 +145,15 @@ struct StatisticsContentView: View {
                         }
                         .focusable()
                         .focused(focusedField, equals: .statsPagePicker)
-                        .onKeyPress(phases: .down) { keyPress in
-                            let direction = directionFromModifiers(keyPress)
-                            if direction != .same {
-                                navigateToStatsPage(direction)
-                                return .handled
-                            }
-                            return .ignored
-                        }
                         .tint(Color.AccentColor)
                         .accentColor(Color.AccentColor)
                         .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                        .onKeyPress(phases: .down) { keyPress in
+                            return navigateToStatsPageWithArrows(keyPress)
+                        }
+                        .onKeyPress(characters: .alphanumerics) { keyPress in
+                            return navigateToStatsPageWithPrefix(keyPress)
+                        }
                     }
                 }
                 if let pickedFeaturePieChart,
@@ -252,27 +250,50 @@ struct StatisticsContentView: View {
         })
     }
 
+    private func updateCharts() {
+        let pageLogs = logs.filter({ log in
+            if selectedPage == "all" {
+                return true
+            }
+            if !selectedPage.contains(":") {
+                return log.log.page.starts(with: selectedPage)
+            }
+            return log.log.page == selectedPage
+        })
+        
+        pickedFeaturePieChart = makePickedFeatureChartData(pageLogs)
+        firstFeaturePieChart = makeFirstFeatureChartData(pageLogs)
+        photoFeaturedPieChart = makePhotoFeaturedChartData(pageLogs)
+        userLevelPieChart = makeUserLevelChartData(pageLogs)
+        pageFeatureCountPieChart = makePageFeatureCountChartData(pageLogs)
+        hubFeatureCountPieChart = makeHubFeatureCountChartData(pageLogs)
+    }
+    
     private func navigateToStatsPage(_ direction: Direction) {
-        let result = navigateGeneric(pages, selectedPage, direction)
-        if result.0 {
-            selectedPage = result.1
-            let pageLogs = logs.filter({ log in
-                if selectedPage == "all" {
-                    return true
-                }
-                if !selectedPage.contains(":") {
-                    return log.log.page.starts(with: selectedPage)
-                }
-                return log.log.page == selectedPage
-            })
-
-            pickedFeaturePieChart = makePickedFeatureChartData(pageLogs)
-            firstFeaturePieChart = makeFirstFeatureChartData(pageLogs)
-            photoFeaturedPieChart = makePhotoFeaturedChartData(pageLogs)
-            userLevelPieChart = makeUserLevelChartData(pageLogs)
-            pageFeatureCountPieChart = makePageFeatureCountChartData(pageLogs)
-            hubFeatureCountPieChart = makeHubFeatureCountChartData(pageLogs)
+        let (change, newValue) = navigateGeneric(pages, selectedPage, direction)
+        if change {
+            selectedPage = newValue
+            updateCharts()
         }
+    }
+
+    private func navigateToStatsPageWithArrows(_ keyPress: KeyPress) -> KeyPress.Result {
+        let direction = directionFromModifiers(keyPress)
+        if direction != .same {
+            navigateToStatsPage(direction)
+            return .handled
+        }
+        return .ignored
+    }
+
+    private func navigateToStatsPageWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
+        let (change, newValue) = navigateGenericWithPrefix(pages, selectedPage, keyPress.characters.lowercased())
+        if change {
+            selectedPage = newValue
+            updateCharts()
+            return .handled
+        }
+        return .ignored
     }
 
     private func makePickedFeatureChartData(_ logs: [LogFile]) -> PieChartData {

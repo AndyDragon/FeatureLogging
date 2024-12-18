@@ -10,8 +10,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct FeatureListRow: View {
-    @State private var viewModel: ContentView.ViewModel
-    @State private var feature: Feature
+    private var viewModel: ContentView.ViewModel
+    @Bindable private var feature: ObservableFeature
     private var showScriptView: () -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
@@ -28,7 +28,7 @@ struct FeatureListRow: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ feature: Feature,
+        _ feature: ObservableFeature,
         _ showScriptView: @escaping () -> Void,
         _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     ) {
@@ -143,7 +143,7 @@ struct FeatureListRow: View {
 
                     if feature.isPickedAndAllowed {
                         Button(action: {
-                            viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
+                            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
                             launchVeroScripts()
                         }) {
                             HStack(alignment: .center) {
@@ -154,7 +154,7 @@ struct FeatureListRow: View {
                         }
                         .focusable()
                         .onKeyPress(.space) {
-                            viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
+                            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
                             launchVeroScripts()
                             return .handled
                         }
@@ -163,7 +163,7 @@ struct FeatureListRow: View {
                             .frame(width: 8)
 
                         Button(action: {
-                            viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
+                            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
                             showingMessageEditor.toggle()
                         }) {
                             HStack(alignment: .center) {
@@ -174,7 +174,7 @@ struct FeatureListRow: View {
                         }
                         .focusable()
                         .onKeyPress(.space) {
-                            viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
+                            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
                             showingMessageEditor.toggle()
                             return .handled
                         }
@@ -302,7 +302,7 @@ struct FeatureListRow: View {
         }
 
         // Store the feature in the shared storage
-        viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
+        viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
 
         // Launch the ScriptContentView
         showScriptView()

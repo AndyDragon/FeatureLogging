@@ -10,7 +10,7 @@ import SwiftUI
 struct NewMembershipEditor: View {
     @Binding var newMembership: NewMembershipCase
     @Binding var script: String
-    @Binding var currentPage: LoadedPage?
+    var selectedPage: ObservablePage
     var minHeight: CGFloat
     var maxHeight: CGFloat
     var onChanged: (NewMembershipCase) -> Void
@@ -30,7 +30,7 @@ struct NewMembershipEditor: View {
                 navigateToNewMembership(.same)
                 onChanged(value)
             }) {
-                ForEach(NewMembershipCase.casesFor(hub: currentPage?.hub)) { level in
+                ForEach(NewMembershipCase.casesFor(hub: selectedPage.hub)) { level in
                     Text(level.rawValue)
                         .tag(level)
                         .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
@@ -43,12 +43,10 @@ struct NewMembershipEditor: View {
             .focusable()
             .focused(focusedField, equals: pickerFocusField)
             .onKeyPress(phases: .down) { keyPress in
-                let direction = directionFromModifiers(keyPress)
-                if direction != .same {
-                    navigateToNewMembership(direction)
-                    return .handled
-                }
-                return .ignored
+                return navigateToNewMembershipWithArrows(keyPress)
+            }
+            .onKeyPress(characters: .alphanumerics) { keyPress in
+                return navigateToNewMembershipWithPrefix(keyPress)
             }
 
             Button(
@@ -108,12 +106,31 @@ struct NewMembershipEditor: View {
     }
     
     private func navigateToNewMembership(_ direction: Direction) {
-        let result = navigateGeneric(NewMembershipCase.casesFor(hub: currentPage?.hub), newMembership, direction)
-        if result.0 {
+        let (change, newValue) = navigateGeneric(NewMembershipCase.casesFor(hub: selectedPage.hub), newMembership, direction)
+        if change {
             if direction != .same {
-                newMembership = result.1
+                newMembership = newValue
             }
             onChanged(newMembership)
         }
+    }
+
+    private func navigateToNewMembershipWithArrows(_ keyPress: KeyPress) -> KeyPress.Result {
+        let direction = directionFromModifiers(keyPress)
+        if direction != .same {
+            navigateToNewMembership(direction)
+            return .handled
+        }
+        return .ignored
+    }
+
+    private func navigateToNewMembershipWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
+        let (change, newValue) = navigateGenericWithPrefix(NewMembershipCase.casesFor(hub: selectedPage.hub), newMembership, keyPress.characters.lowercased())
+        if change {
+            newMembership = newValue
+            onChanged(newMembership)
+            return .handled
+        }
+        return .ignored
     }
 }

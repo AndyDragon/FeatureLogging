@@ -295,7 +295,7 @@ func directionFromModifiers(_ keyPress: KeyPress, horizontal: Bool = false) -> D
     return .same
 }
 
-func navigateGeneric<T>(_ values: [T], _ selected: T, _ direction: Direction, allowWrap: Bool = true) -> (Bool, T) where T: Equatable {
+func navigateGeneric<T>(_ values: [T], _ selected: T, _ direction: Direction, allowWrap: Bool = true) -> (change: Bool, newValue: T) where T: Equatable {
     let count = values.count
     if count != 0 {
         if direction == .last {
@@ -325,6 +325,42 @@ func navigateGeneric<T>(_ values: [T], _ selected: T, _ direction: Direction, al
             return (true, values.first!)
         }
         return (true, selected)
+    }
+    return (false, selected)
+}
+
+func navigateGenericWithPrefix(_ values: [String], _ selected: String, _ lowercasePrefix: String) -> (change: Bool, newValue: String) {
+    let current = values.firstIndex(where: { selected == $0 })
+    if let current {
+        if let nextMatch = values[(current + 1)..<values.count].first(where: { $0.lowercased().hasPrefix(lowercasePrefix) }) {
+            return (nextMatch != selected, nextMatch)
+        } else {
+            if let firstMatch = values.first(where: { $0.lowercased().hasPrefix(lowercasePrefix) }) {
+                return (firstMatch != selected, firstMatch)
+            }
+        }
+    } else {
+        if let firstMatch = values.first(where: { $0.lowercased().hasPrefix(lowercasePrefix) }) {
+            return (firstMatch != selected, firstMatch)
+        }
+    }
+    return (false, selected)
+}
+
+func navigateGenericWithPrefix<T: RawRepresentable<String>>(_ values: [T], _ selected: T, _ lowercasePrefix: String) -> (change: Bool, newValue: T) {
+    let current = values.firstIndex(where: { selected == $0 })
+    if let current {
+        if let nextMatch = values[(current + 1)..<values.count].first(where: { $0.rawValue.lowercased().hasPrefix(lowercasePrefix) }) {
+            return (nextMatch != selected, nextMatch)
+        } else {
+            if let firstMatch = values.first(where: { $0.rawValue.lowercased().hasPrefix(lowercasePrefix) }) {
+                return (firstMatch != selected, firstMatch)
+            }
+        }
+    } else {
+        if let firstMatch = values.first(where: { $0.rawValue.lowercased().hasPrefix(lowercasePrefix) }) {
+            return (firstMatch != selected, firstMatch)
+        }
     }
     return (false, selected)
 }

@@ -32,7 +32,7 @@ struct MainContentView: View {
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var includeHash = false
 
-    @State private var viewModel: ContentView.ViewModel
+    @Bindable private var viewModel: ContentView.ViewModel
     @State private var logURL: Binding<URL?>
     @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var logDocument: Binding<LogDocument>
@@ -54,7 +54,7 @@ struct MainContentView: View {
     private var setTheme: (_ newTheme: Theme) -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
-    @State private var hoveredFeature: Feature? = nil
+    @State private var hoveredFeature: ObservableFeature? = nil
 
     init(
         _ viewModel: ContentView.ViewModel,
@@ -116,9 +116,7 @@ struct MainContentView: View {
                         }
                     ) {
                         ForEach(viewModel.loadedCatalogs.loadedPages) { page in
-                            if page.name != "default" {
-                                Text(page.displayName).tag(page)
-                            }
+                            Text(page.displayName).tag(page)
                         }
                     }
                     .tint(Color.AccentColor)
@@ -127,12 +125,10 @@ struct MainContentView: View {
                     .focusable(viewModel.features.isEmpty)
                     .focused(focusedField, equals: .pagePicker)
                     .onKeyPress(phases: .down) { keyPress in
-                        let direction = directionFromModifiers(keyPress)
-                        if direction != .same {
-                            navigateToPage(direction)
-                            return .handled
-                        }
-                        return .ignored
+                        return navigateToPageWithArrows(keyPress)
+                    }
+                    .onKeyPress(characters: .alphanumerics) { keyPress in
+                        return navigateToPageWithPrefix(keyPress)
                     }
                     .disabled(!viewModel.features.isEmpty)
 
@@ -160,12 +156,10 @@ struct MainContentView: View {
                     .focusable()
                     .focused(focusedField, equals: .staffLevel)
                     .onKeyPress(phases: .down) { keyPress in
-                        let direction = directionFromModifiers(keyPress)
-                        if direction != .same {
-                            navigateToPageStaffLevel(direction)
-                            return .handled
-                        }
-                        return .ignored
+                        return navigateToPageStaffLevelWithArrows(keyPress)
+                    }
+                    .onKeyPress(characters: .alphanumerics) { keyPress in
+                        return navigateToPageStaffLevelWithPrefix(keyPress)
                     }
                     .frame(maxWidth: 144)
 
@@ -287,14 +281,19 @@ struct MainContentView: View {
 
                 // Feature editor
                 VStack {
-                    FeatureEditor(
-                        viewModel,
-                        focusedField,
-                        { viewModel.selectedFeature = nil },
-                        { shouldScrollFeatureListToSelection.wrappedValue.toggle() },
-                        showDownloaderView,
-                        showToast
-                    )
+                    if let selectedPage = viewModel.selectedPage, let selectedFeature = viewModel.selectedFeature {
+                        FeatureEditor(
+//                            viewModel,
+                            selectedPage,
+                            selectedFeature,
+                            focusedField,
+                            { viewModel.selectedFeature = nil },
+                            { viewModel.markDocumentDirty() },
+                            { shouldScrollFeatureListToSelection.wrappedValue.toggle() },
+                            showDownloaderView,
+                            showToast
+                        )
+                    }
                 }
                 .frame(height: 360)
                 .frame(maxWidth: .infinity)
@@ -397,7 +396,7 @@ struct MainContentView: View {
                             })
                             .onTapGesture {
                                 withAnimation {
-                                    viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
+                                    viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
                                 }
                             }
                         }
@@ -554,27 +553,71 @@ struct MainContentView: View {
     }
 
     private func navigateToPage(_ direction: Direction) {
-        let result = navigateGeneric(viewModel.loadedCatalogs.loadedPages, viewModel.selectedPage, direction)
-        if result.0 {
+        let (change, newValue) = navigateGeneric(viewModel.loadedCatalogs.loadedPages, viewModel.selectedPage, direction)
+        if change {
             if direction != .same {
-                viewModel.selectedPage = result.1
+                viewModel.selectedPage = newValue
             }
             UserDefaults.standard.set(viewModel.selectedPage?.id ?? "", forKey: "Page")
             logURL.wrappedValue = nil
             viewModel.selectedFeature = nil
-            viewModel.features = [Feature]()
+            viewModel.features = [ObservableFeature]()
             updateStaffLevelForPage()
         }
     }
 
+    private func navigateToPageWithArrows(_ keyPress: KeyPress) -> KeyPress.Result {
+        let direction = directionFromModifiers(keyPress)
+        if direction != .same {
+            navigateToPage(direction)
+            return .handled
+        }
+        return .ignored
+    }
+
+    private func navigateToPageWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
+        let (change, newValue) = navigateGenericWithPrefix(viewModel.loadedCatalogs.loadedPages.map({ $0.name }), viewModel.selectedPage?.name ?? "", keyPress.characters.lowercased())
+        if change {
+            if let newPage = viewModel.loadedCatalogs.loadedPages.first(where: { $0.name == newValue }) {
+                viewModel.selectedPage = newPage
+                UserDefaults.standard.set(viewModel.selectedPage?.id ?? "", forKey: "Page")
+                logURL.wrappedValue = nil
+                viewModel.selectedFeature = nil
+                viewModel.features = [ObservableFeature]()
+                updateStaffLevelForPage()
+            }
+            return .handled
+        }
+        return .ignored
+    }
+
     private func navigateToPageStaffLevel(_ direction: Direction) {
-        let result = navigateGeneric(StaffLevelCase.allCases, viewModel.selectedPageStaffLevel, direction)
-        if result.0 {
+        let (change, newValue) = navigateGeneric(StaffLevelCase.allCases, viewModel.selectedPageStaffLevel, direction)
+        if change {
             if direction != .same {
-                viewModel.selectedPageStaffLevel = result.1
+                viewModel.selectedPageStaffLevel = newValue
             }
             storeStaffLevelForPage()
         }
+    }
+
+    private func navigateToPageStaffLevelWithArrows(_ keyPress: KeyPress) -> KeyPress.Result {
+        let direction = directionFromModifiers(keyPress)
+        if direction != .same {
+            navigateToPageStaffLevel(direction)
+            return .handled
+        }
+        return .ignored
+    }
+
+    private func navigateToPageStaffLevelWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
+        let (change, newValue) = navigateGenericWithPrefix(StaffLevelCase.allCases, viewModel.selectedPageStaffLevel, keyPress.characters.lowercased())
+        if change {
+            viewModel.selectedPageStaffLevel = newValue
+            storeStaffLevelForPage()
+            return .handled
+        }
+        return .ignored
     }
 
     private func addFeature() {
@@ -586,10 +629,10 @@ struct MainContentView: View {
                 "Found duplicate post link",
                 "There is already a feature in the list with that post link, selected the existing feature",
                 .Failure) {}
-            viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
+            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
             return
         }
-        let feature = Feature()
+        let feature = ObservableFeature()
         if linkText.starts(with: "https://vero.co/") {
             feature.postLink = linkText
             let possibleUserAlias = String(linkText.dropFirst(16).split(separator: "/").first ?? "")
@@ -599,7 +642,7 @@ struct MainContentView: View {
             }
         }
         viewModel.features.append(feature)
-        viewModel.selectedFeature = SharedFeature(using: viewModel.selectedPage!, from: feature)
+        viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
         viewModel.markDocumentDirty()
     }
 

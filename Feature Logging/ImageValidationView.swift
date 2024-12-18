@@ -18,7 +18,7 @@ enum AiVerdict {
 struct ImageValidationView: View {
     @Environment(\.openURL) private var openURL
 
-    @State private var viewModel: ContentView.ViewModel
+    private var viewModel: ContentView.ViewModel
     @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var imageValidationImageUrl: Binding<URL?>
     private var hideImageValidationView: () -> Void
@@ -60,7 +60,7 @@ struct ImageValidationView: View {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
 
             if viewModel.selectedFeature != nil {
-                let selectedFeature = Binding<SharedFeature>(
+                let selectedFeature = Binding<ObservableFeatureWrapper>(
                     get: { viewModel.selectedFeature! },
                     set: { viewModel.selectedFeature = $0 }
                 )
@@ -90,12 +90,10 @@ struct ImageValidationView: View {
                             .focusable()
                             .focused(focusedField, equals: .tinEyeResults)
                             .onKeyPress(phases: .down) { keyPress in
-                                let direction = directionFromModifiers(keyPress)
-                                if direction != .same {
-                                    navigateToTinEyeResult(selectedFeature, direction)
-                                    return .handled
-                                }
-                                return .ignored
+                                return navigateToTinEyeResultWithArrows(selectedFeature, keyPress)
+                            }
+                            .onKeyPress(characters: .alphanumerics) { keyPress in
+                                return navigateToTinEyeResultWithPrefix(selectedFeature, keyPress)
                             }
 
                             Text("|")
@@ -121,12 +119,10 @@ struct ImageValidationView: View {
                             .focusable()
                             .focused(focusedField, equals: .aiCheckResults)
                             .onKeyPress(phases: .down) { keyPress in
-                                let direction = directionFromModifiers(keyPress)
-                                if direction != .same {
-                                    navigateToAiCheckResult(selectedFeature, direction)
-                                    return .handled
-                                }
-                                return .ignored
+                                return navigateToAiCheckResultWithArrows(selectedFeature, keyPress)
+                            }
+                            .onKeyPress(phases: .down) { keyPress in
+                                return navigateToAiCheckResultWithPrefix(selectedFeature, keyPress)
                             }
 
                             if !aiVerdictString.isEmpty {
@@ -360,26 +356,66 @@ struct ImageValidationView: View {
         URLSession.shared.dataTask(with: request, completionHandler: completionHandler).resume()
     }
 
-    private func navigateToTinEyeResult(_ selectedFeature: Binding<SharedFeature>, _ direction: Direction) {
-        let result = navigateGeneric(TinEyeResults.allCases, selectedFeature.feature.tinEyeResults.wrappedValue, direction)
-        if result.0 {
+    private func navigateToTinEyeResult(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ direction: Direction) {
+        let (change, newValue) = navigateGeneric(TinEyeResults.allCases, selectedFeature.feature.tinEyeResults.wrappedValue, direction)
+        if change {
             if direction != .same {
-                selectedFeature.feature.tinEyeResults.wrappedValue = result.1
+                selectedFeature.feature.tinEyeResults.wrappedValue = newValue
             }
             updateList()
             viewModel.markDocumentDirty()
         }
     }
 
-    private func navigateToAiCheckResult(_ selectedFeature: Binding<SharedFeature>, _ direction: Direction) {
-        let result = navigateGeneric(AiCheckResults.allCases, selectedFeature.feature.aiCheckResults.wrappedValue, direction)
-        if result.0 {
+    private func navigateToTinEyeResultWithArrows(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
+        let direction = directionFromModifiers(keyPress)
+        if direction != .same {
+            navigateToTinEyeResult(selectedFeature, direction)
+            return .handled
+        }
+        return .ignored
+    }
+
+    private func navigateToTinEyeResultWithPrefix(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
+        let (change, newValue) = navigateGenericWithPrefix(TinEyeResults.allCases, selectedFeature.feature.tinEyeResults.wrappedValue, keyPress.characters.lowercased())
+        if change {
+            selectedFeature.feature.tinEyeResults.wrappedValue = newValue
+            updateList()
+            viewModel.markDocumentDirty()
+            return .handled
+        }
+        return .ignored
+    }
+
+    private func navigateToAiCheckResult(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ direction: Direction) {
+        let (change, newValue) = navigateGeneric(AiCheckResults.allCases, selectedFeature.feature.aiCheckResults.wrappedValue, direction)
+        if change {
             if direction != .same {
-                selectedFeature.feature.aiCheckResults.wrappedValue = result.1
+                selectedFeature.feature.aiCheckResults.wrappedValue = newValue
             }
             updateList()
             viewModel.markDocumentDirty()
         }
+    }
+
+    private func navigateToAiCheckResultWithArrows(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
+        let direction = directionFromModifiers(keyPress)
+        if direction != .same {
+            navigateToAiCheckResult(selectedFeature, direction)
+            return .handled
+        }
+        return .ignored
+    }
+
+    private func navigateToAiCheckResultWithPrefix(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
+        let (change, newValue) = navigateGenericWithPrefix(AiCheckResults.allCases, selectedFeature.feature.aiCheckResults.wrappedValue, keyPress.characters.lowercased())
+        if change {
+            selectedFeature.feature.aiCheckResults.wrappedValue = newValue
+            updateList()
+            viewModel.markDocumentDirty()
+            return .handled
+        }
+        return .ignored
     }
 }
 

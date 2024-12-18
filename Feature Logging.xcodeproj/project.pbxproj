@@ -23,6 +23,9 @@
 		495A858E2C36E46F00C112C6 /* ScriptContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495A85892C36E46F00C112C6 /* ScriptContentView.swift */; };
 		497891022CFF81BD00A100B4 /* CustomTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497891012CFF81BD00A100B4 /* CustomTabView.swift */; };
 		497891042CFF81DD00A100B4 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497891032CFF81DD00A100B4 /* WebView.swift */; };
+		499B07012D1252EE00B90BE7 /* SerializeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499B07002D1252E600B90BE7 /* SerializeTypes.swift */; };
+		499B07032D12539700B90BE7 /* ObservableTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499B07022D12539000B90BE7 /* ObservableTypes.swift */; };
+		499B07052D127F3500B90BE7 /* ContentView.ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499B07042D127F2F00B90BE7 /* ContentView.ViewModel.swift */; };
 		49C839B32CF7AB0E00D2AF95 /* PostData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C839B22CF7AAFF00D2AF95 /* PostData.swift */; };
 		49D1D4352CFE58D600B90FD1 /* ImageValidationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D1D4342CFE58D600B90FD1 /* ImageValidationView.swift */; };
 		49D22C5B2BBC97BD005ECE84 /* SettingsPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */; };
@@ -56,6 +59,9 @@
 		495A858F2C36FA4100C112C6 /* testing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = testing.xcconfig; sourceTree = "<group>"; };
 		497891012CFF81BD00A100B4 /* CustomTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabView.swift; sourceTree = "<group>"; };
 		497891032CFF81DD00A100B4 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
+		499B07002D1252E600B90BE7 /* SerializeTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerializeTypes.swift; sourceTree = "<group>"; };
+		499B07022D12539000B90BE7 /* ObservableTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservableTypes.swift; sourceTree = "<group>"; };
+		499B07042D127F2F00B90BE7 /* ContentView.ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.ViewModel.swift; sourceTree = "<group>"; };
 		49C839B22CF7AAFF00D2AF95 /* PostData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostData.swift; sourceTree = "<group>"; };
 		49D1D4342CFE58D600B90FD1 /* ImageValidationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageValidationView.swift; sourceTree = "<group>"; };
 		49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPane.swift; sourceTree = "<group>"; };
@@ -112,26 +118,29 @@
 				49D828082BB7327000153786 /* FeatureLoggingApp.swift */,
 				49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */,
 				49D8280A2BB7327000153786 /* ContentView.swift */,
-				49D3C0332CF2D32300608566 /* DocumentDirtySheet.swift */,
-				49D3C0312CF2D2E800608566 /* FeatureListRow.swift */,
+				499B07042D127F2F00B90BE7 /* ContentView.ViewModel.swift */,
 				49EC9DC32CF579D200A50B2D /* MainContentView.swift */,
 				495A85892C36E46F00C112C6 /* ScriptContentView.swift */,
+				4925315F2C446FE4003A8D24 /* StatisticsContentView.swift */,
 				49FA95F72CF195CB0074DE7B /* PostDownloaderView.swift */,
 				49D3C0352CF2D3E400608566 /* PostDownloaderImageView.swift */,
 				49D1D4342CFE58D600B90FD1 /* ImageValidationView.swift */,
 				497891032CFF81DD00A100B4 /* WebView.swift */,
 				497891012CFF81BD00A100B4 /* CustomTabView.swift */,
 				49C839B22CF7AAFF00D2AF95 /* PostData.swift */,
-				4925315F2C446FE4003A8D24 /* StatisticsContentView.swift */,
+				49D3C0312CF2D2E800608566 /* FeatureListRow.swift */,
 				4930AB9C2BB74F1500C72CA9 /* FeatureEditor.swift */,
 				495A85882C36E46F00C112C6 /* NewMembershipEditor.swift */,
 				495A85852C36E46F00C112C6 /* PlaceholderEditor.swift */,
 				495A85862C36E46F00C112C6 /* ScriptEditor.swift */,
 				49EBB9D42BC0944300D2AE04 /* ValidationLabel.swift */,
+				49D3C0332CF2D32300608566 /* DocumentDirtySheet.swift */,
 				4930AB8E2BB7348F00C72CA9 /* Helpers.swift */,
 				4930AB8D2BB7348F00C72CA9 /* Themes.swift */,
 				4930AB9A2BB73B3700C72CA9 /* ToastDismissShield.swift */,
 				4930AB8F2BB7348F00C72CA9 /* Types.swift */,
+				499B07022D12539000B90BE7 /* ObservableTypes.swift */,
+				499B07002D1252E600B90BE7 /* SerializeTypes.swift */,
 				4930AB8C2BB7348F00C72CA9 /* VersionCheckAppState.swift */,
 				49D8280C2BB7327200153786 /* Assets.xcassets */,
 				49D828112BB7327200153786 /* Feature_Logging.entitlements */,
@@ -241,13 +250,16 @@
 				495A858E2C36E46F00C112C6 /* ScriptContentView.swift in Sources */,
 				495A858D2C36E46F00C112C6 /* NewMembershipEditor.swift in Sources */,
 				4930AB9D2BB74F1500C72CA9 /* FeatureEditor.swift in Sources */,
+				499B07032D12539700B90BE7 /* ObservableTypes.swift in Sources */,
 				4930AB912BB7348F00C72CA9 /* Themes.swift in Sources */,
+				499B07012D1252EE00B90BE7 /* SerializeTypes.swift in Sources */,
 				49C839B32CF7AB0E00D2AF95 /* PostData.swift in Sources */,
 				49D1D4352CFE58D600B90FD1 /* ImageValidationView.swift in Sources */,
 				492531602C446FE4003A8D24 /* StatisticsContentView.swift in Sources */,
 				497891022CFF81BD00A100B4 /* CustomTabView.swift in Sources */,
 				49EBB9D52BC0944300D2AE04 /* ValidationLabel.swift in Sources */,
 				497891042CFF81DD00A100B4 /* WebView.swift in Sources */,
+				499B07052D127F3500B90BE7 /* ContentView.ViewModel.swift in Sources */,
 				49D3C0342CF2D32300608566 /* DocumentDirtySheet.swift in Sources */,
 				49D22C5B2BBC97BD005ECE84 /* SettingsPane.swift in Sources */,
 				4930AB902BB7348F00C72CA9 /* VersionCheckAppState.swift in Sources */,
@@ -330,7 +342,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 56;
+				CURRENT_PROJECT_VERSION = 57;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -483,7 +495,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 56;
+				CURRENT_PROJECT_VERSION = 57;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -516,7 +528,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 56;
+				CURRENT_PROJECT_VERSION = 57;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
