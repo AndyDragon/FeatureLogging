@@ -1009,6 +1009,7 @@ struct FeatureEditor: View {
             }
         }
         .padding()
+        .testBackground()
 
         Spacer()
     }

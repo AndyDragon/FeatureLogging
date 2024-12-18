@@ -54,8 +54,6 @@ struct MainContentView: View {
     private var setTheme: (_ newTheme: Theme) -> Void
     private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
-    @State private var hoveredFeature: ObservableFeature? = nil
-
     init(
         _ viewModel: ContentView.ViewModel,
         _ logURL: Binding<URL?>,
@@ -256,7 +254,7 @@ struct MainContentView: View {
                     ValidationLabel(
                         "Your first name:",
                         validation: yourFirstNameValidation.valid)
-                        .padding([.leading])
+                    .padding([.leading])
                     TextField(
                         "Enter your first name (capitalized)",
                         text: $viewModel.yourFirstName.onChange { value in
@@ -283,7 +281,6 @@ struct MainContentView: View {
                 VStack {
                     if let selectedPage = viewModel.selectedPage, let selectedFeature = viewModel.selectedFeature {
                         FeatureEditor(
-//                            viewModel,
                             selectedPage,
                             selectedFeature,
                             focusedField,
@@ -361,64 +358,25 @@ struct MainContentView: View {
 
                 // Feature list
                 ScrollViewReader { proxy in
-                    List {
-                        ForEach(viewModel.sortedFeatures, id: \.self) { feature in
-                            FeatureListRow(
-                                viewModel,
-                                feature,
-                                showScriptView,
-                                showToast
-                            )
-                            .padding([.top, .bottom], 8)
-                            .padding([.leading, .trailing])
-                            .foregroundStyle(
-                                Color(
-                                    nsColor: hoveredFeature == feature
-                                    ? NSColor.selectedControlTextColor
-                                    : NSColor.labelColor), Color(nsColor: .labelColor)
-                            )
-                            .background(
-                                viewModel.selectedFeature?.feature == feature
-                                ? Color.BackgroundColorListSelected
-                                : hoveredFeature == feature
-                                ? Color.BackgroundColorListSelected.opacity(0.33)
-                                : Color.BackgroundColorList
-                            )
-                            .cornerRadius(4)
-                            .onHover(perform: { hovering in
-                                if hoveredFeature == feature {
-                                    if !hovering {
-                                        hoveredFeature = nil
-                                    }
-                                } else if hovering {
-                                    hoveredFeature = feature
-                                }
-                            })
-                            .onTapGesture {
+                    FeatureList(viewModel, showScriptView, showToast)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(4)
+                        .presentationBackground(.clear)
+                        .onChange(
+                            of: shouldScrollFeatureListToSelection.wrappedValue,
+                            {
                                 withAnimation {
-                                    viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
+                                    proxy.scrollTo(viewModel.selectedFeature)
                                 }
                             }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(4)
-                    .presentationBackground(.clear)
-                    .onChange(
-                        of: shouldScrollFeatureListToSelection.wrappedValue,
-                        {
+                        )
+                        .onTapGesture {
                             withAnimation {
-                                proxy.scrollTo(viewModel.selectedFeature)
+                                viewModel.selectedFeature = nil
                             }
                         }
-                    )
-                    .onTapGesture {
-                        withAnimation {
-                            viewModel.selectedFeature = nil
-                        }
-                    }
-                    .focusable()
-                    .focused(focusedField, equals: .featureList)
+                        .focusable()
+                        .focused(focusedField, equals: .featureList)
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color.BackgroundColorList)
@@ -537,6 +495,7 @@ struct MainContentView: View {
             setTheme(theme)
         })
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
+        .testBackground()
     }
 
     private func setThemeLocal(_ newTheme: Theme) {

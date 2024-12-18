@@ -7,7 +7,6 @@
 
 import AlertToast
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct FeatureListRow: View {
     private var viewModel: ContentView.ViewModel
@@ -259,6 +258,7 @@ struct FeatureListRow: View {
                     .frame(width: 800, height: 160)
                 })
         }
+        .testBackground()
     }
 
     private func copyPersonalMessage() {
