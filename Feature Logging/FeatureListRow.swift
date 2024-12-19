@@ -10,9 +10,9 @@ import SwiftUI
 
 struct FeatureListRow: View {
     private var viewModel: ContentView.ViewModel
+    private var toastManager: ContentView.ToastManager
     @Bindable private var feature: ObservableFeature
     private var showScriptView: () -> Void
-    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
     @State var showingMessageEditor = false
 
@@ -27,14 +27,14 @@ struct FeatureListRow: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
+        _ toastManager: ContentView.ToastManager,
         _ feature: ObservableFeature,
-        _ showScriptView: @escaping () -> Void,
-        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
+        _ showScriptView: @escaping () -> Void
     ) {
         self.viewModel = viewModel
+        self.toastManager = toastManager
         self.feature = feature
         self.showScriptView = showScriptView
-        self.showToast = showToast
     }
     
     var body: some View {
@@ -273,31 +273,29 @@ struct FeatureListRow: View {
             .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
         copyToClipboard(fullPersonalMessage)
         showingMessageEditor.toggle()
-        showToast(.complete(.green), "Copied to clipboard", "The personal message was copied to the clipboard", .Success) {}
+        toastManager.showCompletedToast("Copied to clipboard", "The personal message was copied to the clipboard")
     }
 
     private func launchVeroScripts() {
         if feature.photoFeaturedOnPage {
-            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured on this page", .Blocking) {}
+            toastManager.showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured on this page", .Blocking, {})
             return
         }
         if feature.tinEyeResults == .matchFound {
-            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo had a TinEye match", .Blocking) {}
+            toastManager.showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo had a TinEye match", .Blocking, {})
             return
         }
         if feature.aiCheckResults == .ai {
-            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo was flagged as AI", .Blocking) {}
+            toastManager.showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo was flagged as AI", .Blocking, {})
             return
         }
         if feature.tooSoonToFeatureUser {
-            showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "The user has been featured too recently", .Blocking) {}
+            toastManager.showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "The user has been featured too recently", .Blocking, {})
             return
         }
         if !feature.isPicked {
-            showToast(
-                .systemImage("exclamationmark.triangle.fill", .yellow), "Should not feature photo", "The photo is not marked as picked, mark the photo as picked and try again",
-                .Blocking
-            ) {}
+            toastManager.showToast(
+                .systemImage("exclamationmark.triangle.fill", .yellow), "Should not feature photo", "The photo is not marked as picked, mark the photo as picked and try again", .Blocking, {})
             return
         }
 

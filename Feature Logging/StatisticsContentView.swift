@@ -17,10 +17,9 @@ struct LogFile {
 struct StatisticsContentView: View {
     @Environment(\.self) var environment
 
-    private var viewModel: ContentView.ViewModel
+    private var toastManager: ContentView.ToastManager
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var hideStatisticsView: () -> Void
-    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
     @State private var showDirectoryPicker = false
     @State private var location = ""
@@ -38,15 +37,13 @@ struct StatisticsContentView: View {
     private let languagePrefix = Locale.preferredLanguageCode
 
     init(
-        _ viewModel: ContentView.ViewModel,
+        _ toastManager: ContentView.ToastManager,
         _ focusedField: FocusState<FocusField?>.Binding,
-        _ hideStatisticsView: @escaping () -> Void,
-        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
+        _ hideStatisticsView: @escaping () -> Void
     ) {
-        self.viewModel = viewModel
+        self.toastManager = toastManager
         self.focusedField = focusedField
         self.hideStatisticsView = hideStatisticsView
-        self.showToast = showToast
     }
 
     var body: some View {
@@ -239,9 +236,9 @@ struct StatisticsContentView: View {
                     .padding(4)
                 }
                 .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                .disabled(viewModel.isShowingToast)
+                .disabled(toastManager.isShowingAnyToast)
             }
-            .allowsHitTesting(!viewModel.isShowingToast)
+            .allowsHitTesting(!toastManager.isShowingAnyToast)
         }
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)

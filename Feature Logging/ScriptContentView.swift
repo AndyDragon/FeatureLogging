@@ -11,6 +11,7 @@ import SwiftUI
 
 struct ScriptContentView: View {
     private var viewModel: ContentView.ViewModel
+    private var toastManager: ContentView.ToastManager
     private var selectedPage: ObservablePage
     private var selectedFeature: ObservableFeatureWrapper
     @ObservedObject private var featureScriptPlaceholders: PlaceholderList
@@ -19,7 +20,6 @@ struct ScriptContentView: View {
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var hideScriptView: () -> Void
     private var navigateToNextFeature: (_ forward: Bool) -> Void
-    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
     @State private var membershipValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var userNameValidation: (valid: Bool, reason: String?) = (true, nil)
@@ -55,6 +55,7 @@ struct ScriptContentView: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
+        _ toastManager: ContentView.ToastManager,
         _ selectedPage: ObservablePage,
         _ selectedFeature: ObservableFeatureWrapper,
         _ featureScriptPlaceholders: PlaceholderList,
@@ -62,10 +63,10 @@ struct ScriptContentView: View {
         _ originalPostScriptPlaceholders: PlaceholderList,
         _ focusedField: FocusState<FocusField?>.Binding,
         _ hideScriptView: @escaping () -> Void,
-        _ navigateToNextFeature: @escaping (_ forward: Bool) -> Void,
-        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
+        _ navigateToNextFeature: @escaping (_ forward: Bool) -> Void
     ) {
         self.viewModel = viewModel
+        self.toastManager = toastManager
         self.selectedPage = selectedPage
         self.selectedFeature = selectedFeature
         self.featureScriptPlaceholders = featureScriptPlaceholders
@@ -74,7 +75,6 @@ struct ScriptContentView: View {
         self.focusedField = focusedField
         self.hideScriptView = hideScriptView
         self.navigateToNextFeature = navigateToNextFeature
-        self.showToast = showToast
     }
 
     var body: some View {
@@ -248,15 +248,12 @@ struct ScriptContentView: View {
                                 force: force,
                                 withPlaceholders: withPlaceholders)
                             {
-                                showToast(
-                                    .complete(.green),
+                                toastManager.showCompletedToast(
                                     "Copied",
                                     String {
                                         "Copied the feature script\(withPlaceholders ? " with placeholders" : "") "
                                         "to the clipboard"
-                                    },
-                                    .Success
-                                ) {}
+                                    })
                             }
                         },
                         focusedField: focusedField,
@@ -280,15 +277,12 @@ struct ScriptContentView: View {
                                 force: force,
                                 withPlaceholders: withPlaceholders)
                             {
-                                showToast(
-                                    .complete(.green),
+                                toastManager.showCompletedToast(
                                     "Copied",
                                     String {
                                         "Copied the comment script\(withPlaceholders ? " with placeholders" : "") "
                                         "to the clipboard"
-                                    },
-                                    .Success
-                                ) {}
+                                    })
                             }
                         },
                         focusedField: focusedField,
@@ -312,15 +306,12 @@ struct ScriptContentView: View {
                                 force: force,
                                 withPlaceholders: withPlaceholders)
                             {
-                                showToast(
-                                    .complete(.green),
+                                toastManager.showCompletedToast(
                                     "Copied",
                                     String {
                                         "Copied the original script\(withPlaceholders ? " with placeholders" : "") "
                                         "to the clipboard"
-                                    },
-                                    .Success
-                                ) {}
+                                    })
                             }
                         },
                         focusedField: focusedField,
@@ -345,12 +336,9 @@ struct ScriptContentView: View {
                         canCopy: canCopyNewMembershipScript,
                         copy: {
                             copyToClipboard(newMembershipScript)
-                            showToast(
-                                .complete(.green),
+                            toastManager.showCompletedToast(
                                 "Copied",
-                                "Copied the new membership script to the clipboard",
-                                .Success
-                            ) {}
+                                "Copied the new membership script to the clipboard")
                         },
                         focusedField: focusedField,
                         editorFocusField: .newMembershipScript,
@@ -403,12 +391,9 @@ struct ScriptContentView: View {
                             break
                         }
                         let suffix = copiedSuffix.isEmpty ? "" : " \(copiedSuffix)"
-                        showToast(
-                            .complete(.green),
+                        toastManager.showCompletedToast(
                             "Copied",
-                            "Copied the \(scriptName) script\(suffix) to the clipboard",
-                            .Success
-                        ) {}
+                            "Copied the \(scriptName) script\(suffix) to the clipboard")
                     })
             }
             .toolbar {
@@ -430,7 +415,7 @@ struct ScriptContentView: View {
                         .padding(4)
                     }
                     .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
-                    .disabled(viewModel.isShowingToast)
+                    .disabled(toastManager.isShowingAnyToast)
                 }
 
                 Button(action: {
@@ -449,7 +434,7 @@ struct ScriptContentView: View {
                     .padding(4)
                 }
                 .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                .disabled(viewModel.isShowingToast)
+                .disabled(toastManager.isShowingAnyToast)
 
                 if viewModel.pickedFeatures.count >= 2 {
                     Button(action: {
@@ -469,10 +454,10 @@ struct ScriptContentView: View {
                         .padding(4)
                     }
                     .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
-                    .disabled(viewModel.isShowingToast)
+                    .disabled(toastManager.isShowingAnyToast)
                 }
             }
-            .allowsHitTesting(!viewModel.isShowingToast)
+            .allowsHitTesting(!toastManager.isShowingAnyToast)
         }
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)

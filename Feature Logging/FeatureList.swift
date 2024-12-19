@@ -10,19 +10,19 @@ import SwiftUI
 
 struct FeatureList: View {
     private var viewModel: ContentView.ViewModel
+    private var toastManager: ContentView.ToastManager
     private var showScriptView: () -> Void
-    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
     @State private var hoveredFeature: UUID? = nil
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ showScriptView: @escaping () -> Void,
-        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
+        _ toastManager: ContentView.ToastManager,
+        _ showScriptView: @escaping () -> Void
     ) {
         self.viewModel = viewModel
+        self.toastManager = toastManager
         self.showScriptView = showScriptView
-        self.showToast = showToast
     }
 
     var body: some View {
@@ -30,9 +30,9 @@ struct FeatureList: View {
             ForEach(viewModel.sortedFeatures, id: \.self) { feature in
                 FeatureListRow(
                     viewModel,
+                    toastManager,
                     feature,
-                    showScriptView,
-                    showToast
+                    showScriptView
                 )
                 .padding([.top, .bottom], 8)
                 .padding([.leading, .trailing])

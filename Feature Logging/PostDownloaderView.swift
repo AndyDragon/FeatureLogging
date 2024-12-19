@@ -19,14 +19,14 @@ struct PostDownloaderView: View {
     @Environment(\.openURL) private var openURL
     
     private var viewModel: ContentView.ViewModel
+    private var toastManager: ContentView.ToastManager
     private var selectedPage: ObservablePage
     @Bindable private var selectedFeature: ObservableFeatureWrapper
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var hideDownloaderView: () -> Void
     private var showImageValidationView: (_ imageUrl: URL) -> Void
     private var updateList: () -> Void
-    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
-    
+
     @State private var imageUrls: [URL] = []
     @State private var pageHashtagCheck = ""
     @State private var missingTag = false
@@ -46,29 +46,29 @@ struct PostDownloaderView: View {
     @State private var likeCount = 0
     @State private var userProfileLink = ""
     @State private var userBio = ""
-    
+
     private let languagePrefix = Locale.preferredLanguageCode
     private let mainLabelWidth: CGFloat = -128
     private let labelWidth: CGFloat = 108
     
     init(
         _ viewModel: ContentView.ViewModel,
+        _ toastManager: ContentView.ToastManager,
         _ selectedPage: ObservablePage,
         _ selectedFeature: ObservableFeatureWrapper,
         _ focusedField: FocusState<FocusField?>.Binding,
         _ hideDownloaderView: @escaping () -> Void,
         _ showImageValidationView: @escaping (_ imageUrl: URL) -> Void,
-        _ updateList: @escaping () -> Void,
-        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
+        _ updateList: @escaping () -> Void
     ) {
         self.viewModel = viewModel
+        self.toastManager = toastManager
         self.selectedPage = selectedPage
         self.selectedFeature = selectedFeature
         self.focusedField = focusedField
         self.hideDownloaderView = hideDownloaderView
         self.showImageValidationView = showImageValidationView
         self.updateList = updateList
-        self.showToast = showToast
     }
 
     var body: some View {
@@ -122,7 +122,7 @@ struct PostDownloaderView: View {
                                         Spacer()
                                         Button(action: {
                                             copyToClipboard(selectedFeature.feature.postLink)
-                                            showToast(.complete(.green), "Copied to clipboard", "Copied the post URL to the clipboard", .Success) {}
+                                            toastManager.showCompletedToast("Copied to clipboard", "Copied the post URL to the clipboard")
                                         }) {
                                             HStack(alignment: .center) {
                                                 Image(systemName: "pencil.and.list.clipboard")
@@ -133,7 +133,7 @@ struct PostDownloaderView: View {
                                         .focusable()
                                         .onKeyPress(.space) {
                                             copyToClipboard(selectedFeature.feature.postLink)
-                                            showToast(.complete(.green), "Copied to clipboard", "Copied the post URL to the clipboard", .Success) {}
+                                            toastManager.showCompletedToast("Copied to clipboard", "Copied the post URL to the clipboard")
                                             return .handled
                                         }
                                         Spacer()
@@ -165,7 +165,7 @@ struct PostDownloaderView: View {
                                         Spacer()
                                         Button(action: {
                                             copyToClipboard(userProfileLink)
-                                            showToast(.complete(.green), "Copied to clipboard", "Copied the user profile URL to the clipboard", .Success) {}
+                                            toastManager.showCompletedToast("Copied to clipboard", "Copied the user profile URL to the clipboard")
                                         }) {
                                             HStack(alignment: .center) {
                                                 Image(systemName: "pencil.and.list.clipboard")
@@ -176,7 +176,7 @@ struct PostDownloaderView: View {
                                         .focusable()
                                         .onKeyPress(.space) {
                                             copyToClipboard(userProfileLink)
-                                            showToast(.complete(.green), "Copied to clipboard", "Copied the user profile URL to the clipboard", .Success) {}
+                                            toastManager.showCompletedToast("Copied to clipboard", "Copied the user profile URL to the clipboard")
                                             return .handled
                                         }
                                         Spacer()
@@ -648,10 +648,10 @@ struct PostDownloaderView: View {
                                             HStack {
                                                 ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
                                                     PostDownloaderImageView(
+                                                        toastManager: toastManager,
                                                         imageUrl: imageUrl,
                                                         userName: userName,
                                                         index: index,
-                                                        showToast: showToast,
                                                         showImageValidationView: showImageValidationView)
                                                     .padding(.all, 0.001)
                                                 }
@@ -679,7 +679,7 @@ struct PostDownloaderView: View {
                                     Spacer()
                                     Button(action: {
                                         copyToClipboard(logging.map { $0.1 }.joined(separator: "\n"))
-                                        showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
+                                        toastManager.showCompletedToast("Copied to clipboard", "Copied the logging data to the clipboard")
                                     }) {
                                         HStack(alignment: .center) {
                                             Image(systemName: "pencil.and.list.clipboard")
@@ -690,7 +690,7 @@ struct PostDownloaderView: View {
                                     .focusable()
                                     .onKeyPress(.space) {
                                         copyToClipboard(logging.map { $0.1 }.joined(separator: "\n"))
-                                        showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
+                                        toastManager.showCompletedToast("Copied to clipboard", "Copied the logging data to the clipboard")
                                         return .handled
                                     }
                                 }
@@ -737,9 +737,9 @@ struct PostDownloaderView: View {
                     .padding(4)
                 }
                 .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                .disabled(viewModel.isShowingToast)
+                .disabled(toastManager.isShowingAnyToast)
             }
-            .allowsHitTesting(!viewModel.isShowingToast)
+            .allowsHitTesting(!toastManager.isShowingAnyToast)
         }
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)
@@ -758,6 +758,7 @@ struct PostDownloaderView: View {
             moreComments = false
             commentCount = 0
             likeCount = 0
+            toastManager.showProgressToast("Loading post data...")
             loadExcludedTagsForPage()
             Task.detached {
                 await loadFeature()
@@ -853,14 +854,12 @@ struct PostDownloaderView: View {
                     }
                 } catch {
                     debugPrint(error.localizedDescription)
-                    showToast(
+                    toastManager.showToast(
                         .error(.orange),
                         "Failed to parse the post data on the post",
-                        String {
-                            "Failed to parse the post information from the downloaded post - \(error.localizedDescription)"
-                        },
-                        .Failure
-                    ) {}
+                        "Failed to parse the post information from the downloaded post - \(error.localizedDescription)",
+                        .Failure,
+                        {})
                 }
             }
             
@@ -872,25 +871,15 @@ struct PostDownloaderView: View {
         } catch let error as AccountError {
             logging.append((.red, "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"))
             logging.append((.red, "Post must be handled manually in VERO app"))
-            showToast(
-                .error(.red),
+            toastManager.showFailureToast(
                 "Failed to load and parse post",
-                String {
-                    "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"
-                },
-                .Failure
-            ) {}
+                "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")")
         } catch {
             logging.append((.red, "Failed to download and parse the post information - \(error.localizedDescription)"))
             logging.append((.red, "Post must be handled manually in VERO app"))
-            showToast(
-                .error(.red),
+            toastManager.showFailureToast(
                 "Failed to load and parse post",
-                String {
-                    "Failed to download and parse the post information - \(error.localizedDescription)"
-                },
-                .Failure
-            ) {}
+                "Failed to download and parse the post information - \(error.localizedDescription)")
         }
     }
     
@@ -911,22 +900,23 @@ struct PostDownloaderView: View {
                     let contents = String(data: data, encoding: .utf8)!
                     Task { @MainActor in
                         parsePost(contents)
+                        toastManager.hideAnyToast(true)
                     }
                 } else if let error = error {
                     Task { @MainActor in
                         logging.append((.red, "Failed to download and parse the post information - \(error.localizedDescription)"))
                         logging.append((.red, "Post must be handled manually in VERO app"))
-                        showToast(
-                            .error(.red),
+                        toastManager.hideAnyToast(true)
+                        toastManager.showFailureToast(
                             "Failed to load and parse post",
-                            String {
-                                "Failed to download and parse the post information - \(error.localizedDescription)"
-                            },
-                            .Failure
-                        ) {}
+                            "Failed to download and parse the post information - \(error.localizedDescription)")
                     }
                 }
             }.resume()
+        } else {
+            Task { @MainActor in
+                toastManager.hideAnyToast(true)
+            }
         }
     }
     

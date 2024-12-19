@@ -33,6 +33,7 @@ struct MainContentView: View {
     ) var includeHash = false
 
     @Bindable private var viewModel: ContentView.ViewModel
+    private var toastManager: ContentView.ToastManager
     @State private var logURL: Binding<URL?>
     @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var logDocument: Binding<LogDocument>
@@ -52,10 +53,10 @@ struct MainContentView: View {
     private var storeStaffLevelForPage: () -> Void
     private var saveLog: (_ file: URL) -> Void
     private var setTheme: (_ newTheme: Theme) -> Void
-    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
 
     init(
         _ viewModel: ContentView.ViewModel,
+        _ toastManager: ContentView.ToastManager,
         _ logURL: Binding<URL?>,
         _ focusedField: FocusState<FocusField?>.Binding,
         _ logDocument: Binding<LogDocument>,
@@ -72,10 +73,10 @@ struct MainContentView: View {
         _ updateStaffLevelForPage: @escaping () -> Void,
         _ storeStaffLevelForPage: @escaping () -> Void,
         _ saveLog: @escaping (_ file: URL) -> Void,
-        _ setTheme: @escaping (_ newTheme: Theme) -> Void,
-        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
+        _ setTheme: @escaping (_ newTheme: Theme) -> Void
     ) {
         self.viewModel = viewModel
+        self.toastManager = toastManager
         self.logURL = logURL
         self.focusedField = focusedField
         self.logDocument = logDocument
@@ -93,7 +94,6 @@ struct MainContentView: View {
         self.storeStaffLevelForPage = storeStaffLevelForPage
         self.saveLog = saveLog
         self.setTheme = setTheme
-        self.showToast = showToast
     }
 
     private let labelWidth: CGFloat = 80
@@ -129,13 +129,13 @@ struct MainContentView: View {
                         return navigateToPageWithPrefix(keyPress)
                     }
                     .disabled(!viewModel.features.isEmpty)
-
+                    
                     // Page staff level picker
                     Text("Page staff level: ")
                         .padding([.leading])
                         .lineLimit(1)
                         .truncationMode(.tail)
-
+                    
                     Picker(
                         "",
                         selection: $viewModel.selectedPageStaffLevel.onChange { value in
@@ -160,46 +160,46 @@ struct MainContentView: View {
                         return navigateToPageStaffLevelWithPrefix(keyPress)
                     }
                     .frame(maxWidth: 144)
-
+                    
                     Menu("Copy tag", systemImage: "tag.fill") {
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage?.hub ?? "")_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "")")
-                            showToast(.complete(.green), "Copied to clipboard", "Copied the page tag to the clipboard", .Success) {}
+                            toastManager.showCompletedToast("Copied to clipboard", "Copied the page tag to the clipboard")
                         }) {
                             Text("Page tag")
                         }
                         if viewModel.selectedPage?.hub == "snap" {
                             Button(action: {
                                 copyToClipboard("\(includeHash ? "#" : "")raw_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "")")
-                                showToast(.complete(.green), "Copied to clipboard", "Copied the RAW page tag to the clipboard", .Success) {}
+                                toastManager.showCompletedToast("Copied to clipboard", "Copied the RAW page tag to the clipboard")
                             }) {
                                 Text("RAW page tag")
                             }
                         }
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage?.hub ?? "")_community")
-                            showToast(.complete(.green), "Copied to clipboard",  "Copied the community tag to the clipboard", .Success) {}
+                            toastManager.showCompletedToast("Copied to clipboard",  "Copied the community tag to the clipboard")
                         }) {
                             Text("Community tag")
                         }
                         if viewModel.selectedPage?.hub == "snap" {
                             Button(action: {
                                 copyToClipboard("\(includeHash ? "#" : "")raw_community")
-                                showToast(.complete(.green), "Copied to clipboard",  "Copied the RAW community tag to the clipboard", .Success) {}
+                                toastManager.showCompletedToast("Copied to clipboard",  "Copied the RAW community tag to the clipboard")
                             }) {
                                 Text("RAW community tag")
                             }
                         }
                         Button(action: {
                             copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage?.hub ?? "")_hub")
-                            showToast(.complete(.green), "Copied to clipboard",  "Copied the hub tag to the clipboard", .Success) {}
+                            toastManager.showCompletedToast("Copied to clipboard",  "Copied the hub tag to the clipboard")
                         }) {
                             Text("Hub tag")
                         }
                         if viewModel.selectedPage?.hub == "snap" {
                             Button(action: {
                                 copyToClipboard("\(includeHash ? "#" : "")raw_hub")
-                                showToast(.complete(.green), "Copied to clipboard",  "Copied the RAW hub tag to the clipboard", .Success) {}
+                                toastManager.showCompletedToast("Copied to clipboard",  "Copied the RAW hub tag to the clipboard")
                             }) {
                                 Text("RAW hub tag")
                             }
@@ -208,18 +208,18 @@ struct MainContentView: View {
                     .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                     .tint(Color.AccentColor)
                     .accentColor(Color.AccentColor)
-                    .disabled(viewModel.isShowingToast || (viewModel.selectedPage?.hub != "click" && viewModel.selectedPage?.hub != "snap"))
+                    .disabled(toastManager.isShowingAnyToast || (viewModel.selectedPage?.hub != "click" && viewModel.selectedPage?.hub != "snap"))
                     .frame(maxWidth: 132)
                     .focusable()
                     .focused(focusedField, equals: .copyTag)
                     .onKeyPress(.space) {
                         copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage?.hub ?? "")_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "")")
-                        showToast(.complete(.green), "Copied to clipboard", "Copied the page tag to the clipboard", .Success) {}
+                        toastManager.showCompletedToast("Copied to clipboard", "Copied the page tag to the clipboard")
                         return .handled
                     }
                     .padding([.leading])
                 }
-
+                
                 // You
                 HStack(alignment: .center) {
                     // Your name editor
@@ -249,7 +249,7 @@ struct MainContentView: View {
                     .background(Color.BackgroundColorEditor)
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
-
+                    
                     // Your first name editor
                     ValidationLabel(
                         "Your first name:",
@@ -276,19 +276,19 @@ struct MainContentView: View {
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                 }
-
+                
                 // Feature editor
                 VStack {
                     if let selectedPage = viewModel.selectedPage, let selectedFeature = viewModel.selectedFeature {
                         FeatureEditor(
+                            toastManager,
                             selectedPage,
                             selectedFeature,
                             focusedField,
                             { viewModel.selectedFeature = nil },
                             { viewModel.markDocumentDirty() },
                             { shouldScrollFeatureListToSelection.wrappedValue.toggle() },
-                            showDownloaderView,
-                            showToast
+                            showDownloaderView
                         )
                     }
                 }
@@ -298,11 +298,11 @@ struct MainContentView: View {
                 .border(Color.gray.opacity(0.25), width: 1)
                 .cornerRadius(2)
                 .padding([.bottom], 4)
-
+                
                 // Feature list buttons
                 HStack {
                     Spacer()
-
+                    
                     // Add feature
                     Button(action: {
                         addFeature()
@@ -314,7 +314,7 @@ struct MainContentView: View {
                             Text("Add feature")
                         }
                     }
-                    .disabled(viewModel.isShowingToast || viewModel.loadedCatalogs.waitingForPages)
+                    .disabled(toastManager.isShowingAnyToast || viewModel.loadedCatalogs.waitingForPages)
                     .keyboardShortcut("+", modifiers: .command)
                     .focusable()
                     .focused(focusedField, equals: .addFeature)
@@ -323,10 +323,10 @@ struct MainContentView: View {
                         shouldScrollFeatureListToSelection.wrappedValue.toggle()
                         return .handled
                     }
-
+                    
                     Spacer()
                         .frame(width: 16)
-
+                    
                     // Remove feature
                     Button(action: {
                         if let currentFeature = viewModel.selectedFeature {
@@ -341,7 +341,7 @@ struct MainContentView: View {
                             Text("Remove feature")
                         }
                     }
-                    .disabled(viewModel.isShowingToast || viewModel.selectedFeature == nil)
+                    .disabled(toastManager.isShowingAnyToast || viewModel.selectedFeature == nil)
                     .keyboardShortcut("-", modifiers: .command)
                     .focusable()
                     .focused(focusedField, equals: .removeFeature)
@@ -355,28 +355,32 @@ struct MainContentView: View {
                     }
                 }
                 .padding([.trailing], 2)
-
+                
                 // Feature list
                 ScrollViewReader { proxy in
-                    FeatureList(viewModel, showScriptView, showToast)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(4)
-                        .presentationBackground(.clear)
-                        .onChange(
-                            of: shouldScrollFeatureListToSelection.wrappedValue,
-                            {
-                                withAnimation {
-                                    proxy.scrollTo(viewModel.selectedFeature)
-                                }
-                            }
-                        )
-                        .onTapGesture {
+                    FeatureList(
+                        viewModel,
+                        toastManager,
+                        showScriptView
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(4)
+                    .presentationBackground(.clear)
+                    .onChange(
+                        of: shouldScrollFeatureListToSelection.wrappedValue,
+                        {
                             withAnimation {
-                                viewModel.selectedFeature = nil
+                                proxy.scrollTo(viewModel.selectedFeature)
                             }
                         }
-                        .focusable()
-                        .focused(focusedField, equals: .featureList)
+                    )
+                    .onTapGesture {
+                        withAnimation {
+                            viewModel.selectedFeature = nil
+                        }
+                    }
+                    .focusable()
+                    .focused(focusedField, equals: .featureList)
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color.BackgroundColorList)
@@ -411,7 +415,7 @@ struct MainContentView: View {
                     }
                     .padding(4)
                 }
-                .disabled(viewModel.isShowingToast || viewModel.selectedPage == nil)
+                .disabled(toastManager.isShowingAnyToast || viewModel.selectedPage == nil)
 
                 // Save log
                 Button(action: {
@@ -435,7 +439,7 @@ struct MainContentView: View {
                     }
                     .padding(4)
                 }
-                .disabled(viewModel.isShowingToast || viewModel.selectedPage == nil)
+                .disabled(toastManager.isShowingAnyToast || viewModel.selectedPage == nil)
 
                 // Copy report
                 Button(action: {
@@ -450,7 +454,7 @@ struct MainContentView: View {
                     }
                     .padding(4)
                 }
-                .disabled(viewModel.isShowingToast || viewModel.selectedPage == nil)
+                .disabled(toastManager.isShowingAnyToast || viewModel.selectedPage == nil)
 
                 // Save report
                 Button(action: {
@@ -469,7 +473,7 @@ struct MainContentView: View {
                     }
                     .padding(4)
                 }
-                .disabled(viewModel.isShowingToast || viewModel.selectedPage == nil)
+                .disabled(toastManager.isShowingAnyToast || viewModel.selectedPage == nil)
 
                 // Theme
                 Menu("Theme", systemImage: "paintpalette") {
@@ -486,7 +490,7 @@ struct MainContentView: View {
                     .pickerStyle(.inline)
                 }
                 .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                .disabled(viewModel.isShowingToast)
+                .disabled(toastManager.isShowingAnyToast)
             }
             .padding([.leading, .top, .trailing])
         }
@@ -583,11 +587,12 @@ struct MainContentView: View {
         let linkText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
         let existingFeature = viewModel.features.first(where: { $0.postLink.lowercased() == linkText.lowercased() })
         if let feature = existingFeature {
-            showToast(
+            toastManager.showToast(
                 .systemImage("exclamationmark.triangle.fill", .orange),
                 "Found duplicate post link",
                 "There is already a feature in the list with that post link, selected the existing feature",
-                .Failure) {}
+                .Failure,
+                {})
             viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
             return
         }
@@ -608,10 +613,8 @@ struct MainContentView: View {
     private func copyReportToClipboard() {
         let text = viewModel.generateReport(personalMessageFormat, personalMessageFirstFormat)
         copyToClipboard(text)
-        showToast(
-            .complete(.green),
+        toastManager.showCompletedToast(
             "Report generated!",
-            "Copied the report of features to the clipboard",
-            .Success) {}
+            "Copied the report of features to the clipboard")
     }
 }

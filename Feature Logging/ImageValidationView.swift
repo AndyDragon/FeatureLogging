@@ -19,12 +19,11 @@ struct ImageValidationView: View {
     @Environment(\.openURL) private var openURL
 
     private var viewModel: ContentView.ViewModel
+    private var toastManager: ContentView.ToastManager
     @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var imageValidationImageUrl: Binding<URL?>
     private var hideImageValidationView: () -> Void
     private var updateList: () -> Void
-    private var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
-    private var toggleProgressToast: () -> Void
 
     @State private var aiVerdictString = ""
     @State private var aiVerdict = AiVerdict.indeterminate
@@ -39,20 +38,18 @@ struct ImageValidationView: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
+        _ toastManager: ContentView.ToastManager,
         _ focusedField: FocusState<FocusField?>.Binding,
         _ imageValidationImageUrl: Binding<URL?>,
         _ hideImageValidationView: @escaping () -> Void,
-        _ updateList: @escaping () -> Void,
-        _ showToast: @escaping (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void,
-        _ toggleProgressToast: @escaping () -> Void
+        _ updateList: @escaping () -> Void
     ) {
         self.viewModel = viewModel
+        self.toastManager = toastManager
         self.focusedField = focusedField
         self.imageValidationImageUrl = imageValidationImageUrl
         self.hideImageValidationView = hideImageValidationView
         self.updateList = updateList
-        self.showToast = showToast
-        self.toggleProgressToast = toggleProgressToast
     }
 
     var body: some View {
@@ -176,7 +173,7 @@ struct ImageValidationView: View {
                                                 Spacer()
                                                 Button(action: {
                                                     copyToClipboard(returnedJson)
-                                                    showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
+                                                    toastManager.showCompletedToast("Copied to clipboard", "Copied the logging data to the clipboard")
                                                 }) {
                                                     HStack(alignment: .center) {
                                                         Image(systemName: "pencil.and.list.clipboard")
@@ -187,7 +184,7 @@ struct ImageValidationView: View {
                                                 .focusable()
                                                 .onKeyPress(.space) {
                                                     copyToClipboard(returnedJson)
-                                                    showToast(.complete(.green), "Copied to clipboard", "Copied the logging data to the clipboard", .Success) {}
+                                                    toastManager.showCompletedToast("Copied to clipboard", "Copied the logging data to the clipboard")
                                                     return .handled
                                                 }
                                             }
@@ -260,10 +257,10 @@ struct ImageValidationView: View {
                         }
                         .padding(4)
                     }
-                    .disabled(viewModel.isShowingToast || viewModel.isShowingProgressToast || uploadToServer != nil)
+                    .disabled(toastManager.isShowingAnyToast || uploadToServer != nil)
                     .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
                 }
-                .allowsHitTesting(!viewModel.isShowingToast && !viewModel.isShowingProgressToast)
+                .allowsHitTesting(!toastManager.isShowingAnyToast)
             }
         }
         .frame(minWidth: 1280, minHeight: 800)
@@ -283,14 +280,13 @@ struct ImageValidationView: View {
     }
 
     private func prepareHiveResults() {
-        toggleProgressToast()
+        toastManager.showProgressToast("Loading image AI data...")
         Task {
             aiVerdict = .indeterminate
             aiVerdictString = ""
             errorFromServer = ""
             returnedJson = ""
             sendToHiveServer()
-            toggleProgressToast()
         }
     }
 
@@ -307,6 +303,7 @@ struct ImageValidationView: View {
             if let errorResult = error {
                 errorFromServer = "Error result: " + errorResult.localizedDescription
                 debugPrint("Error result: " + errorResult.localizedDescription)
+                toastManager.hideAnyToast()
             } else if let dataResult = data {
                 do
                 {
@@ -338,6 +335,7 @@ struct ImageValidationView: View {
                         debugPrint(String(decoding: dataResult, as: UTF8.self))
                     }
                 }
+                toastManager.hideAnyToast()
             }
         }
     }
@@ -418,4 +416,3 @@ struct ImageValidationView: View {
         return .ignored
     }
 }
-

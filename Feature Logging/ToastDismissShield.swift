@@ -8,36 +8,22 @@
 import SwiftUI
 
 struct ToastDismissShield: View {
-    let isAnyToastShowing: Bool
-    @Binding var isShowingToast: Bool
-    @Binding var toastId: UUID?
-    @Binding var isShowingVersionAvailableToast: Bool
+    private var toastManager: ContentView.ToastManager
+
+    init(
+        _ toastManager: ContentView.ToastManager
+    ) {
+        self.toastManager = toastManager
+    }
 
     var body: some View {
-        if isAnyToastShowing {
+        if toastManager.isShowingAnyToast {
             VStack {
                 Rectangle().opacity(0.0000001)
             }
             .onTapGesture {
-                if isShowingToast {
-                    toastId = nil
-                    isShowingToast.toggle()
-                } else if isShowingVersionAvailableToast {
-                    isShowingVersionAvailableToast.toggle()
-                }
+                toastManager.hideAnyToast()
             }
         }
     }
-}
-
-#Preview {
-    @Previewable @State var isShowingToast: Bool = false
-    @Previewable @State var isShowingVersionAvailableToast: Bool = false
-    @Previewable @State var toastId: UUID? = nil
-    let isAnyToastShowing: Bool = false
-    return ToastDismissShield(
-        isAnyToastShowing: isAnyToastShowing,
-        isShowingToast: $isShowingToast,
-        toastId: $toastId,
-        isShowingVersionAvailableToast: $isShowingVersionAvailableToast)
 }

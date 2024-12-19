@@ -151,6 +151,18 @@ struct Feature_LoggingApp: App {
                 )
                 .keyboardShortcut("a", modifiers: [.command, .shift])
                 .disabled(aiCheckApp.isEmpty)
+
+                Divider()
+
+                Button(
+                    action: {
+                        commandModel.reloadPageCatalog.toggle()
+                    },
+                    label: {
+                        Text("Reload page catalog...")
+                    }
+                )
+                .keyboardShortcut("r", modifiers: [.command, .shift])
             }
         }
 
@@ -186,6 +198,7 @@ class AppCommandModel: ObservableObject {
     @Published var saveReport: Bool = false
     @Published var isDirty: Bool = false
     @Published var showStatistics: Bool = false
+    @Published var reloadPageCatalog: Bool = false
 }
 
 protocol DocumentManagerDelegate {

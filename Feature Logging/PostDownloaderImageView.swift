@@ -19,10 +19,10 @@ struct PostDownloaderImageView: View {
     @State private var fileExtension = ".png"
     @State private var scale: Float = 0.000000001
 
+    var toastManager: ContentView.ToastManager
     var imageUrl: URL
     var userName: String
     var index: Int
-    var showToast: (_ type: AlertToast.AlertType, _ text: String, _ subTitle: String, _ duration: ToastDuration, _ onTap: @escaping () -> Void) -> Void
     var showImageValidationView: (_ imageUrl: URL) -> Void
 
     var body: some View {
@@ -102,7 +102,7 @@ struct PostDownloaderImageView: View {
                     .frame(width: 10)
                 Button(action: {
                     copyToClipboard(imageUrl.absoluteString)
-                    showToast(.complete(.green), "Copied to clipboard", "Copied the image URL to the clipboard", .Success) {}
+                    toastManager.showCompletedToast("Copied to clipboard", "Copied the image URL to the clipboard")
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "pencil.and.list.clipboard")
@@ -113,7 +113,7 @@ struct PostDownloaderImageView: View {
                 .focusable()
                 .onKeyPress(.space) {
                     copyToClipboard(imageUrl.absoluteString)
-                    showToast(.complete(.green), "Copied to clipboard", "Copied the image URL to the clipboard", .Success) {}
+                    toastManager.showCompletedToast("Copied to clipboard", "Copied the image URL to the clipboard")
                     return .handled
                 }
                 Spacer()
@@ -144,25 +144,15 @@ struct PostDownloaderImageView: View {
             }
             let fileURL = folderURL.appendingPathComponent("\(userName).\(fileExtension)")
             try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
-            showToast(
-                .complete(.green),
+            toastManager.showCompletedToast(
                 "Saved",
-                String {
-                    "Saved the image to file \(fileURL)"
-                },
-                .Success
-            ) {}
+                "Saved the image to file \(fileURL)")
         } catch {
             debugPrint("Failed to save file")
             debugPrint(error.localizedDescription)
-            showToast(
-                .error(.red),
+            toastManager.showFailureToast(
                 "Failed to save",
-                String {
-                    "Failed to saved the image to your Pictures folder - \(error.localizedDescription)"
-                },
-                .Failure
-            ) {}
+                "Failed to saved the image to your Pictures folder - \(error.localizedDescription)")
         }
     }
 }

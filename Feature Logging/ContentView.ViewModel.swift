@@ -23,8 +23,6 @@ extension ContentView {
         }
         var yourName = UserDefaults.standard.string(forKey: "YourName") ?? ""
         var yourFirstName = UserDefaults.standard.string(forKey: "YourFirstName") ?? ""
-        var isShowingToast = false
-        var isShowingProgressToast = false
         private(set) var isDirty = false
         var isShowingDocumentDirtyAlert = false
 
