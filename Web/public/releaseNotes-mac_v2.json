@@ -158,5 +158,19 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "2.1.61",
+        "notes": [
+            {
+                "date": "January 3, 2025",
+                "notes": [
+                    "Many changes to the data model, improvements to performance",
+                    "Added parsing of the post on Vero's website to get information automatically",
+                    "Added integration with Hive AI check and TinEye inside the app",
+                    "Added guest moderator for snap pages"
+                ]
+            }
+        ]
     }
 ]

@@ -67,6 +67,7 @@ enum FocusField: Hashable {
 
 enum MembershipCase: String, CaseIterable, Identifiable, Codable {
     case none = "None"
+    
     case commonArtist = "Artist"
     case commonMember = "Member"
     case commonPlatinumMember = "Platinum Member"
@@ -84,7 +85,7 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
     case clickGoldMember = "Gold Member"
 
     var id: Self { self }
-
+    
     static func allCasesSorted() -> [MembershipCase] {
         return [
             .none,
@@ -101,7 +102,7 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
             .snapDiamondMember,
         ]
     }
-
+    
     static func casesFor(hub: String?) -> [MembershipCase] {
         if hub == "snap" {
             return [
@@ -132,41 +133,21 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
             .commonArtist,
         ]
     }
-
+    
     static func caseValidFor(hub: String?, _ value: MembershipCase) -> Bool {
-        if hub == "snap" {
-            return [
-                none,
-                commonArtist,
-                commonMember,
-                snapVipMember,
-                snapVipGoldMember,
-                commonPlatinumMember,
-                snapEliteMember,
-                snapHallOfFameMember,
-                snapDiamondMember,
-            ].contains(value)
-        }
-        if hub == "click" {
-            return [
-                none,
-                commonArtist,
-                commonMember,
-                clickBronzeMember,
-                clickSilverMember,
-                clickGoldMember,
-                commonPlatinumMember,
-            ].contains(value)
-        }
-        return [
-            none,
-            commonArtist,
-        ].contains(value)
+        return casesFor(hub: hub).contains(value)
+    }
+
+    func scriptMembershipStringForHub(hub: String?) -> String {
+        (hub == "snap" && self != .commonArtist) ? "Snap \(self.rawValue)"
+        : (hub == "click" && self != .commonArtist) ? "Click \(self.rawValue)"
+        : self.rawValue
     }
 }
 
 enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
     case commonPageTag = "Page tag"
+    
     // snap
     case snapRawPageTag = "RAW page tag"
     case snapCommunityTag = "Snap community tag"
@@ -176,9 +157,9 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
     // click
     case clickCommunityTag = "Click community tag"
     case clickHubTag = "Click hub tag"
-
+    
     var id: Self { self }
-
+    
     static func casesFor(hub: String?) -> [TagSourceCase] {
         if hub == "snap" {
             return [
@@ -200,27 +181,9 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
             .commonPageTag
         ]
     }
-
+    
     static func caseValidFor(hub: String?, _ value: TagSourceCase) -> Bool {
-        if hub == "snap" {
-            return [
-                commonPageTag,
-                snapRawPageTag,
-                snapCommunityTag,
-                snapRawCommunityTag,
-                snapMembershipTag,
-            ].contains(value)
-        }
-        if hub == "click" {
-            return [
-                commonPageTag,
-                clickCommunityTag,
-                clickHubTag,
-            ].contains(value)
-        }
-        return [
-            commonPageTag
-        ].contains(value)
+        return casesFor(hub: hub).contains(value)
     }
 }
 
@@ -228,14 +191,44 @@ enum StaffLevelCase: String, CaseIterable, Identifiable, Codable {
     case mod = "Mod"
     case coadmin = "Co-Admin"
     case admin = "Admin"
+    
+    // snap
+    case snapGuestMod = "Guest moderator"
 
     var id: Self { self }
+
+    static func casesFor(hub: String?) -> [StaffLevelCase] {
+        if hub == "snap" {
+            return [
+                .mod,
+                .coadmin,
+                .admin,
+                .snapGuestMod,
+            ]
+        }
+        if hub == "click" {
+            return [
+                .mod,
+                .coadmin,
+                .admin,
+            ]
+        }
+        return [
+            .mod,
+            .coadmin,
+            .admin,
+        ]
+    }
+
+    static func caseValidFor(hub: String?, _ value: StaffLevelCase) -> Bool {
+        return casesFor(hub: hub).contains(value)
+    }
 }
 
 enum PlaceholderSheetCase {
-    case featureScript,
-        commentScript,
-        originalPostScript
+    case featureScript
+    case commentScript
+    case originalPostScript
 }
 
 enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
@@ -280,7 +273,7 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
             .none
         ]
     }
-
+    
     static func scriptFor(hub: String?, _ value: NewMembershipCase) -> String {
         if hub == "snap" {
             switch value {
@@ -302,28 +295,7 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
     }
 
     static func caseValidFor(hub: String?, _ value: NewMembershipCase) -> Bool {
-        if hub == "snap" {
-            return [
-                none,
-                snapMemberFeature,
-                snapMemberOriginalPost,
-                snapVipMemberFeature,
-                snapVipMemberOriginalPost,
-            ].contains(value)
-        }
-        if hub == "click" {
-            return [
-                none,
-                clickMember,
-                clickBronzeMember,
-                clickSilverMember,
-                clickGoldMember,
-                clickPlatinumMember,
-            ].contains(value)
-        }
-        return [
-            none
-        ].contains(value)
+        return casesFor(hub: hub).contains(value)
     }
 }
 

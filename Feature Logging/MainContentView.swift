@@ -142,7 +142,7 @@ struct MainContentView: View {
                             navigateToPageStaffLevel(.same)
                         }
                     ) {
-                        ForEach(StaffLevelCase.allCases) { staffLevelCase in
+                        ForEach(StaffLevelCase.casesFor(hub: viewModel.selectedPage?.hub)) { staffLevelCase in
                             Text(staffLevelCase.rawValue)
                                 .tag(staffLevelCase)
                                 .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
