@@ -15,7 +15,7 @@ export const deploymentWebLocation = "/app/featurelogging";
 
 export const versionLocation = "featurelogging/version.json";
 
-export const showMacInfo = true;
+export const showMacInfo = false;
 export const macDmgLocation = "featurelogging/macos/Feature%20Logging%20";
 export const macReleaseNotesLocation = "releaseNotes-mac.json";
 
@@ -23,7 +23,7 @@ export const showMacV2Info = true;
 export const macV2DmgLocation = "featurelogging/macos/Feature%20Logging%20";
 export const macV2ReleaseNotesLocation = "releaseNotes-mac_v2.json";
 
-export const showWindowsInfo = true;
+export const showWindowsInfo = false;
 export const windowsInstallerLocation = "featurelogging/windows";
 export const windowsReleaseNotesLocation = "releaseNotes-windows.json";
 

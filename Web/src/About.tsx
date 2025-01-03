@@ -1,7 +1,7 @@
 import React from "react";
 import { Version, readVersion } from "./version";
 import { Body2, Spinner, Image, Subtitle2, Title1, makeStyles, shorthands } from "@fluentui/react-components";
-import { Platform, applicationDescription, applicationDetails, macScreenshotHeight, macScreenshotWidth, platformString, windowsScreenshotHeight, windowsScreenshotWidth } from "./config";
+import { Platform, applicationDescription, applicationDetails, macScreenshotHeight, macScreenshotWidth, platformString, showMacInfo, showMacV2Info, showWindowsInfo, showWindowsV2Info, windowsScreenshotHeight, windowsScreenshotWidth } from "./config";
 import { Link } from "react-router-dom";
 
 export interface GeneralProps {
@@ -49,10 +49,10 @@ export default function About(props: GeneralProps) {
     let index = 0;
 
     const platforms: { platform: Platform; installLocation: string }[] = [];
-    version?.["macOS"]?.current && platforms.push({ platform: "macOS", installLocation: "./macInstall" });
-    version?.["macOS_v2"]?.current && platforms.push({ platform: "macOS_v2", installLocation: "./macInstall_v2" });
-    version?.["windows"]?.current && platforms.push({ platform: "windows", installLocation: "./windowsInstall" });
-    version?.["windows_v2"]?.current && platforms.push({ platform: "windows_v2", installLocation: "./windowsInstall_v2" });
+    version?.["macOS"]?.current && showMacInfo && platforms.push({ platform: "macOS", installLocation: "./macInstall" });
+    version?.["macOS_v2"]?.current && showMacV2Info && platforms.push({ platform: "macOS_v2", installLocation: "./macInstall_v2" });
+    version?.["windows"]?.current && showWindowsInfo && platforms.push({ platform: "windows", installLocation: "./windowsInstall" });
+    version?.["windows_v2"]?.current && showWindowsV2Info && platforms.push({ platform: "windows_v2", installLocation: "./windowsInstall_v2" });
     return (
         <div style={{ margin: "50px" }}>
             <Title1>{applicationDescription}</Title1>
