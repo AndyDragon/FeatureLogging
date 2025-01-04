@@ -268,23 +268,23 @@ namespace FeatureLogging
         private static string[] SnapMemberships => [
             "None",
             "Artist",
-            "Member",
-            "VIP Member",
-            "VIP Gold Member",
-            "Platinum Member",
-            "Elite Member",
-            "Hall of Fame Member",
-            "Diamond Member",
+            "Snap Member",
+            "Snap VIP Member",
+            "Snap VIP Gold Member",
+            "Snap Platinum Member",
+            "Snap Elite Member",
+            "Snap Hall of Fame Member",
+            "Snap Diamond Member",
         ];
 
         private static string[] ClickMemberships => [
             "None",
             "Artist",
-            "Member",
-            "Bronze Member",
-            "Silver Member",
-            "Gold Member",
-            "Platinum Member",
+            "Click Member",
+            "Click Bronze Member",
+            "Click Silver Member",
+            "Click Gold Member",
+            "Click Platinum Member",
         ];
 
         private static string[] OtherMemberships => [
@@ -494,11 +494,29 @@ namespace FeatureLogging
 
         #region Staff level
 
-        public static string[] StaffLevels => [
+        public static string[] SnapStaffLevels => [
+            "Mod",
+            "Co-Admin",
+            "Admin",
+            "Guest moderator"
+        ];
+
+        public static string[] ClickStaffLevels => [
             "Mod",
             "Co-Admin",
             "Admin",
         ];
+
+        public static string[] OtherStaffLevels => [
+            "Mod",
+            "Co-Admin",
+            "Admin",
+        ];
+
+        public string[] StaffLevels =>
+            SelectedPage?.HubName == "click" ? ClickStaffLevels :
+            SelectedPage?.HubName == "snap" ? SnapStaffLevels :
+            OtherStaffLevels;
 
         private string staffLevel = UserSettings.Get(nameof(StaffLevel), "Mod");
 
