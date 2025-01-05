@@ -2126,6 +2126,7 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />         <!-- User name -->
+                            <RowDefinition Height="Auto" />         <!-- User alias -->
                             <RowDefinition Height="Auto" />         <!-- User bio label -->
                             <RowDefinition Height="Auto" />         <!-- User bio -->
                         </Grid.RowDefinitions>
@@ -2134,9 +2135,89 @@
                             <ColumnDefinition Width="*" />          <!-- Value -->
                             <ColumnDefinition Width="Auto" />       <!-- Buttons -->
                         </Grid.ColumnDefinitions>
-                        <!-- User name -->
+                        <!-- User alias -->
                         <Label 
                             Grid.Row="0" 
+                            Grid.Column="0" 
+                            VerticalAlignment="Center" 
+                            HorizontalContentAlignment="Right"
+                            FontSize="11" 
+                            Margin="0,0,4,0">
+                            <StackPanel Orientation="Horizontal" ToolTip="{Binding LoadedPost.UserAliasValidation.Error}">
+                                <iconPacks:PackIconModern 
+                                    VerticalAlignment="Center"
+                                    Kind="Warning"
+                                    Margin="0,0,6,0"
+                                    Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
+                                    Visibility="{Binding LoadedPost.UserAliasValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
+                                <TextBlock 
+                                    Text="User alias:" 
+                                    FontWeight="Bold" 
+                                    VerticalAlignment="Center"
+                                    Foreground="{Binding LoadedPost.UserAliasValidation, Converter={StaticResource greenValidationResultColorConverter}}" />
+                            </StackPanel>
+                        </Label>
+                        <Label 
+                            Grid.Row="0" 
+                            Grid.Column="1"
+                            VerticalAlignment="Center" 
+                            FontSize="11" 
+                            Margin="0,0,4,0">
+                            <TextBlock 
+                                Text="{Binding LoadedPost.UserAlias}" 
+                                FontWeight="Bold" 
+                                VerticalAlignment="Center" />
+                        </Label>
+                        <StackPanel 
+                            Grid.Row="0"
+                            Grid.RowSpan="1"
+                            Grid.Column="2"
+                            Orientation="Horizontal" 
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Height="26"
+                            Margin="0,4,12,0">
+                            <Label VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0" Height="26">
+                                <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.UserAliasValidation.Error}">
+                                    <iconPacks:PackIconModern 
+                                        VerticalAlignment="Center"
+                                        Kind="Warning"
+                                        Margin="0,0,6,0"
+                                        Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
+                                        Visibility="{Binding SelectedFeature.UserAliasValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
+                                    <TextBlock 
+                                        Text="User alias:" 
+                                        FontWeight="Bold" 
+                                        VerticalAlignment="Center"
+                                        Foreground="{Binding SelectedFeature.UserAliasValidation, Converter={StaticResource validationResultColorConverter}}" />
+                                </StackPanel>
+                            </Label>
+                            <TextBox 
+                                Text="{Binding SelectedFeature.UserAlias, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                VerticalAlignment="Center" 
+                                FontSize="11"
+                                FontWeight="Bold"
+                                Width="200" />
+                            <Button 
+                                Height="22" 
+                                Padding="4,0,4,0" 
+                                Margin="8,0,0,0" 
+                                Command="{Binding LoadedPost.TransferUserAliasCommand}" 
+                                MinHeight="22">
+                                <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
+                                    <iconPacks:PackIconFeatherIcons
+                                        VerticalAlignment="Center"
+                                        Kind="Edit3"
+                                        Margin="0,0,6,0"
+                                        Height="13"
+                                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                    <TextBlock Margin="0,0,0,1" FontSize="11" FontWeight="Bold" Padding="0" VerticalAlignment="Center">Transfer</TextBlock>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                        <!-- User name -->
+                        <Label 
+                            Grid.Row="1" 
                             Grid.Column="0" 
                             VerticalAlignment="Center" 
                             HorizontalContentAlignment="Right"
@@ -2157,7 +2238,7 @@
                             </StackPanel>
                         </Label>
                         <Label 
-                            Grid.Row="0" 
+                            Grid.Row="1" 
                             Grid.Column="1"
                             VerticalAlignment="Center" 
                             FontSize="11" 
@@ -2168,7 +2249,7 @@
                                 VerticalAlignment="Center" />
                         </Label>
                         <StackPanel 
-                            Grid.Row="0"
+                            Grid.Row="1"
                             Grid.RowSpan="1"
                             Grid.Column="2"
                             Orientation="Horizontal" 
@@ -2216,7 +2297,7 @@
                         </StackPanel>
                         <!-- User bio -->
                         <Label 
-                            Grid.Row="1" 
+                            Grid.Row="2" 
                             Grid.Column="0" 
                             Grid.ColumnSpan="2"
                             VerticalAlignment="Bottom" 
@@ -2230,7 +2311,7 @@
                                 Foreground="Lime" />
                         </Label>
                         <StackPanel 
-                            Grid.Row="1"
+                            Grid.Row="2"
                             Grid.RowSpan="2"
                             Grid.Column="2"
                             Orientation="Vertical" 
@@ -2278,7 +2359,7 @@
                             </mah:ToggleSwitch>
                         </StackPanel>
                         <ScrollViewer
-                            Grid.Row="2"
+                            Grid.Row="3"
                             Grid.Column="0" 
                             Grid.ColumnSpan="2"
                             HorizontalAlignment="Left"
@@ -2307,7 +2388,8 @@
                     Grid.Row="2"
                     Margin="0,10"
                     Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
-                    CornerRadius="8">
+                    CornerRadius="8"
+                    Visibility="{Binding LoadedPost.ShowDescription, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />         <!-- Page tag check -->

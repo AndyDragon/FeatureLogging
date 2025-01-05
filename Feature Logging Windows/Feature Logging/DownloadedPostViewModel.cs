@@ -68,6 +68,11 @@ namespace FeatureLogging
                 }
             }, () => !string.IsNullOrEmpty(UserProfileUrl));
 
+            transferUserAliasCommand = new Command(() =>
+            {
+                vm.SelectedFeature!.UserAlias = UserAlias!;
+            }, () => !string.IsNullOrEmpty(UserAlias));
+
             transferUserNameCommand = new Command(() =>
             {
                 vm.SelectedFeature!.UserName = UserName!;
@@ -146,6 +151,10 @@ namespace FeatureLogging
                                             if (profile != null)
                                             {
                                                 UserAlias = profile.Username;
+                                                if (string.IsNullOrEmpty(UserAlias) && !string.IsNullOrEmpty(profile.Name))
+                                                {
+                                                    UserAlias = profile.Name!.Replace(" ", "");
+                                                }
                                                 LogProgress(UserAlias, "User's alias");
                                                 UserName = profile.Name;
                                                 LogProgress(UserName, "User's name");
@@ -163,6 +172,7 @@ namespace FeatureLogging
                                             var post = postData.LoaderData?.Entry?.Post?.Post;
                                             if (post != null)
                                             {
+                                                ShowDescription = true;
                                                 pageHashTags.Clear();
                                                 Description = post.Caption != null ? JoinSegments(post.Caption, pageHashTags).StripExtraSpaces() : "";
                                                 var pageTagFound = "";
@@ -359,9 +369,25 @@ namespace FeatureLogging
             {
                 if (Set(ref userAlias, value))
                 {
-                    // Validate the user alias?
+                    UserAliasValidation = ValidateUserAlias(userAlias);
+                    TransferUserAliasCommand.OnCanExecuteChanged();
                 }
             }
+        }
+
+        private ValidationResult userAliasValidation = ValidateUserAlias(null);
+        public ValidationResult UserAliasValidation
+        {
+            get => userAliasValidation;
+            private set => Set(ref userAliasValidation, value);
+        }
+        static private ValidationResult ValidateUserAlias(string? userAlias)
+        {
+            if (string.IsNullOrEmpty(userAlias))
+            {
+                return new ValidationResult(false, "Missing the user alias");
+            }
+            return new ValidationResult(true);
         }
 
         #endregion
@@ -449,6 +475,13 @@ namespace FeatureLogging
         #endregion
 
         #region Description
+
+        private bool showDescription = false;
+        public bool ShowDescription
+        {
+            get => showDescription;
+            set => Set(ref showDescription, value);
+        }
 
         private string? description;
         public string? Description
@@ -567,6 +600,9 @@ namespace FeatureLogging
 
         private readonly Command launchUserProfileUrlCommand;
         public Command LaunchUserProfileUrlCommand { get => launchUserProfileUrlCommand; }
+
+        private readonly Command transferUserAliasCommand;
+        public Command TransferUserAliasCommand { get => transferUserAliasCommand; }
 
         private readonly Command transferUserNameCommand;
         public Command TransferUserNameCommand { get => transferUserNameCommand; }
@@ -878,7 +914,24 @@ namespace FeatureLogging
     public partial class LoaderData
     {
         [JsonProperty("0-1", NullValueHandling = NullValueHandling.Ignore)]
-        public PostEntry? Entry { get; set; }
+        public PostEntry? Entry1 { get; set; }
+
+        [JsonProperty("0-2", NullValueHandling = NullValueHandling.Ignore)]
+        public PostEntry? Entry2 { get; set; }
+
+        [JsonProperty("0-3", NullValueHandling = NullValueHandling.Ignore)]
+        public PostEntry? Entry3 { get; set; }
+
+        [JsonProperty("0-4", NullValueHandling = NullValueHandling.Ignore)]
+        public PostEntry? Entry4 { get; set; }
+
+        [JsonProperty("0-5", NullValueHandling = NullValueHandling.Ignore)]
+        public PostEntry? Entry5 { get; set; }
+
+        public PostEntry? Entry
+        {
+            get => Entry1 ?? Entry2 ?? Entry3 ?? Entry4 ?? Entry5;
+        }
     }
 
     public partial class PostEntry
