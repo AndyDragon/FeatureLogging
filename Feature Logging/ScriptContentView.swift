@@ -723,7 +723,7 @@ struct ScriptContentView: View {
                 communityTag = tagSource == .snapCommunityTag
                 hubTag = tagSource == .snapMembershipTag
             }
-            var membershipString = viewModel.selectedFeature?.feature.userLevel.scriptMembershipStringForHub(hub: viewModel.selectedPage?.hub)
+            let membershipString = viewModel.selectedFeature?.feature.userLevel.scriptMembershipStringForHub(hub: viewModel.selectedPage?.hub)
 
             featureScript = getTemplateFromCatalog(
                 "feature",

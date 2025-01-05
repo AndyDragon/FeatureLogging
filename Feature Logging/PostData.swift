@@ -15,10 +15,22 @@ struct PostData: Codable {
 
 // MARK: - LoaderData
 struct LoaderData: Codable {
-    let entry0: LoaderEntry?
-    
+    let entry1: LoaderEntry?
+    let entry2: LoaderEntry?
+    let entry3: LoaderEntry?
+    let entry4: LoaderEntry?
+    let entry5: LoaderEntry?
+
+    var entry: LoaderEntry? {
+        entry1 ?? entry2 ?? entry3 ?? entry4 ?? entry5
+    }
+
     enum CodingKeys: String, CodingKey {
-        case entry0 = "0-1"
+        case entry1 = "0-1"
+        case entry2 = "0-2"
+        case entry3 = "0-3"
+        case entry4 = "0-4"
+        case entry5 = "0-5"
     }
 }
 

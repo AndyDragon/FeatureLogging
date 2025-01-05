@@ -35,6 +35,7 @@ struct PostDownloaderView: View {
     @State private var excludedHashtags = ""
     @State private var postHashtags: [String] = []
     @State private var postLoaded = false
+    @State private var profileLoaded = false
     @State private var description = ""
     @State private var userAlias = ""
     @State private var userName = ""
@@ -214,7 +215,7 @@ struct PostDownloaderView: View {
                                     .opacity(0.5)
                             }
 
-                            if postLoaded {
+                            if profileLoaded {
                                 // User name and bio
                                 HStack(alignment: .top) {
                                     VStack(alignment: .leading) {
@@ -352,7 +353,9 @@ struct PostDownloaderView: View {
                                         .cornerRadius(8)
                                         .opacity(0.5)
                                 }
+                            }
 
+                            if postLoaded {
                                 // Tag check and description
                                 HStack(alignment: .top) {
                                     VStack(alignment: .leading) {
@@ -785,8 +788,11 @@ struct PostDownloaderView: View {
                                 .replacingOccurrences(of: "\\\"", with: "\"")
                             if let jsonData = jsonString.data(using: .utf8) {
                                 let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
-                                if let profile = postData.loaderData?.entry0?.profile?.profile {
+                                if let profile = postData.loaderData?.entry?.profile?.profile {
                                     userAlias = profile.username ?? ""
+                                    if userAlias.isEmpty && profile.name != nil {
+                                        userAlias = profile.name!.replacingOccurrences(of: " ", with: "")
+                                    }
                                     logging.append((.blue, "User's alias: \(userAlias)"))
                                     userName = profile.name ?? ""
                                     logging.append((.blue, "User's name: \(userName)"))
@@ -794,11 +800,14 @@ struct PostDownloaderView: View {
                                     logging.append((.blue, "User's profile link: \(userProfileLink)"))
                                     userBio = (profile.bio ?? "").removeExtraSpaces()
                                     logging.append((.blue, "User's bio: \(userBio)"))
+
+                                    profileLoaded = true
                                 } else {
                                     logging.append((.red, "Failed to find the profile information, the account is likely private"))
                                     logging.append((.red, "Post must be handled manually in VERO app"))
+                                    //debugPrint(jsonString)
                                 }
-                                if let post = postData.loaderData?.entry0?.post {
+                                if let post = postData.loaderData?.entry?.post {
                                     postHashtags = []
                                     description = joinSegments(post.post?.caption, &postHashtags).removeExtraSpaces(includeNewlines: false)
 
@@ -848,6 +857,10 @@ struct PostDownloaderView: View {
                                             }
                                         }
                                     }
+                                } else {
+                                    logging.append((.red, "Failed to find the post information, the account is likely private"))
+                                    logging.append((.red, "Post must be handled manually in VERO app"))
+                                    //debugPrint(jsonString)
                                 }
                             }
                         }
