@@ -216,9 +216,54 @@ struct PostDownloaderView: View {
                             }
 
                             if profileLoaded {
-                                // User name and bio
+                                // User alias, name and bio
                                 HStack(alignment: .top) {
                                     VStack(alignment: .leading) {
+                                        HStack(alignment: .center) {
+                                            ValidationLabel("User alias: ", labelWidth: -mainLabelWidth, validation: !userAlias.isEmpty, validColor: .green)
+                                            ValidationLabel(userAlias, validation: true, validColor: .AccentColor)
+                                            Spacer()
+                                            ValidationLabel(
+                                                "User alias:", labelWidth: labelWidth,
+                                                validation: !selectedFeature.feature.userAlias.isEmpty && !selectedFeature.feature.userAlias.contains(where: \.isNewline))
+                                            HStack(alignment: .center) {
+                                                TextField(
+                                                    "enter the user alias",
+                                                    text: $selectedFeature.feature.userAlias.onChange { value in
+                                                        updateList()
+                                                        viewModel.markDocumentDirty()
+                                                    }
+                                                )
+                                                .focusable()
+                                                .focused(focusedField, equals: .postUserAlias)
+                                            }
+                                            .autocorrectionDisabled(false)
+                                            .textFieldStyle(.plain)
+                                            .padding(4)
+                                            .background(Color.BackgroundColorEditor)
+                                            .border(Color.gray.opacity(0.25))
+                                            .cornerRadius(4)
+                                            .frame(maxWidth: 240)
+                                            Button(action: {
+                                                selectedFeature.feature.userAlias = userAlias
+                                            }) {
+                                                HStack(alignment: .center) {
+                                                    Image(systemName: "pencil.line")
+                                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                                    Text("Transfer")
+                                                }
+                                            }
+                                            .disabled(userAlias.isEmpty)
+                                            .focusable(!userAlias.isEmpty)
+                                            .onKeyPress(.space) {
+                                                if !userAlias.isEmpty {
+                                                    selectedFeature.feature.userAlias = userAlias
+                                                }
+                                                return .handled
+                                            }
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 20)
                                         HStack(alignment: .center) {
                                             ValidationLabel("User name: ", labelWidth: -mainLabelWidth, validation: !userName.isEmpty, validColor: .green)
                                             ValidationLabel(userName, validation: true, validColor: .AccentColor)

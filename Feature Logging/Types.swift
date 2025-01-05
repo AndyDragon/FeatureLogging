@@ -52,7 +52,8 @@ enum FocusField: Hashable {
          tinEyeResults,
          aiCheckResults,
 
-         postUserName, // Post downloader
+         postUserAlias, // Post downloader
+         postUserName,
          postUserLevel,
          postTeammate,
          postDescription,
