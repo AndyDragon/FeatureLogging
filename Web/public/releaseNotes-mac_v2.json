@@ -172,5 +172,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "2.1.64",
+        "notes": [
+            {
+                "date": "January 10, 2025",
+                "notes": [
+                    "Several bug fixes for the loaded post handling"
+                ]
+            }
+        ]
     }
 ]

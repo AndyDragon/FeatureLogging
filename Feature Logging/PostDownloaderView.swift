@@ -829,83 +829,90 @@ struct PostDownloaderView: View {
                             let start = scriptText.index(scriptText.startIndex, offsetBy: prefixLength + 1)
                             let end = scriptText.index(scriptText.endIndex, offsetBy: -3)
                             let jsonString = String(scriptText[start..<end])
-                                .replacingOccurrences(of: "\\\"", with: "\"")
-                                .replacingOccurrences(of: "\\\"", with: "\"")
-                            if let jsonData = jsonString.data(using: .utf8) {
-                                let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
-                                if let profile = postData.loaderData?.entry?.profile?.profile {
-                                    userAlias = profile.username ?? ""
-                                    if userAlias.isEmpty && profile.name != nil {
-                                        userAlias = profile.name!.replacingOccurrences(of: " ", with: "")
-                                    }
-                                    logging.append((.blue, "User's alias: \(userAlias)"))
-                                    userName = profile.name ?? ""
-                                    logging.append((.blue, "User's name: \(userName)"))
-                                    userProfileLink = profile.url ?? ""
-                                    logging.append((.blue, "User's profile link: \(userProfileLink)"))
-                                    userBio = (profile.bio ?? "").removeExtraSpaces()
-                                    logging.append((.blue, "User's bio: \(userBio)"))
+                            // The JSON string is a JSON-encoded string, so use a wrapped JSON fragment and the JSON serialization
+                            // utility to get the unencoded string which is then decoded using the JSON decoder utility.
+                            let wrappedJsonString = "{\"value\": \"\(jsonString)\"}"
+                            if let jsonEncodedData = wrappedJsonString.data(using: .utf8) {
+                                if let jsonStringDecoded = try JSONSerialization.jsonObject(with: jsonEncodedData, options: []) as? [String:Any] {
+                                    if let stringValue = (jsonStringDecoded["value"] as? String) {
+                                        if let jsonData = stringValue.data(using: .utf8) {
+                                            let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
+                                            if let profile = postData.loaderData?.entry?.profile?.profile {
+                                                userAlias = profile.username ?? ""
+                                                if userAlias.isEmpty && profile.name != nil {
+                                                    userAlias = profile.name!.replacingOccurrences(of: " ", with: "")
+                                                }
+                                                logging.append((.blue, "User's alias: \(userAlias)"))
+                                                userName = profile.name ?? ""
+                                                logging.append((.blue, "User's name: \(userName)"))
+                                                userProfileLink = profile.url ?? ""
+                                                logging.append((.blue, "User's profile link: \(userProfileLink)"))
+                                                userBio = (profile.bio ?? "").removeExtraSpaces()
+                                                logging.append((.blue, "User's bio: \(userBio)"))
 
-                                    profileLoaded = true
-                                } else {
-                                    logging.append((.red, "Failed to find the profile information, the account is likely private"))
-                                    logging.append((.red, "Post must be handled manually in VERO app"))
-                                    //debugPrint(jsonString)
-                                }
-                                if let post = postData.loaderData?.entry?.post {
-                                    postHashtags = []
-                                    description = joinSegments(post.post?.caption, &postHashtags).removeExtraSpaces(includeNewlines: false)
+                                                profileLoaded = true
+                                            } else {
+                                                logging.append((.red, "Failed to find the profile information, the account is likely private"))
+                                                logging.append((.red, "Post must be handled manually in VERO app"))
+                                                //debugPrint(jsonString)
+                                            }
+                                            if let post = postData.loaderData?.entry?.post {
+                                                postHashtags = []
+                                                description = joinSegments(post.post?.caption, &postHashtags).removeExtraSpaces(includeNewlines: false)
 
-                                    checkPageHashtags()
-                                    checkExcludedHashtags()
-                                    
-                                    if let postImages = post.post?.images {
-                                        let postImageUrls = postImages.filter({ $0.url != nil && $0.url!.hasPrefix("https://") }).map { $0.url! }
-                                        for imageUrl in postImageUrls {
-                                            logging.append((.blue, "Image source: \(imageUrl)"))
-                                            imageUrls.append(URL(string: imageUrl)!)
-                                        }
-                                    }
-                                    
-                                    if selectedPage.hub == "click" || selectedPage.hub == "snap" {
-                                        commentCount = post.post?.comments ?? 0
-                                        likeCount = post.post?.likes ?? 0
-                                        if let comments = post.comments {
-                                            moreComments = comments.count < commentCount
-                                            for comment in comments {
-                                                if let userName = comment.author?.username {
-                                                    if userName.lowercased().hasPrefix("\(selectedPage.hub.lowercased())_") {
-                                                        if userName.lowercased() == selectedPage.displayName.lowercased() {
-                                                            pageComments.append((
-                                                                comment.author?.name ?? userName,
-                                                                joinSegments(comment.content).removeExtraSpaces(),
-                                                                (comment.timestamp ?? "").timestamp(),
-                                                                String(userName[userName.index(userName.startIndex, offsetBy: selectedPage.hub.count + 1)..<userName.endIndex].lowercased())
-                                                            ))
-                                                            logging.append((.red, "Found comment from page - possibly already featured on page"))
-                                                        } else {
-                                                            hubComments.append((
-                                                                comment.author?.name ?? userName,
-                                                                joinSegments(comment.content).removeExtraSpaces(),
-                                                                (comment.timestamp ?? "").timestamp(),
-                                                                String(userName[userName.index(userName.startIndex, offsetBy: selectedPage.hub.count + 1)..<userName.endIndex].lowercased())
-                                                            ))
-                                                            logging.append((.orange, "Found comment from another hub page - possibly already feature on another page"))
+                                                checkPageHashtags()
+                                                checkExcludedHashtags()
+
+                                                if let postImages = post.post?.images {
+                                                    let postImageUrls = postImages.filter({ $0.url != nil && $0.url!.hasPrefix("https://") }).map { $0.url! }
+                                                    for imageUrl in postImageUrls {
+                                                        logging.append((.blue, "Image source: \(imageUrl)"))
+                                                        imageUrls.append(URL(string: imageUrl)!)
+                                                    }
+                                                }
+
+                                                if selectedPage.hub == "click" || selectedPage.hub == "snap" {
+                                                    commentCount = post.post?.comments ?? 0
+                                                    likeCount = post.post?.likes ?? 0
+                                                    if let comments = post.comments {
+                                                        moreComments = comments.count < commentCount
+                                                        for comment in comments {
+                                                            if let userName = comment.author?.username {
+                                                                if userName.lowercased().hasPrefix("\(selectedPage.hub.lowercased())_") {
+                                                                    if userName.lowercased() == selectedPage.displayName.lowercased() {
+                                                                        pageComments.append((
+                                                                            comment.author?.name ?? userName,
+                                                                            joinSegments(comment.content).removeExtraSpaces(),
+                                                                            (comment.timestamp ?? "").timestamp(),
+                                                                            String(userName[userName.index(userName.startIndex, offsetBy: selectedPage.hub.count + 1)..<userName.endIndex].lowercased())
+                                                                        ))
+                                                                        logging.append((.red, "Found comment from page - possibly already featured on page"))
+                                                                    } else {
+                                                                        hubComments.append((
+                                                                            comment.author?.name ?? userName,
+                                                                            joinSegments(comment.content).removeExtraSpaces(),
+                                                                            (comment.timestamp ?? "").timestamp(),
+                                                                            String(userName[userName.index(userName.startIndex, offsetBy: selectedPage.hub.count + 1)..<userName.endIndex].lowercased())
+                                                                        ))
+                                                                        logging.append((.orange, "Found comment from another hub page - possibly already feature on another page"))
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        moreComments = commentCount != 0
+                                                        if moreComments {
+                                                            logging.append((.orange, "Not all comments found in post, check VERO app to see all comments"))
                                                         }
                                                     }
                                                 }
-                                            }
-                                        } else {
-                                            moreComments = commentCount != 0
-                                            if moreComments {
-                                                logging.append((.orange, "Not all comments found in post, check VERO app to see all comments"))
+                                            } else {
+                                                logging.append((.red, "Failed to find the post information, the account is likely private"))
+                                                logging.append((.red, "Post must be handled manually in VERO app"))
+                                                //debugPrint(jsonString)
                                             }
                                         }
                                     }
-                                } else {
-                                    logging.append((.red, "Failed to find the post information, the account is likely private"))
-                                    logging.append((.red, "Post must be handled manually in VERO app"))
-                                    //debugPrint(jsonString)
                                 }
                             }
                         }
