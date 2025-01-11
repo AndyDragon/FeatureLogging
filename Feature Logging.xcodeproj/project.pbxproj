@@ -14,8 +14,6 @@
 		4930AB922BB7348F00C72CA9 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4930AB8E2BB7348F00C72CA9 /* Helpers.swift */; };
 		4930AB932BB7348F00C72CA9 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4930AB8F2BB7348F00C72CA9 /* Types.swift */; };
 		4930AB962BB7354E00C72CA9 /* SystemColors in Frameworks */ = {isa = PBXBuildFile; productRef = 4930AB952BB7354E00C72CA9 /* SystemColors */; };
-		4930AB992BB7355A00C72CA9 /* AlertToast in Frameworks */ = {isa = PBXBuildFile; productRef = 4930AB982BB7355A00C72CA9 /* AlertToast */; };
-		4930AB9B2BB73B3700C72CA9 /* ToastDismissShield.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4930AB9A2BB73B3700C72CA9 /* ToastDismissShield.swift */; };
 		4930AB9D2BB74F1500C72CA9 /* FeatureEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4930AB9C2BB74F1500C72CA9 /* FeatureEditor.swift */; };
 		495A858A2C36E46F00C112C6 /* PlaceholderEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495A85852C36E46F00C112C6 /* PlaceholderEditor.swift */; };
 		495A858B2C36E46F00C112C6 /* ScriptEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495A85862C36E46F00C112C6 /* ScriptEditor.swift */; };
@@ -42,6 +40,11 @@
 		49FA95F82CF195CB0074DE7B /* PostDownloaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FA95F72CF195CB0074DE7B /* PostDownloaderView.swift */; };
 		49FA95FB2CF195E50074DE7B /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 49FA95FA2CF195E50074DE7B /* Kingfisher */; };
 		49FA95FE2CF198A20074DE7B /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 49FA95FD2CF198A20074DE7B /* SwiftSoup */; };
+		49FE11E52D32C3240018C3DE /* AdvancedToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FE11E02D32C3240018C3DE /* AdvancedToast.swift */; };
+		49FE11E62D32C3240018C3DE /* AdvancedToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FE11E32D32C3240018C3DE /* AdvancedToastView.swift */; };
+		49FE11E72D32C3240018C3DE /* AdvancedToastStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FE11E22D32C3240018C3DE /* AdvancedToastStyle.swift */; };
+		49FE11E82D32C3240018C3DE /* AdvancedToastModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FE11E12D32C3240018C3DE /* AdvancedToastModifiers.swift */; };
+		49FE11E92D32C3240018C3DE /* View+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FE11DE2D32C3240018C3DE /* View+Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,7 +54,6 @@
 		4930AB8D2BB7348F00C72CA9 /* Themes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Themes.swift; sourceTree = "<group>"; };
 		4930AB8E2BB7348F00C72CA9 /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		4930AB8F2BB7348F00C72CA9 /* Types.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
-		4930AB9A2BB73B3700C72CA9 /* ToastDismissShield.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ToastDismissShield.swift; sourceTree = "<group>"; };
 		4930AB9C2BB74F1500C72CA9 /* FeatureEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureEditor.swift; sourceTree = "<group>"; };
 		495A85852C36E46F00C112C6 /* PlaceholderEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceholderEditor.swift; sourceTree = "<group>"; };
 		495A85862C36E46F00C112C6 /* ScriptEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptEditor.swift; sourceTree = "<group>"; };
@@ -79,6 +81,11 @@
 		49EBB9D42BC0944300D2AE04 /* ValidationLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationLabel.swift; sourceTree = "<group>"; };
 		49EC9DC32CF579D200A50B2D /* MainContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainContentView.swift; sourceTree = "<group>"; };
 		49FA95F72CF195CB0074DE7B /* PostDownloaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostDownloaderView.swift; sourceTree = "<group>"; };
+		49FE11DE2D32C3240018C3DE /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
+		49FE11E02D32C3240018C3DE /* AdvancedToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedToast.swift; sourceTree = "<group>"; };
+		49FE11E12D32C3240018C3DE /* AdvancedToastModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedToastModifiers.swift; sourceTree = "<group>"; };
+		49FE11E22D32C3240018C3DE /* AdvancedToastStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedToastStyle.swift; sourceTree = "<group>"; };
+		49FE11E32D32C3240018C3DE /* AdvancedToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedToastView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,7 +96,6 @@
 				49FA95FB2CF195E50074DE7B /* Kingfisher in Frameworks */,
 				4925315E2C446FC0003A8D24 /* SwiftUICharts in Frameworks */,
 				4930AB962BB7354E00C72CA9 /* SystemColors in Frameworks */,
-				4930AB992BB7355A00C72CA9 /* AlertToast in Frameworks */,
 				49FA95FE2CF198A20074DE7B /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -116,6 +122,7 @@
 		49D828072BB7327000153786 /* Feature Logging */ = {
 			isa = PBXGroup;
 			children = (
+				49FE11E42D32C3240018C3DE /* Advanced Toast */,
 				490DF5C72BC1E70B005E0F93 /* Feature-Logging-Info.plist */,
 				49D828082BB7327000153786 /* FeatureLoggingApp.swift */,
 				49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */,
@@ -140,7 +147,6 @@
 				49D3C0332CF2D32300608566 /* DocumentDirtySheet.swift */,
 				4930AB8E2BB7348F00C72CA9 /* Helpers.swift */,
 				4930AB8D2BB7348F00C72CA9 /* Themes.swift */,
-				4930AB9A2BB73B3700C72CA9 /* ToastDismissShield.swift */,
 				4930AB8F2BB7348F00C72CA9 /* Types.swift */,
 				499B07022D12539000B90BE7 /* ObservableTypes.swift */,
 				499B07002D1252E600B90BE7 /* SerializeTypes.swift */,
@@ -161,6 +167,26 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		49FE11DF2D32C3240018C3DE /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				49FE11DE2D32C3240018C3DE /* View+Extensions.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		49FE11E42D32C3240018C3DE /* Advanced Toast */ = {
+			isa = PBXGroup;
+			children = (
+				49FE11DF2D32C3240018C3DE /* Extensions */,
+				49FE11E02D32C3240018C3DE /* AdvancedToast.swift */,
+				49FE11E12D32C3240018C3DE /* AdvancedToastModifiers.swift */,
+				49FE11E22D32C3240018C3DE /* AdvancedToastStyle.swift */,
+				49FE11E32D32C3240018C3DE /* AdvancedToastView.swift */,
+			);
+			path = "Advanced Toast";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -179,7 +205,6 @@
 			name = "Feature Logging";
 			packageProductDependencies = (
 				4930AB952BB7354E00C72CA9 /* SystemColors */,
-				4930AB982BB7355A00C72CA9 /* AlertToast */,
 				4925315D2C446FC0003A8D24 /* SwiftUICharts */,
 				49FA95FA2CF195E50074DE7B /* Kingfisher */,
 				49FA95FD2CF198A20074DE7B /* SwiftSoup */,
@@ -214,7 +239,6 @@
 			mainGroup = 49D827FC2BB7327000153786;
 			packageReferences = (
 				4930AB942BB7354E00C72CA9 /* XCRemoteSwiftPackageReference "swiftui-system-colors" */,
-				4930AB972BB7355A00C72CA9 /* XCRemoteSwiftPackageReference "AlertToast" */,
 				4925315C2C446FC0003A8D24 /* XCRemoteSwiftPackageReference "SwiftUICharts" */,
 				49FA95F92CF195E50074DE7B /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				49FA95FC2CF198A20074DE7B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
@@ -261,6 +285,11 @@
 				49D1D4352CFE58D600B90FD1 /* ImageValidationView.swift in Sources */,
 				492531602C446FE4003A8D24 /* StatisticsContentView.swift in Sources */,
 				497891022CFF81BD00A100B4 /* CustomTabView.swift in Sources */,
+				49FE11E52D32C3240018C3DE /* AdvancedToast.swift in Sources */,
+				49FE11E62D32C3240018C3DE /* AdvancedToastView.swift in Sources */,
+				49FE11E72D32C3240018C3DE /* AdvancedToastStyle.swift in Sources */,
+				49FE11E82D32C3240018C3DE /* AdvancedToastModifiers.swift in Sources */,
+				49FE11E92D32C3240018C3DE /* View+Extensions.swift in Sources */,
 				49EBB9D52BC0944300D2AE04 /* ValidationLabel.swift in Sources */,
 				497891042CFF81DD00A100B4 /* WebView.swift in Sources */,
 				499B07052D127F3500B90BE7 /* ContentView.ViewModel.swift in Sources */,
@@ -268,7 +297,6 @@
 				49D22C5B2BBC97BD005ECE84 /* SettingsPane.swift in Sources */,
 				4930AB902BB7348F00C72CA9 /* VersionCheckAppState.swift in Sources */,
 				4930AB932BB7348F00C72CA9 /* Types.swift in Sources */,
-				4930AB9B2BB73B3700C72CA9 /* ToastDismissShield.swift in Sources */,
 				49D3C0322CF2D2E800608566 /* FeatureListRow.swift in Sources */,
 				4930AB922BB7348F00C72CA9 /* Helpers.swift in Sources */,
 				49D828092BB7327000153786 /* FeatureLoggingApp.swift in Sources */,
@@ -346,7 +374,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 64;
+				CURRENT_PROJECT_VERSION = 65;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -499,7 +527,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 64;
+				CURRENT_PROJECT_VERSION = 65;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -532,7 +560,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 64;
+				CURRENT_PROJECT_VERSION = 65;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -598,14 +626,6 @@
 				minimumVersion = 1.2.0;
 			};
 		};
-		4930AB972BB7355A00C72CA9 /* XCRemoteSwiftPackageReference "AlertToast" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/elai950/AlertToast.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.3.9;
-			};
-		};
 		49FA95F92CF195E50074DE7B /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
@@ -634,11 +654,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 4930AB942BB7354E00C72CA9 /* XCRemoteSwiftPackageReference "swiftui-system-colors" */;
 			productName = SystemColors;
-		};
-		4930AB982BB7355A00C72CA9 /* AlertToast */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 4930AB972BB7355A00C72CA9 /* XCRemoteSwiftPackageReference "AlertToast" */;
-			productName = AlertToast;
 		};
 		49FA95FA2CF195E50074DE7B /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;

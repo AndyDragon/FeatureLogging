@@ -183,5 +183,16 @@
                 ]
             }
         ]
+    },
+    {
+        "version": "2.1.65",
+        "notes": [
+            {
+                "date": "January 11, 2025",
+                "notes": [
+                    "Updated the toasting (notification) system"
+                ]
+            }
+        ]
     }
 ]

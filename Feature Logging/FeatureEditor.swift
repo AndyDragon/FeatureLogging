@@ -5,11 +5,10 @@
 //  Created by Andrew Forget on 2024-03-29.
 //
 
-import AlertToast
 import SwiftUI
 
 struct FeatureEditor: View {
-    private var toastManager: ContentView.ToastManager
+    private var viewModel: ContentView.ViewModel
     private var selectedPage: ObservablePage
     @Bindable private var selectedFeature: ObservableFeatureWrapper
     @State private var focusedField: FocusState<FocusField?>.Binding
@@ -26,7 +25,7 @@ struct FeatureEditor: View {
     private let labelWidth: CGFloat = 108
 
     init(
-        _ toastManager: ContentView.ToastManager,
+        _ viewModel: ContentView.ViewModel,
         _ selectedPage: ObservablePage,
         _ selectedFeature: ObservableFeatureWrapper,
         _ focusedField: FocusState<FocusField?>.Binding,
@@ -35,7 +34,7 @@ struct FeatureEditor: View {
         _ updateList: @escaping () -> Void,
         _ showDownloaderView: @escaping () -> Void
     ) {
-        self.toastManager = toastManager
+        self.viewModel = viewModel
         self.selectedPage = selectedPage
         self.selectedFeature = selectedFeature
         self.focusedField = focusedField
@@ -495,7 +494,7 @@ struct FeatureEditor: View {
 
                     Button(action: {
                         copyToClipboard("\(includeHash ? "#" : "")click_\(selectedPage.name)_\(selectedFeature.feature.userAlias)")
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "tag.fill")
@@ -506,7 +505,7 @@ struct FeatureEditor: View {
                     .focusable()
                     .onKeyPress(.space) {
                         copyToClipboard("\(includeHash ? "#" : "")click_\(selectedPage.name)_\(selectedFeature.feature.userAlias)")
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
                         return .handled
                     }
                 }
@@ -606,7 +605,7 @@ struct FeatureEditor: View {
 
                     Button(action: {
                         copyToClipboard("\(includeHash ? "#" : "")click_featured_\(selectedFeature.feature.userAlias)")
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the hub feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the hub feature tag for the user to the clipboard")
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "tag.fill")
@@ -617,7 +616,7 @@ struct FeatureEditor: View {
                     .focusable()
                     .onKeyPress(.space) {
                         copyToClipboard("\(includeHash ? "#" : "")click_featured_\(selectedFeature.feature.userAlias)")
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the hub feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the hub feature tag for the user to the clipboard")
                         return .handled
                     }
                 }
@@ -730,7 +729,7 @@ struct FeatureEditor: View {
                         copyToClipboard(
                             "\(includeHash ? "#" : "")snap_\(selectedPage.pageName ?? selectedPage.name)_\(selectedFeature.feature.userAlias)"
                         )
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard")
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "tag.fill")
@@ -743,7 +742,7 @@ struct FeatureEditor: View {
                         copyToClipboard(
                             "\(includeHash ? "#" : "")snap_\(selectedPage.pageName ?? selectedPage.name)_\(selectedFeature.feature.userAlias)"
                         )
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard")
                         return .handled
                     }
 
@@ -751,7 +750,7 @@ struct FeatureEditor: View {
                         copyToClipboard(
                             "\(includeHash ? "#" : "")raw_\(selectedPage.pageName ?? selectedPage.name)_\(selectedFeature.feature.userAlias)"
                         )
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard")
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "tag.fill")
@@ -764,7 +763,7 @@ struct FeatureEditor: View {
                         copyToClipboard(
                             "\(includeHash ? "#" : "")raw_\(selectedPage.pageName ?? selectedPage.name)_\(selectedFeature.feature.userAlias)"
                         )
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard")
                         return .handled
                     }
                 }
@@ -890,7 +889,7 @@ struct FeatureEditor: View {
 
                     Button(action: {
                         copyToClipboard("\(includeHash ? "#" : "")snap_featured_\(selectedFeature.feature.userAlias)")
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard")
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "tag.fill")
@@ -901,13 +900,13 @@ struct FeatureEditor: View {
                     .focusable()
                     .onKeyPress(.space) {
                         copyToClipboard("\(includeHash ? "#" : "")snap_featured_\(selectedFeature.feature.userAlias)")
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard")
                         return .handled
                     }
 
                     Button(action: {
                         copyToClipboard("\(includeHash ? "#" : "")raw_featured_\(selectedFeature.feature.userAlias)")
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard")
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "tag.fill")
@@ -918,7 +917,7 @@ struct FeatureEditor: View {
                     .focusable()
                     .onKeyPress(.space) {
                         copyToClipboard("\(includeHash ? "#" : "")raw_featured_\(selectedFeature.feature.userAlias)")
-                        toastManager.showCompletedToast("Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard")
                         return .handled
                     }
                 }

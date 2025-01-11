@@ -5,13 +5,11 @@
 //  Created by Andrew Forget on 2024-01-03.
 //
 
-import AlertToast
 import CloudKit
 import SwiftUI
 
 struct ScriptContentView: View {
     private var viewModel: ContentView.ViewModel
-    private var toastManager: ContentView.ToastManager
     private var selectedPage: ObservablePage
     private var selectedFeature: ObservableFeatureWrapper
     @ObservedObject private var featureScriptPlaceholders: PlaceholderList
@@ -55,7 +53,6 @@ struct ScriptContentView: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ toastManager: ContentView.ToastManager,
         _ selectedPage: ObservablePage,
         _ selectedFeature: ObservableFeatureWrapper,
         _ featureScriptPlaceholders: PlaceholderList,
@@ -66,7 +63,6 @@ struct ScriptContentView: View {
         _ navigateToNextFeature: @escaping (_ forward: Bool) -> Void
     ) {
         self.viewModel = viewModel
-        self.toastManager = toastManager
         self.selectedPage = selectedPage
         self.selectedFeature = selectedFeature
         self.featureScriptPlaceholders = featureScriptPlaceholders
@@ -248,7 +244,7 @@ struct ScriptContentView: View {
                                 force: force,
                                 withPlaceholders: withPlaceholders)
                             {
-                                toastManager.showCompletedToast(
+                                viewModel.showSuccessToast(
                                     "Copied",
                                     String {
                                         "Copied the feature script\(withPlaceholders ? " with placeholders" : "") "
@@ -277,7 +273,7 @@ struct ScriptContentView: View {
                                 force: force,
                                 withPlaceholders: withPlaceholders)
                             {
-                                toastManager.showCompletedToast(
+                                viewModel.showSuccessToast(
                                     "Copied",
                                     String {
                                         "Copied the comment script\(withPlaceholders ? " with placeholders" : "") "
@@ -306,7 +302,7 @@ struct ScriptContentView: View {
                                 force: force,
                                 withPlaceholders: withPlaceholders)
                             {
-                                toastManager.showCompletedToast(
+                                viewModel.showSuccessToast(
                                     "Copied",
                                     String {
                                         "Copied the original script\(withPlaceholders ? " with placeholders" : "") "
@@ -336,7 +332,7 @@ struct ScriptContentView: View {
                         canCopy: canCopyNewMembershipScript,
                         copy: {
                             copyToClipboard(newMembershipScript)
-                            toastManager.showCompletedToast(
+                            viewModel.showSuccessToast(
                                 "Copied",
                                 "Copied the new membership script to the clipboard")
                         },
@@ -391,7 +387,7 @@ struct ScriptContentView: View {
                             break
                         }
                         let suffix = copiedSuffix.isEmpty ? "" : " \(copiedSuffix)"
-                        toastManager.showCompletedToast(
+                        viewModel.showSuccessToast(
                             "Copied",
                             "Copied the \(scriptName) script\(suffix) to the clipboard")
                     })
@@ -415,7 +411,7 @@ struct ScriptContentView: View {
                         .padding(4)
                     }
                     .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
-                    .disabled(toastManager.isShowingAnyToast)
+                    .disabled(viewModel.hasModalToasts)
                 }
 
                 Button(action: {
@@ -434,7 +430,7 @@ struct ScriptContentView: View {
                     .padding(4)
                 }
                 .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                .disabled(toastManager.isShowingAnyToast)
+                .disabled(viewModel.hasModalToasts)
 
                 if viewModel.pickedFeatures.count >= 2 {
                     Button(action: {
@@ -454,10 +450,9 @@ struct ScriptContentView: View {
                         .padding(4)
                     }
                     .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
-                    .disabled(toastManager.isShowingAnyToast)
+                    .disabled(viewModel.hasModalToasts)
                 }
             }
-            .allowsHitTesting(!toastManager.isShowingAnyToast)
         }
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)

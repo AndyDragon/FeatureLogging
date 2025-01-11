@@ -5,7 +5,6 @@
 //  Created by Andrew Forget on 2024-07-12.
 //
 
-import AlertToast
 import SwiftUI
 import SwiftUICharts
 
@@ -17,7 +16,7 @@ struct LogFile {
 struct StatisticsContentView: View {
     @Environment(\.self) var environment
 
-    private var toastManager: ContentView.ToastManager
+    private var viewModel: ContentView.ViewModel
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var hideStatisticsView: () -> Void
 
@@ -37,11 +36,11 @@ struct StatisticsContentView: View {
     private let languagePrefix = Locale.preferredLanguageCode
 
     init(
-        _ toastManager: ContentView.ToastManager,
+        _ viewModel: ContentView.ViewModel,
         _ focusedField: FocusState<FocusField?>.Binding,
         _ hideStatisticsView: @escaping () -> Void
     ) {
-        self.toastManager = toastManager
+        self.viewModel = viewModel
         self.focusedField = focusedField
         self.hideStatisticsView = hideStatisticsView
     }
@@ -236,9 +235,8 @@ struct StatisticsContentView: View {
                     .padding(4)
                 }
                 .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                .disabled(toastManager.isShowingAnyToast)
+                .disabled(viewModel.hasModalToasts)
             }
-            .allowsHitTesting(!toastManager.isShowingAnyToast)
         }
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.BackgroundColor)

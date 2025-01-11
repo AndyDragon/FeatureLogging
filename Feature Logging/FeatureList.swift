@@ -5,23 +5,19 @@
 //  Created by Andrew Forget on 2024-12-18.
 //
 
-import AlertToast
 import SwiftUI
 
 struct FeatureList: View {
     private var viewModel: ContentView.ViewModel
-    private var toastManager: ContentView.ToastManager
     private var showScriptView: () -> Void
 
     @State private var hoveredFeature: UUID? = nil
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ toastManager: ContentView.ToastManager,
         _ showScriptView: @escaping () -> Void
     ) {
         self.viewModel = viewModel
-        self.toastManager = toastManager
         self.showScriptView = showScriptView
     }
 
@@ -30,7 +26,6 @@ struct FeatureList: View {
             ForEach(viewModel.sortedFeatures, id: \.self) { feature in
                 FeatureListRow(
                     viewModel,
-                    toastManager,
                     feature,
                     showScriptView
                 )

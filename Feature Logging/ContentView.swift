@@ -5,7 +5,6 @@
 //  Created by Andrew Forget on 2024-03-29.
 //
 
-import AlertToast
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -41,7 +40,6 @@ struct ContentView: View {
     @Environment(\.openURL) private var openURL
 
     @State private var viewModel = ViewModel()
-    @State private var toastManager = ToastManager()
     @FocusState private var focusedField: FocusField?
 
     @ObservedObject var featureScriptPlaceholders = PlaceholderList()
@@ -101,7 +99,6 @@ struct ContentView: View {
                 if isShowingScriptView {
                     ScriptContentView(
                         viewModel,
-                        toastManager,
                         viewModel.selectedPage!,
                         viewModel.selectedFeature!,
                         featureScriptPlaceholders,
@@ -115,7 +112,6 @@ struct ContentView: View {
                     if isShowingImageValidationView {
                         ImageValidationView(
                             viewModel,
-                            toastManager,
                             $focusedField,
                             $imageValidationImageUrl,
                             { isShowingImageValidationView = false },
@@ -124,7 +120,6 @@ struct ContentView: View {
                     } else {
                         PostDownloaderView(
                             viewModel,
-                            toastManager,
                             viewModel.selectedPage!,
                             viewModel.selectedFeature!,
                             $focusedField,
@@ -138,14 +133,13 @@ struct ContentView: View {
                     }
                 } else if isShowingStatisticsView {
                     StatisticsContentView(
-                        toastManager,
+                        viewModel,
                         $focusedField,
                         { commandModel.showStatistics = false }
                     )
                 } else {
                     MainContentView(
                         viewModel,
-                        toastManager,
                         $logURL,
                         $focusedField,
                         $logDocument,
@@ -227,15 +221,12 @@ struct ContentView: View {
                     .fileExporterFilenameLabel("Save report as: ")
                     .fileDialogConfirmationLabel("Save report")
             }
-            .allowsHitTesting(!toastManager.isShowingAnyToast)
-            ToastDismissShield(toastManager)
         }
 #if TESTING
         .navigationTitle("Feature Logging v2.1 - Script Testing\(titleSuffix)")
 #else
         .navigationTitle("Feature Logging v2.1\(titleSuffix)")
 #endif
-        .blur(radius: toastManager.isShowingAnyToast ? 4 : 0)
         .frame(minWidth: 1024, minHeight: 720)
         .background(Color.BackgroundColor)
         .onChange(of: commandModel.newLog) {
@@ -296,7 +287,13 @@ struct ContentView: View {
         }
         .onChange(of: commandModel.reloadPageCatalog) {
             if !viewModel.features.isEmpty {
-                toastManager.showFailureToast("Cannot load pages", "Cannot reload pages while there are features")
+                viewModel.showToast(
+                    .alert,
+                    "Cannot load pages",
+                    "Cannot reload pages while there are features",
+                    modal: false,
+                    blocking: false
+                )
             } else {
                 viewModel.loadedCatalogs = LoadedCatalogs()
                 Task {
@@ -306,17 +303,23 @@ struct ContentView: View {
         }
         .onChange(of: appState.isShowingVersionAvailableToast.wrappedValue) {
             if appState.isShowingVersionAvailableToast.wrappedValue {
-                showToastWithCompletion(
-                    .systemImage("exclamationmark.triangle.fill", .yellow),
+                viewModel.dismissAllNonBlockingToasts()
+                viewModel.showToast(
+                    .alert,
                     "New version available",
                     getVersionSubTitle(),
-                    .LongFailure,
-                    {
-                        if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
+                    width: 720,
+                    buttonTitle: "Download",
+                    onButtonTapped: {
+                        if let url = URL(string: "https://vero.andydragon.com/app/featurelogging/macInstall_v2") {
                             openURL(url)
+                            let terminationTask = DispatchWorkItem {
+                                NSApplication.shared.terminate(nil)
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: terminationTask)
                         }
                     },
-                    {
+                    onDismissed: {
                         appState.resetCheckingForUpdates()
                     }
                 )
@@ -324,19 +327,21 @@ struct ContentView: View {
         }
         .onChange(of: appState.isShowingVersionRequiredToast.wrappedValue) {
             if appState.isShowingVersionRequiredToast.wrappedValue {
-                showToastWithCompletion(
-                    .systemImage("xmark.octagon.fill", .red),
+                viewModel.dismissAllNonBlockingToasts()
+                viewModel.showToast(
+                    .fatal,
                     "New version required",
                     getVersionSubTitle(),
-                    .Blocking,
-                    {
-                        if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
+                    width: 720,
+                    buttonTitle: "Download",
+                    onButtonTapped: {
+                        if let url = URL(string: "https://vero.andydragon.com/app/featurelogging/macInstall_v2") {
                             openURL(url)
-                            NSApplication.shared.terminate(nil)
+                            let terminationTask = DispatchWorkItem {
+                                NSApplication.shared.terminate(nil)
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: terminationTask)
                         }
-                    },
-                    {
-                        appState.resetCheckingForUpdates()
                     }
                 )
             }
@@ -358,18 +363,23 @@ struct ContentView: View {
                     documentDirtyAfterDismissAction = {}
                 })
         }
-        .modifier(ToastModifier(toastManager))
+        .advancedToastView(toasts: $viewModel.toastViews)
         .onAppear(perform: {
             setTheme(theme)
             DocumentManager.default.registerReceiver(receiver: self)
         })
         .navigationSubtitle(viewModel.isDirty ? "edited" : "")
         .task {
-            toastManager.showProgressToast = showProgressToast
-            toastManager.showToast = showToast
-            toastManager.showToastWithCompletion = showToastWithCompletion
-
+            let loadingPagesToast = viewModel.showToast(
+                .progress,
+                "Loading pages...",
+                "Loading the page catalog from the server"
+            )
             await loadPageCatalog()
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                viewModel.dismissToast(loadingPagesToast)
+            }
         }
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
     }
@@ -509,20 +519,23 @@ struct ContentView: View {
                 debugPrint(error.localizedDescription)
             }
         } catch {
-            toastManager.showToastWithCompletion(
-                .error(.red),
+            viewModel.dismissAllNonBlockingToasts(includeProgress: true)
+            viewModel.showToast(
+                .fatal,
                 "Failed to load pages",
                 "The application requires the catalog to perform its operations: \(error.localizedDescription)\n\n" +
-                "Click here to try again immediately or wait \(ToastDuration.CatalogLoadFailure.rawValue) seconds to automatically try again.",
-                .CatalogLoadFailure,
-                {
+                "Click here to try again immediately or wait 15 seconds to automatically try again.",
+                duration: 15,
+                width: 720,
+                buttonTitle: "Retry",
+                onButtonTapped: {
                     DispatchQueue.main.async {
                         Task {
                             await loadPageCatalog()
                         }
                     }
                 },
-                {
+                onDismissed: {
                     DispatchQueue.main.async {
                         Task {
                             await loadPageCatalog()
@@ -552,7 +565,7 @@ struct ContentView: View {
                     viewModel.features = loadedLog.getFeatures()
                 }
                 logURL = file
-                toastManager.showCompletedToast(
+                viewModel.showSuccessToast(
                     "Loaded features",
                     "Loaded \(viewModel.sortedFeatures.count) features from the log file")
             } catch {
@@ -573,7 +586,7 @@ struct ContentView: View {
         do {
             let jsonData = Data(logDocument.text.replacingOccurrences(of: "\\/", with: "/").utf8)
             try jsonData.write(to: file)
-            toastManager.showCompletedToast(
+            viewModel.showSuccessToast(
                 "Saved features",
                 "Saved \(viewModel.sortedFeatures.count) features to the log file")
         } catch {
@@ -624,244 +637,5 @@ extension ContentView: DocumentManagerDelegate {
             viewModel.isShowingDocumentDirtyAlert.toggle()
         }
         return !viewModel.isDirty
-    }
-}
-
-extension ContentView {
-    struct ToastModifier: ViewModifier {
-        @Bindable private var toastManager: ToastManager
-
-        init(
-            _ toastManager: ToastManager
-        ) {
-            self.toastManager = toastManager
-        }
-
-        func body(content: Content) -> some View {
-            content
-                .toast(
-                    isPresenting: $toastManager.isShowingToast,
-                    duration: 0,
-                    tapToDismiss: true,
-                    offsetY: 32,
-                    alert: {
-                        AlertToast(
-                            displayMode: .hud,
-                            type: toastManager.toastType,
-                            title: toastManager.toastText,
-                            subTitle: toastManager.toastSubTitle)
-                    },
-                    onTap: toastManager.toastTapAction,
-                    completion: toastManager.toastCompletionAction
-                )
-                .toast(
-                    isPresenting: $toastManager.isShowingProgressToast,
-                    duration: 0,
-                    tapToDismiss: false,
-                    offsetY: 32,
-                    alert: {
-                        AlertToast(
-                            displayMode: .hud,
-                            type: .loading,
-                            title: toastManager.progressToastText)
-                    }
-                )
-        }
-    }
-
-    @Observable
-    class ToastManager {
-        var isShowingToast = false
-        var isShowingProgressToast = false
-        var toastId: UUID?
-        var toastType: AlertToast.AlertType = .regular
-        var toastText = ""
-        var progressToastText = ""
-        var toastSubTitle = ""
-        var toastDuration = 3.0
-        var toastTapAction: () -> Void = {}
-        var toastCompletionAction: () -> Void = {}
-        var isShowingAnyToast: Bool {
-            isShowingToast || isShowingProgressToast
-        }
-
-        var showProgressToast: (
-            _ text: String
-        ) -> Void = {_ in }
-
-        var showToast: (
-            _ type: AlertToast.AlertType,
-            _ text: String,
-            _ subTitle: String,
-            _ duration: ToastDuration,
-            _ onTap: @escaping () -> Void
-        ) -> Void = {_, _, _, _, _ in }
-
-        var showToastWithCompletion: (
-            _ type: AlertToast.AlertType,
-            _ text: String,
-            _ subTitle: String,
-            _ duration: ToastDuration,
-            _ onTap: @escaping () -> Void,
-            _ onCompletion: @escaping () -> Void
-        ) -> Void = {_, _, _, _, _, _ in }
-
-        func showCompletedToast(
-            _ text: String,
-            _ subTitle: String = "",
-            _ duration: ToastDuration = .Success,
-            _ onTap: @escaping () -> Void = {}
-        ) -> Void {
-            showToast(.complete(.green), text, subTitle, duration, onTap)
-        }
-
-        func showFailureToast(
-            _ text: String,
-            _ subTitle: String = "",
-            _ duration: ToastDuration = .Failure,
-            _ onTap: @escaping () -> Void = {}
-        ) {
-            showToast(.error(.red), text, subTitle, duration, onTap)
-        }
-
-        func showBlockingFailureToast(
-            _ text: String,
-            _ subTitle: String = "",
-            _ onTap: @escaping () -> Void = {}
-        ) {
-            showToast(.error(.red), text, subTitle, .Blocking, onTap)
-        }
-
-        func hideAnyToast(_ onlyProgressToast: Bool = false) {
-            if isShowingToast && !onlyProgressToast {
-                toastId = nil
-                isShowingToast.toggle()
-            }
-            if isShowingProgressToast {
-                isShowingProgressToast.toggle()
-            }
-        }
-    }
-
-    func showProgressToast(
-        _ text: String
-    ) {
-        if !toastManager.isShowingProgressToast {
-            withAnimation {
-                toastManager.progressToastText = text
-                focusedField = nil
-                toastManager.isShowingProgressToast.toggle()
-            }
-        }
-    }
-
-    func showToast(
-        _ type: AlertToast.AlertType,
-        _ text: String,
-        _ subTitle: String = "",
-        _ duration: ToastDuration = .Success,
-        _ onTap: @escaping () -> Void = {}
-    ) {
-        if toastManager.isShowingToast {
-            toastManager.toastId = nil
-            toastManager.isShowingToast.toggle()
-        }
-
-        let savedFocusedField = focusedField
-
-        let cleanup: (_ : Bool) -> Void = { toggle in
-            toastManager.toastId = nil
-            if toggle {
-                toastManager.isShowingToast.toggle()
-            }
-            focusedField = savedFocusedField
-        }
-
-        withAnimation {
-            toastManager.toastType = type
-            toastManager.toastText = text
-            toastManager.toastSubTitle = subTitle
-            toastManager.toastTapAction = {
-                cleanup(false)
-                onTap()
-            }
-            toastManager.toastCompletionAction = {
-                cleanup(false)
-            }
-            focusedField = nil
-            toastManager.toastId = UUID()
-            toastManager.isShowingToast.toggle()
-        }
-
-        if duration != .Blocking {
-            let expectedToastId = toastManager.toastId
-            DispatchQueue.main.asyncAfter(
-                deadline: .now() + .seconds(duration.rawValue),
-                execute: {
-                    if toastManager.isShowingToast && toastManager.toastId == expectedToastId {
-                        cleanup(true)
-                    }
-                })
-        }
-    }
-
-    func showToastWithCompletion(
-        _ type: AlertToast.AlertType,
-        _ text: String,
-        _ subTitle: String = "",
-        _ duration: ToastDuration = .Success,
-        _ onTap: @escaping () -> Void = {},
-        _ onCompletion: @escaping () -> Void = {}
-    ) {
-        if toastManager.isShowingToast {
-            toastManager.toastId = nil
-            toastManager.isShowingToast.toggle()
-        }
-
-        let savedFocusedField = focusedField
-
-        let cleanup: (_ : Bool) -> Void = { toggle in
-            toastManager.toastId = nil
-            if toggle {
-                toastManager.isShowingToast.toggle()
-            }
-            focusedField = savedFocusedField
-        }
-
-        withAnimation {
-            toastManager.toastType = type
-            toastManager.toastText = text
-            toastManager.toastSubTitle = subTitle
-            toastManager.toastTapAction = {
-                cleanup(false)
-                onTap()
-            }
-            toastManager.toastCompletionAction = {
-                cleanup(false)
-                onCompletion()
-            }
-            focusedField = nil
-            toastManager.toastId = UUID()
-            toastManager.isShowingToast.toggle()
-        }
-
-        if duration != .Blocking {
-            let expectedToastId = toastManager.toastId
-            DispatchQueue.main.asyncAfter(
-                deadline: .now() + .seconds(duration.rawValue),
-                execute: {
-                    if toastManager.isShowingToast && toastManager.toastId == expectedToastId {
-                        cleanup(true)
-                    }
-                })
-        }
-    }
-
-    enum ToastDuration: Int {
-        case Blocking = 0
-        case Success = 1
-        case Failure = 5
-        case CatalogLoadFailure = 10
-        case LongFailure = 30
     }
 }

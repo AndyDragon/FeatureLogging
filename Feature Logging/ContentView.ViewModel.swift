@@ -10,6 +10,9 @@ import SwiftUI
 extension ContentView {
     @Observable
     class ViewModel {
+        init() {}
+
+        // MARK: Catalog and Features
         var loadedCatalogs = LoadedCatalogs()
         var selectedPage: ObservablePage?
         var selectedPageStaffLevel: StaffLevelCase = .mod
@@ -26,8 +29,7 @@ extension ContentView {
         private(set) var isDirty = false
         var isShowingDocumentDirtyAlert = false
 
-        init() {}
-
+        // MARK: Document
         func markDocumentDirty() {
             if !isDirty {
                 isDirty = true
@@ -40,6 +42,7 @@ extension ContentView {
             }
         }
 
+        // MARK: Reports
         func generateReport(
             _ personalMessageFormat: String,
             _ personalMessageFirstFormat: String
@@ -288,6 +291,70 @@ extension ContentView {
                 return text
             }
             return ""
+        }
+
+        // MARK: Toasts
+        var toastViews = [AdvancedToast]()
+        var hasModalToasts: Bool {
+            return toastViews.count(where: { $0.modal }) > 0
+        }
+
+        func dismissToast(
+            _ toast: AdvancedToast
+        ) {
+            toastViews.removeAll(where: { $0 == toast })
+        }
+
+        func dismissAllNonBlockingToasts(includeProgress: Bool = false) {
+            toastViews.removeAll(where: { !$0.blocking })
+            if includeProgress {
+                toastViews.removeAll(where: { $0.type == .progress })
+            }
+        }
+
+        @discardableResult func showToast(
+            _ type: AdvancedToastStyle,
+            _ title: String,
+            _ message: String,
+            duration: Double? = nil,
+            modal: Bool? = nil,
+            blocking: Bool? = nil,
+            width: CGFloat? = nil,
+            buttonTitle: String? = nil,
+            onButtonTapped: (() -> Void)? = nil,
+            onDismissed: (() -> Void)? = nil
+        ) -> AdvancedToast {
+            let advancedToastView = AdvancedToast(
+                type: type,
+                title: title,
+                message: message,
+                duration: duration,
+                modal: modal,
+                blocking: blocking,
+                width: width,
+                buttonTitle: buttonTitle,
+                onButtonTapped: onButtonTapped,
+                onDismissed: onDismissed
+            )
+            toastViews.append(advancedToastView)
+            while toastViews.count > 5 {
+                toastViews.remove(at: 0)
+            }
+            return advancedToastView
+        }
+
+        @discardableResult func showSuccessToast(
+            _ title: String,
+            _ message: String
+        ) -> AdvancedToast {
+            return showToast(.success, title, message)
+        }
+
+        @discardableResult func showInfoToast(
+            _ title: String,
+            _ message: String
+        ) -> AdvancedToast {
+            return showToast(.info, title, message)
         }
     }
 

@@ -5,7 +5,6 @@
 //  Created by Andrew Forget on 2024-11-23.
 //
 
-import AlertToast
 import Kingfisher
 import SwiftSoup
 import SwiftUI
@@ -19,7 +18,7 @@ struct PostDownloaderImageView: View {
     @State private var fileExtension = ".png"
     @State private var scale: Float = 0.000000001
 
-    var toastManager: ContentView.ToastManager
+    var viewModel: ContentView.ViewModel
     var imageUrl: URL
     var userName: String
     var index: Int
@@ -102,7 +101,7 @@ struct PostDownloaderImageView: View {
                     .frame(width: 10)
                 Button(action: {
                     copyToClipboard(imageUrl.absoluteString)
-                    toastManager.showCompletedToast("Copied to clipboard", "Copied the image URL to the clipboard")
+                    viewModel.showSuccessToast("Copied to clipboard", "Copied the image URL to the clipboard")
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "pencil.and.list.clipboard")
@@ -113,7 +112,7 @@ struct PostDownloaderImageView: View {
                 .focusable()
                 .onKeyPress(.space) {
                     copyToClipboard(imageUrl.absoluteString)
-                    toastManager.showCompletedToast("Copied to clipboard", "Copied the image URL to the clipboard")
+                    viewModel.showSuccessToast("Copied to clipboard", "Copied the image URL to the clipboard")
                     return .handled
                 }
                 Spacer()
@@ -144,15 +143,11 @@ struct PostDownloaderImageView: View {
             }
             let fileURL = folderURL.appendingPathComponent("\(userName).\(fileExtension)")
             try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
-            toastManager.showCompletedToast(
-                "Saved",
-                "Saved the image to file \(fileURL)")
+            viewModel.showSuccessToast("Saved", "Saved the image to file \(fileURL)")
         } catch {
             debugPrint("Failed to save file")
             debugPrint(error.localizedDescription)
-            toastManager.showFailureToast(
-                "Failed to save",
-                "Failed to saved the image to your Pictures folder - \(error.localizedDescription)")
+            viewModel.showToast(.error, "Failed to save", "Failed to saved the image to your Pictures folder - \(error.localizedDescription)")
         }
     }
 }

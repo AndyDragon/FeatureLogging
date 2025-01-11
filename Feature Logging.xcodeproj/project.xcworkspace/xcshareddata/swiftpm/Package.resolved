@@ -1,15 +1,6 @@
 {
-  "originHash" : "d7796da19a103007948905b52c45146727ebf4ecb964885b61920af57b720f62",
+  "originHash" : "6f166af41da4918065bfe5ad07a45631deca056c5c20f67a794faa7c156741a3",
   "pins" : [
-    {
-      "identity" : "alerttoast",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/elai950/AlertToast.git",
-      "state" : {
-        "revision" : "b39252eacd159904afd7d718bba0afabb87f2f2f",
-        "version" : "1.3.9"
-      }
-    },
     {
       "identity" : "kingfisher",
       "kind" : "remoteSourceControl",

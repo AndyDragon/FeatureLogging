@@ -5,12 +5,10 @@
 //  Created by Andrew Forget on 2024-11-23.
 //
 
-import AlertToast
 import SwiftUI
 
 struct FeatureListRow: View {
     private var viewModel: ContentView.ViewModel
-    private var toastManager: ContentView.ToastManager
     @Bindable private var feature: ObservableFeature
     private var showScriptView: () -> Void
 
@@ -27,12 +25,10 @@ struct FeatureListRow: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ toastManager: ContentView.ToastManager,
         _ feature: ObservableFeature,
         _ showScriptView: @escaping () -> Void
     ) {
         self.viewModel = viewModel
-        self.toastManager = toastManager
         self.feature = feature
         self.showScriptView = showScriptView
     }
@@ -273,29 +269,28 @@ struct FeatureListRow: View {
             .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
         copyToClipboard(fullPersonalMessage)
         showingMessageEditor.toggle()
-        toastManager.showCompletedToast("Copied to clipboard", "The personal message was copied to the clipboard")
+        viewModel.showSuccessToast("Copied to clipboard", "The personal message was copied to the clipboard")
     }
 
     private func launchVeroScripts() {
         if feature.photoFeaturedOnPage {
-            toastManager.showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "That photo has already been featured on this page", .Blocking, {})
+            viewModel.showToast(.error, "Cannot feature photo", "That photo has already been featured on this page")
             return
         }
         if feature.tinEyeResults == .matchFound {
-            toastManager.showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo had a TinEye match", .Blocking, {})
+            viewModel.showToast(.error, "Cannot feature photo", "This photo had a TinEye match")
             return
         }
         if feature.aiCheckResults == .ai {
-            toastManager.showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "This photo was flagged as AI", .Blocking, {})
+            viewModel.showToast(.error, "Cannot feature photo", "This photo was flagged as AI")
             return
         }
         if feature.tooSoonToFeatureUser {
-            toastManager.showToast(.systemImage("exclamationmark.octagon.fill", .red), "Cannot feature photo", "The user has been featured too recently", .Blocking, {})
+            viewModel.showToast(.error, "Cannot feature photo", "The user has been featured too recently")
             return
         }
         if !feature.isPicked {
-            toastManager.showToast(
-                .systemImage("exclamationmark.triangle.fill", .yellow), "Should not feature photo", "The photo is not marked as picked, mark the photo as picked and try again", .Blocking, {})
+            viewModel.showToast(.alert, "Should not feature photo", "The photo is not marked as picked, mark the photo as picked and try again")
             return
         }
 
