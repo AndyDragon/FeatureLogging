@@ -1038,6 +1038,7 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(SnapOrClickHubVisibility));
                     OnPropertyChanged(nameof(HasSelectedPage));
                     OnPropertyChanged(nameof(PageTags));
+                    OnPropertyChanged(nameof(FeaturedCounts));
                     if (SelectedPage != null)
                     {
                         excludedTags = UserSettings.Get(nameof(ExcludedTags) + ":" + SelectedPage.Id, "");

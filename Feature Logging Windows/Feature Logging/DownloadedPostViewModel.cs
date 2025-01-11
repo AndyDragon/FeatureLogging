@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Notification.Wpf;
+using Newtonsoft.Json.Linq;
 
 namespace FeatureLogging
 {
@@ -140,10 +141,10 @@ namespace FeatureLogging
                                     if (scriptText.StartsWith("window.__staticRouterHydrationData = JSON.parse(\"") && scriptText.EndsWith("\");"))
                                     {
                                         var prefixLength = "window.__staticRouterHydrationData = JSON.parse(\"".Length;
-                                        var jsonString = scriptText
-                                            .Substring(prefixLength, scriptText.Length - (prefixLength + 3))
-                                            .Replace("\\\"", "\"")
-                                            .Replace("\\\"", "\"");
+                                        var jsonString = string.Concat("\"", scriptText
+                                            .AsSpan(prefixLength, scriptText.Length - (prefixLength + 3)), "\"");
+                                        // Use JToken.Parse to convert from JSON encoded as a JSON string to the JSON.
+                                        jsonString = (string)JToken.Parse(jsonString)!;
                                         var postData = PostData.FromJson(jsonString);
                                         if (postData != null)
                                         {
