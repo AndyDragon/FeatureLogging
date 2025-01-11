@@ -301,51 +301,6 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: appState.isShowingVersionAvailableToast.wrappedValue) {
-            if appState.isShowingVersionAvailableToast.wrappedValue {
-                viewModel.dismissAllNonBlockingToasts()
-                viewModel.showToast(
-                    .alert,
-                    "New version available",
-                    getVersionSubTitle(),
-                    width: 720,
-                    buttonTitle: "Download",
-                    onButtonTapped: {
-                        if let url = URL(string: "https://vero.andydragon.com/app/featurelogging/macInstall_v2") {
-                            openURL(url)
-                            let terminationTask = DispatchWorkItem {
-                                NSApplication.shared.terminate(nil)
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: terminationTask)
-                        }
-                    },
-                    onDismissed: {
-                        appState.resetCheckingForUpdates()
-                    }
-                )
-            }
-        }
-        .onChange(of: appState.isShowingVersionRequiredToast.wrappedValue) {
-            if appState.isShowingVersionRequiredToast.wrappedValue {
-                viewModel.dismissAllNonBlockingToasts()
-                viewModel.showToast(
-                    .fatal,
-                    "New version required",
-                    getVersionSubTitle(),
-                    width: 720,
-                    buttonTitle: "Download",
-                    onButtonTapped: {
-                        if let url = URL(string: "https://vero.andydragon.com/app/featurelogging/macInstall_v2") {
-                            openURL(url)
-                            let terminationTask = DispatchWorkItem {
-                                NSApplication.shared.terminate(nil)
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: terminationTask)
-                        }
-                    }
-                )
-            }
-        }
         .sheet(isPresented: $viewModel.isShowingDocumentDirtyAlert) {
             DocumentDirtySheet(
                 isShowing: $viewModel.isShowingDocumentDirtyAlert,
@@ -364,6 +319,9 @@ struct ContentView: View {
                 })
         }
         .advancedToastView(toasts: $viewModel.toastViews)
+        .attachVersionCheckState(viewModel, appState) { url in
+            openURL(url)
+        }
         .onAppear(perform: {
             setTheme(theme)
             DocumentManager.default.registerReceiver(receiver: self)
@@ -406,17 +364,6 @@ struct ContentView: View {
                 theme = newTheme
             }
         }
-    }
-
-    private func getVersionSubTitle() -> String {
-        if appState.isShowingVersionAvailableToast.wrappedValue {
-            return "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) " + "and v\(appState.versionCheckToast.wrappedValue.currentVersion) is available"
-                + "\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click here to open your browser") " + "(this will go away in 10 seconds)"
-        } else if appState.isShowingVersionRequiredToast.wrappedValue {
-            return "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) " + "and v\(appState.versionCheckToast.wrappedValue.currentVersion) is required"
-                + "\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click here to open your browser") " + "or ⌘ + Q to Quit"
-        }
-        return ""
     }
 
     private func updateStaffLevelForPage() {
