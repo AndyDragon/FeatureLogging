@@ -375,6 +375,7 @@ struct ContentView: View {
                 "Loading pages...",
                 "Loading the page catalog from the server"
             )
+
             await loadPageCatalog()
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
