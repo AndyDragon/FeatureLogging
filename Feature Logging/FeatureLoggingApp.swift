@@ -178,7 +178,24 @@ struct Feature_LoggingApp: App {
         
         // About view window with id "about"
         Window("About \(Bundle.main.displayName ?? "Feature Logging")", id: "about") {
-            AboutView()
+            AboutView(packages: [
+                "Kingfisher": [
+                    "Wei Wang ([Github profile](https://github.com/onevcat))"
+                ],
+                "SwiftSoup": [
+                    "Nabil Chatbi ([Github profile](https://github.com/scinfu))"
+                ],
+                "SwiftUICharts": [
+                    "Will Dale ([Github profile](https://github.com/willdale))"
+                ],
+                "SystemColors": [
+                    "Denis ([Github profile](https://github.com/diniska))"
+                ],
+                "ToastView-SwiftUI": [
+                    "Gaurav Tak ([Github profile](https://github.com/gauravtakroro))",
+                    "modified by AndyDragon ([Github profile](https://github.com/AndyDragon))"
+                ]
+            ])
         }
         .defaultPosition(.center)
         .windowResizability(.contentSize)
