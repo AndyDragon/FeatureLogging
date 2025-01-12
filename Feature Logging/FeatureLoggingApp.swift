@@ -9,10 +9,14 @@ import SwiftUI
 
 @main
 struct Feature_LoggingApp: App {
+    @Environment(\.openWindow) private var openWindow
+
     @State var checkingForUpdates = false
     @State var versionCheckResult: VersionCheckResult = .complete
     @State var versionCheckToast = VersionCheckToast()
+
     @ObservedObject var commandModel = AppCommandModel()
+
     @AppStorage(
         "preference_cullingApp",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -45,6 +49,14 @@ struct Feature_LoggingApp: App {
                 }
         }
         .commands {
+            CommandGroup(replacing: CommandGroupPlacement.appInfo) {
+                Button(action: {
+                    // Open the "about" window using the id "about"
+                    openWindow(id: "about")
+                }, label: {
+                    Text("About \(Bundle.main.displayName ?? "Feature Logging")")
+                })
+            }
             CommandGroup(
                 replacing: .appSettings,
                 addition: {
@@ -58,9 +70,9 @@ struct Feature_LoggingApp: App {
                     )
                     .disabled(checkingForUpdates)
                     .keyboardShortcut("u", modifiers: [.command, .control])
-
+                    
                     Divider()
-
+                    
                     Button(
                         action: {
                             commandModel.showStatistics.toggle()
@@ -70,7 +82,7 @@ struct Feature_LoggingApp: App {
                         }
                     )
                     .keyboardShortcut("t", modifiers: [.command])
-
+                    
                     Divider()
                 })
             CommandGroup(replacing: CommandGroupPlacement.newItem) {
@@ -83,7 +95,7 @@ struct Feature_LoggingApp: App {
                     }
                 )
                 .keyboardShortcut("n", modifiers: .command)
-
+                
                 Button(
                     action: {
                         commandModel.openLog.toggle()
@@ -93,9 +105,9 @@ struct Feature_LoggingApp: App {
                     }
                 )
                 .keyboardShortcut("o", modifiers: .command)
-
+                
                 Divider()
-
+                
                 Button(
                     action: {
                         commandModel.saveLog.toggle()
@@ -105,7 +117,7 @@ struct Feature_LoggingApp: App {
                     }
                 )
                 .keyboardShortcut("s", modifiers: .command)
-
+                
                 Button(
                     action: {
                         commandModel.saveReport.toggle()
@@ -115,9 +127,9 @@ struct Feature_LoggingApp: App {
                     }
                 )
                 .keyboardShortcut("s", modifiers: [.command, .shift])
-
+                
                 Divider()
-
+                
                 Button(
                     action: {
                         if cullingApp.isEmpty {
@@ -133,7 +145,7 @@ struct Feature_LoggingApp: App {
                 )
                 .keyboardShortcut("c", modifiers: [.command, .shift])
                 .disabled(cullingApp.isEmpty)
-
+                
                 Button(
                     action: {
                         if aiCheckApp.isEmpty {
@@ -149,9 +161,9 @@ struct Feature_LoggingApp: App {
                 )
                 .keyboardShortcut("a", modifiers: [.command, .shift])
                 .disabled(aiCheckApp.isEmpty)
-
+                
                 Divider()
-
+                
                 Button(
                     action: {
                         commandModel.reloadPageCatalog.toggle()
@@ -163,12 +175,19 @@ struct Feature_LoggingApp: App {
                 .keyboardShortcut("r", modifiers: [.command, .shift])
             }
         }
-
-        #if os(macOS)
-            Settings {
-                SettingsPane()
-            }
-        #endif
+        
+        // About view window with id "about"
+        Window("About \(Bundle.main.displayName ?? "Feature Logging")", id: "about") {
+            AboutView()
+        }
+        .defaultPosition(.center)
+        .windowResizability(.contentSize)
+        
+#if os(macOS)
+        Settings {
+            SettingsPane()
+        }
+#endif
     }
 
     class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {

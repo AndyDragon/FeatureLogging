@@ -135,7 +135,7 @@ extension Bundle {
         return releaseVersionNumberPretty.compare(than, options: .numeric) == .orderedAscending
     }
     var displayName: String? {
-        return infoDictionary?["CFBundleDisplayName"] as? String
+        return infoDictionary?["CFBundleDisplayName"] as? String ?? infoDictionary?["CFBundleName"] as? String
     }
 }
 

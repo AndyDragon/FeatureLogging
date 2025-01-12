@@ -19,6 +19,7 @@
 		495A858B2C36E46F00C112C6 /* ScriptEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495A85862C36E46F00C112C6 /* ScriptEditor.swift */; };
 		495A858D2C36E46F00C112C6 /* NewMembershipEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495A85882C36E46F00C112C6 /* NewMembershipEditor.swift */; };
 		495A858E2C36E46F00C112C6 /* ScriptContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495A85892C36E46F00C112C6 /* ScriptContentView.swift */; };
+		496E91402D33812C006BCEB4 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 496E913F2D33812C006BCEB4 /* AboutView.swift */; };
 		497891022CFF81BD00A100B4 /* CustomTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497891012CFF81BD00A100B4 /* CustomTabView.swift */; };
 		497891042CFF81DD00A100B4 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497891032CFF81DD00A100B4 /* WebView.swift */; };
 		499B07012D1252EE00B90BE7 /* SerializeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499B07002D1252E600B90BE7 /* SerializeTypes.swift */; };
@@ -48,7 +49,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		490DF5C72BC1E70B005E0F93 /* Feature-Logging-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Feature-Logging-Info.plist"; sourceTree = SOURCE_ROOT; };
+		490DF5C72BC1E70B005E0F93 /* Feature-Logging-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Feature-Logging-Info.plist"; sourceTree = SOURCE_ROOT; };
 		4925315F2C446FE4003A8D24 /* StatisticsContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatisticsContentView.swift; sourceTree = "<group>"; };
 		4930AB8C2BB7348F00C72CA9 /* VersionCheckAppState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VersionCheckAppState.swift; sourceTree = "<group>"; };
 		4930AB8D2BB7348F00C72CA9 /* Themes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Themes.swift; sourceTree = "<group>"; };
@@ -60,6 +61,7 @@
 		495A85882C36E46F00C112C6 /* NewMembershipEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewMembershipEditor.swift; sourceTree = "<group>"; };
 		495A85892C36E46F00C112C6 /* ScriptContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptContentView.swift; sourceTree = "<group>"; };
 		495A858F2C36FA4100C112C6 /* testing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = testing.xcconfig; sourceTree = "<group>"; };
+		496E913F2D33812C006BCEB4 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		497891012CFF81BD00A100B4 /* CustomTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabView.swift; sourceTree = "<group>"; };
 		497891032CFF81DD00A100B4 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		499B07002D1252E600B90BE7 /* SerializeTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerializeTypes.swift; sourceTree = "<group>"; };
@@ -123,7 +125,7 @@
 			isa = PBXGroup;
 			children = (
 				49FE11E42D32C3240018C3DE /* Advanced Toast */,
-				490DF5C72BC1E70B005E0F93 /* Feature-Logging-Info.plist */,
+				496E913F2D33812C006BCEB4 /* AboutView.swift */,
 				49D828082BB7327000153786 /* FeatureLoggingApp.swift */,
 				49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */,
 				49D8280A2BB7327000153786 /* ContentView.swift */,
@@ -151,6 +153,7 @@
 				499B07022D12539000B90BE7 /* ObservableTypes.swift */,
 				499B07002D1252E600B90BE7 /* SerializeTypes.swift */,
 				4930AB8C2BB7348F00C72CA9 /* VersionCheckAppState.swift */,
+				490DF5C72BC1E70B005E0F93 /* Feature-Logging-Info.plist */,
 				49D8280C2BB7327200153786 /* Assets.xcassets */,
 				49D828112BB7327200153786 /* Feature_Logging.entitlements */,
 				495A858F2C36FA4100C112C6 /* testing.xcconfig */,
@@ -282,6 +285,7 @@
 				4930AB912BB7348F00C72CA9 /* Themes.swift in Sources */,
 				499B07012D1252EE00B90BE7 /* SerializeTypes.swift in Sources */,
 				49C839B32CF7AB0E00D2AF95 /* PostData.swift in Sources */,
+				496E91402D33812C006BCEB4 /* AboutView.swift in Sources */,
 				49D1D4352CFE58D600B90FD1 /* ImageValidationView.swift in Sources */,
 				492531602C446FE4003A8D24 /* StatisticsContentView.swift in Sources */,
 				497891022CFF81BD00A100B4 /* CustomTabView.swift in Sources */,
