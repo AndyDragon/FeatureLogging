@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftyBeaver
 import UniformTypeIdentifiers
 
 enum ToastDuration: Int {
@@ -61,7 +62,8 @@ struct ContentView: View {
     @State private var isShowingImageValidationView = false
     @State private var shouldScrollFeatureListToSelection = false
 
-    private var appState: VersionCheckAppState
+    private let appState: VersionCheckAppState
+    private let logger = SwiftyBeaver.self
     private var descriptionSuffix: String {
         if let description = viewModel.selectedFeature?.feature.featureDescription {
             if !description.isEmpty {
@@ -188,6 +190,7 @@ struct ContentView: View {
                     ) { result in
                         switch result {
                         case .success(let url):
+                            logger.verbose("Saved the feature log", context: "System")
                             logURL = url
                             viewModel.clearDocumentDirty()
                             documentDirtyAfterSaveAction()
@@ -213,7 +216,7 @@ struct ContentView: View {
                     ) { result in
                         switch result {
                         case .success:
-                            break
+                            logger.verbose("Saved the feature report", context: "System")
                         case .failure(let error):
                             debugPrint(error)
                         }
@@ -236,12 +239,14 @@ struct ContentView: View {
                     viewModel.selectedFeature = nil
                     viewModel.features = [ObservableFeature]()
                     viewModel.clearDocumentDirty()
+                    logger.verbose("New log created", context: "System")
                 }
                 documentDirtyAfterDismissAction = {
                     logURL = nil
                     viewModel.selectedFeature = nil
                     viewModel.features = [ObservableFeature]()
                     viewModel.clearDocumentDirty()
+                    logger.verbose("New log created", context: "System")
                 }
                 documentDirtyAlertConfirmation = "Would you like to save this log file before creating a new log?"
                 viewModel.isShowingDocumentDirtyAlert.toggle()
@@ -250,6 +255,7 @@ struct ContentView: View {
                 viewModel.selectedFeature = nil
                 viewModel.features = [ObservableFeature]()
                 viewModel.clearDocumentDirty()
+                logger.verbose("New log created", context: "System")
             }
         }
         .onChange(of: commandModel.openLog) {
@@ -287,6 +293,7 @@ struct ContentView: View {
         }
         .onChange(of: commandModel.reloadPageCatalog) {
             if !viewModel.features.isEmpty {
+                logger.warning("Could not reload pages with features", context: "System")
                 viewModel.showToast(
                     .alert,
                     "Cannot load pages",
@@ -309,6 +316,7 @@ struct ContentView: View {
                     commandModel.saveLog.toggle()
                 },
                 dismissAction: {
+                    logger.warning("Ignored dirty document", context: "System")
                     documentDirtyAfterDismissAction()
                     documentDirtyAfterSaveAction = {}
                     documentDirtyAfterDismissAction = {}
@@ -354,9 +362,13 @@ struct ContentView: View {
 
     private func setTheme(_ newTheme: Theme) {
         if newTheme == .notSet {
+            logger.verbose("Set theme to nothing", context: "User")
+
             isDarkModeOn = colorScheme == .dark
             Color.isDarkModeOn = colorScheme == .dark
         } else {
+            logger.verbose("Set theme to \(newTheme.rawValue)", context: "User")
+
             if let details = ThemeDetails[newTheme] {
                 Color.currentTheme = details.colorTheme
                 isDarkModeOn = details.darkTheme
@@ -395,6 +407,8 @@ struct ContentView: View {
     }
 
     private func loadPageCatalog() async {
+        logger.verbose("Loading page catalog from server", context: "System")
+
         do {
 #if TESTING
             let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/pages.json")!
@@ -430,8 +444,12 @@ struct ContentView: View {
             }
             updateStaffLevelForPage()
 
+            logger.verbose("Loaded page catalog from server with \(viewModel.loadedCatalogs.loadedPages.count) pages", context: "System")
+
             // Delay the start of the templates download so the window can be ready faster
             try await Task.sleep(nanoseconds: 200_000_000)
+
+            logger.verbose("Loading template catalog from server", context: "System")
 
 #if TESTING
             let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/templates.json")!
@@ -441,9 +459,13 @@ struct ContentView: View {
             viewModel.loadedCatalogs.templatesCatalog = try await URLSession.shared.decode(TemplateCatalog.self, from: templatesUrl)
             viewModel.loadedCatalogs.waitingForTemplates = false
 
+            logger.verbose("Loaded template catalog from server with \(viewModel.loadedCatalogs.templatesCatalog.pages.count) page templates", context: "System")
+
             do {
                 // Delay the start of the disallowed list download so the window can be ready faster
                 try await Task.sleep(nanoseconds: 1_000_000_000)
+
+                logger.verbose("Loading disallow list from server", context: "System")
 
 #if TESTING
                 let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/testing/disallowlists.json")!
@@ -452,8 +474,11 @@ struct ContentView: View {
 #endif
                 viewModel.loadedCatalogs.disallowList = try await URLSession.shared.decode([String: [String]].self, from: disallowListUrl)
                 viewModel.loadedCatalogs.waitingForDisallowList = false
+
+                logger.verbose("Loaded disallow list from server with \(viewModel.loadedCatalogs.disallowList.count) entries", context: "System")
             } catch {
                 // do nothing, the disallow list is not critical
+                logger.error("Failed to load disallow list from server: \(error.localizedDescription)", context: "System")
                 debugPrint(error.localizedDescription)
             }
 
@@ -467,6 +492,7 @@ struct ContentView: View {
                 debugPrint(error.localizedDescription)
             }
         } catch {
+            logger.error("Failed to load page catalog or template catalog from server: \(error.localizedDescription)", context: "System")
             viewModel.dismissAllNonBlockingToasts(includeProgress: true)
             viewModel.showToast(
                 .fatal,
@@ -477,6 +503,7 @@ struct ContentView: View {
                 width: 720,
                 buttonTitle: "Retry",
                 onButtonTapped: {
+                    logger.verbose("Retrying to load pages catalog after failure", context: "System")
                     DispatchQueue.main.async {
                         Task {
                             await loadPageCatalog()
@@ -484,6 +511,7 @@ struct ContentView: View {
                     }
                 },
                 onDismissed: {
+                    logger.verbose("Retrying to load pages catalog after failure", context: "System")
                     DispatchQueue.main.async {
                         Task {
                             await loadPageCatalog()
@@ -497,6 +525,7 @@ struct ContentView: View {
     private func loadLog(from file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
         if !gotAccess {
+            logger.error("Failed to access the log file to load", context: "System")
             debugPrint("No access to load log")
             return
         }
@@ -513,10 +542,12 @@ struct ContentView: View {
                     viewModel.features = loadedLog.getFeatures()
                 }
                 logURL = file
+                logger.verbose("Loaded log file with \(viewModel.sortedFeatures.count) features", context: "System")
                 viewModel.showSuccessToast(
                     "Loaded features",
                     "Loaded \(viewModel.sortedFeatures.count) features from the log file")
             } catch {
+                logger.error("Failed to load the log file: \(error.localizedDescription)", context: "System")
                 debugPrint("Error parsing JSON: \(error.localizedDescription)")
             }
         }
@@ -527,6 +558,7 @@ struct ContentView: View {
     private func saveLog(to file: URL) {
         let gotAccess = file.startAccessingSecurityScopedResource()
         if !gotAccess {
+            logger.error("Failed to access the log file to load", context: "System")
             debugPrint("No access to save log")
             return
         }
@@ -534,10 +566,12 @@ struct ContentView: View {
         do {
             let jsonData = Data(logDocument.text.replacingOccurrences(of: "\\/", with: "/").utf8)
             try jsonData.write(to: file)
+            logger.verbose("Saved log file with \(viewModel.sortedFeatures.count) features", context: "System")
             viewModel.showSuccessToast(
                 "Saved features",
                 "Saved \(viewModel.sortedFeatures.count) features to the log file")
         } catch {
+            logger.error("Failed to save the log file: \(error.localizedDescription)", context: "System")
             debugPrint(error)
         }
 

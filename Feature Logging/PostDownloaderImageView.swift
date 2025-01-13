@@ -8,6 +8,7 @@
 import Kingfisher
 import SwiftSoup
 import SwiftUI
+import SwiftyBeaver
 
 struct PostDownloaderImageView: View {
     @Environment(\.openURL) private var openURL
@@ -23,6 +24,8 @@ struct PostDownloaderImageView: View {
     var userName: String
     var index: Int
     var showImageValidationView: (_ imageUrl: URL) -> Void
+
+    private let logger = SwiftyBeaver.self
 
     var body: some View {
         VStack {
@@ -100,6 +103,7 @@ struct PostDownloaderImageView: View {
                 Spacer()
                     .frame(width: 10)
                 Button(action: {
+                    logger.verbose("Tapped copy URL for image URL", context: "User")
                     copyToClipboard(imageUrl.absoluteString)
                     viewModel.showSuccessToast("Copied to clipboard", "Copied the image URL to the clipboard")
                 }) {
@@ -111,6 +115,7 @@ struct PostDownloaderImageView: View {
                 }
                 .focusable()
                 .onKeyPress(.space) {
+                    logger.verbose("Pressed space on copy URL for image URL", context: "User")
                     copyToClipboard(imageUrl.absoluteString)
                     viewModel.showSuccessToast("Copied to clipboard", "Copied the image URL to the clipboard")
                     return .handled
@@ -118,6 +123,7 @@ struct PostDownloaderImageView: View {
                 Spacer()
                     .frame(width: 10)
                 Button(action: {
+                    logger.verbose("Tapped launch for image URL", context: "User")
                     openURL(imageUrl)
                 }) {
                     HStack(alignment: .center) {
@@ -128,6 +134,7 @@ struct PostDownloaderImageView: View {
                 }
                 .focusable()
                 .onKeyPress(.space) {
+                    logger.verbose("Pressed space on launch for image URL", context: "User")
                     openURL(imageUrl)
                     return .handled
                 }
@@ -143,8 +150,10 @@ struct PostDownloaderImageView: View {
             }
             let fileURL = folderURL.appendingPathComponent("\(userName).\(fileExtension)")
             try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
-            viewModel.showSuccessToast("Saved", "Saved the image to file \(fileURL)")
+            logger.verbose("Saved the image to file \(fileURL.path)", context: "System")
+            viewModel.showSuccessToast("Saved", "Saved the image to file \(fileURL.lastPathComponent) to your Pictures/VERO folder")
         } catch {
+            logger.error("Failed to save the image file: \(error.localizedDescription)", context: "System")
             debugPrint("Failed to save file")
             debugPrint(error.localizedDescription)
             viewModel.showToast(.error, "Failed to save", "Failed to saved the image to your Pictures folder - \(error.localizedDescription)")

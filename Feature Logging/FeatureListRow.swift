@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftyBeaver
 
 struct FeatureListRow: View {
     private var viewModel: ContentView.ViewModel
@@ -22,6 +23,8 @@ struct FeatureListRow: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+
+    private let logger = SwiftyBeaver.self
 
     init(
         _ viewModel: ContentView.ViewModel,
@@ -138,6 +141,7 @@ struct FeatureListRow: View {
 
                     if feature.isPickedAndAllowed {
                         Button(action: {
+                            logger.verbose("Tapped edit scripts for feature", context: "User")
                             viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
                             launchVeroScripts()
                         }) {
@@ -149,6 +153,7 @@ struct FeatureListRow: View {
                         }
                         .focusable()
                         .onKeyPress(.space) {
+                            logger.verbose("Pressed space on edit scripts for feature", context: "User")
                             viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
                             launchVeroScripts()
                             return .handled
@@ -158,6 +163,7 @@ struct FeatureListRow: View {
                             .frame(width: 8)
 
                         Button(action: {
+                            logger.verbose("Tapped edit personal message for feature", context: "User")
                             viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
                             showingMessageEditor.toggle()
                         }) {
@@ -169,6 +175,7 @@ struct FeatureListRow: View {
                         }
                         .focusable()
                         .onKeyPress(.space) {
+                            logger.verbose("Pressed space on personal message for feature", context: "User")
                             viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
                             showingMessageEditor.toggle()
                             return .handled
@@ -218,6 +225,7 @@ struct FeatureListRow: View {
                                 Spacer()
 
                                 Button(action: {
+                                    logger.verbose("Tapped copy personal message for feature", context: "User")
                                     copyPersonalMessage()
                                 }) {
                                     HStack(alignment: .center) {
@@ -228,6 +236,7 @@ struct FeatureListRow: View {
                                 }
                                 .focusable()
                                 .onKeyPress(.space) {
+                                    logger.verbose("Pressed space on copy personal message for feature", context: "User")
                                     copyPersonalMessage()
                                     return .handled
                                 }

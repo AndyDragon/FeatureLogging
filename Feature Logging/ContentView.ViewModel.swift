@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftyBeaver
 
 extension View {
     func attachVersionCheckState(_ viewModel: ContentView.ViewModel, _ appState: VersionCheckAppState, _ launchUrl: @escaping (_ url: URL) -> Void) -> some View {
@@ -21,6 +22,8 @@ extension ContentView {
     @Observable
     class ViewModel {
         init() {}
+
+        private let logger = SwiftyBeaver.self
 
         // MARK: Catalog and Features
         var loadedCatalogs = LoadedCatalogs()
@@ -65,6 +68,7 @@ extension ContentView {
             lastVersionCheckResult = appState.versionCheckResult.wrappedValue
             switch appState.versionCheckResult.wrappedValue {
             case .newAvailable:
+                logger.info("New version of the application is available", context: "Version")
                 dismissAllNonBlockingToasts()
                 showToast(
                     .alert,
@@ -79,6 +83,7 @@ extension ContentView {
                     buttonTitle: "Download",
                     onButtonTapped: {
                         if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
+                            self.logger.verbose("Launching browser to get new application version", context: "User")
                             launchURL(url)
                             let terminationTask = DispatchWorkItem {
                                 NSApplication.shared.terminate(nil)
@@ -87,11 +92,13 @@ extension ContentView {
                         }
                     },
                     onDismissed: {
+                        self.logger.verbose("New version of the application ignored", context: "User")
                         appState.resetCheckingForUpdates()
                     }
                 )
                 break
             case .newRequired:
+                logger.info("New version of the application is required", context: "Version")
                 dismissAllNonBlockingToasts()
                 showToast(
                     .fatal,
@@ -106,6 +113,7 @@ extension ContentView {
                     buttonTitle: "Download",
                     onButtonTapped: {
                         if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
+                            self.logger.verbose("Launching browser to get new application version", context: "User")
                             launchURL(url)
                             let terminationTask = DispatchWorkItem {
                                 NSApplication.shared.terminate(nil)
@@ -116,6 +124,7 @@ extension ContentView {
                 )
                 break
             case .manualCheckComplete:
+                self.logger.verbose("Using latest application version", context: "Version")
                 showToast(
                     .info,
                     "Latest version",
@@ -126,6 +135,7 @@ extension ContentView {
                 )
                 break
             case .checkFailed:
+                self.logger.verbose("Version check failed", context: "Version")
                 dismissAllNonBlockingToasts()
                 showToast(
                     .alert,

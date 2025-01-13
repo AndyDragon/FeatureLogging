@@ -2,10 +2,11 @@
 //  VersionCheckAppState.swift
 //  Feature Logging
 //
-//  Created by Andrew Forget on 2024-03-29.
+//  Created by Andrew Forget on 2024-02-18.
 //
 
 import SwiftUI
+import SwiftyBeaver
 
 struct VersionManifest: Codable {
     let macOS: VersionEntry
@@ -49,6 +50,7 @@ struct VersionCheckAppState {
     var versionCheckToast: Binding<VersionCheckToast>
     private var versionLocation: String
     var isPreviewMode: Bool = false
+    private let logger = SwiftyBeaver.self
 
     init(
         isCheckingForUpdates: Binding<Bool>,
@@ -90,21 +92,24 @@ struct VersionCheckAppState {
                             currentVersion: versionManifest.macOS_v2.current,
                             linkToCurrentVersion: versionManifest.macOS_v2.link)
                         if versionManifest.macOS_v2.vital {
+                            self.logger.verbose("New required version", context: "Version")
                             versionCheckResult.wrappedValue = .newRequired
                         } else {
+                            self.logger.verbose("New available version", context: "Version")
                             versionCheckResult.wrappedValue = .newAvailable
                         }
                     }
                 }
                 isCheckingForUpdates.wrappedValue = false
             } else {
+                self.logger.verbose("Using latest version", context: "Version")
                 versionCheckToast.wrappedValue = VersionCheckToast(
                     appVersion: Bundle.main.releaseVersionNumberPretty)
                 versionCheckResult.wrappedValue = manualCheck ? .manualCheckComplete : .complete
                 isCheckingForUpdates.wrappedValue = false
             }
         } catch {
-            // do nothing, the version check is not critical
+            self.logger.error("Version check failed: \(error.localizedDescription)", context: "Version")
             debugPrint(error)
             versionCheckToast.wrappedValue = VersionCheckToast(
                 appVersion: Bundle.main.releaseVersionNumberPretty)

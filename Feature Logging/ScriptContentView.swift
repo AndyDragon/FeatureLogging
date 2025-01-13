@@ -7,6 +7,7 @@
 
 import CloudKit
 import SwiftUI
+import SwiftyBeaver
 
 struct ScriptContentView: View {
     private var viewModel: ContentView.ViewModel
@@ -36,6 +37,7 @@ struct ScriptContentView: View {
     @State private var scriptWithPlaceholders = ""
 
     private let languagePrefix = Locale.preferredLanguageCode
+    private let logger = SwiftyBeaver.self
 
     private var canCopyScripts: Bool {
         return membershipValidation.valid
@@ -79,268 +81,13 @@ struct ScriptContentView: View {
 
             VStack {
                 // Fields
-                Group {
-                    // User / Options
-                    HStack {
-                        // User name
-                        if !userNameValidation.valid {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorRequired)
-                                .help(userNameValidation.reason ?? "unknown error")
-                                .imageScale(.small)
-                        }
-                        Text("User: ")
-                            .foregroundStyle(
-                                userNameValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
-                                Color.TextColorSecondary
-                            )
-                            .frame(width: !userNameValidation.valid ? 42 : 60, alignment: .leading)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .padding([.leading], !userNameValidation.valid ? 8 : 0)
-                        ZStack {
-                            Text(selectedFeature.feature.userName)
-                                .tint(Color.AccentColor)
-                                .accentColor(Color.AccentColor)
-                                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding([.leading, .trailing], 4)
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity)
-                        .overlay(VStack{
-                            Rectangle()
-                                .frame(height: 0.5)
-                                .foregroundStyle(Color.gray.opacity(0.25))
-                        }, alignment: .bottom)
-
-                        // User level
-                        if !membershipValidation.valid {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorRequired)
-                                .help(membershipValidation.reason ?? "unknown error")
-                                .imageScale(.small)
-                                .padding([.leading], 8)
-                        }
-                        Text("Level: ")
-                            .foregroundStyle(
-                                membershipValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
-                                Color.TextColorSecondary
-                            )
-                            .frame(width: !membershipValidation.valid ? 42 : 60, alignment: .leading)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .padding([.leading], 8)
-                        ZStack {
-                            Text(selectedFeature.userLevel.rawValue)
-                                .tint(Color.AccentColor)
-                                .accentColor(Color.AccentColor)
-                                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding([.leading, .trailing], 4)
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity)
-                        .overlay(VStack{
-                            Rectangle()
-                                .frame(height: 0.5)
-                                .foregroundStyle(Color.gray.opacity(0.25))
-                        }, alignment: .bottom)
-
-                        // Options
-                        HStack {
-                            Text(selectedFeature.firstFeature ? "☑" : "☐")
-                                .font(.system(size: 22, design: .monospaced))
-                                .tint(Color.AccentColor)
-                                .accentColor(Color.AccentColor)
-                                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                                .frame(alignment: .trailing)
-                            Text("First feature on page")
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                                .frame(alignment: .leading)
-                        }
-                        .padding([.leading], 8)
-
-                        let tagSource = selectedFeature.feature.tagSource
-                        if selectedPage.hub == "click" {
-                            HStack {
-                                Text(tagSource == TagSourceCase.clickCommunityTag ? "☑" : "☐")
-                                    .font(.system(size: 22, design: .monospaced))
-                                    .tint(Color.AccentColor)
-                                    .accentColor(Color.AccentColor)
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                                    .frame(alignment: .trailing)
-                                Text("From community tag")
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                                    .frame(alignment: .leading)
-                            }
-                            .padding([.leading], 8)
-
-                            HStack {
-                                Text(tagSource == TagSourceCase.clickHubTag ? "☑" : "☐")
-                                    .font(.system(size: 22, design: .monospaced))
-                                    .tint(Color.AccentColor)
-                                    .accentColor(Color.AccentColor)
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                                    .frame(alignment: .trailing)
-                                Text("From hub tag")
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                                    .frame(alignment: .leading)
-                            }
-                            .padding([.leading], 8)
-                        } else if selectedPage.hub == "snap" {
-                            HStack {
-                                Text((tagSource == TagSourceCase.snapRawPageTag || tagSource == TagSourceCase.snapRawCommunityTag) ? "☑" : "☐")
-                                    .font(.system(size: 22, design: .monospaced))
-                                    .tint(Color.AccentColor)
-                                    .accentColor(Color.AccentColor)
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                                    .frame(alignment: .trailing)
-                                Text("From RAW tag")
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                                    .frame(alignment: .leading)
-                            }
-                            .padding([.leading], 8)
-
-                            HStack {
-                                Text((tagSource == TagSourceCase.snapCommunityTag || tagSource == TagSourceCase.snapRawCommunityTag) ? "☑" : "☐")
-                                    .font(.system(size: 22, design: .monospaced))
-                                    .tint(Color.AccentColor)
-                                    .accentColor(Color.AccentColor)
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                                    .frame(alignment: .trailing)
-                                Text("From community tag")
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                                    .frame(alignment: .leading)
-                            }
-                            .padding([.leading], 8)
-                        }
-
-                        Spacer()
-                    }
-                }
+                FieldSummaryView()
 
                 // Scripts
-                Group {
-                    // Feature script output
-                    ScriptEditor(
-                        title: "Feature script:",
-                        script: $featureScript,
-                        minHeight: 72,
-                        maxHeight: .infinity,
-                        canCopy: canCopyScripts,
-                        hasPlaceholders: scriptHasPlaceholders(featureScript),
-                        copy: { force, withPlaceholders in
-                            placeholderSheetCase = .featureScript
-                            if copyScript(
-                                featureScript,
-                                featureScriptPlaceholders,
-                                [commentScriptPlaceholders, originalPostScriptPlaceholders],
-                                force: force,
-                                withPlaceholders: withPlaceholders)
-                            {
-                                viewModel.showSuccessToast(
-                                    "Copied",
-                                    String {
-                                        "Copied the feature script\(withPlaceholders ? " with placeholders" : "") "
-                                        "to the clipboard"
-                                    })
-                            }
-                        },
-                        focusedField: focusedField,
-                        editorFocusField: .featureScript,
-                        buttonFocusField: .copyFeatureScript)
-
-                    // Comment script output
-                    ScriptEditor(
-                        title: "Comment script:",
-                        script: $commentScript,
-                        minHeight: 36,
-                        maxHeight: 36 * accordionHeightRatio,
-                        canCopy: canCopyScripts,
-                        hasPlaceholders: scriptHasPlaceholders(commentScript),
-                        copy: { force, withPlaceholders in
-                            placeholderSheetCase = .commentScript
-                            if copyScript(
-                                commentScript,
-                                commentScriptPlaceholders,
-                                [featureScriptPlaceholders, originalPostScriptPlaceholders],
-                                force: force,
-                                withPlaceholders: withPlaceholders)
-                            {
-                                viewModel.showSuccessToast(
-                                    "Copied",
-                                    String {
-                                        "Copied the comment script\(withPlaceholders ? " with placeholders" : "") "
-                                        "to the clipboard"
-                                    })
-                            }
-                        },
-                        focusedField: focusedField,
-                        editorFocusField: .commentScript,
-                        buttonFocusField: .copyCommentScript)
-
-                    // Original post script output
-                    ScriptEditor(
-                        title: "Original post script:",
-                        script: $originalPostScript,
-                        minHeight: 24,
-                        maxHeight: 24 * accordionHeightRatio,
-                        canCopy: canCopyScripts,
-                        hasPlaceholders: scriptHasPlaceholders(originalPostScript),
-                        copy: { force, withPlaceholders in
-                            placeholderSheetCase = .originalPostScript
-                            if copyScript(
-                                originalPostScript,
-                                originalPostScriptPlaceholders,
-                                [featureScriptPlaceholders, commentScriptPlaceholders],
-                                force: force,
-                                withPlaceholders: withPlaceholders)
-                            {
-                                viewModel.showSuccessToast(
-                                    "Copied",
-                                    String {
-                                        "Copied the original script\(withPlaceholders ? " with placeholders" : "") "
-                                        "to the clipboard"
-                                    })
-                            }
-                        },
-                        focusedField: focusedField,
-                        editorFocusField: .originalPostScript,
-                        buttonFocusField: .copyOriginalPostScript)
-                }
+                MainScriptEditorsView()
 
                 // New membership
-                Group {
-                    // New membership picker and script output
-                    NewMembershipEditor(
-                        newMembership: $newMembership,
-                        script: $newMembershipScript,
-                        selectedPage: selectedPage,
-                        minHeight: 36,
-                        maxHeight: 36 * accordionHeightRatio,
-                        onChanged: { newValue in
-                            newMembershipValidation = validateNewMembership(value: newMembership)
-                            newMembershipChanged(to: newValue)
-                        },
-                        valid: newMembershipValidation.valid && userNameValidation.valid,
-                        canCopy: canCopyNewMembershipScript,
-                        copy: {
-                            copyToClipboard(newMembershipScript)
-                            viewModel.showSuccessToast(
-                                "Copied",
-                                "Copied the new membership script to the clipboard")
-                        },
-                        focusedField: focusedField,
-                        editorFocusField: .newMembershipScript,
-                        pickerFocusField: .newMembership,
-                        buttonFocusField: .copyNewMembershipScript)
-                }
+                NewMembershipEditorView()
             }
             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
             .padding()
@@ -387,6 +134,7 @@ struct ScriptContentView: View {
                             break
                         }
                         let suffix = copiedSuffix.isEmpty ? "" : " \(copiedSuffix)"
+                        logger.verbose("Copied the \(scriptName) script", context: "system")
                         viewModel.showSuccessToast(
                             "Copied",
                             "Copied the \(scriptName) script\(suffix) to the clipboard")
@@ -458,6 +206,277 @@ struct ScriptContentView: View {
         .background(Color.BackgroundColor)
         .onAppear {
             populateFromSharedFeature()
+        }
+    }
+
+    private func FieldSummaryView() -> some View {
+        Group {
+            // User / Options
+            HStack {
+                // User name
+                if !userNameValidation.valid {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(Color.AccentColor, Color.TextColorRequired)
+                        .help(userNameValidation.reason ?? "unknown error")
+                        .imageScale(.small)
+                }
+                Text("User: ")
+                    .foregroundStyle(
+                        userNameValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
+                        Color.TextColorSecondary
+                    )
+                    .frame(width: !userNameValidation.valid ? 42 : 60, alignment: .leading)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .padding([.leading], !userNameValidation.valid ? 8 : 0)
+                ZStack {
+                    Text(selectedFeature.feature.userName)
+                        .tint(Color.AccentColor)
+                        .accentColor(Color.AccentColor)
+                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding([.leading, .trailing], 4)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .overlay(VStack{
+                    Rectangle()
+                        .frame(height: 0.5)
+                        .foregroundStyle(Color.gray.opacity(0.25))
+                }, alignment: .bottom)
+
+                // User level
+                if !membershipValidation.valid {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(Color.AccentColor, Color.TextColorRequired)
+                        .help(membershipValidation.reason ?? "unknown error")
+                        .imageScale(.small)
+                        .padding([.leading], 8)
+                }
+                Text("Level: ")
+                    .foregroundStyle(
+                        membershipValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
+                        Color.TextColorSecondary
+                    )
+                    .frame(width: !membershipValidation.valid ? 42 : 60, alignment: .leading)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .padding([.leading], 8)
+                ZStack {
+                    Text(selectedFeature.userLevel.rawValue)
+                        .tint(Color.AccentColor)
+                        .accentColor(Color.AccentColor)
+                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding([.leading, .trailing], 4)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .overlay(VStack{
+                    Rectangle()
+                        .frame(height: 0.5)
+                        .foregroundStyle(Color.gray.opacity(0.25))
+                }, alignment: .bottom)
+
+                // Options
+                HStack {
+                    Text(selectedFeature.firstFeature ? "☑" : "☐")
+                        .font(.system(size: 22, design: .monospaced))
+                        .tint(Color.AccentColor)
+                        .accentColor(Color.AccentColor)
+                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                        .frame(alignment: .trailing)
+                    Text("First feature on page")
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(alignment: .leading)
+                }
+                .padding([.leading], 8)
+
+                let tagSource = selectedFeature.feature.tagSource
+                if selectedPage.hub == "click" {
+                    HStack {
+                        Text(tagSource == TagSourceCase.clickCommunityTag ? "☑" : "☐")
+                            .font(.system(size: 22, design: .monospaced))
+                            .tint(Color.AccentColor)
+                            .accentColor(Color.AccentColor)
+                            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                            .frame(alignment: .trailing)
+                        Text("From community tag")
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(alignment: .leading)
+                    }
+                    .padding([.leading], 8)
+
+                    HStack {
+                        Text(tagSource == TagSourceCase.clickHubTag ? "☑" : "☐")
+                            .font(.system(size: 22, design: .monospaced))
+                            .tint(Color.AccentColor)
+                            .accentColor(Color.AccentColor)
+                            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                            .frame(alignment: .trailing)
+                        Text("From hub tag")
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(alignment: .leading)
+                    }
+                    .padding([.leading], 8)
+                } else if selectedPage.hub == "snap" {
+                    HStack {
+                        Text((tagSource == TagSourceCase.snapRawPageTag || tagSource == TagSourceCase.snapRawCommunityTag) ? "☑" : "☐")
+                            .font(.system(size: 22, design: .monospaced))
+                            .tint(Color.AccentColor)
+                            .accentColor(Color.AccentColor)
+                            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                            .frame(alignment: .trailing)
+                        Text("From RAW tag")
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(alignment: .leading)
+                    }
+                    .padding([.leading], 8)
+
+                    HStack {
+                        Text((tagSource == TagSourceCase.snapCommunityTag || tagSource == TagSourceCase.snapRawCommunityTag) ? "☑" : "☐")
+                            .font(.system(size: 22, design: .monospaced))
+                            .tint(Color.AccentColor)
+                            .accentColor(Color.AccentColor)
+                            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                            .frame(alignment: .trailing)
+                        Text("From community tag")
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(alignment: .leading)
+                    }
+                    .padding([.leading], 8)
+                }
+
+                Spacer()
+            }
+        }
+    }
+
+    private func MainScriptEditorsView() -> some View {
+        Group {
+            // Feature script output
+            ScriptEditor(
+                title: "Feature script:",
+                script: $featureScript,
+                minHeight: 72,
+                maxHeight: .infinity,
+                canCopy: canCopyScripts,
+                hasPlaceholders: scriptHasPlaceholders(featureScript),
+                copy: { force, withPlaceholders in
+                    placeholderSheetCase = .featureScript
+                    if copyScript(
+                        featureScript,
+                        featureScriptPlaceholders,
+                        [commentScriptPlaceholders, originalPostScriptPlaceholders],
+                        force: force,
+                        withPlaceholders: withPlaceholders)
+                    {
+                        logger.verbose("Copied the feature script", context: "system")
+                        viewModel.showSuccessToast(
+                            "Copied",
+                            String {
+                                "Copied the feature script\(withPlaceholders ? " with placeholders" : "") "
+                                "to the clipboard"
+                            })
+                    }
+                },
+                focusedField: focusedField,
+                editorFocusField: .featureScript,
+                buttonFocusField: .copyFeatureScript)
+
+            // Comment script output
+            ScriptEditor(
+                title: "Comment script:",
+                script: $commentScript,
+                minHeight: 36,
+                maxHeight: 36 * accordionHeightRatio,
+                canCopy: canCopyScripts,
+                hasPlaceholders: scriptHasPlaceholders(commentScript),
+                copy: { force, withPlaceholders in
+                    placeholderSheetCase = .commentScript
+                    if copyScript(
+                        commentScript,
+                        commentScriptPlaceholders,
+                        [featureScriptPlaceholders, originalPostScriptPlaceholders],
+                        force: force,
+                        withPlaceholders: withPlaceholders)
+                    {
+                        logger.verbose("Copied the comment script", context: "system")
+                        viewModel.showSuccessToast(
+                            "Copied",
+                            String {
+                                "Copied the comment script\(withPlaceholders ? " with placeholders" : "") "
+                                "to the clipboard"
+                            })
+                    }
+                },
+                focusedField: focusedField,
+                editorFocusField: .commentScript,
+                buttonFocusField: .copyCommentScript)
+
+            // Original post script output
+            ScriptEditor(
+                title: "Original post script:",
+                script: $originalPostScript,
+                minHeight: 24,
+                maxHeight: 24 * accordionHeightRatio,
+                canCopy: canCopyScripts,
+                hasPlaceholders: scriptHasPlaceholders(originalPostScript),
+                copy: { force, withPlaceholders in
+                    placeholderSheetCase = .originalPostScript
+                    if copyScript(
+                        originalPostScript,
+                        originalPostScriptPlaceholders,
+                        [featureScriptPlaceholders, commentScriptPlaceholders],
+                        force: force,
+                        withPlaceholders: withPlaceholders)
+                    {
+                        logger.verbose("Copied the original post script", context: "system")
+                        viewModel.showSuccessToast(
+                            "Copied",
+                            String {
+                                "Copied the original post script\(withPlaceholders ? " with placeholders" : "") "
+                                "to the clipboard"
+                            })
+                    }
+                },
+                focusedField: focusedField,
+                editorFocusField: .originalPostScript,
+                buttonFocusField: .copyOriginalPostScript)
+        }
+    }
+
+    private func NewMembershipEditorView() -> some View {
+        Group {
+            // New membership picker and script output
+            NewMembershipEditor(
+                newMembership: $newMembership,
+                script: $newMembershipScript,
+                selectedPage: selectedPage,
+                minHeight: 36,
+                maxHeight: 36 * accordionHeightRatio,
+                onChanged: { newValue in
+                    newMembershipValidation = validateNewMembership(value: newMembership)
+                    newMembershipChanged(to: newValue)
+                },
+                valid: newMembershipValidation.valid && userNameValidation.valid,
+                canCopy: canCopyNewMembershipScript,
+                copy: {
+                    copyToClipboard(newMembershipScript)
+                    logger.verbose("Copied the new membership script", context: "system")
+                    viewModel.showSuccessToast(
+                        "Copied",
+                        "Copied the new membership script to the clipboard")
+                },
+                focusedField: focusedField,
+                editorFocusField: .newMembershipScript,
+                pickerFocusField: .newMembership,
+                buttonFocusField: .copyNewMembershipScript)
         }
     }
 
@@ -671,6 +690,7 @@ struct ScriptContentView: View {
         }
         if foundPlaceholders.count != 0 || foundLongPlaceholders.count != 0 {
             if (force || needEditor) && !showingPlaceholderSheet {
+                logger.verbose("Script has manual placeholders, opening editor", context: "System")
                 showingPlaceholderSheet.toggle()
                 return true
             }

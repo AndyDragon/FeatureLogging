@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftyBeaver
 import UniformTypeIdentifiers
 
 enum AiVerdict {
@@ -33,6 +34,7 @@ struct ImageValidationView: View {
     @State private var error: Error?
 
     private let languagePrefix = Locale.preferredLanguageCode
+    private let logger = SwiftyBeaver.self
 
     init(
         _ viewModel: ContentView.ViewModel,
@@ -60,162 +62,20 @@ struct ImageValidationView: View {
 
                 VStack(alignment: .leading) {
                     VStack(alignment: .leading) {
-                        HStack(alignment: .center) {
-                            Spacer()
-                                .frame(width: 0, height: 26)
-                            Text("TinEye:")
-                            Picker(
-                                "",
-                                selection: selectedFeature.feature.tinEyeResults.onChange { value in
-                                    navigateToTinEyeResult(selectedFeature, .same)
-                                }
-                            ) {
-                                ForEach(TinEyeResults.allCases) { source in
-                                    Text(source.rawValue)
-                                        .tag(source)
-                                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
-                                }
-                            }
-                            .tint(Color.AccentColor)
-                            .accentColor(Color.AccentColor)
-                            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                            .frame(width: 160)
-                            .focusable()
-                            .focused(focusedField, equals: .tinEyeResults)
-                            .onKeyPress(phases: .down) { keyPress in
-                                return navigateToTinEyeResultWithArrows(selectedFeature, keyPress)
-                            }
-                            .onKeyPress(characters: .alphanumerics) { keyPress in
-                                return navigateToTinEyeResultWithPrefix(selectedFeature, keyPress)
-                            }
-
-                            Text("|")
-                                .padding([.leading, .trailing])
-
-                            Text("AI Check:")
-                            Picker(
-                                "",
-                                selection: selectedFeature.feature.aiCheckResults.onChange { value in
-                                    navigateToAiCheckResult(selectedFeature, .same)
-                                }
-                            ) {
-                                ForEach(AiCheckResults.allCases) { source in
-                                    Text(source.rawValue)
-                                        .tag(source)
-                                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
-                                }
-                            }
-                            .tint(Color.AccentColor)
-                            .accentColor(Color.AccentColor)
-                            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                            .frame(width: 160)
-                            .focusable()
-                            .focused(focusedField, equals: .aiCheckResults)
-                            .onKeyPress(phases: .down) { keyPress in
-                                return navigateToAiCheckResultWithArrows(selectedFeature, keyPress)
-                            }
-                            .onKeyPress(phases: .down) { keyPress in
-                                return navigateToAiCheckResultWithPrefix(selectedFeature, keyPress)
-                            }
-
-                            if !aiVerdictString.isEmpty {
-                                Text("|")
-                                    .padding([.leading, .trailing])
-
-                                HStack {
-                                    Text("HIVE verdict: ")
-                                    Text(aiVerdictString)
-                                    Image(systemName: aiVerdict == .notAi ? "checkmark.shield" : aiVerdict == .ai ? "exclamationmark.warninglight" : "questionmark.diamond")
-                                }
-                                .font(.system(size: 24))
-                                .foregroundStyle(aiVerdict == .notAi ? .green : aiVerdict == .ai ? .red : .yellow, .secondary)
-                            }
-
-                            Spacer()
-                        }
+                        ValidationSummaryView(selectedFeature)
 
                         CustomTabView(tabBarPosition: .top, content: [
                             (
                                 tabText: "TinEye Results",
                                 tabIconName: "globe",
                                 tabIconColors: (.accentColor, .secondary),
-                                view: AnyView(
-                                    VStack {
-                                        if let realizedImageUrl = loadedImageUrl {
-                                            ZStack {
-                                                PlatformIndependentWebView(url: realizedImageUrl, isLoading: $isLoading, error: $error)
-                                                    .cornerRadius(4)
-                                                if isLoading {
-                                                    ProgressView()
-                                                        .scaleEffect(2)
-                                                }
-                                            }
-                                        } else {
-                                            Spacer()
-                                            Text("Enter an image URL to search")
-                                            Spacer()
-                                        }
-                                    }
-                                )
+                                view: AnyView(TinEyeResultsView())
                             ),
                             (
                                 tabText: "HIVE Results",
                                 tabIconName: "photo.badge.checkmark.fill",
                                 tabIconColors: (.secondary, .accentColor),
-                                view: AnyView(
-                                    VStack {
-                                        if !returnedJson.isEmpty {
-                                            HStack {
-                                                Spacer()
-                                                Button(action: {
-                                                    copyToClipboard(returnedJson)
-                                                    viewModel.showSuccessToast("Copied to clipboard", "Copied the logging data to the clipboard")
-                                                }) {
-                                                    HStack(alignment: .center) {
-                                                        Image(systemName: "pencil.and.list.clipboard")
-                                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                                        Text("Copy result")
-                                                    }
-                                                }
-                                                .focusable()
-                                                .onKeyPress(.space) {
-                                                    copyToClipboard(returnedJson)
-                                                    viewModel.showSuccessToast("Copied to clipboard", "Copied the logging data to the clipboard")
-                                                    return .handled
-                                                }
-                                            }
-                                            ScrollView(.vertical) {
-                                                HStack {
-                                                    VStack(alignment: .leading) {
-                                                        Text("Result from server: ")
-                                                            .font(.system(size: 16))
-                                                            .bold()
-                                                            .padding([.top, .leading], 8)
-                                                        Spacer().frame(height: 0) // fix bug with text being truncated
-                                                        Text(returnedJson)
-                                                            .lineLimit(...2048)
-                                                            .padding(8)
-                                                        Spacer().frame(height: 0) // fix bug with text being truncated
-                                                    }
-                                                    Spacer()
-                                                }
-                                            }
-                                            .background(Color.BackgroundColorList)
-                                            .cornerRadius(10)
-                                        }
-
-                                        if !errorFromServer.isEmpty {
-                                            HStack {
-                                                Text("Error: ")
-                                                Text(errorFromServer)
-                                            }
-                                            .font(.system(size: 32))
-                                            .foregroundStyle(.red, .secondary)
-                                        }
-
-                                        Spacer()
-                                    }
-                                )
+                                view: AnyView(HiveAiResultsView())
                             )
                         ])
                     }
@@ -266,7 +126,158 @@ struct ImageValidationView: View {
         }
     }
 
+    private func ValidationSummaryView(_ selectedFeature: Binding<ObservableFeatureWrapper>) -> some View {
+        HStack(alignment: .center) {
+            Spacer()
+                .frame(width: 0, height: 26)
+            Text("TinEye:")
+            Picker(
+                "",
+                selection: selectedFeature.feature.tinEyeResults.onChange { value in
+                    navigateToTinEyeResult(selectedFeature, .same)
+                }
+            ) {
+                ForEach(TinEyeResults.allCases) { source in
+                    Text(source.rawValue)
+                        .tag(source)
+                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                }
+            }
+            .tint(Color.AccentColor)
+            .accentColor(Color.AccentColor)
+            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+            .frame(width: 160)
+            .focusable()
+            .focused(focusedField, equals: .tinEyeResults)
+            .onKeyPress(phases: .down) { keyPress in
+                return navigateToTinEyeResultWithArrows(selectedFeature, keyPress)
+            }
+            .onKeyPress(characters: .alphanumerics) { keyPress in
+                return navigateToTinEyeResultWithPrefix(selectedFeature, keyPress)
+            }
+
+            Text("|")
+                .padding([.leading, .trailing])
+
+            Text("AI Check:")
+            Picker(
+                "",
+                selection: selectedFeature.feature.aiCheckResults.onChange { value in
+                    navigateToAiCheckResult(selectedFeature, .same)
+                }
+            ) {
+                ForEach(AiCheckResults.allCases) { source in
+                    Text(source.rawValue)
+                        .tag(source)
+                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                }
+            }
+            .tint(Color.AccentColor)
+            .accentColor(Color.AccentColor)
+            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+            .frame(width: 160)
+            .focusable()
+            .focused(focusedField, equals: .aiCheckResults)
+            .onKeyPress(phases: .down) { keyPress in
+                return navigateToAiCheckResultWithArrows(selectedFeature, keyPress)
+            }
+            .onKeyPress(phases: .down) { keyPress in
+                return navigateToAiCheckResultWithPrefix(selectedFeature, keyPress)
+            }
+
+            if !aiVerdictString.isEmpty {
+                Text("|")
+                    .padding([.leading, .trailing])
+
+                HStack {
+                    Text("HIVE verdict: ")
+                    Text(aiVerdictString)
+                    Image(systemName: aiVerdict == .notAi ? "checkmark.shield" : aiVerdict == .ai ? "exclamationmark.warninglight" : "questionmark.diamond")
+                }
+                .font(.system(size: 24))
+                .foregroundStyle(aiVerdict == .notAi ? .green : aiVerdict == .ai ? .red : .yellow, .secondary)
+            }
+
+            Spacer()
+        }
+    }
+
+    private func TinEyeResultsView() -> some View {
+        VStack {
+            if let realizedImageUrl = loadedImageUrl {
+                ZStack {
+                    PlatformIndependentWebView(url: realizedImageUrl, isLoading: $isLoading, error: $error)
+                        .cornerRadius(4)
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(2)
+                    }
+                }
+            } else {
+                Spacer()
+                Text("Enter an image URL to search")
+                Spacer()
+            }
+        }
+    }
+
+    private func HiveAiResultsView() -> some View {
+        VStack {
+            if !returnedJson.isEmpty {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        copyToClipboard(returnedJson)
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the logging data to the clipboard")
+                    }) {
+                        HStack(alignment: .center) {
+                            Image(systemName: "pencil.and.list.clipboard")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Copy result")
+                        }
+                    }
+                    .focusable()
+                    .onKeyPress(.space) {
+                        copyToClipboard(returnedJson)
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the logging data to the clipboard")
+                        return .handled
+                    }
+                }
+                ScrollView(.vertical) {
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("Result from server: ")
+                                .font(.system(size: 16))
+                                .bold()
+                                .padding([.top, .leading], 8)
+                            Spacer().frame(height: 0) // fix bug with text being truncated
+                            Text(returnedJson)
+                                .lineLimit(...2048)
+                                .padding(8)
+                            Spacer().frame(height: 0) // fix bug with text being truncated
+                        }
+                        Spacer()
+                    }
+                }
+                .background(Color.BackgroundColorList)
+                .cornerRadius(10)
+            }
+
+            if !errorFromServer.isEmpty {
+                HStack {
+                    Text("Error: ")
+                    Text(errorFromServer)
+                }
+                .font(.system(size: 32))
+                .foregroundStyle(.red, .secondary)
+            }
+
+            Spacer()
+        }
+    }
+
     private func openTinEyeResults() {
+        logger.verbose("Opening the TinEye browser URL", context: "System")
         let imageUrlToEncode = imageValidationImageUrl.wrappedValue
         if imageUrlToEncode != nil {
             let finalUrl = imageUrlToEncode!.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
@@ -275,6 +286,7 @@ struct ImageValidationView: View {
     }
 
     private func prepareHiveResults() {
+        logger.verbose("Loading results from HIVE", context: "System")
         viewModel.showToast(.progress, "Loading", "Loading image AI data from HIVE...")
         Task {
             aiVerdict = .indeterminate
@@ -297,9 +309,11 @@ struct ImageValidationView: View {
             uploadToServer = nil
             if let errorResult = error {
                 errorFromServer = "Error result: " + errorResult.localizedDescription
+                logger.error("Error result from HIVE: \(errorResult.localizedDescription)", context: "System")
                 debugPrint("Error result: " + errorResult.localizedDescription)
                 viewModel.dismissAllNonBlockingToasts(includeProgress: true)
             } else if let dataResult = data {
+                logger.verbose("Received result from HIVE", context: "System")
                 do
                 {
                     returnedJson = String(data: dataResult, encoding: .utf8) ?? ""
@@ -318,13 +332,17 @@ struct ImageValidationView: View {
                        let jsonData = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys]) {
                         returnedJson = String(decoding: jsonData, as: UTF8.self)
                     }
+                    logger.verbose("Parsed result from HIVE", context: "System")
                 } catch {
+                    logger.error("Error parsing results from HIVE: \(error.localizedDescription)", context: "System")
                     do
                     {
                         let decoder = JSONDecoder()
                         let results = try decoder.decode(ServerMessage.self, from: dataResult)
                         errorFromServer = results.message
+                        logger.error("Error from HIVE: \(errorFromServer)", context: "System")
                     } catch {
+                        logger.error("JSON decode error decoding HIVE response: \(error.localizedDescription)", context: "System")
                         errorFromServer = "JSON decode error: " + error.localizedDescription
                         debugPrint("JSON decode error: " + error.localizedDescription)
                         debugPrint(String(decoding: dataResult, as: UTF8.self))

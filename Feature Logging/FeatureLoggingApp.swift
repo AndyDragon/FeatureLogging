@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftyBeaver
 
 @main
 struct Feature_LoggingApp: App {
@@ -34,6 +35,17 @@ struct Feature_LoggingApp: App {
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var aiCheckAppName = "AI Check Tool"
 
+    let logger = SwiftyBeaver.self
+    let loggerConsole = ConsoleDestination()
+    let loggerFile = FileDestination()
+
+    init() {
+        loggerConsole.logPrintWay = .logger(subsystem: "Main", category: "UI")
+        loggerFile.logFileURL = getDocumentsDirectory().appendingPathComponent("\(Bundle.main.displayName ?? "Feature Logging").log", conformingTo: .log)
+        logger.addDestination(loggerConsole)
+        logger.addDestination(loggerFile)
+    }
+
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     var body: some Scene {
         let appState = VersionCheckAppState(
@@ -51,6 +63,8 @@ struct Feature_LoggingApp: App {
         .commands {
             CommandGroup(replacing: CommandGroupPlacement.appInfo) {
                 Button(action: {
+                    logger.verbose("Open about view", context: "User")
+
                     // Open the "about" window using the id "about"
                     openWindow(id: "about")
                 }, label: {
@@ -62,6 +76,9 @@ struct Feature_LoggingApp: App {
                 addition: {
                     Button(
                         action: {
+                            logger.verbose("Manual check for updates", context: "User")
+
+                            // Manually check for updates
                             appState.checkForUpdates(true)
                         },
                         label: {
@@ -75,6 +92,9 @@ struct Feature_LoggingApp: App {
                     
                     Button(
                         action: {
+                            logger.verbose("Show statistics", context: "User")
+
+                            // Show the statistics view
                             commandModel.showStatistics.toggle()
                         },
                         label: {
@@ -88,6 +108,7 @@ struct Feature_LoggingApp: App {
             CommandGroup(replacing: CommandGroupPlacement.newItem) {
                 Button(
                     action: {
+                        logger.verbose("New log from menu", context: "User")
                         commandModel.newLog.toggle()
                     },
                     label: {
@@ -98,6 +119,7 @@ struct Feature_LoggingApp: App {
                 
                 Button(
                     action: {
+                        logger.verbose("Open log from menu", context: "User")
                         commandModel.openLog.toggle()
                     },
                     label: {
@@ -110,6 +132,7 @@ struct Feature_LoggingApp: App {
                 
                 Button(
                     action: {
+                        logger.verbose("Save log from menu", context: "User")
                         commandModel.saveLog.toggle()
                     },
                     label: {
@@ -120,6 +143,7 @@ struct Feature_LoggingApp: App {
                 
                 Button(
                     action: {
+                        logger.verbose("Save report from menu", context: "User")
                         commandModel.saveReport.toggle()
                     },
                     label: {
@@ -135,6 +159,7 @@ struct Feature_LoggingApp: App {
                         if cullingApp.isEmpty {
                             return
                         }
+                        logger.verbose("Launch culling app from menu", context: "User")
                         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: cullingApp) else { return }
                         let configuration = NSWorkspace.OpenConfiguration()
                         NSWorkspace.shared.openApplication(at: url, configuration: configuration)
@@ -151,6 +176,7 @@ struct Feature_LoggingApp: App {
                         if aiCheckApp.isEmpty {
                             return
                         }
+                        logger.verbose("Launch AI check app from menu", context: "User")
                         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: aiCheckApp) else { return }
                         let configuration = NSWorkspace.OpenConfiguration()
                         NSWorkspace.shared.openApplication(at: url, configuration: configuration)
@@ -166,6 +192,9 @@ struct Feature_LoggingApp: App {
                 
                 Button(
                     action: {
+                        logger.verbose("Manual reload pages catalog", context: "User")
+
+                        // Manually reload the page catalog using the command model
                         commandModel.reloadPageCatalog.toggle()
                     },
                     label: {
@@ -188,6 +217,9 @@ struct Feature_LoggingApp: App {
                 "SwiftUICharts": [
                     "Will Dale ([Github profile](https://github.com/willdale))"
                 ],
+                "SwiftyBeaver": [
+                    "SwiftyBeaver ([Github profile](https://github.com/SwiftyBeaver))"
+                ],
                 "SystemColors": [
                     "Denis ([Github profile](https://github.com/diniska))"
                 ],
@@ -203,12 +235,25 @@ struct Feature_LoggingApp: App {
 #if os(macOS)
         Settings {
             SettingsPane()
+                .onAppear {
+                    logger.verbose("Opened settings pane", context: "User")
+                }
+                .onDisappear {
+                    logger.verbose("Closed settings pane", context: "User")
+                }
         }
 #endif
     }
 
     class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         @EnvironmentObject var commandModel: AppCommandModel
+
+        private let logger = SwiftyBeaver.self
+
+        func applicationWillFinishLaunching(_ notification: Notification) {
+            logger.info("==============================================================================")
+            logger.info("Start of session")
+        }
 
         func applicationDidFinishLaunching(_ notification: Notification) {
             let mainWindow = NSApp.windows[0]
@@ -222,6 +267,17 @@ struct Feature_LoggingApp: App {
         func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
             return DocumentManager.default.canTerminate() ? .terminateNow : .terminateCancel
         }
+
+        func applicationWillTerminate(_ notification: Notification) {
+            logger.info("End of session")
+            logger.info("==============================================================================")
+        }
+    }
+
+    private func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        let documentsDirectory = paths[0]
+        return documentsDirectory
     }
 }
 

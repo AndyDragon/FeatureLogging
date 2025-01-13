@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftUICharts
+import SwiftyBeaver
 
 struct LogFile {
     var fileName: String
@@ -34,6 +35,7 @@ struct StatisticsContentView: View {
     @State private var hubFeatureCountPieChart: PieChartData? = nil
 
     private let languagePrefix = Locale.preferredLanguageCode
+    private let logger = SwiftyBeaver.self
 
     init(
         _ viewModel: ContentView.ViewModel,
@@ -103,11 +105,14 @@ struct StatisticsContentView: View {
                                     pages.insert("all", at: 0)
                                     selectedPage = pages.first!
                                     navigateToStatsPage(.same)
+                                    logger.verbose("Loaded \(pages.count) pages for stats", context: "System")
                                 } catch {
+                                    logger.error("Failed to load pages for stats: \(error.localizedDescription)", context: "System")
                                     debugPrint(error.localizedDescription)
                                 }
                                 folder.stopAccessingSecurityScopedResource()
                             case .failure(let error):
+                                logger.error("Failed to pick folder for stats: \(error.localizedDescription)", context: "System")
                                 debugPrint(error)
                             }
                         })

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftyBeaver
 
 struct FeatureEditor: View {
     private var viewModel: ContentView.ViewModel
@@ -23,6 +24,7 @@ struct FeatureEditor: View {
     ) var includeHash = false
 
     private let labelWidth: CGFloat = 108
+    private let logger = SwiftyBeaver.self
 
     init(
         _ viewModel: ContentView.ViewModel,
@@ -108,6 +110,7 @@ struct FeatureEditor: View {
                 .cornerRadius(4)
 
                 Button(action: {
+                    logger.verbose("Tapped on paste link button", context: "User")
                     pasteClipboardToPostLink()
                 }) {
                     HStack(alignment: .center) {
@@ -118,11 +121,13 @@ struct FeatureEditor: View {
                 }
                 .focusable()
                 .onKeyPress(.space) {
+                    logger.verbose("Pressed space on paste link button", context: "User")
                     pasteClipboardToPostLink()
                     return .handled
                 }
 
                 Button(action: {
+                    logger.verbose("Tapped load post button", context: "User")
                     if !selectedFeature.feature.postLink.isEmpty {
                         showDownloaderView()
                     }
@@ -142,6 +147,7 @@ struct FeatureEditor: View {
                 .keyboardShortcut("l", modifiers: .command)
                 .focusable()
                 .onKeyPress(.space) {
+                    logger.verbose("Pressed space on paste link button", context: "User")
                     showDownloaderView()
                     return .handled
                 }
@@ -207,6 +213,7 @@ struct FeatureEditor: View {
                 .cornerRadius(4)
 
                 Button(action: {
+                    logger.verbose("Tapped on paste user name button", context: "User")
                     pasteClipboardToUserName()
                 }) {
                     HStack(alignment: .center) {
@@ -217,6 +224,7 @@ struct FeatureEditor: View {
                 }
                 .focusable()
                 .onKeyPress(.space) {
+                    logger.verbose("Pressed space on paste user name button", context: "User")
                     pasteClipboardToUserName()
                     return .handled
                 }

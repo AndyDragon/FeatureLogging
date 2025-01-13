@@ -27,6 +27,7 @@
 		499B07052D127F3500B90BE7 /* ContentView.ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499B07042D127F2F00B90BE7 /* ContentView.ViewModel.swift */; };
 		49C7C40C2D133C8E00988113 /* FeatureList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C7C40B2D133C8E00988113 /* FeatureList.swift */; };
 		49C839B32CF7AB0E00D2AF95 /* PostData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C839B22CF7AAFF00D2AF95 /* PostData.swift */; };
+		49CD18062D34833A00F08A56 /* SwiftyBeaver in Frameworks */ = {isa = PBXBuildFile; productRef = 49CD18052D34833A00F08A56 /* SwiftyBeaver */; };
 		49D1D4352CFE58D600B90FD1 /* ImageValidationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D1D4342CFE58D600B90FD1 /* ImageValidationView.swift */; };
 		49D22C5B2BBC97BD005ECE84 /* SettingsPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D22C5A2BBC97BD005ECE84 /* SettingsPane.swift */; };
 		49D3C0322CF2D2E800608566 /* FeatureListRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D3C0312CF2D2E800608566 /* FeatureListRow.swift */; };
@@ -97,6 +98,7 @@
 			files = (
 				49FA95FB2CF195E50074DE7B /* Kingfisher in Frameworks */,
 				4925315E2C446FC0003A8D24 /* SwiftUICharts in Frameworks */,
+				49CD18062D34833A00F08A56 /* SwiftyBeaver in Frameworks */,
 				4930AB962BB7354E00C72CA9 /* SystemColors in Frameworks */,
 				49FA95FE2CF198A20074DE7B /* SwiftSoup in Frameworks */,
 			);
@@ -211,6 +213,7 @@
 				4925315D2C446FC0003A8D24 /* SwiftUICharts */,
 				49FA95FA2CF195E50074DE7B /* Kingfisher */,
 				49FA95FD2CF198A20074DE7B /* SwiftSoup */,
+				49CD18052D34833A00F08A56 /* SwiftyBeaver */,
 			);
 			productName = "Feature Logging";
 			productReference = 49D828052BB7327000153786 /* Feature Logging.app */;
@@ -245,6 +248,7 @@
 				4925315C2C446FC0003A8D24 /* XCRemoteSwiftPackageReference "SwiftUICharts" */,
 				49FA95F92CF195E50074DE7B /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				49FA95FC2CF198A20074DE7B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+				49CD18042D34833A00F08A56 /* XCRemoteSwiftPackageReference "SwiftyBeaver" */,
 			);
 			productRefGroup = 49D828062BB7327000153786 /* Products */;
 			projectDirPath = "";
@@ -378,7 +382,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 66;
+				CURRENT_PROJECT_VERSION = 67;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -531,7 +535,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 66;
+				CURRENT_PROJECT_VERSION = 67;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -564,7 +568,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 66;
+				CURRENT_PROJECT_VERSION = 67;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -630,6 +634,14 @@
 				minimumVersion = 1.2.0;
 			};
 		};
+		49CD18042D34833A00F08A56 /* XCRemoteSwiftPackageReference "SwiftyBeaver" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SwiftyBeaver/SwiftyBeaver.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.1.1;
+			};
+		};
 		49FA95F92CF195E50074DE7B /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
@@ -658,6 +670,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 4930AB942BB7354E00C72CA9 /* XCRemoteSwiftPackageReference "swiftui-system-colors" */;
 			productName = SystemColors;
+		};
+		49CD18052D34833A00F08A56 /* SwiftyBeaver */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 49CD18042D34833A00F08A56 /* XCRemoteSwiftPackageReference "SwiftyBeaver" */;
+			productName = SwiftyBeaver;
 		};
 		49FA95FA2CF195E50074DE7B /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;
