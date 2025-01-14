@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Net.Http.Headers;
 using System.Net.Http;
@@ -219,6 +220,7 @@ namespace FeatureLogging
                                 foreach (var feature in Features)
                                 {
                                     feature.IsDirty = false;
+                                    feature.OnSortKeyChange();
                                 }
                                 notificationManager.Show(
                                     "Loaded the feature log",
@@ -2330,6 +2332,10 @@ namespace FeatureLogging
             {
                 return key;
             }
+            if (string.IsNullOrEmpty(feature.UserName))
+            {
+                return "ZZZ|" + feature.UserAlias;
+            }
 
             // Handle photo featured on page
             key += (feature.PhotoFeaturedOnPage ? "Z|" : "A|");
@@ -2855,6 +2861,11 @@ namespace FeatureLogging
             OnPropertyChanged(nameof(LastFeaturedOnPageValidation));
             OnPropertyChanged(nameof(LastFeaturedOnHubValidation));
             OnPropertyChanged(nameof(LastFeaturedPageValidation));
+        }
+
+        internal void OnSortKeyChange()
+        {
+            OnPropertyChanged(SortKey);
         }
     }
 
