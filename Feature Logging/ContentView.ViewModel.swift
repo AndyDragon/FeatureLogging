@@ -486,6 +486,8 @@ extension ContentView {
             return true
         }
 
+        let compareUserName = lhs.userName.localizedStandardCompare(rhs.userName) == .orderedAscending
+
         if lhs.photoFeaturedOnPage && rhs.photoFeaturedOnPage {
             return lhs.userName < rhs.userName
         }
@@ -499,7 +501,7 @@ extension ContentView {
         let lhsTinEye = lhs.tinEyeResults == .matchFound
         let rhsTinEye = rhs.tinEyeResults == .matchFound
         if lhsTinEye && rhsTinEye {
-            return lhs.userName < rhs.userName
+            return compareUserName
         }
         if lhsTinEye {
             return false
@@ -511,7 +513,7 @@ extension ContentView {
         let lhAiCheck = lhs.aiCheckResults == .ai
         let rhAiCheck = rhs.aiCheckResults == .ai
         if lhAiCheck && rhAiCheck {
-            return lhs.userName < rhs.userName
+            return compareUserName
         }
         if lhAiCheck {
             return false
@@ -521,7 +523,7 @@ extension ContentView {
         }
 
         if lhs.tooSoonToFeatureUser && rhs.tooSoonToFeatureUser {
-            return lhs.userName < rhs.userName
+            return compareUserName
         }
         if lhs.tooSoonToFeatureUser {
             return false
@@ -531,7 +533,7 @@ extension ContentView {
         }
 
         if !lhs.isPicked && !rhs.isPicked {
-            return lhs.userName < rhs.userName
+            return compareUserName
         }
         if !lhs.isPicked {
             return false
@@ -540,6 +542,6 @@ extension ContentView {
             return true
         }
 
-        return lhs.userName < rhs.userName
+        return compareUserName
     }
 }
