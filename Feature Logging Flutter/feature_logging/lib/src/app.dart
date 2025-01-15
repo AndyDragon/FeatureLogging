@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'sample_feature/feature_details_view.dart';
-import 'sample_feature/feature_list_view.dart';
+//import 'features/feature.dart';
+import 'features/feature_details_view.dart';
+import 'features/feature_list_view.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
@@ -18,6 +19,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Feature feature1 = Feature();
+    // feature1.userName = "AndyDragon Photography";
+    // Feature feature2 = Feature();
+    // feature2.userName = "Beverly Forget";
+    // List<Feature> features = [feature1, feature2];
+
     // Glue the SettingsController to the MaterialApp.
     //
     // The ListenableBuilder Widget listens to the SettingsController for changes.
@@ -73,7 +80,7 @@ class MyApp extends StatelessWidget {
                     return const FeatureEditorView();
                   case FeatureListView.routeName:
                   default:
-                    return const FeatureListView();
+                    return const FeatureListView([]);
                 }
               },
             );

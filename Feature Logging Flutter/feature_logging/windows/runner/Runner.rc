@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "feature_logging" "\0"
+            VALUE "CompanyName", "com.andydragon" "\0"
+            VALUE "FileDescription", "Feature Logging" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "feature_logging" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "feature_logging.exe" "\0"
-            VALUE "ProductName", "feature_logging" "\0"
+            VALUE "InternalName", "Feature Logging" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 com.andydragon. All rights reserved." "\0"
+            VALUE "OriginalFilename", "Feature Logging.exe" "\0"
+            VALUE "ProductName", "Feature Logging" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

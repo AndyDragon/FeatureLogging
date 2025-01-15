@@ -1,4 +1,4 @@
-package com.example.feature_logging
+package com.andydragon.feature_logging
 
 import io.flutter.embedding.android.FlutterActivity
 

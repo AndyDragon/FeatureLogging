@@ -6,14 +6,12 @@ import 'feature_details_view.dart';
 
 /// Displays a list of Features.
 class FeatureListView extends StatelessWidget {
-  const FeatureListView({
+  const FeatureListView(this.features, {
     super.key,
-    this.items = const [Feature(1), Feature(2), Feature(3)],
   });
 
   static const routeName = '/';
-
-  final List<Feature> items;
+  final List<Feature> features;
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +42,9 @@ class FeatureListView extends StatelessWidget {
         // scroll position when a user leaves and returns to the app after it
         // has been killed while running in the background.
         restorationId: 'featureListView',
-        itemCount: items.length,
+        itemCount: features.length,
         itemBuilder: (BuildContext context, int index) {
-          final item = items[index];
+          final item = features[index];
 
           return ListTile(
             title: Text('Feature ${item.userName.isNotEmpty ? item.userName : item.userAlias}'),

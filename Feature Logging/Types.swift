@@ -302,18 +302,15 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
 
 enum TinEyeResults: String, CaseIterable, Identifiable, Codable {
     case zeroMatches = "0 matches"
-    case
-        noMatches = "no matches"
-    case
-        matchFound = "matches found"
+    case noMatches = "no matches"
+    case matchFound = "matches found"
 
     var id: Self { self }
 }
 
 enum AiCheckResults: String, CaseIterable, Identifiable, Codable {
     case human = "human"
-    case
-        ai = "ai"
+    case ai = "ai"
 
     var id: Self { self }
 }
