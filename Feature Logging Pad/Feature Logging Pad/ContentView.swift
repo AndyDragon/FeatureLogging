@@ -1,8 +1,8 @@
 //
 //  ContentView.swift
-//  Feature Logging
+//  Feature Logging Pad
 //
-//  Created by Andrew Forget on 2024-03-29.
+//  Created by Andrew Forget on 2025-01-16.
 //
 
 import SwiftUI
@@ -10,16 +10,10 @@ import SwiftyBeaver
 import UniformTypeIdentifiers
 
 struct ContentView: View {
-    // PREFS
-    @AppStorage(
-        "preference_personalMessage",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var personalMessageFormat = "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-    @AppStorage(
-        "preference_personalMessageFirst",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-
+    //    @EnvironmentObject var commandModel: AppCommandModel
+    
+    @Environment(\.openURL) private var openURL
+   
     // THEME
     @AppStorage(
         Constants.THEME_APP_STORE_KEY,
@@ -28,13 +22,9 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @State private var isDarkModeOn = true
 
-    @EnvironmentObject var commandModel: AppCommandModel
-
-    @Environment(\.openURL) private var openURL
-
     @State private var viewModel = ViewModel()
     @FocusState private var focusedField: FocusField?
-
+    
     @ObservedObject var featureScriptPlaceholders = PlaceholderList()
     @ObservedObject var commentScriptPlaceholders = PlaceholderList()
     @ObservedObject var originalPostScriptPlaceholders = PlaceholderList()
@@ -48,12 +38,8 @@ struct ContentView: View {
     @State private var logURL: URL? = nil
     @State private var showReportFileExporter = false
     @State private var reportDocument = ReportDocument()
-    @State private var isShowingScriptView = false
-    @State private var isShowingStatisticsView = false
-    @State private var isShowingDownloaderView = false
-    @State private var isShowingImageValidationView = false
     @State private var shouldScrollFeatureListToSelection = false
-
+    
     private let appState: VersionCheckAppState
     private let logger = SwiftyBeaver.self
     private var descriptionSuffix: String {
@@ -65,13 +51,13 @@ struct ContentView: View {
         return ""
     }
     private var titleSuffix: String {
-        isShowingScriptView
+        viewModel.visibleView == .ScriptView
         ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - scripts" : " - scripts for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
-            : (isShowingDownloaderView
-                ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - post viewer" : " - post viewer for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
-                : (isShowingStatisticsView
-                    ? " - statistics"
-                    : ""))
+        : (viewModel.visibleView == .PostDownloadView
+           ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - post viewer" : " - post viewer for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
+           : (viewModel.visibleView == .StatisticsView
+              ? " - statistics"
+              : ""))
     }
     private var fileNameDateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -79,80 +65,100 @@ struct ContentView: View {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }
-
+    
+    
     init(_ appState: VersionCheckAppState) {
         self.appState = appState
     }
-
+    
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-
+            
+            if (viewModel.visibleView == .FeatureListView) {
+                FeatureListView(
+                    viewModel,
+                    $logURL,
+                    $focusedField,
+                    $logDocument,
+                    $showFileImporter,
+                    $showFileExporter,
+                    $reportDocument,
+                    $showReportFileExporter,
+                    $documentDirtyAlertConfirmation,
+                    $documentDirtyAfterSaveAction,
+                    $documentDirtyAfterDismissAction,
+                    $shouldScrollFeatureListToSelection,
+                    { viewModel.visibleView = .ScriptView },
+                    { viewModel.visibleView = .PostDownloadView },
+                    updateStaffLevelForPage,
+                    storeStaffLevelForPage,
+                    saveLog,
+                    setTheme
+                )
+            } else if (viewModel.visibleView == .FeatureEditorView) {
+                FeatureEditorView(
+                    viewModel,
+                    $logURL,
+                    $focusedField,
+                    $logDocument,
+                    $showFileImporter,
+                    $showFileExporter,
+                    $reportDocument,
+                    $showReportFileExporter,
+                    $documentDirtyAlertConfirmation,
+                    $documentDirtyAfterSaveAction,
+                    $documentDirtyAfterDismissAction,
+                    $shouldScrollFeatureListToSelection,
+                    { viewModel.visibleView = .ScriptView },
+                    { viewModel.visibleView = .PostDownloadView },
+                    updateStaffLevelForPage,
+                    storeStaffLevelForPage,
+                    saveLog,
+                    setTheme
+                )
+            } else if (viewModel.visibleView == .PostDownloadView) {
+                PostDownloaderView(
+                    viewModel,
+                    viewModel.selectedPage!,
+                    viewModel.selectedFeature!,
+                    $focusedField,
+                    { viewModel.visibleView = .FeatureEditorView },
+                    { imageUrl in
+                        imageValidationImageUrl = imageUrl
+                        viewModel.visibleView = .ImageValidationView
+                    },
+                    { shouldScrollFeatureListToSelection.toggle() }
+                )
+            } else if (viewModel.visibleView == .ImageValidationView) {
+                ImageValidationView(
+                    viewModel,
+                    $focusedField,
+                    $imageValidationImageUrl,
+                    { viewModel.visibleView = .PostDownloadView },
+                    { shouldScrollFeatureListToSelection.toggle() }
+                )
+            } else if (viewModel.visibleView == .ScriptView) {
+                ScriptContentView(
+                    viewModel,
+                    viewModel.selectedPage!,
+                    viewModel.selectedFeature!,
+                    featureScriptPlaceholders,
+                    commentScriptPlaceholders,
+                    originalPostScriptPlaceholders,
+                    $focusedField,
+                    { viewModel.visibleView = .FeatureListView },
+                    navigateToNextFeature
+                )
+            } else if (viewModel.visibleView == .StatisticsView) {
+                StatisticsContentView(
+                    viewModel,
+                    $focusedField,
+                    { viewModel.visibleView = .FeatureListView }
+                )
+            }
+            
             VStack {
-                if isShowingScriptView {
-                    ScriptContentView(
-                        viewModel,
-                        viewModel.selectedPage!,
-                        viewModel.selectedFeature!,
-                        featureScriptPlaceholders,
-                        commentScriptPlaceholders,
-                        originalPostScriptPlaceholders,
-                        $focusedField,
-                        { isShowingScriptView = false },
-                        navigateToNextFeature
-                    )
-                } else if isShowingDownloaderView {
-                    if isShowingImageValidationView {
-                        ImageValidationView(
-                            viewModel,
-                            $focusedField,
-                            $imageValidationImageUrl,
-                            { isShowingImageValidationView = false },
-                            { shouldScrollFeatureListToSelection.toggle() }
-                        )
-                    } else {
-                        PostDownloaderView(
-                            viewModel,
-                            viewModel.selectedPage!,
-                            viewModel.selectedFeature!,
-                            $focusedField,
-                            { isShowingDownloaderView = false },
-                            { imageUrl in
-                                imageValidationImageUrl = imageUrl
-                                isShowingImageValidationView = true
-                            },
-                            { shouldScrollFeatureListToSelection.toggle() }
-                        )
-                    }
-                } else if isShowingStatisticsView {
-                    StatisticsContentView(
-                        viewModel,
-                        $focusedField,
-                        { commandModel.showStatistics = false }
-                    )
-                } else {
-                    MainContentView(
-                        viewModel,
-                        $logURL,
-                        $focusedField,
-                        $logDocument,
-                        $showFileImporter,
-                        $showFileExporter,
-                        $reportDocument,
-                        $showReportFileExporter,
-                        $documentDirtyAlertConfirmation,
-                        $documentDirtyAfterSaveAction,
-                        $documentDirtyAfterDismissAction,
-                        $shouldScrollFeatureListToSelection,
-                        { isShowingScriptView = true },
-                        { isShowingDownloaderView = true },
-                        updateStaffLevelForPage,
-                        storeStaffLevelForPage,
-                        saveLog,
-                        setTheme
-                    )
-                }
-
                 // Log importer
                 HStack { }
                     .frame(width: 0, height: 0)
@@ -216,95 +222,15 @@ struct ContentView: View {
                     .fileDialogConfirmationLabel("Save report")
             }
         }
-#if TESTING
-        .navigationTitle("Feature Logging v2.1 - Script Testing\(titleSuffix)")
-#else
-        .navigationTitle("Feature Logging v2.1\(titleSuffix)")
-#endif
-        .frame(minWidth: 1024, minHeight: 720)
+        .padding()
+        .navigationTitle("Feature Logging v2.1\(titleSuffix)" + (viewModel.isDirty ? " - edited" : ""))
         .background(Color.BackgroundColor)
-        .onChange(of: commandModel.newLog) {
-            if viewModel.isDirty {
-                documentDirtyAfterSaveAction = {
-                    logURL = nil
-                    viewModel.selectedFeature = nil
-                    viewModel.features = [ObservableFeature]()
-                    viewModel.clearDocumentDirty()
-                    logger.verbose("New log created", context: "System")
-                }
-                documentDirtyAfterDismissAction = {
-                    logURL = nil
-                    viewModel.selectedFeature = nil
-                    viewModel.features = [ObservableFeature]()
-                    viewModel.clearDocumentDirty()
-                    logger.verbose("New log created", context: "System")
-                }
-                documentDirtyAlertConfirmation = "Would you like to save this log file before creating a new log?"
-                viewModel.isShowingDocumentDirtyAlert.toggle()
-            } else {
-                logURL = nil
-                viewModel.selectedFeature = nil
-                viewModel.features = [ObservableFeature]()
-                viewModel.clearDocumentDirty()
-                logger.verbose("New log created", context: "System")
-            }
-        }
-        .onChange(of: commandModel.openLog) {
-            if viewModel.isDirty {
-                documentDirtyAfterSaveAction = {
-                    showFileImporter.toggle()
-                }
-                documentDirtyAfterDismissAction = {
-                    showFileImporter.toggle()
-                }
-                documentDirtyAlertConfirmation = "Would you like to save this log file before opening another log?"
-                viewModel.isShowingDocumentDirtyAlert.toggle()
-            } else {
-                showFileImporter.toggle()
-            }
-        }
-        .onChange(of: commandModel.saveLog) {
-            logDocument = LogDocument(page: viewModel.selectedPage!, features: viewModel.features)
-            if let file = logURL {
-                saveLog(to: file)
-                documentDirtyAfterSaveAction()
-                documentDirtyAfterSaveAction = {}
-                documentDirtyAfterDismissAction = {}
-                viewModel.clearDocumentDirty()
-            } else {
-                showFileExporter.toggle()
-            }
-        }
-        .onChange(of: commandModel.saveReport) {
-            reportDocument = ReportDocument(initialText: viewModel.generateReport(personalMessageFormat, personalMessageFirstFormat))
-            showReportFileExporter.toggle()
-        }
-        .onChange(of: commandModel.showStatistics) {
-            isShowingStatisticsView = commandModel.showStatistics
-        }
-        .onChange(of: commandModel.reloadPageCatalog) {
-            if !viewModel.features.isEmpty {
-                logger.warning("Could not reload pages with features", context: "System")
-                viewModel.showToast(
-                    .alert,
-                    "Cannot load pages",
-                    "Cannot reload pages while there are features",
-                    modal: false,
-                    blocking: false
-                )
-            } else {
-                viewModel.loadedCatalogs = LoadedCatalogs()
-                Task {
-                    await loadPageCatalog()
-                }
-            }
-        }
         .sheet(isPresented: $viewModel.isShowingDocumentDirtyAlert) {
             DocumentDirtySheet(
                 isShowing: $viewModel.isShowingDocumentDirtyAlert,
                 confirmationText: $documentDirtyAlertConfirmation,
                 saveAction: {
-                    commandModel.saveLog.toggle()
+                    // TODO andydragon commandModel.saveLog.toggle()
                 },
                 dismissAction: {
                     logger.warning("Ignored dirty document", context: "System")
@@ -321,11 +247,6 @@ struct ContentView: View {
         .attachVersionCheckState(viewModel, appState) { url in
             openURL(url)
         }
-        .onAppear(perform: {
-            setTheme(theme)
-            DocumentManager.default.registerReceiver(receiver: self)
-        })
-        .navigationSubtitle(viewModel.isDirty ? "edited" : "")
         .task {
             let loadingPagesToast = viewModel.showToast(
                 .progress,
@@ -341,13 +262,17 @@ struct ContentView: View {
         }
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
     }
-
+    
     private func delayAndTerminate() {
         viewModel.clearDocumentDirty()
         DispatchQueue.main.asyncAfter(
             deadline: .now() + 0.2,
             execute: {
+#if os(macOS)
                 NSApplication.shared.terminate(nil)
+#else
+                // TODO andydragon
+#endif
             })
     }
 
@@ -587,7 +512,7 @@ struct ContentView: View {
                             viewModel.selectedFeature = ObservableFeatureWrapper(using: page, from: viewModel.sortedFeatures[nextIndex])
 
                             // Ensure the ScriptContentView is visible
-                            isShowingScriptView = true
+                            viewModel.visibleView = .ScriptView
                             return
                         }
                     }

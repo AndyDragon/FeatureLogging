@@ -9,6 +9,11 @@
         "link": "https://vero.andydragon.com/app/featurelogging/macInstall_v2",
         "vital": false
     },
+    "iPad": {
+        "current": "1.0.1",
+        "link": "https://vero.andydragon.com/app/featurelogging/iPadInstall",
+        "vital": false
+    },
     "windows": {
         "current": "1.0.7",
         "link": "https://vero.andydragon.com/app/featurelogging/windowsInstall",
