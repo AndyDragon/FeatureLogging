@@ -27,7 +27,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.appBarMain.fab?.setOnClickListener { view ->
             Snackbar.make(view, "Create new feature here...", Snackbar.LENGTH_LONG)
-                .setAction("Action", null)
+                .setAction("Action") {
+
+                }
                 .setAnchorView(R.id.fab).show()
         }
 
