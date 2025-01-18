@@ -2442,20 +2442,20 @@ namespace FeatureLogging
                                     var totalFeatures = featuresOnHub;
                                     featureDictionary["newLevel"] = (totalFeatures + 1) switch
                                     {
-                                        5 => "Member",
-                                        15 => "Bronze Member",
-                                        30 => "Silver Member",
-                                        50 => "Gold Member",
-                                        75 => "Platinum Member",
+                                        5 => "Click Member",
+                                        15 => "Click Bronze Member",
+                                        30 => "Click Silver Member",
+                                        50 => "Click Gold Member",
+                                        75 => "Click Platinum Member",
                                         _ => "",
                                     };
                                     featureDictionary["userLevel"] = (totalFeatures + 1) switch
                                     {
-                                        5 => "Member",
-                                        15 => "Bronze Member",
-                                        30 => "Silver Member",
-                                        50 => "Gold Member",
-                                        75 => "Platinum Member",
+                                        5 => "Click Member",
+                                        15 => "Click Bronze Member",
+                                        30 => "Click Silver Member",
+                                        50 => "Click Gold Member",
+                                        75 => "Click Platinum Member",
                                         _ => featureDictionary["userLevel"],
                                     };
                                 }
@@ -2471,14 +2471,14 @@ namespace FeatureLogging
                                     var totalFeatures = featuresOnHub + featuresOnRaw;
                                     featureDictionary["newLevel"] = (totalFeatures + 1) switch
                                     {
-                                        5 => "Member (feature comment)",
-                                        15 => "VIP Member (feature comment)",
+                                        5 => "Snap Member (feature comment)",
+                                        15 => "Snap VIP Member (feature comment)",
                                         _ => "",
                                     };
                                     featureDictionary["userLevel"] = (totalFeatures + 1) switch
                                     {
-                                        5 => "Member",
-                                        15 => "VIP Member",
+                                        5 => "Snap Member",
+                                        15 => "Snap VIP Member",
                                         _ => featureDictionary["userLevel"],
                                     };
                                 }

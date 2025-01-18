@@ -687,19 +687,19 @@ namespace FeatureLogging
 
         private static string[] SnapNewMemberships => [
             "None",
-            "Member (feature comment)",
-            "Member (original post comment)",
-            "VIP Member (feature comment)",
-            "VIP Member (original post comment)",
+            "Snap Member (feature comment)",
+            "Snap Member (original post comment)",
+            "Snap VIP Member (feature comment)",
+            "Snap VIP Member (original post comment)",
         ];
 
         private static string[] ClickNewMemberships => [
             "None",
-            "Member",
-            "Bronze Member",
-            "Silver Member",
-            "Gold Member",
-            "Platinum Member",
+            "Click Member",
+            "Click Bronze Member",
+            "Click Silver Member",
+            "Click Gold Member",
+            "Click Platinum Member",
         ];
 
         private static string[] OtherNewMemberships => [
@@ -1056,16 +1056,24 @@ namespace FeatureLogging
             {
                 return newMembershipLevel switch
                 {
-                    "Member (feature comment)" => "snap:member feature",
-                    "Member (original post comment)" => "snap:member original post",
-                    "VIP Member (feature comment)" => "snap:vip member feature",
-                    "VIP Member (original post comment)" => "snap:vip member original post",
+                    "Snap Member (feature comment)" => "snap:member feature",
+                    "Snap Member (original post comment)" => "snap:member original post",
+                    "Snap VIP Member (feature comment)" => "snap:vip member feature",
+                    "Snap VIP Member (original post comment)" => "snap:vip member original post",
                     _ => "",
                 };
             }
             else if (hubName == "click")
             {
-                return hubName + ":" + NewMembership.Replace(" ", "_").ToLowerInvariant();
+                return newMembershipLevel switch
+                {
+                    "Click Member" => "click:member",
+                    "Click Bronze Member" => "click:bronze_member",
+                    "Click Silver Member" => "click:silver_member",
+                    "Click Gold Member" => "click:gold_member",
+                    "Click Platinum Member" => "click:platinum_member",
+                    _ => "",
+                };
             }
             return "";
         }
