@@ -21,7 +21,6 @@ struct PostDownloaderView: View {
     private var viewModel: ContentView.ViewModel
     private var selectedPage: ObservablePage
     @Bindable private var selectedFeature: ObservableFeatureWrapper
-    @State private var focusedField: FocusState<FocusField?>.Binding
     private var hideDownloaderView: () -> Void
     private var showImageValidationView: (_ imageUrl: URL) -> Void
     private var updateList: () -> Void
@@ -48,15 +47,13 @@ struct PostDownloaderView: View {
     @State private var userBio = ""
 
     private let languagePrefix = Locale.preferredLanguageCode
-    private let mainLabelWidth: CGFloat = -128
-    private let labelWidth: CGFloat = 108
+    private let mainLabelWidth: CGFloat = 148
     private let logger = SwiftyBeaver.self
 
     init(
         _ viewModel: ContentView.ViewModel,
         _ selectedPage: ObservablePage,
         _ selectedFeature: ObservableFeatureWrapper,
-        _ focusedField: FocusState<FocusField?>.Binding,
         _ hideDownloaderView: @escaping () -> Void,
         _ showImageValidationView: @escaping (_ imageUrl: URL) -> Void,
         _ updateList: @escaping () -> Void
@@ -64,7 +61,6 @@ struct PostDownloaderView: View {
         self.viewModel = viewModel
         self.selectedPage = selectedPage
         self.selectedFeature = selectedFeature
-        self.focusedField = focusedField
         self.hideDownloaderView = hideDownloaderView
         self.showImageValidationView = showImageValidationView
         self.updateList = updateList
@@ -168,26 +164,23 @@ struct PostDownloaderView: View {
             }
             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
             .toolbar {
-                Button(action: {
-                    hideDownloaderView()
-                }) {
-                    HStack {
-                        Image(systemName: "xmark")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Close")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
-                            .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Button(action: {
+                        hideDownloaderView()
+                    }) {
+                        HStack {
+                            Image(systemName: "xmark")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Close")
+                        }
+                        .padding(4)
                     }
-                    .padding(4)
+                    .disabled(viewModel.hasModalToasts)
                 }
-                .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                .disabled(viewModel.hasModalToasts)
             }
+            .toolbarVisibility(.visible, for: .bottomBar)
         }
-        .frame(minWidth: 1024, minHeight: 600)
+        .frame(minHeight: 600)
         .background(Color.BackgroundColor)
         .onAppear {
             postLoaded = false
@@ -214,594 +207,585 @@ struct PostDownloaderView: View {
 
     // MARK: Subviews
     private func PageScopeView() -> some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading) {
-                HStack(alignment: .center) {
-                    ValidationLabel("Page: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
-                    ValidationLabel(selectedPage.displayTitle, validation: true, validColor: .AccentColor)
-                    Spacer()
-                }
-                .frame(height: 20)
-                HStack(alignment: .center) {
-                    ValidationLabel("Page tags: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
-                    ValidationLabel(selectedPage.hashTags.joined(separator: ", "), validation: true, validColor: .AccentColor)
-                    Spacer()
-                }
-                .frame(height: 20)
-                HStack(alignment: .center) {
-                    ValidationLabel("Excluded hashtags: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
-                    HStack(alignment: .center) {
-                        TextField(
-                            "add excluded hashtags without the '#' separated by comma",
-                            text: $excludedHashtags.onChange { value in
-                                storeExcludedTagsForPage()
-                            }
-                        )
-                        .focusable()
-                        .focused(focusedField, equals: .postUserName)
-                    }
-                    .textFieldStyle(.plain)
-                    .padding(4)
-                    .background(Color.BackgroundColorEditor)
-                    .border(Color.gray.opacity(0.25))
-                    .cornerRadius(4)
-                    .frame(maxWidth: .infinity)
-                    .autocapitalization(.none)
-                    .autocorrectionDisabled()
+        VStack(alignment: .leading) {
+            // Page
+            HStack(alignment: .center) {
+                ValidationLabel("Page: ", labelWidth: mainLabelWidth, validation: true, validColor: .green)
+                    .font(.system(size: 14))
+                ValidationLabel(selectedPage.displayTitle, validation: true, validColor: .AccentColor)
 
-                    Spacer()
-                }
-                .frame(height: 20)
-                HStack(alignment: .center) {
-                    ValidationLabel("Post URL: ", labelWidth: -mainLabelWidth, validation: !selectedFeature.feature.postLink.isEmpty, validColor: .green)
-                    ValidationLabel(selectedFeature.feature.postLink, validation: true, validColor: .AccentColor)
-                    Spacer()
-                    Button(action: {
-                        logger.verbose("Tapped copy URL for post", context: "User")
-                        copyToClipboard(selectedFeature.feature.postLink)
-                        viewModel.showSuccessToast("Copied to clipboard", "Copied the post URL to the clipboard")
-                    }) {
-                        HStack(alignment: .center) {
-                            Image(systemName: "pencil.and.list.clipboard")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Copy URL")
-                        }
-                    }
-                    .focusable()
-                    .onKeyPress(.space) {
-                        logger.verbose("Pressed space on copy URL for post", context: "User")
-                        copyToClipboard(selectedFeature.feature.postLink)
-                        viewModel.showSuccessToast("Copied to clipboard", "Copied the post URL to the clipboard")
-                        return .handled
-                    }
-                    Spacer()
-                        .frame(width: 10)
-                    Button(action: {
-                        if let url = URL(string: selectedFeature.feature.postLink) {
-                            logger.verbose("Tapped launch for post", context: "User")
-                            openURL(url)
-                        }
-                    }) {
-                        HStack(alignment: .center) {
-                            Image(systemName: "globe")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Launch")
-                        }
-                    }
-                    .disabled(selectedFeature.feature.postLink.isEmpty)
-                    .focusable(!selectedFeature.feature.postLink.isEmpty)
-                    .onKeyPress(.space) {
-                        if let url = URL(string: selectedFeature.feature.postLink) {
-                            logger.verbose("Pressed space on launch for post", context: "User")
-                            openURL(url)
-                        }
-                        return .handled
-                    }
-                }
-                .frame(height: 20)
-                HStack(alignment: .center) {
-                    ValidationLabel("User profile URL: ", labelWidth: -mainLabelWidth, validation: !userProfileLink.isEmpty, validColor: .green)
-                    ValidationLabel(userProfileLink, validation: true, validColor: .AccentColor)
-                    Spacer()
-                    Button(action: {
-                        logger.verbose("Tapped copy URL for profile", context: "User")
-                        copyToClipboard(userProfileLink)
-                        viewModel.showSuccessToast("Copied to clipboard", "Copied the user profile URL to the clipboard")
-                    }) {
-                        HStack(alignment: .center) {
-                            Image(systemName: "pencil.and.list.clipboard")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Copy URL")
-                        }
-                    }
-                    .focusable()
-                    .onKeyPress(.space) {
-                        logger.verbose("Pressed space on copy URL for profile", context: "User")
-                        copyToClipboard(userProfileLink)
-                        viewModel.showSuccessToast("Copied to clipboard", "Copied the user profile URL to the clipboard")
-                        return .handled
-                    }
-                    Spacer()
-                        .frame(width: 10)
-                    Button(action: {
-                        if let url = URL(string: userProfileLink) {
-                            logger.verbose("Tapped launch for profile", context: "User")
-                            openURL(url)
-                        }
-                    }) {
-                        HStack(alignment: .center) {
-                            Image(systemName: "globe")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Launch")
-                        }
-                    }
-                    .disabled(userProfileLink.isEmpty)
-                    .focusable(!userProfileLink.isEmpty)
-                    .onKeyPress(.space) {
-                        if let url = URL(string: userProfileLink) {
-                            logger.verbose("Pressed space on launch for profile", context: "User")
-                            openURL(url)
-                        }
-                        return .handled
-                    }
-                }
-                .frame(height: 20)
+                Spacer()
             }
-            .frame(maxWidth: .infinity)
+            .frame(height: 20)
+
+            // Page tags
+            HStack(alignment: .center) {
+                ValidationLabel("Page tags: ", labelWidth: mainLabelWidth, validation: true, validColor: .green)
+                    .font(.system(size: 14))
+                ValidationLabel(selectedPage.hashTags.joined(separator: ", "), validation: true, validColor: .AccentColor)
+
+                Spacer()
+            }
+            .frame(height: 20)
+
+            // Page excluded tags
+            HStack(alignment: .center) {
+                ValidationLabel("Excluded hashtags: ", labelWidth: mainLabelWidth, validation: true, validColor: .green)
+                    .font(.system(size: 14))
+                HStack(alignment: .center) {
+                    TextField(
+                        "add excluded hashtags without the '#' separated by comma",
+                        text: $excludedHashtags.onChange { value in
+                            storeExcludedTagsForPage()
+                        }
+                    )
+                }
+                .textFieldStyle(.plain)
+                .padding(4)
+                .background(Color.BackgroundColorEditor)
+                .border(Color.gray.opacity(0.25))
+                .cornerRadius(4)
+                .frame(maxWidth: .infinity)
+                .autocapitalization(.none)
+                .autocorrectionDisabled()
+                .frame(maxWidth: 400)
+
+                Spacer()
+            }
+            .frame(height: 20)
+
+            // Post URL
+            HStack(alignment: .center) {
+                ValidationLabel("Post URL: ", labelWidth: mainLabelWidth, validation: !selectedFeature.feature.postLink.isEmpty, validColor: .green)
+                    .font(.system(size: 14))
+                ValidationLabel(selectedFeature.feature.postLink, validation: true, validColor: .AccentColor)
+
+                Spacer()
+            }
+            .frame(height: 20)
+
+            // Post URL actions
+            HStack(alignment: .center) {
+                Spacer()
+                    .frame(width: mainLabelWidth + 8)
+
+                Button(action: {
+                    logger.verbose("Tapped copy URL for post", context: "User")
+                    copyToClipboard(selectedFeature.feature.postLink)
+                    viewModel.showSuccessToast("Copied to clipboard", "Copied the post URL to the clipboard")
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "pencil.and.list.clipboard")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Copy URL")
+                    }
+                }
+                .buttonStyle(.bordered)
+                .scaleEffect(0.75, anchor: .leading)
+
+                Spacer()
+                    .frame(width: 10)
+
+                Button(action: {
+                    if let url = URL(string: selectedFeature.feature.postLink) {
+                        logger.verbose("Tapped launch for post", context: "User")
+                        openURL(url)
+                    }
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "globe")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Launch")
+                    }
+                }
+                .disabled(selectedFeature.feature.postLink.isEmpty)
+                .buttonStyle(.bordered)
+                .scaleEffect(0.75, anchor: .leading)
+
+                Spacer()
+            }
+            .frame(height: 20)
+
+            // Profile URL
+            HStack(alignment: .center) {
+                ValidationLabel("User profile URL: ", labelWidth: mainLabelWidth, validation: !userProfileLink.isEmpty, validColor: .green)
+                    .font(.system(size: 14))
+                ValidationLabel(userProfileLink, validation: true, validColor: .AccentColor)
+
+                Spacer()
+            }
+            .frame(height: 20)
+
+            // Profile URL action
+            HStack(alignment: .center) {
+                Spacer()
+                    .frame(width: mainLabelWidth + 8)
+
+                Button(action: {
+                    logger.verbose("Tapped copy URL for profile", context: "User")
+                    copyToClipboard(userProfileLink)
+                    viewModel.showSuccessToast("Copied to clipboard", "Copied the user profile URL to the clipboard")
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "pencil.and.list.clipboard")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Copy URL")
+                    }
+                }
+                .buttonStyle(.bordered)
+                .scaleEffect(0.75, anchor: .leading)
+
+                Spacer()
+                    .frame(width: 10)
+
+                Button(action: {
+                    if let url = URL(string: userProfileLink) {
+                        logger.verbose("Tapped launch for profile", context: "User")
+                        openURL(url)
+                    }
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "globe")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Launch")
+                    }
+                }
+                .buttonStyle(.bordered)
+                .disabled(userProfileLink.isEmpty)
+                .scaleEffect(0.75, anchor: .leading)
+
+                Spacer()
+            }
+            .frame(height: 20)
         }
+        .frame(maxWidth: .infinity)
     }
 
     private func ProfileView() -> some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading) {
-                HStack(alignment: .center) {
-                    ValidationLabel("User alias: ", labelWidth: -mainLabelWidth, validation: !userAlias.isEmpty, validColor: .green)
-                    ValidationLabel(userAlias, validation: true, validColor: .AccentColor)
-                    Spacer()
-                    ValidationLabel(
-                        "User alias:", labelWidth: labelWidth,
-                        validation: !selectedFeature.feature.userAlias.isEmpty && !selectedFeature.feature.userAlias.contains(where: \.isNewline))
-                    HStack(alignment: .center) {
-                        TextField(
-                            "enter the user alias",
-                            text: $selectedFeature.feature.userAlias.onChange { value in
-                                updateList()
-                                viewModel.markDocumentDirty()
-                            }
-                        )
-                        .focusable()
-                        .focused(focusedField, equals: .postUserAlias)
-                    }
-                    .textFieldStyle(.plain)
-                    .padding(4)
-                    .background(Color.BackgroundColorEditor)
-                    .border(Color.gray.opacity(0.25))
-                    .cornerRadius(4)
-                    .frame(maxWidth: 240)
-                    .autocapitalization(.none)
-                    .autocorrectionDisabled()
+        VStack(alignment: .leading) {
+            // User alias
+            HStack(alignment: .center) {
+                ValidationLabel("User alias: ", labelWidth: mainLabelWidth, validation: !userAlias.isEmpty, validColor: .green)
+                    .font(.system(size: 14))
+                ValidationLabel(userAlias, validation: true, validColor: .AccentColor)
 
-                    Button(action: {
-                        selectedFeature.feature.userAlias = userAlias
-                    }) {
-                        HStack(alignment: .center) {
-                            Image(systemName: "pencil.line")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Transfer")
-                        }
-                    }
-                    .disabled(userAlias.isEmpty)
-                    .focusable(!userAlias.isEmpty)
-                    .onKeyPress(.space) {
-                        if !userAlias.isEmpty {
-                            selectedFeature.feature.userAlias = userAlias
-                        }
-                        return .handled
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 20)
-                HStack(alignment: .center) {
-                    ValidationLabel("User name: ", labelWidth: -mainLabelWidth, validation: !userName.isEmpty, validColor: .green)
-                    ValidationLabel(userName, validation: true, validColor: .AccentColor)
-                    Spacer()
-                    ValidationLabel(
-                        "User name:", labelWidth: labelWidth,
-                        validation: !selectedFeature.feature.userName.isEmpty && !selectedFeature.feature.userName.contains(where: \.isNewline))
-                    HStack(alignment: .center) {
-                        TextField(
-                            "enter the user name",
-                            text: $selectedFeature.feature.userName.onChange { value in
-                                updateList()
-                                viewModel.markDocumentDirty()
-                            }
-                        )
-                        .focusable()
-                        .focused(focusedField, equals: .postUserName)
-                    }
-                    .textFieldStyle(.plain)
-                    .padding(4)
-                    .background(Color.BackgroundColorEditor)
-                    .border(Color.gray.opacity(0.25))
-                    .cornerRadius(4)
-                    .frame(maxWidth: 240)
-                    .autocapitalization(.none)
-                    .autocorrectionDisabled()
+                Spacer()
+                    .frame(width: 12)
 
-                    Button(action: {
-                        selectedFeature.feature.userName = userName
-                    }) {
-                        HStack(alignment: .center) {
-                            Image(systemName: "pencil.line")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Transfer")
-                        }
-                    }
-                    .disabled(userName.isEmpty)
-                    .focusable(!userName.isEmpty)
-                    .onKeyPress(.space) {
-                        if !userName.isEmpty {
-                            selectedFeature.feature.userName = userName
-                        }
-                        return .handled
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 20)
+                ValidationLabel(
+                    validation: !selectedFeature.feature.userAlias.isEmpty && !selectedFeature.feature.userAlias.contains(where: \.isNewline))
                 HStack(alignment: .center) {
-                    ValidationLabel("User BIO:", validation: !userBio.isEmpty, validColor: .green)
-                    Spacer()
-                    ValidationLabel("User level:", labelWidth: labelWidth, validation: selectedFeature.feature.userLevel != MembershipCase.none)
-                    Picker(
-                        "",
-                        selection: $selectedFeature.feature.userLevel.onChange { value in
-                            navigateToUserLevel(.same)
+                    TextField(
+                        "enter the user alias",
+                        text: $selectedFeature.feature.userAlias.onChange { value in
+                            updateList()
+                            viewModel.markDocumentDirty()
                         }
-                    ) {
-                        ForEach(MembershipCase.casesFor(hub: selectedPage.hub)) { level in
-                            Text(level.rawValue)
-                                .tag(level)
-                                .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
-                        }
-                    }
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
-                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                    .focusable()
-                    .focused(focusedField, equals: .postUserLevel)
-                    .frame(maxWidth: 240)
-                    .onKeyPress(phases: .down) { keyPress in
-                        return navigateToUserLevelWithArrows(keyPress)
-                    }
-                    .onKeyPress(characters: .alphanumerics) { keyPress in
-                        return navigateToUserLevelWithPrefix(keyPress)
+                    )
+                }
+                .textFieldStyle(.plain)
+                .padding(4)
+                .background(Color.BackgroundColorEditor)
+                .border(Color.gray.opacity(0.25))
+                .cornerRadius(4)
+                .frame(maxWidth: 240)
+                .autocapitalization(.none)
+                .autocorrectionDisabled()
+
+                Button(action: {
+                    selectedFeature.feature.userAlias = userAlias
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "pencil.line")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Transfer")
                     }
                 }
-                .frame(maxWidth: .infinity)
-                HStack(alignment: .top) {
-                    ScrollView {
-                        if #available(macOS 14.0, *) {
-                            TextEditor(text: .constant(userBio))
-                                .scrollIndicators(.never)
-                                .focusable(false)
-                                .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
-                                .textEditorStyle(.plain)
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                .scrollContentBackground(.hidden)
-                                .padding(4)
-                                .autocorrectionDisabled(false)
-                                .disableAutocorrection(false)
-                                .font(.system(size: 18, design: .serif))
-                        } else {
-                            TextEditor(text: .constant(userBio))
-                                .scrollIndicators(.never)
-                                .focusable(false)
-                                .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                .scrollContentBackground(.hidden)
-                                .padding(4)
-                                .autocorrectionDisabled(false)
-                                .disableAutocorrection(false)
-                                .font(.system(size: 18, design: .serif))
+                .disabled(userAlias.isEmpty)
+                .buttonStyle(.bordered)
+                .scaleEffect(0.75, anchor: .leading)
+
+                Spacer()
+            }
+            .frame(height: 24)
+
+            // User name
+            HStack(alignment: .center) {
+                ValidationLabel("User name: ", labelWidth: mainLabelWidth, validation: !userName.isEmpty, validColor: .green)
+                    .font(.system(size: 14))
+                ValidationLabel(userName, validation: true, validColor: .AccentColor)
+
+                Spacer()
+                    .frame(width: 12)
+
+                ValidationLabel(
+                    validation: !selectedFeature.feature.userName.isEmpty && !selectedFeature.feature.userName.contains(where: \.isNewline))
+                HStack(alignment: .center) {
+                    TextField(
+                        "enter the user name",
+                        text: $selectedFeature.feature.userName.onChange { value in
+                            updateList()
+                            viewModel.markDocumentDirty()
                         }
+                    )
+                }
+                .textFieldStyle(.plain)
+                .padding(4)
+                .background(Color.BackgroundColorEditor)
+                .border(Color.gray.opacity(0.25))
+                .cornerRadius(4)
+                .frame(maxWidth: 240)
+                .autocapitalization(.none)
+                .autocorrectionDisabled()
+
+                Button(action: {
+                    selectedFeature.feature.userName = userName
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "pencil.line")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        Text("Transfer")
                     }
-                    .frame(maxHeight: 80)
+                }
+                .disabled(userName.isEmpty)
+                .buttonStyle(.bordered)
+                .scaleEffect(0.75, anchor: .leading)
+
+                Spacer()
+            }
+            .frame(height: 24)
+
+            // User BIO
+            ValidationLabel("User BIO:", validation: !userBio.isEmpty, validColor: .green)
+                .font(.system(size: 14))
+            ScrollView {
+                HStack {
+                    TextEditor(text: .constant("\(userBio)\n\n\n"))
+                        .scrollIndicators(.never)
+                        .frame(maxWidth: 480, maxHeight: .infinity, alignment: .leading)
+                        .textEditorStyle(.plain)
+                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        .scrollContentBackground(.hidden)
+                        .padding(.horizontal, 4)
+                        .autocorrectionDisabled(false)
+                        .disableAutocorrection(false)
+                        .font(.system(size: 16, design: .serif))
                     Spacer()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: 110)
+
+            // User level actions
+            HStack(alignment: .center) {
+                ValidationLabel("User level:", labelWidth: mainLabelWidth, validation: selectedFeature.feature.userLevel != MembershipCase.none)
+                    .font(.system(size: 14))
+                Picker(
+                    "",
+                    selection: $selectedFeature.feature.userLevel.onChange { value in
+                        viewModel.markDocumentDirty()
+                    }
+                ) {
+                    ForEach(MembershipCase.casesFor(hub: selectedPage.hub)) { level in
+                        Text(level.rawValue)
+                            .tag(level)
+                            .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                    }
+                }
+                .tint(Color.AccentColor)
+                .accentColor(Color.AccentColor)
+                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .frame(maxWidth: 160)
+
+                Toggle(
+                    isOn: $selectedFeature.feature.userIsTeammate.onChange { value in
+                        viewModel.markDocumentDirty()
+                    }
+                ) {
+                    Text("User is a Team Mate")
+                        .font(.system(size: 14))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+                .tint(Color.AccentColor)
+                .accentColor(Color.AccentColor)
+                .frame(minWidth: 240, maxWidth: 240)
+
+                Spacer()
+            }
+            .frame(height: 20)
+        }
+    }
+
+    private func TagCheckAndDescriptionView() -> some View {
+        VStack(alignment: .leading) {
+            // Tag check
+            HStack(alignment: .center) {
+                ValidationLabel(pageHashtagCheck, validation: !missingTag, validColor: .green)
+                    .font(.system(size: 14))
+
+                Spacer()
+            }
+            .frame(height: 20)
+
+            // Excluded tag check
+            HStack(alignment: .center) {
+                ValidationLabel(excludedHashtagCheck, validation: !hasExcludedHashtag, validColor: .green)
+                    .font(.system(size: 14))
+
+                Spacer()
+            }
+            .frame(height: 20)
+
+            // Description
+            ValidationLabel("Post description:", validation: !description.isEmpty, validColor: .green)
+                .font(.system(size: 14))
+            ScrollView {
+                HStack {
+                    TextEditor(text: .constant("\(description)\n\n\n"))
+                        .scrollIndicators(.never)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                        .textEditorStyle(.plain)
+                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        .scrollContentBackground(.hidden)
+                        .padding(.horizontal, 4)
+                        .autocorrectionDisabled(false)
+                        .disableAutocorrection(false)
+                        .font(.system(size: 12))
+                    Spacer()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: 140)
+
+            // Description actions
+            HStack(alignment: .center) {
+                ValidationLabel(validation: !selectedFeature.feature.featureDescription.isEmpty)
+                TextField(
+                    "enter the description",
+                    text: $selectedFeature.feature.featureDescription.onChange { value in
+                        viewModel.markDocumentDirty()
+                    }
+                )
+                .textFieldStyle(.plain)
+                .padding(4)
+                .background(Color.BackgroundColorEditor)
+                .border(Color.gray.opacity(0.25))
+                .cornerRadius(4)
+                .frame(maxWidth: 320)
+                .autocapitalization(.none)
+                .autocorrectionDisabled()
+
+                Spacer()
+            }
+            .frame(height: 20)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func PageAndHubCommentsView() -> some View {
+        VStack(alignment: .leading) {
+            if !pageComments.isEmpty {
+                HStack(alignment: .center) {
+                    ValidationLabel("Found comments from page (possibly already featured on page): ", validation: true, validColor: .red)
+                        .font(.system(size: 14))
+
+                    Spacer()
+                }
+                .frame(height: 20)
+
+                HStack(alignment: .center) {
                     Toggle(
-                        isOn: $selectedFeature.feature.userIsTeammate.onChange { value in
+                        isOn: $selectedFeature.feature.photoFeaturedOnPage.onChange { value in
+                            updateList()
                             viewModel.markDocumentDirty()
                         }
                     ) {
-                        Text("User is a Team Mate")
+                        Text("Already featured on page")
+                            .font(.system(size: 14))
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
                     .tint(Color.AccentColor)
                     .accentColor(Color.AccentColor)
-                    .focusable()
-                    .focused(focusedField, equals: .postTeammate)
-                    .onKeyPress(.space) {
-                        selectedFeature.feature.userIsTeammate.toggle();
-                        viewModel.markDocumentDirty()
-                        return .handled
-                    }
+                    .frame(minWidth: 220, maxWidth: 220)
+                    Spacer()
                 }
-            }
-            .frame(maxWidth: .infinity)
-        }
-    }
+                .frame(height: 20)
 
-    private func TagCheckAndDescriptionView() -> some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading) {
-                HStack(alignment: .center) {
-                    ValidationLabel(pageHashtagCheck, validation: !missingTag, validColor: .green)
-                    Spacer()
-                }
-                .frame(height: 20)
-                HStack(alignment: .center) {
-                    ValidationLabel(excludedHashtagCheck, validation: !hasExcludedHashtag, validColor: .green)
-                    Spacer()
-                }
-                .frame(height: 20)
-                HStack(alignment: .center) {
-                    ValidationLabel("Post description:", validation: !description.isEmpty, validColor: .green)
-                    Spacer()
-                    ValidationLabel("Description:", labelWidth: labelWidth, validation: !selectedFeature.feature.featureDescription.isEmpty)
-                    TextField(
-                        "enter the description",
-                        text: $selectedFeature.feature.featureDescription.onChange { value in
-                            viewModel.markDocumentDirty()
-                        }
-                    )
-                    .focusable()
-                    .focused(focusedField, equals: .postDescription)
-                    .textFieldStyle(.plain)
-                    .padding(4)
-                    .background(Color.BackgroundColorEditor)
-                    .border(Color.gray.opacity(0.25))
-                    .cornerRadius(4)
-                    .frame(maxWidth: 320)
-                    .autocapitalization(.none)
-                    .autocorrectionDisabled()
-                }
-                .frame(maxWidth: .infinity)
                 ScrollView {
-                    HStack {
-                        if #available(macOS 14.0, *) {
-                            TextEditor(text: .constant(description))
-                                .scrollIndicators(.never)
-                                .focusable(false)
-                                .frame(maxWidth: 960, maxHeight: .infinity, alignment: .leading)
-                                .textEditorStyle(.plain)
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                .scrollContentBackground(.hidden)
-                                .padding(4)
-                                .autocorrectionDisabled(false)
-                                .disableAutocorrection(false)
-                                .font(.system(size: 14))
-                        } else {
-                            TextEditor(text: .constant(description))
-                                .scrollIndicators(.never)
-                                .focusable(false)
-                                .frame(maxWidth: 960, maxHeight: .infinity, alignment: .leading)
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                                .scrollContentBackground(.hidden)
-                                .padding(4)
-                                .autocorrectionDisabled(false)
-                                .disableAutocorrection(false)
-                                .font(.system(size: 14))
-                        }
-                        Spacer()
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: 200)
-            }
-            .frame(maxWidth: .infinity)
-        }
-    }
+                    ForEach(pageComments.sorted { $0.2 ?? .distantPast < $1.2 ?? .distantPast }, id: \.0) { comment in
+                        HStack(alignment: .center) {
+                            Text("\(comment.0) [\(comment.2.formatTimestamp())]: \(comment.1)")
+                                .foregroundStyle(.red, .black)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .font(.system(size: 12))
 
-    private func PageAndHubCommentsView() -> some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading) {
-                if !pageComments.isEmpty {
-                    HStack(alignment: .center) {
-                        ValidationLabel("Found comments from page (possibly already featured on page): ", validation: true, validColor: .red)
-                        Spacer()
-                        Toggle(
-                            isOn: $selectedFeature.feature.photoFeaturedOnPage.onChange { value in
+                            Spacer()
+                                .frame(width: 10)
+
+                            Button(action: {
+                                selectedFeature.feature.photoFeaturedOnPage = true
                                 updateList()
                                 viewModel.markDocumentDirty()
+                            }) {
+                                HStack(alignment: .center) {
+                                    Image(systemName: "checkmark.square")
+                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                    Text("Mark post")
+                                }
                             }
-                        ) {
-                            Text("Photo already featured on page")
-                                .lineLimit(1)
-                                .truncationMode(.tail)
+                            .buttonStyle(.bordered)
+                            .scaleEffect(0.75, anchor: .trailing)
                         }
-                        .tint(Color.AccentColor)
-                        .accentColor(Color.AccentColor)
-                        .focusable()
-                        .focused(focusedField, equals: .postPhotoFeaturedOnPage)
-                        .onKeyPress(.space) {
-                            selectedFeature.feature.photoFeaturedOnPage.toggle();
+                    }
+                }
+                .frame(maxHeight: 60)
+            }
+
+            if !pageComments.isEmpty && !hubComments.isEmpty {
+                Divider()
+            }
+
+            if !hubComments.isEmpty {
+                HStack(alignment: .center) {
+                    ValidationLabel("Found comments from hub (possibly already featured on another page): ", validation: true, validColor: .orange)
+                        .font(.system(size: 14))
+
+                    Spacer()
+                }
+                .frame(height: 20)
+
+                HStack(alignment: .center) {
+                    Toggle(
+                        isOn: $selectedFeature.feature.photoFeaturedOnHub.onChange { value in
                             updateList()
                             viewModel.markDocumentDirty()
-                            return .handled
                         }
+                    ) {
+                        Text("Photo featured on hub")
+                            .font(.system(size: 14))
+                            .lineLimit(1)
+                            .truncationMode(.tail)
                     }
-                    .frame(height: 20)
-                    ScrollView {
-                        ForEach(pageComments.sorted { $0.2 ?? .distantPast < $1.2 ?? .distantPast }, id: \.0) { comment in
-                            HStack(alignment: .center) {
-                                Text("\(comment.0) [\(comment.2.formatTimestamp())]: \(comment.1)")
-                                    .foregroundStyle(.red, .black)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                Spacer()
-                                    .frame(width: 10)
-                                Button(action: {
-                                    selectedFeature.feature.photoFeaturedOnPage = true
-                                    updateList()
-                                    viewModel.markDocumentDirty()
-                                }) {
-                                    HStack(alignment: .center) {
-                                        Image(systemName: "checkmark.square")
-                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                        Text("Mark post")
-                                    }
-                                }
-                                .focusable()
-                                .onKeyPress(.space) {
-                                    selectedFeature.feature.photoFeaturedOnPage = true
-                                    updateList()
-                                    viewModel.markDocumentDirty()
-                                    return .handled
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxHeight: 40)
-                }
-                if !pageComments.isEmpty && !hubComments.isEmpty {
-                    Divider()
-                }
-                if !hubComments.isEmpty {
-                    HStack(alignment: .center) {
-                        ValidationLabel("Found comments from hub (possibly already featured on another page): ", validation: true, validColor: .orange)
-                        Spacer()
-                        Toggle(
-                            isOn: $selectedFeature.feature.photoFeaturedOnHub.onChange { value in
-                                updateList()
+                    .tint(Color.AccentColor)
+                    .accentColor(Color.AccentColor)
+                    .frame(minWidth: 220, maxWidth: 220)
+
+                    if selectedFeature.feature.photoFeaturedOnHub {
+                        Text("|")
+                            .padding([.leading, .trailing], 8)
+
+                        ValidationLabel(
+                            validation: !(selectedFeature.feature.photoLastFeaturedOnHub.isEmpty || selectedFeature.feature.photoLastFeaturedPage.isEmpty)
+                        )
+                        TextField(
+                            "last date featured",
+                            text: $selectedFeature.feature.photoLastFeaturedOnHub.onChange { value in
                                 viewModel.markDocumentDirty()
                             }
-                        ) {
-                            Text("Photo featured on hub")
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                        }
-                        .tint(Color.AccentColor)
-                        .accentColor(Color.AccentColor)
-                        .focusable()
-                        .focused(focusedField, equals: .postPhotoFeaturedOnHub)
-                        .onKeyPress(.space) {
-                            selectedFeature.feature.photoFeaturedOnHub.toggle();
-                            updateList()
-                            viewModel.markDocumentDirty()
-                            return .handled
-                        }
+                        )
+                        .textFieldStyle(.plain)
+                        .padding(4)
+                        .background(Color.BackgroundColorEditor)
+                        .border(Color.gray.opacity(0.25))
+                        .cornerRadius(4)
+                        .frame(maxWidth: 160)
+                        .autocapitalization(.none)
+                        .autocorrectionDisabled()
 
-                        if selectedFeature.feature.photoFeaturedOnHub {
-                            Text("|")
-                                .padding([.leading, .trailing], 8)
-
-                            ValidationLabel(
-                                "Last date featured:",
-                                validation: !(selectedFeature.feature.photoLastFeaturedOnHub.isEmpty || selectedFeature.feature.photoLastFeaturedPage.isEmpty)
-                            )
-                            TextField(
-                                "",
-                                text: $selectedFeature.feature.photoLastFeaturedOnHub.onChange { value in
-                                    viewModel.markDocumentDirty()
-                                }
-                            )
-                            .focusable()
-                            .focused(focusedField, equals: .postPhotoLastFeaturedOnHub)
-                            .textFieldStyle(.plain)
-                            .padding(4)
-                            .background(Color.BackgroundColorEditor)
-                            .border(Color.gray.opacity(0.25))
-                            .cornerRadius(4)
-                            .frame(maxWidth: 160)
-                            .autocapitalization(.none)
-                            .autocorrectionDisabled()
-
-                            TextField(
-                                "on page",
-                                text: $selectedFeature.feature.photoLastFeaturedPage.onChange { value in
-                                    viewModel.markDocumentDirty()
-                                }
-                            )
-                            .focusable()
-                            .focused(focusedField, equals: .postPhotoLastFeaturedPage)
-                            .textFieldStyle(.plain)
-                            .padding(4)
-                            .background(Color.BackgroundColorEditor)
-                            .border(Color.gray.opacity(0.25))
-                            .cornerRadius(4)
-                            .frame(maxWidth: 160)
-                            .autocapitalization(.none)
-                            .autocorrectionDisabled()
-                        }
+                        TextField(
+                            "on page",
+                            text: $selectedFeature.feature.photoLastFeaturedPage.onChange { value in
+                                viewModel.markDocumentDirty()
+                            }
+                        )
+                        .textFieldStyle(.plain)
+                        .padding(4)
+                        .background(Color.BackgroundColorEditor)
+                        .border(Color.gray.opacity(0.25))
+                        .cornerRadius(4)
+                        .frame(maxWidth: 160)
+                        .autocapitalization(.none)
+                        .autocorrectionDisabled()
                     }
-                    .frame(height: 20)
-                    ScrollView {
-                        ForEach(hubComments.sorted { $0.2 ?? .distantPast < $1.2 ?? .distantPast }, id: \.0) { comment in
-                            HStack(alignment: .center) {
-                                Text("\(comment.0) [\(comment.2.formatTimestamp())]: \(comment.1)")
-                                    .foregroundStyle(.orange, .black)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                Spacer()
-                                    .frame(width: 10)
-                                Button(action: {
-                                    selectedFeature.feature.photoFeaturedOnHub = true
-                                    selectedFeature.feature.photoLastFeaturedPage = comment.3
-                                    selectedFeature.feature.photoLastFeaturedOnHub = comment.2.formatTimestamp()
-                                    viewModel.markDocumentDirty()
-                                }) {
-                                    HStack(alignment: .center) {
-                                        Image(systemName: "checkmark.square")
-                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                        Text("Mark post")
-                                    }
-                                }
-                                .focusable()
-                                .onKeyPress(.space) {
-                                    selectedFeature.feature.photoFeaturedOnHub = true
-                                    selectedFeature.feature.photoLastFeaturedPage = comment.3
-                                    selectedFeature.feature.photoLastFeaturedOnHub = comment.2.formatTimestamp()
-                                    viewModel.markDocumentDirty()
-                                    return .handled
+
+                    Spacer()
+                }
+                .frame(height: 20)
+
+                ScrollView {
+                    ForEach(hubComments.sorted { $0.2 ?? .distantPast < $1.2 ?? .distantPast }, id: \.0) { comment in
+                        HStack(alignment: .center) {
+                            Text("\(comment.0) [\(comment.2.formatTimestamp())]: \(comment.1)")
+                                .foregroundStyle(.orange, .black)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .font(.system(size: 12))
+
+                            Spacer()
+                                .frame(width: 10)
+
+                            Button(action: {
+                                selectedFeature.feature.photoFeaturedOnHub = true
+                                selectedFeature.feature.photoLastFeaturedPage = comment.3
+                                selectedFeature.feature.photoLastFeaturedOnHub = comment.2.formatTimestamp()
+                                viewModel.markDocumentDirty()
+                            }) {
+                                HStack(alignment: .center) {
+                                    Image(systemName: "checkmark.square")
+                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                    Text("Mark post")
                                 }
                             }
+                            .buttonStyle(.bordered)
+                            .scaleEffect(0.75, anchor: .trailing)
                         }
+                        .frame(maxHeight: .infinity)
                     }
-                    .frame(maxHeight: 40)
                 }
-                if moreComments {
-                    Divider()
-                    HStack(alignment: .center) {
-                        ValidationLabel("There were more comments than downloaded in the post, open the post IN VERO to check to previous features.", validation: true, validColor: .orange)
-                        Spacer()
-                    }
-                    .frame(height: 20)
-                }
+                .frame(maxHeight: 60)
             }
-            .frame(maxWidth: .infinity)
+
+            if moreComments {
+                Divider()
+
+                HStack(alignment: .center) {
+                    ValidationLabel("There were more comments than downloaded in the post, open the post IN VERO to check to previous features.", validation: true, validColor: .orange)
+                        .font(.system(size: 14))
+
+                    Spacer()
+                }
+                .frame(height: 20)
+            }
         }
+        .frame(maxWidth: .infinity)
     }
 
     private func MoreCommentsView() -> some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading) {
-                HStack(alignment: .center) {
-                    ValidationLabel("There were more comments than downloaded in the post, open the post IN VERO to check to previous features.", validation: true, validColor: .orange)
-                    Spacer()
-                }
-                .frame(height: 20)
+        VStack(alignment: .leading) {
+            HStack(alignment: .center) {
+                ValidationLabel("There were more comments than downloaded in the post, open the post IN VERO to check to previous features.", validation: true, validColor: .orange)
+                    .font(.system(size: 14))
+
+                Spacer()
             }
-            .frame(maxWidth: .infinity)
+            .frame(height: 20)
         }
+        .frame(maxWidth: .infinity)
     }
 
     private func ImagesView() -> some View {
         VStack(alignment: .center) {
             HStack(alignment: .center) {
                 ValidationLabel("Image\(imageUrls.count == 1 ? "" : "s") found: ", validation: imageUrls.count > 0, validColor: .green)
+                    .font(.system(size: 14))
                 ValidationLabel("\(imageUrls.count)", validation: imageUrls.count > 0, validColor: .AccentColor)
+                    .font(.system(size: 14))
+
                 Spacer()
             }
             .frame(height: 20)
-            .frame(maxWidth: 1280)
+            .frame(maxWidth: .infinity)
             .padding([.leading, .trailing])
+
             ScrollView(.horizontal) {
                 VStack(alignment: .center) {
                     HStack {
@@ -827,7 +811,10 @@ struct PostDownloaderView: View {
         VStack {
             HStack(alignment: .top) {
                 ValidationLabel("LOGGING: ", validation: true, validColor: .orange)
+                    .font(.system(size: 14))
+
                 Spacer()
+
                 Button(action: {
                     logger.verbose("Tapped copy for log", context: "User")
                     copyToClipboard(logging.map { $0.1 }.joined(separator: "\n"))
@@ -839,20 +826,17 @@ struct PostDownloaderView: View {
                         Text("Copy log")
                     }
                 }
-                .focusable()
-                .onKeyPress(.space) {
-                    logger.verbose("Pressed space on copy for log", context: "User")
-                    copyToClipboard(logging.map { $0.1 }.joined(separator: "\n"))
-                    viewModel.showSuccessToast("Copied to clipboard", "Copied the logging data to the clipboard")
-                    return .handled
-                }
+                .buttonStyle(.bordered)
+                .scaleEffect(0.75, anchor: .trailing)
             }
             .frame(maxWidth: .infinity)
+
             ScrollView(.horizontal) {
                 ForEach(Array(logging.enumerated()), id: \.offset) { index, log in
                     Text(log.1)
                         .foregroundStyle(log.0, .black)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .font(.system(size: 12))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1052,46 +1036,6 @@ extension PostDownloaderView {
         }
     }
     
-    /// Navigates to a user level using the given direction.
-    /// - Parameters:
-    ///   - direction: The `Direction` for the navigation.
-    private func navigateToUserLevel(_ direction: Direction) {
-        let (change, newValue) = navigateGeneric(MembershipCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.userLevel, direction)
-        if change {
-            if direction != .same {
-                selectedFeature.feature.userLevel = newValue
-            }
-            viewModel.markDocumentDirty()
-        }
-    }
-    
-    /// Navigates to a user level using the key press arrows.
-    /// - Parameters:
-    ///   - keyPress: The key press for the arrows.
-    /// - Returns: The key press result.
-    private func navigateToUserLevelWithArrows(_ keyPress: KeyPress) -> KeyPress.Result {
-        let direction = directionFromModifiers(keyPress)
-        if direction != .same {
-            navigateToUserLevel(direction)
-            return .handled
-        }
-        return .ignored
-    }
-    
-    /// Navigates to a user level using the key press characters as a prefix.
-    /// - Parameters:
-    ///   - keyPress: The key press for the characters.
-    /// - Returns: The key press result.
-    private func navigateToUserLevelWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(MembershipCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.userLevel, keyPress.characters.lowercased())
-        if change {
-            selectedFeature.feature.userLevel = newValue
-            viewModel.markDocumentDirty()
-            return .handled
-        }
-        return .ignored
-    }
-
     /// Loads the excluded hashtags for the current page.
     private func loadExcludedTagsForPage() {
         excludedHashtags = UserDefaults.standard.string(forKey: "ExcludedHashtags_" + selectedPage.id) ?? ""

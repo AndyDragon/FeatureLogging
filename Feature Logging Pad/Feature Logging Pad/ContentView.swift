@@ -23,7 +23,6 @@ struct ContentView: View {
     @State private var isDarkModeOn = true
 
     @State private var viewModel = ViewModel()
-    @FocusState private var focusedField: FocusField?
     
     @ObservedObject var featureScriptPlaceholders = PlaceholderList()
     @ObservedObject var commentScriptPlaceholders = PlaceholderList()
@@ -79,7 +78,6 @@ struct ContentView: View {
                 FeatureListView(
                     viewModel,
                     $logURL,
-                    $focusedField,
                     $logDocument,
                     $showFileImporter,
                     $showFileExporter,
@@ -100,7 +98,6 @@ struct ContentView: View {
                 FeatureEditorView(
                     viewModel,
                     $logURL,
-                    $focusedField,
                     $logDocument,
                     $showFileImporter,
                     $showFileExporter,
@@ -122,7 +119,6 @@ struct ContentView: View {
                     viewModel,
                     viewModel.selectedPage!,
                     viewModel.selectedFeature!,
-                    $focusedField,
                     { viewModel.visibleView = .FeatureEditorView },
                     { imageUrl in
                         imageValidationImageUrl = imageUrl
@@ -133,7 +129,6 @@ struct ContentView: View {
             } else if (viewModel.visibleView == .ImageValidationView) {
                 ImageValidationView(
                     viewModel,
-                    $focusedField,
                     $imageValidationImageUrl,
                     { viewModel.visibleView = .PostDownloadView },
                     { shouldScrollFeatureListToSelection.toggle() }
@@ -146,14 +141,12 @@ struct ContentView: View {
                     featureScriptPlaceholders,
                     commentScriptPlaceholders,
                     originalPostScriptPlaceholders,
-                    $focusedField,
                     { viewModel.visibleView = .FeatureListView },
                     navigateToNextFeature
                 )
             } else if (viewModel.visibleView == .StatisticsView) {
                 StatisticsContentView(
                     viewModel,
-                    $focusedField,
                     { viewModel.visibleView = .FeatureListView }
                 )
             }

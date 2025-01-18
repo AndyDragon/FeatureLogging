@@ -9,6 +9,9 @@ import Kingfisher
 import SwiftSoup
 import SwiftUI
 import SwiftyBeaver
+#if os(iOS)
+import Photos
+#endif
 
 struct PostDownloaderImageView: View {
     @Environment(\.openURL) private var openURL
@@ -64,14 +67,18 @@ struct PostDownloaderImageView: View {
                 .scaleEffect(CGFloat(scale))
                 .frame(width: 400, height: 360)
                 .clipped()
+
                 Slider(value: $scale, in: 0.01...2)
+
                 Text("Size: \(width)px x \(height)px")
                     .foregroundStyle(.black, .secondary)
+                    .font(.system(size: 12))
             }
-            .frame(width: 400, height: 410)
+            .frame(width: 400, height: 414)
             .padding(.all, 4)
             .cornerRadius(4)
             .background(Color(red: 0.9, green: 0.9, blue: 0.92))
+
             HStack {
                 Button(action: {
                     showImageValidationView(imageUrl)
@@ -82,16 +89,10 @@ struct PostDownloaderImageView: View {
                         Text("Validate")
                     }
                 }
-                .focusable()
                 .disabled(data == nil)
-                .onKeyPress(.space) {
-                    if self.data != nil {
-                        showImageValidationView(imageUrl)
-                    }
-                    return .handled
-                }
-                Spacer()
-                    .frame(width: 10)
+                .buttonStyle(.bordered)
+                .scaleEffect(0.75, anchor: .leading)
+
                 Button(action: {
                     saveImage()
                 }) {
@@ -101,16 +102,10 @@ struct PostDownloaderImageView: View {
                         Text("Save image")
                     }
                 }
-                .focusable()
                 .disabled(data == nil)
-                .onKeyPress(.space) {
-                    if data != nil {
-                        saveImage()
-                    }
-                    return .handled
-                }
-                Spacer()
-                    .frame(width: 10)
+                .buttonStyle(.bordered)
+                .scaleEffect(0.75, anchor: .leading)
+
                 Button(action: {
                     logger.verbose("Tapped copy URL for image URL", context: "User")
                     copyToClipboard(imageUrl.absoluteString)
@@ -122,15 +117,9 @@ struct PostDownloaderImageView: View {
                         Text("Copy URL")
                     }
                 }
-                .focusable()
-                .onKeyPress(.space) {
-                    logger.verbose("Pressed space on copy URL for image URL", context: "User")
-                    copyToClipboard(imageUrl.absoluteString)
-                    viewModel.showSuccessToast("Copied to clipboard", "Copied the image URL to the clipboard")
-                    return .handled
-                }
-                Spacer()
-                    .frame(width: 10)
+                .buttonStyle(.bordered)
+                .scaleEffect(0.75, anchor: .leading)
+
                 Button(action: {
                     logger.verbose("Tapped launch for image URL", context: "User")
                     openURL(imageUrl)
@@ -141,17 +130,14 @@ struct PostDownloaderImageView: View {
                         Text("Launch")
                     }
                 }
-                .focusable()
-                .onKeyPress(.space) {
-                    logger.verbose("Pressed space on launch for image URL", context: "User")
-                    openURL(imageUrl)
-                    return .handled
-                }
+                .buttonStyle(.bordered)
+                .scaleEffect(0.75, anchor: .leading)
             }
         }
     }
     
     private func saveImage() {
+#if os(macOS)
         let folderURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("VERO")
         do {
             if !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil) {
@@ -165,7 +151,58 @@ struct PostDownloaderImageView: View {
             logger.error("Failed to save the image file: \(error.localizedDescription)", context: "System")
             debugPrint("Failed to save file")
             debugPrint(error.localizedDescription)
-            viewModel.showToast(.error, "Failed to save", "Failed to saved the image to your Pictures folder - \(error.localizedDescription)")
+            viewModel.showToast(.error, "Failed to save", "Failed to saved the image to your Pictures/VERO folder - \(error.localizedDescription)")
+        }
+#else
+        if let data, let image = UIImage(data: data) {
+            let imageSaver = ImageSaver(success: {
+                logger.verbose("Saved the image to photo library", context: "System")
+                viewModel.showSuccessToast("Saved", "Saved the image to your photo library")
+            }, failure: { error in
+                logger.error("Failed to save the image file to photo library", context: "System")
+                debugPrint("Failed to save file")
+                debugPrint(error.localizedDescription)
+                viewModel.showToast(.error, "Failed to save", "Failed to saved the image to your photo library - \(error.localizedDescription)")
+            })
+            imageSaver.writeToPhotoAlbum(image: image)
+        }
+#endif
+    }
+}
+
+#if os(iOS)
+enum ImageSaverError : Error {
+    case NotAuthorized
+}
+
+class ImageSaver: NSObject {
+    private var success: () -> Void
+    private var failure: (_ error: Error) -> Void
+
+    init(
+        success: @escaping () -> Void,
+        failure: @escaping (_ error: Error) -> Void
+    ) {
+        self.success = success
+        self.failure = failure
+    }
+
+    func writeToPhotoAlbum(image: UIImage) {
+        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
+            if status == .authorized {
+                UIImageWriteToSavedPhotosAlbum(image, self, #selector(self.saveCompleted), nil)
+            } else {
+                self.failure(ImageSaverError.NotAuthorized)
+            }
+        }
+    }
+
+    @objc func saveCompleted(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
+        if let error {
+            failure(error)
+        } else {
+            success()
         }
     }
 }
+#endif

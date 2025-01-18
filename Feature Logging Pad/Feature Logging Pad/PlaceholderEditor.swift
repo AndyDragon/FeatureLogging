@@ -132,38 +132,37 @@ struct PlaceholderSheet: View {
                 .cornerRadius(4)
 
                 HStack {
-                    Button(
-                        action: {
-                            scriptWithPlaceholders = scriptWithPlaceholdersInPlace
-                            placeholders.placeholderDict.forEach({ placeholder in
-                                scriptWithPlaceholders = scriptWithPlaceholders.replacingOccurrences(
-                                    of: placeholder.key,
-                                    with: placeholder.value.value)
-                            })
-                            placeholders.longPlaceholderDict.forEach({ placeholder in
-                                scriptWithPlaceholders = scriptWithPlaceholders.replacingOccurrences(
-                                    of: placeholder.key,
-                                    with: placeholder.value.value)
-                            })
-                            transferPlaceholders()
-                            copyToClipboard(scriptWithPlaceholders)
-                            isPresenting.toggle()
-                            toastCopyToClipboard("")
-                        },
-                        label: {
-                            Text("Copy")
-                                .padding(.horizontal, 20)
+                    Button(action: {
+                        scriptWithPlaceholders = scriptWithPlaceholdersInPlace
+                        placeholders.placeholderDict.forEach({ placeholder in
+                            scriptWithPlaceholders = scriptWithPlaceholders.replacingOccurrences(
+                                of: placeholder.key,
+                                with: placeholder.value.value)
                         })
-                    Button(
-                        action: {
-                            copyToClipboard(scriptWithPlaceholdersInPlace)
-                            isPresenting.toggle()
-                            toastCopyToClipboard("with placeholders")
-                        },
-                        label: {
-                            Text("Copy with Placeholders")
-                                .padding(.horizontal, 20)
+                        placeholders.longPlaceholderDict.forEach({ placeholder in
+                            scriptWithPlaceholders = scriptWithPlaceholders.replacingOccurrences(
+                                of: placeholder.key,
+                                with: placeholder.value.value)
                         })
+                        transferPlaceholders()
+                        copyToClipboard(scriptWithPlaceholders)
+                        isPresenting.toggle()
+                        toastCopyToClipboard("")
+                    }) {
+                        Text("Copy")
+                            .padding(.horizontal, 20)
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button(action: {
+                        copyToClipboard(scriptWithPlaceholdersInPlace)
+                        isPresenting.toggle()
+                        toastCopyToClipboard("with placeholders")
+                    }) {
+                        Text("Copy with Placeholders")
+                            .padding(.horizontal, 20)
+                    }
+                    .buttonStyle(.bordered)
                 }
             }
             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)

@@ -12,7 +12,9 @@ struct FeatureList: View {
     private var viewModel: ContentView.ViewModel
     private var showScriptView: () -> Void
 
+#if os(macOS)
     @State private var hoveredFeature: UUID? = nil
+#endif
 
     init(
         _ viewModel: ContentView.ViewModel,
@@ -30,31 +32,7 @@ struct FeatureList: View {
                     feature,
                     showScriptView
                 )
-                .padding([.top, .bottom], 8)
-                .padding([.leading, .trailing])
 #if os(macOS)
-                .foregroundStyle(
-                    Color(
-                        nsColor: hoveredFeature == feature.id
-                        ? NSColor.selectedControlTextColor
-                        : NSColor.labelColor), Color(nsColor: .labelColor)
-                )
-#else
-//                .foregroundStyle(
-//                    hoveredFeature == feature.id
-//                        ? Color.selectedControlText
-//                        : Color.label,
-//                    Color.label
-//                )
-#endif
-                .background(
-                    viewModel.selectedFeature?.feature == feature
-                    ? Color.BackgroundColorListSelected
-                    : hoveredFeature == feature.id
-                    ? Color.BackgroundColorListSelected.opacity(0.33)
-                    : Color.BackgroundColorList
-                )
-                .cornerRadius(4)
                 .onHover(perform: { hovering in
                     if !hovering {
                         if hoveredFeature == feature.id {
@@ -66,15 +44,35 @@ struct FeatureList: View {
                         }
                     }
                 })
+#endif
                 .onTapGesture {
-                    if viewModel.selectedFeature?.feature != feature {
-                        withAnimation {
-                            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
-                            viewModel.visibleView = .FeatureEditorView
-                        }
+                    withAnimation {
+                        viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
+                        viewModel.visibleView = .FeatureEditorView
                     }
                 }
+                .padding([.top, .bottom], 4)
+                .padding([.leading, .trailing])
+#if os(macOS)
+                .foregroundStyle(
+                    Color(
+                        nsColor: hoveredFeature == feature.id
+                        ? NSColor.selectedControlTextColor
+                        : NSColor.labelColor), Color(nsColor: .labelColor)
+                )
+#else
+                .foregroundStyle(Color.label, Color.label)
+#endif
+                .background(Color.backgroundColor)
+                .cornerRadius(4)
+                .padding([.top, .bottom], 4)
             }
+            .listRowSeparator(.hidden)
+            .listRowSeparatorTint(.clear)
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
         }
+        .listStyle(SidebarListStyle())
+        .listSectionSeparator(.hidden)
+        .contentMargins(.top, 12)
     }
 }

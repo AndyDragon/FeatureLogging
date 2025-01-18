@@ -16,7 +16,6 @@ struct ScriptContentView: View {
     @ObservedObject private var featureScriptPlaceholders: PlaceholderList
     @ObservedObject private var commentScriptPlaceholders: PlaceholderList
     @ObservedObject private var originalPostScriptPlaceholders: PlaceholderList
-    @State private var focusedField: FocusState<FocusField?>.Binding
     private var hideScriptView: () -> Void
     private var navigateToNextFeature: (_ forward: Bool) -> Void
 
@@ -60,7 +59,6 @@ struct ScriptContentView: View {
         _ featureScriptPlaceholders: PlaceholderList,
         _ commentScriptPlaceholders: PlaceholderList,
         _ originalPostScriptPlaceholders: PlaceholderList,
-        _ focusedField: FocusState<FocusField?>.Binding,
         _ hideScriptView: @escaping () -> Void,
         _ navigateToNextFeature: @escaping (_ forward: Bool) -> Void
     ) {
@@ -70,15 +68,12 @@ struct ScriptContentView: View {
         self.featureScriptPlaceholders = featureScriptPlaceholders
         self.commentScriptPlaceholders = commentScriptPlaceholders
         self.originalPostScriptPlaceholders = originalPostScriptPlaceholders
-        self.focusedField = focusedField
         self.hideScriptView = hideScriptView
         self.navigateToNextFeature = navigateToNextFeature
     }
 
     var body: some View {
         ZStack {
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-
             VStack {
                 // Fields
                 FieldSummaryView()
@@ -140,70 +135,57 @@ struct ScriptContentView: View {
                             "Copied the \(scriptName) script\(suffix) to the clipboard")
                     })
             }
-            .toolbar {
-                if viewModel.pickedFeatures.count >= 2 {
+            .toolbar() {
+                ToolbarItemGroup(placement: .bottomBar) {
+                    if viewModel.pickedFeatures.count >= 2 {
+                        Button(action: {
+                            navigateToNextFeature(false)
+                            populateFromSharedFeature()
+                        }) {
+                            HStack {
+                                Image(systemName: "arrowtriangle.backward.fill")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                Text("Previous feature")
+                            }
+                            .padding(4)
+                        }
+                        .disabled(viewModel.hasModalToasts)
+                    }
+
+                    Spacer()
+
                     Button(action: {
-                        navigateToNextFeature(false)
-                        populateFromSharedFeature()
+                        hideScriptView()
                     }) {
                         HStack {
-                            Image(systemName: "arrowtriangle.backward.fill")
+                            Image(systemName: "xmark")
                                 .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Previous feature")
-                                .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                            Text("    ⌘ ⌥ ◀")
-                                .font(.system(.body, design: .rounded))
-                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                            Text("Close")
                         }
                         .padding(4)
                     }
-                    .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
                     .disabled(viewModel.hasModalToasts)
-                }
 
-                Button(action: {
-                    hideScriptView()
-                }) {
-                    HStack {
-                        Image(systemName: "xmark")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Close")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
-                            .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
-                    }
-                    .padding(4)
-                }
-                .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                .disabled(viewModel.hasModalToasts)
+                    Spacer()
 
-                if viewModel.pickedFeatures.count >= 2 {
-                    Button(action: {
-                        navigateToNextFeature(true)
-                        populateFromSharedFeature()
-                    }) {
-                        HStack {
-                            Image(systemName: "arrowtriangle.forward.fill")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Next feature")
-                                .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                            Text("    ⌘ ⌥ ▶")
-                                .font(.system(.body, design: .rounded))
-                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                    if viewModel.pickedFeatures.count >= 2 {
+                        Button(action: {
+                            navigateToNextFeature(true)
+                            populateFromSharedFeature()
+                        }) {
+                            HStack {
+                                Image(systemName: "arrowtriangle.forward.fill")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                Text("Next feature")
+                            }
+                            .padding(4)
                         }
-                        .padding(4)
+                        .disabled(viewModel.hasModalToasts)
                     }
-                    .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
-                    .disabled(viewModel.hasModalToasts)
                 }
             }
+            .toolbarVisibility(.visible, for: .bottomBar)
         }
-        .frame(minWidth: 1024, minHeight: 600)
-        .background(Color.BackgroundColor)
         .onAppear {
             populateFromSharedFeature()
         }
@@ -211,24 +193,12 @@ struct ScriptContentView: View {
 
     private func FieldSummaryView() -> some View {
         Group {
-            // User / Options
+            // User
             HStack {
                 // User name
-                if !userNameValidation.valid {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorRequired)
-                        .help(userNameValidation.reason ?? "unknown error")
-                        .imageScale(.small)
-                }
                 Text("User: ")
-                    .foregroundStyle(
-                        userNameValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
-                        Color.TextColorSecondary
-                    )
-                    .frame(width: !userNameValidation.valid ? 42 : 60, alignment: .leading)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .padding([.leading], !userNameValidation.valid ? 8 : 0)
                 ZStack {
                     Text(selectedFeature.feature.userName)
                         .tint(Color.AccentColor)
@@ -246,19 +216,7 @@ struct ScriptContentView: View {
                 }, alignment: .bottom)
 
                 // User level
-                if !membershipValidation.valid {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorRequired)
-                        .help(membershipValidation.reason ?? "unknown error")
-                        .imageScale(.small)
-                        .padding([.leading], 8)
-                }
                 Text("Level: ")
-                    .foregroundStyle(
-                        membershipValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
-                        Color.TextColorSecondary
-                    )
-                    .frame(width: !membershipValidation.valid ? 42 : 60, alignment: .leading)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .padding([.leading], 8)
@@ -277,8 +235,10 @@ struct ScriptContentView: View {
                         .frame(height: 0.5)
                         .foregroundStyle(Color.gray.opacity(0.25))
                 }, alignment: .bottom)
+            }
 
-                // Options
+            // Options
+            HStack {
                 HStack {
                     Text(selectedFeature.firstFeature ? "☑" : "☐")
                         .font(.system(size: 22, design: .monospaced))
@@ -384,10 +344,7 @@ struct ScriptContentView: View {
                                 "to the clipboard"
                             })
                     }
-                },
-                focusedField: focusedField,
-                editorFocusField: .featureScript,
-                buttonFocusField: .copyFeatureScript)
+                })
 
             // Comment script output
             ScriptEditor(
@@ -414,10 +371,7 @@ struct ScriptContentView: View {
                                 "to the clipboard"
                             })
                     }
-                },
-                focusedField: focusedField,
-                editorFocusField: .commentScript,
-                buttonFocusField: .copyCommentScript)
+                })
 
             // Original post script output
             ScriptEditor(
@@ -444,10 +398,7 @@ struct ScriptContentView: View {
                                 "to the clipboard"
                             })
                     }
-                },
-                focusedField: focusedField,
-                editorFocusField: .originalPostScript,
-                buttonFocusField: .copyOriginalPostScript)
+                })
         }
     }
 
@@ -472,11 +423,7 @@ struct ScriptContentView: View {
                     viewModel.showSuccessToast(
                         "Copied",
                         "Copied the new membership script to the clipboard")
-                },
-                focusedField: focusedField,
-                editorFocusField: .newMembershipScript,
-                pickerFocusField: .newMembership,
-                buttonFocusField: .copyNewMembershipScript)
+                })
         }
     }
 
@@ -494,7 +441,6 @@ struct ScriptContentView: View {
 
         updateScripts()
         updateNewMembershipScripts()
-        focusedField.wrappedValue = .copyFeatureScript
     }
 
     private func clearPlaceholders() {

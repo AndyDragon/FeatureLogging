@@ -31,7 +31,7 @@ struct NewMembershipEditor: View {
                 onChanged(value)
             }) {
                 ForEach(NewMembershipCase.casesFor(hub: selectedPage.hub)) { level in
-                    Text(level.rawValue)
+                    Text(level.scriptNewMembershipStringForHub(hub: selectedPage.hub))
                         .tag(level)
                         .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                 }

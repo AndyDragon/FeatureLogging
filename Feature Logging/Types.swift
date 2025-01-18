@@ -140,8 +140,8 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
     }
 
     func scriptMembershipStringForHub(hub: String?) -> String {
-        (hub == "snap" && self != .commonArtist) ? "Snap \(self.rawValue)"
-        : (hub == "click" && self != .commonArtist) ? "Click \(self.rawValue)"
+        (hub == "snap" && self != .commonArtist && self != .none) ? "Snap \(self.rawValue)"
+        : (hub == "click" && self != .commonArtist && self != .none) ? "Click \(self.rawValue)"
         : self.rawValue
     }
 }
@@ -297,6 +297,12 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
 
     static func caseValidFor(hub: String?, _ value: NewMembershipCase) -> Bool {
         return casesFor(hub: hub).contains(value)
+    }
+
+    func scriptNewMembershipStringForHub(hub: String?) -> String {
+        (hub == "snap" && self != .none) ? "Snap \(self.rawValue)"
+        : (hub == "click" && self != .none) ? "Click \(self.rawValue)"
+        : self.rawValue
     }
 }
 

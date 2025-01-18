@@ -19,7 +19,6 @@ struct ImageValidationView: View {
     @Environment(\.openURL) private var openURL
 
     private var viewModel: ContentView.ViewModel
-    @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var imageValidationImageUrl: Binding<URL?>
     private var hideImageValidationView: () -> Void
     private var updateList: () -> Void
@@ -38,13 +37,11 @@ struct ImageValidationView: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ focusedField: FocusState<FocusField?>.Binding,
         _ imageValidationImageUrl: Binding<URL?>,
         _ hideImageValidationView: @escaping () -> Void,
         _ updateList: @escaping () -> Void
     ) {
         self.viewModel = viewModel
-        self.focusedField = focusedField
         self.imageValidationImageUrl = imageValidationImageUrl
         self.hideImageValidationView = hideImageValidationView
         self.updateList = updateList
@@ -98,27 +95,28 @@ struct ImageValidationView: View {
                 .padding([.leading, .top, .trailing])
                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                 .toolbar {
-                    Button(action: {
-                        hideImageValidationView()
-                    }) {
-                        HStack {
-                            Image(systemName: "xmark")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Close")
-                                .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                            Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
-                                .font(.system(.body, design: .rounded))
-                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        Spacer()
+
+                        Button(action: {
+                            hideImageValidationView()
+                        }) {
+                            HStack {
+                                Image(systemName: "xmark")
+                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                Text("Close")
+                            }
+                            .padding(4)
                         }
-                        .padding(4)
+                        .disabled(viewModel.hasModalToasts || uploadToServer != nil)
+
+                        Spacer()
                     }
-                    .disabled(viewModel.hasModalToasts || uploadToServer != nil)
-                    .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
                 }
+                .toolbarVisibility(.visible, for: .bottomBar)
             }
         }
-        .frame(minWidth: 1280, minHeight: 800)
+        .frame(minHeight: 800)
         .background(Color.BackgroundColor)
         .onAppear {
             openTinEyeResults()
@@ -127,78 +125,69 @@ struct ImageValidationView: View {
     }
 
     private func ValidationSummaryView(_ selectedFeature: Binding<ObservableFeatureWrapper>) -> some View {
-        HStack(alignment: .center) {
-            Spacer()
-                .frame(width: 0, height: 26)
-            Text("TinEye:")
-            Picker(
-                "",
-                selection: selectedFeature.feature.tinEyeResults.onChange { value in
-                    navigateToTinEyeResult(selectedFeature, .same)
+        VStack {
+            HStack(alignment: .center) {
+                Spacer()
+                    .frame(width: 0, height: 26)
+                Text("TinEye:")
+                Picker(
+                    "",
+                    selection: selectedFeature.feature.tinEyeResults.onChange { value in
+                        updateList()
+                        viewModel.markDocumentDirty()
+                    }
+                ) {
+                    ForEach(TinEyeResults.allCases) { source in
+                        Text(source.rawValue)
+                            .tag(source)
+                            .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                    }
                 }
-            ) {
-                ForEach(TinEyeResults.allCases) { source in
-                    Text(source.rawValue)
-                        .tag(source)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
-                }
-            }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-            .frame(width: 160)
-            .focusable()
-            .focused(focusedField, equals: .tinEyeResults)
-            .onKeyPress(phases: .down) { keyPress in
-                return navigateToTinEyeResultWithArrows(selectedFeature, keyPress)
-            }
-            .onKeyPress(characters: .alphanumerics) { keyPress in
-                return navigateToTinEyeResultWithPrefix(selectedFeature, keyPress)
-            }
+                .tint(Color.AccentColor)
+                .accentColor(Color.AccentColor)
+                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .frame(width: 160)
 
-            Text("|")
-                .padding([.leading, .trailing])
-
-            Text("AI Check:")
-            Picker(
-                "",
-                selection: selectedFeature.feature.aiCheckResults.onChange { value in
-                    navigateToAiCheckResult(selectedFeature, .same)
-                }
-            ) {
-                ForEach(AiCheckResults.allCases) { source in
-                    Text(source.rawValue)
-                        .tag(source)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
-                }
-            }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-            .frame(width: 160)
-            .focusable()
-            .focused(focusedField, equals: .aiCheckResults)
-            .onKeyPress(phases: .down) { keyPress in
-                return navigateToAiCheckResultWithArrows(selectedFeature, keyPress)
-            }
-            .onKeyPress(phases: .down) { keyPress in
-                return navigateToAiCheckResultWithPrefix(selectedFeature, keyPress)
-            }
-
-            if !aiVerdictString.isEmpty {
                 Text("|")
                     .padding([.leading, .trailing])
 
-                HStack {
-                    Text("HIVE verdict: ")
-                    Text(aiVerdictString)
-                    Image(systemName: aiVerdict == .notAi ? "checkmark.shield" : aiVerdict == .ai ? "exclamationmark.warninglight" : "questionmark.diamond")
+                Text("AI Check:")
+                Picker(
+                    "",
+                    selection: selectedFeature.feature.aiCheckResults.onChange { value in
+                        updateList()
+                        viewModel.markDocumentDirty()
+                    }
+                ) {
+                    ForEach(AiCheckResults.allCases) { source in
+                        Text(source.rawValue)
+                            .tag(source)
+                            .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                    }
                 }
-                .font(.system(size: 24))
-                .foregroundStyle(aiVerdict == .notAi ? .green : aiVerdict == .ai ? .red : .yellow, .secondary)
+                .tint(Color.AccentColor)
+                .accentColor(Color.AccentColor)
+                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .frame(width: 160)
+                Spacer()
             }
 
-            Spacer()
+            HStack {
+                if !aiVerdictString.isEmpty {
+                    Text("HIVE verdict: ")
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Text(aiVerdictString)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Image(systemName: aiVerdict == .notAi ? "checkmark.shield" : aiVerdict == .ai ? "exclamationmark.warninglight" : "questionmark.diamond")
+                } else {
+                    Text("HIVE verdict loading ")
+                }
+                Spacer()
+            }
+            .font(.system(size: 24))
+            .foregroundStyle(aiVerdictString.isEmpty ? .gray : aiVerdict == .notAi ? .green : aiVerdict == .ai ? .red : .yellow, .secondary)
         }
     }
 
@@ -236,13 +225,9 @@ struct ImageValidationView: View {
                             Text("Copy result")
                         }
                     }
-                    .focusable()
-                    .onKeyPress(.space) {
-                        copyToClipboard(returnedJson)
-                        viewModel.showSuccessToast("Copied to clipboard", "Copied the logging data to the clipboard")
-                        return .handled
-                    }
+                    .buttonStyle(.bordered)
                 }
+
                 ScrollView(.vertical) {
                     HStack {
                         VStack(alignment: .leading) {
@@ -365,67 +350,5 @@ struct ImageValidationView: View {
         request.addDataField(fieldName: "url", fieldValue: imageValidationImageUrl.wrappedValue!.absoluteString)
         request.addDataField(fieldName: "request_id", fieldValue: UUID().uuidString)
         URLSession.shared.dataTask(with: request, completionHandler: completionHandler).resume()
-    }
-
-    private func navigateToTinEyeResult(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ direction: Direction) {
-        let (change, newValue) = navigateGeneric(TinEyeResults.allCases, selectedFeature.feature.tinEyeResults.wrappedValue, direction)
-        if change {
-            if direction != .same {
-                selectedFeature.feature.tinEyeResults.wrappedValue = newValue
-            }
-            updateList()
-            viewModel.markDocumentDirty()
-        }
-    }
-
-    private func navigateToTinEyeResultWithArrows(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
-        let direction = directionFromModifiers(keyPress)
-        if direction != .same {
-            navigateToTinEyeResult(selectedFeature, direction)
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToTinEyeResultWithPrefix(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(TinEyeResults.allCases, selectedFeature.feature.tinEyeResults.wrappedValue, keyPress.characters.lowercased())
-        if change {
-            selectedFeature.feature.tinEyeResults.wrappedValue = newValue
-            updateList()
-            viewModel.markDocumentDirty()
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToAiCheckResult(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ direction: Direction) {
-        let (change, newValue) = navigateGeneric(AiCheckResults.allCases, selectedFeature.feature.aiCheckResults.wrappedValue, direction)
-        if change {
-            if direction != .same {
-                selectedFeature.feature.aiCheckResults.wrappedValue = newValue
-            }
-            updateList()
-            viewModel.markDocumentDirty()
-        }
-    }
-
-    private func navigateToAiCheckResultWithArrows(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
-        let direction = directionFromModifiers(keyPress)
-        if direction != .same {
-            navigateToAiCheckResult(selectedFeature, direction)
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToAiCheckResultWithPrefix(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(AiCheckResults.allCases, selectedFeature.feature.aiCheckResults.wrappedValue, keyPress.characters.lowercased())
-        if change {
-            selectedFeature.feature.aiCheckResults.wrappedValue = newValue
-            updateList()
-            viewModel.markDocumentDirty()
-            return .handled
-        }
-        return .ignored
     }
 }

@@ -18,7 +18,6 @@ struct StatisticsContentView: View {
     @Environment(\.self) var environment
 
     private var viewModel: ContentView.ViewModel
-    @State private var focusedField: FocusState<FocusField?>.Binding
     private var hideStatisticsView: () -> Void
 
     @State private var showDirectoryPicker = false
@@ -39,11 +38,9 @@ struct StatisticsContentView: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ focusedField: FocusState<FocusField?>.Binding,
         _ hideStatisticsView: @escaping () -> Void
     ) {
         self.viewModel = viewModel
-        self.focusedField = focusedField
         self.hideStatisticsView = hideStatisticsView
     }
 
@@ -63,12 +60,7 @@ struct StatisticsContentView: View {
                         }
                         .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                     }
-                    .focusable()
-                    .focused(focusedField, equals: .openFolder)
-                    .onKeyPress(.space) {
-                        showDirectoryPicker.toggle()
-                        return .handled
-                    }
+                    .buttonStyle(.bordered)
                     .fileImporter(
                         isPresented: $showDirectoryPicker, allowedContentTypes: [.folder],
                         onCompletion: { result in
@@ -104,7 +96,7 @@ struct StatisticsContentView: View {
                                     pages = Array(pageSet).sorted()
                                     pages.insert("all", at: 0)
                                     selectedPage = pages.first!
-                                    navigateToStatsPage(.same)
+                                    updateCharts()
                                     logger.verbose("Loaded \(pages.count) pages for stats", context: "System")
                                 } catch {
                                     logger.error("Failed to load pages for stats: \(error.localizedDescription)", context: "System")
@@ -116,22 +108,25 @@ struct StatisticsContentView: View {
                                 debugPrint(error)
                             }
                         })
+
                     if logs.isEmpty {
                         Text("No logs loaded")
                     } else if selectedPage == "" {
-                        Text("\(logs.count) logs loaded from \(location), select a page to see statistics")
+                        Text("\(logs.count) logs, select a page to see statistics")
                     } else {
-                        Text("\(logs.count) logs loaded from \(location), showing statistics for page \(selectedPage)")
+                        Text("\(logs.count) logs, showing statistics for page \(selectedPage)")
                     }
+
                     Spacer()
                 }
+
                 if !logs.isEmpty {
                     HStack(alignment: .center) {
                         Text("Choose a page:")
                         Picker(
                             "",
                             selection: $selectedPage.onChange({ page in
-                                navigateToStatsPage(.same)
+                                updateCharts()
                             })
                         ) {
                             ForEach(pages, id: \.self) { page in
@@ -144,19 +139,14 @@ struct StatisticsContentView: View {
                                 }
                             }
                         }
-                        .focusable()
-                        .focused(focusedField, equals: .statsPagePicker)
                         .tint(Color.AccentColor)
                         .accentColor(Color.AccentColor)
                         .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-                        .onKeyPress(phases: .down) { keyPress in
-                            return navigateToStatsPageWithArrows(keyPress)
-                        }
-                        .onKeyPress(characters: .alphanumerics) { keyPress in
-                            return navigateToStatsPageWithPrefix(keyPress)
-                        }
+
+                        Spacer()
                     }
                 }
+
                 if let pickedFeaturePieChart,
                     let firstFeaturePieChart,
                     let userLevelPieChart,
@@ -224,30 +214,28 @@ struct StatisticsContentView: View {
             }
             .padding()
             .toolbar {
-                Button(action: {
-                    hideStatisticsView()
-                }) {
-                    HStack {
-                        Image(systemName: "xmark")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Close")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
-                            .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Spacer()
+
+                    Button(action: {
+                        hideStatisticsView()
+                    }) {
+                        HStack {
+                            Image(systemName: "xmark")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Close")
+                        }
+                        .padding(4)
                     }
-                    .padding(4)
+                    .disabled(viewModel.hasModalToasts)
+
+                    Spacer()
                 }
-                .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
-                .disabled(viewModel.hasModalToasts)
             }
+            .toolbarVisibility(.visible, for: .bottomBar)
         }
-        .frame(minWidth: 1024, minHeight: 600)
+        .frame(maxWidth: .infinity, minHeight: 600)
         .background(Color.BackgroundColor)
-        .onAppear(perform: {
-            focusedField.wrappedValue = .openFolder
-        })
     }
 
     private func updateCharts() {
@@ -269,33 +257,6 @@ struct StatisticsContentView: View {
         hubFeatureCountPieChart = makeHubFeatureCountChartData(pageLogs)
     }
     
-    private func navigateToStatsPage(_ direction: Direction) {
-        let (change, newValue) = navigateGeneric(pages, selectedPage, direction)
-        if change {
-            selectedPage = newValue
-            updateCharts()
-        }
-    }
-
-    private func navigateToStatsPageWithArrows(_ keyPress: KeyPress) -> KeyPress.Result {
-        let direction = directionFromModifiers(keyPress)
-        if direction != .same {
-            navigateToStatsPage(direction)
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToStatsPageWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(pages, selectedPage, keyPress.characters.lowercased())
-        if change {
-            selectedPage = newValue
-            updateCharts()
-            return .handled
-        }
-        return .ignored
-    }
-
     private func makePickedFeatureChartData(_ logs: [LogFile]) -> PieChartData {
         let levelColors = makeLevelColors(1)
         let data = PieDataSet(

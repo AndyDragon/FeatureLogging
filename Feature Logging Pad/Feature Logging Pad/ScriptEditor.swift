@@ -15,51 +15,29 @@ struct ScriptEditor: View {
     var canCopy: Bool
     var hasPlaceholders: Bool
     var copy: (Bool, Bool) -> Void
-    var focusedField: FocusState<FocusField?>.Binding
-    var editorFocusField: FocusField
-    var buttonFocusField: FocusField
 
     var body: some View {
         // Header
         HStack {
             Text(title)
 
-            Button(
-                action: {
-                    copy(true, false)
-                },
-                label: {
-                    Text("Copy")
-                        .padding(.horizontal, 20)
-                }
-            )
+            Button(action: {
+                copy(true, false)
+            }) {
+                Text("Copy")
+                    .padding(.horizontal, 20)
+            }
             .disabled(!canCopy)
-            .focusable()
-            .focused(focusedField, equals: buttonFocusField)
-            .onKeyPress(.space) {
-                if canCopy {
-                    copy(true, false)
-                }
-                return .handled
-            }
+            .buttonStyle(.bordered)
 
-            Button(
-                action: {
-                    copy(false, true)
-                },
-                label: {
-                    Text("Copy (with Placeholders)")
-                        .padding(.horizontal, 20)
-                }
-            )
-            .disabled(!hasPlaceholders)
-            .focusable()
-            .onKeyPress(.space) {
-                if hasPlaceholders {
-                    copy(false, false)
-                }
-                return .handled
+            Button(action: {
+                copy(false, true)
+            }) {
+                Text("Copy (with Placeholders)")
+                    .padding(.horizontal, 20)
             }
+            .disabled(!hasPlaceholders)
+            .buttonStyle(.bordered)
 
             Spacer()
         }
@@ -71,8 +49,6 @@ struct ScriptEditor: View {
             TextEditor(text: $script)
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
-                .focusable()
-                .focused(focusedField, equals: editorFocusField)
                 .textEditorStyle(.plain)
                 .foregroundStyle(canCopy ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
                 .scrollContentBackground(.hidden)
@@ -87,8 +63,6 @@ struct ScriptEditor: View {
             TextEditor(text: $script)
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
-                .focusable()
-                .focused(focusedField, equals: editorFocusField)
                 .foregroundStyle(canCopy ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
                 .scrollContentBackground(.hidden)
                 .padding(4)

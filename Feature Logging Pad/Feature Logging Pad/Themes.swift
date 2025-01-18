@@ -64,8 +64,7 @@ extension Color {
 #if os(macOS)
             return isDarkModeOn ? .underPageBackground : .windowBackground
 #else
-            // TODO andydragon
-            return Color.backgroundColor
+            return .backgroundColor
 #endif
         }
         return Color("\(currentTheme)/BackgroundColor")
@@ -75,8 +74,7 @@ extension Color {
 #if os(macOS)
             return .controlBackground.opacity(0.5)
 #else
-            // TODO andydragon
-            return .gray.opacity(0.5)
+            return .backgroundColor.opacity(0.5)
 #endif
         }
         return Color("\(currentTheme)/BackgroundColorEditor")
@@ -86,8 +84,7 @@ extension Color {
 #if os(macOS)
             return .controlBackground
 #else
-            // TODO andydragon
-            return .gray
+            return .secondaryBackgroundColor
 #endif
         }
         return Color("\(currentTheme)/BackgroundColorList")
@@ -97,8 +94,7 @@ extension Color {
 #if os(macOS)
             return Color(nsColor: .selectedContentBackgroundColor)
 #else
-            // TODO andydragon
-            return .gray
+            return .secondaryBackgroundColor.opacity(0.3)
 #endif
         }
         return Color("\(currentTheme)/BackgroundColorListHover")
@@ -108,8 +104,7 @@ extension Color {
 #if os(macOS)
             return Color(nsColor: .selectedContentBackgroundColor)
 #else
-            // TODO andydragon
-            return .gray
+            return .secondaryBackgroundColor
 #endif
         }
         return Color("\(currentTheme)/BackgroundColorListSelected")
@@ -119,8 +114,7 @@ extension Color {
 #if os(macOS)
             return .windowBackground
 #else
-            // TODO andydragon
-            return .gray
+            return .secondaryBackgroundColor
 #endif
         }
         return Color("\(currentTheme)/BackgroundColorNavigationBar")
@@ -130,8 +124,7 @@ extension Color {
 #if os(macOS)
             return .highlight
 #else
-            // TODO andydragon
-            return .primary
+            return .accentColor
 #endif
         }
         return Color("\(currentTheme)/ColorPrimary")

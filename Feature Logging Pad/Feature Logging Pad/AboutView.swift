@@ -118,6 +118,7 @@ struct AboutView: View {
                 .background(.gray)
                 .cornerRadius(4)
                 .padding([.bottom, .trailing], 20)
+                .buttonStyle(.bordered)
             }
             .frame(maxWidth: .infinity)
             .padding(.top)

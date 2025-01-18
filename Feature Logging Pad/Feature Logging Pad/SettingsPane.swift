@@ -87,14 +87,14 @@ struct SettingsPane: View {
                             HStack(alignment: .center) {
                                 Text("Personal message: ")
                                 TextField("", text: $personalMessage)
-                                    .focusable()
-                                    .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
                                     .background(Color.BackgroundColorEditor)
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
+                                    .autocorrectionDisabled()
+                                    .disableAutocorrection(true)
                             }
 
                             Spacer()
@@ -103,14 +103,14 @@ struct SettingsPane: View {
                             HStack(alignment: .center) {
                                 Text("Personal message (first feature): ")
                                 TextField("", text: $personalMessageFirst)
-                                    .focusable()
-                                    .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
                                     .background(Color.BackgroundColorEditor)
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
+                                    .autocorrectionDisabled()
+                                    .disableAutocorrection(true)
                             }
 
                             Spacer()
@@ -148,17 +148,17 @@ struct SettingsPane: View {
                             HStack(alignment: .center) {
                                 Text("Culling app: ")
                                 TextField("", text: $cullingAppName)
-                                    .focusable()
-                                    .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
                                     .background(Color.BackgroundColorEditor)
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
+                                    .autocorrectionDisabled()
+                                    .disableAutocorrection(true)
+
                                 Text("Bundle ID for app: ")
                                 TextField("", text: $cullingApp)
-                                    .focusable()
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
@@ -166,15 +166,16 @@ struct SettingsPane: View {
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
-                                Button(
-                                    action: {
-                                        showingCullingAppFileImporter.toggle()
-                                    },
-                                    label: {
-                                        Text("Pick app...")
-                                            .padding([.leading, .trailing], 12)
-                                    }
-                                )
+                                    .autocorrectionDisabled()
+                                    .disableAutocorrection(true)
+
+                                Button(action: {
+                                    showingCullingAppFileImporter.toggle()
+                                }) {
+                                    Text("Pick app...")
+                                        .padding([.leading, .trailing], 12)
+                                }
+                                .buttonStyle(.bordered)
                                 .fileImporter(isPresented: $showingCullingAppFileImporter, allowedContentTypes: [.application]) { result in
                                     switch result {
                                     case .success(let file):
@@ -194,33 +195,33 @@ struct SettingsPane: View {
                             HStack(alignment: .center) {
                                 Text("AI Check app: ")
                                 TextField("", text: $aiCheckAppName)
-                                    .focusable()
-                                    .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
                                     .background(Color.BackgroundColorEditor)
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
+                                    .autocorrectionDisabled()
+                                    .disableAutocorrection(true)
+
                                 Text("Bundle ID for app: ")
                                 TextField("", text: $aiCheckApp)
-                                    .focusable()
-                                    .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
                                     .background(Color.BackgroundColorEditor)
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
-                                Button(
-                                    action: {
-                                        showingAiCheckAppFileImporter.toggle()
-                                    },
-                                    label: {
-                                        Text("Pick app...")
-                                            .padding([.leading, .trailing], 12)
-                                    }
-                                )
+                                    .autocorrectionDisabled()
+                                    .disableAutocorrection(true)
+
+                                Button(action: {
+                                    showingAiCheckAppFileImporter.toggle()
+                                }) {
+                                    Text("Pick app...")
+                                        .padding([.leading, .trailing], 12)
+                                }
+                                .buttonStyle(.bordered)
                                 .fileImporter(isPresented: $showingAiCheckAppFileImporter, allowedContentTypes: [.application]) { result in
                                     switch result {
                                     case .success(let file):
@@ -248,14 +249,13 @@ struct SettingsPane: View {
                 HStack {
                     Spacer()
 
-                    Button(
-                        action: {
-                            dismiss()
-                        },
-                        label: {
-                            Text("Close")
-                                .padding([.leading, .trailing], 12)
-                        })
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Text("Close")
+                            .padding([.leading, .trailing], 12)
+                    }
+                    .buttonStyle(.bordered)
                 }
             }
             .padding()

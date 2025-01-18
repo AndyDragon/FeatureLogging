@@ -79,191 +79,246 @@ struct FeatureListRow: View {
             VStack {
                 HStack {
                     Text("Feature: ")
+                        .font(.system(size: 13))
 
                     if !feature.userName.isEmpty {
                         Text(feature.userName)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .font(.system(size: 13))
                     } else {
                         Text("user name")
                             .foregroundStyle(.gray, .secondary)
                             .italic()
+                            .font(.system(size: 13))
                     }
 
                     Text(" | ")
 
                     if !feature.userAlias.isEmpty {
                         Text("@\(feature.userAlias)")
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .font(.system(size: 13))
                     } else {
                         Text("user alias")
                             .foregroundStyle(.gray, .secondary)
                             .italic()
+                            .font(.system(size: 13))
                     }
 
                     Text(" | ")
 
                     if !feature.featureDescription.isEmpty {
                         Text(feature.featureDescription)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .font(.system(size: 13))
                     } else {
                         Text("description")
                             .foregroundStyle(.gray, .secondary)
                             .italic()
+                            .font(.system(size: 13))
                     }
 
                     Text(" | ")
 
                     Image(systemName: "tag.square")
-                        .foregroundStyle(feature.photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary, feature.photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary)
-                        .font(.system(size: 14))
+                        .foregroundStyle(
+                            feature.photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary.opacity(0.5),
+                            feature.photoFeaturedOnHub ? Color.TextColorSecondary : Color.TextColorSecondary.opacity(0.5))
+                        .font(.system(size: 13))
                         .frame(width: 16, height: 16)
                         .help(feature.photoFeaturedOnHub ? "Photo featured on hub" : "Photo not featured on hub")
                     Spacer()
                         .frame(width: 6)
                     Image(systemName: "tag")
-                        .foregroundStyle(feature.userHasFeaturesOnPage ? Color.AccentColor : Color.TextColorSecondary, Color.TextColorSecondary)
-                        .font(.system(size: 14))
+                        .foregroundStyle(
+                            feature.userHasFeaturesOnPage ? Color.AccentColor : Color.TextColorSecondary.opacity(0.5),
+                            feature.userHasFeaturesOnPage ? Color.TextColorSecondary : Color.TextColorSecondary.opacity(0.5))
+                        .font(.system(size: 13))
                         .frame(width: 16, height: 16)
                         .help(feature.userHasFeaturesOnPage ? "User has features on page" : "First feature on page")
                     Spacer()
                         .frame(width: 6)
                     Image(systemName: "tag.fill")
-                        .foregroundStyle(feature.userHasFeaturesOnHub ? Color.AccentColor : Color.TextColorSecondary, Color.TextColorSecondary)
-                        .font(.system(size: 14))
+                        .foregroundStyle(
+                            feature.userHasFeaturesOnHub ? Color.AccentColor : Color.TextColorSecondary.opacity(0.5),
+                            feature.userHasFeaturesOnHub ? Color.TextColorSecondary : Color.TextColorSecondary.opacity(0.5))
+                        .font(.system(size: 13))
                         .frame(width: 16, height: 16)
                         .help(feature.userHasFeaturesOnHub ? "User has features on hub" : "First feature on hub")
                     Spacer()
                         .frame(width: 6)
                     Image(systemName: "person.badge.key.fill")
-                        .foregroundStyle(Color.TextColorSecondary, feature.userIsTeammate ? Color.AccentColor : Color.TextColorSecondary)
-                        .font(.system(size: 14))
+                        .foregroundStyle(
+                            feature.userIsTeammate ? Color.TextColorSecondary : Color.TextColorSecondary.opacity(0.5),
+                            feature.userIsTeammate ? Color.AccentColor : Color.TextColorSecondary.opacity(0.5))
+                        .font(.system(size: 13))
                         .frame(width: 16, height: 16)
                         .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
 
                     Spacer()
-
-                    if feature.isPickedAndAllowed {
-                        Button(action: {
-                            logger.verbose("Tapped edit scripts for feature", context: "User")
-                            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
-                            launchVeroScripts()
-                        }) {
-                            HStack(alignment: .center) {
-                                Image(systemName: "pencil.and.list.clipboard")
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                Text("Edit scripts")
-                            }
-                        }
-                        .focusable()
-                        .onKeyPress(.space) {
-                            logger.verbose("Pressed space on edit scripts for feature", context: "User")
-                            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
-                            launchVeroScripts()
-                            return .handled
-                        }
-
-                        Spacer()
-                            .frame(width: 8)
-
-                        Button(action: {
-                            logger.verbose("Tapped edit personal message for feature", context: "User")
-                            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
-                            showingMessageEditor.toggle()
-                        }) {
-                            HStack(alignment: .center) {
-                                Image(systemName: "square.and.pencil")
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                Text("Edit personal message")
-                            }
-                        }
-                        .focusable()
-                        .onKeyPress(.space) {
-                            logger.verbose("Pressed space on personal message for feature", context: "User")
-                            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
-                            showingMessageEditor.toggle()
-                            return .handled
-                        }
-                    }
                 }
                 HStack {
+                    if !feature.postLink.isEmpty {
                     Text(feature.postLink)
-                        .font(.footnote)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .font(.system(size: 12))
+                    } else {
+                        Text("post link")
+                            .foregroundStyle(.gray, .secondary)
+                            .italic()
+                    }
 
                     Spacer()
                 }
             }
-            .sheet(
-                isPresented: $showingMessageEditor,
-                content: {
-                    ZStack {
-                        Color.BackgroundColor.edgesIgnoringSafeArea(.all)
 
-                        VStack(alignment: .leading) {
-                            Text("Personal message for feature: \(feature.userName) - \(feature.featureDescription)")
+            Spacer()
 
-                            Spacer()
-                                .frame(height: 8)
+            if feature.isPickedAndAllowed {
+                Spacer()
+                    .frame(width: 12)
 
-                            HStack(alignment: .center) {
-                                Text("Personal message (from your account): ")
-                                TextField(
-                                    "",
-                                    text: $feature.personalMessage.onChange { value in
-                                        viewModel.markDocumentDirty()
-                                    }
-                                )
-                                .focusable()
-                                .autocorrectionDisabled(false)
-                                .disableAutocorrection(false)
-                                .textFieldStyle(.plain)
-                                .padding(4)
-                                .background(Color.BackgroundColorEditor)
-                                .border(Color.gray.opacity(0.25))
-                                .cornerRadius(4)
-                            }
-
-                            Spacer()
-
-                            HStack(alignment: .center) {
-                                Spacer()
-
-                                Button(action: {
-                                    logger.verbose("Tapped copy personal message for feature", context: "User")
-                                    copyPersonalMessage()
-                                }) {
-                                    HStack(alignment: .center) {
-                                        Image(systemName: "pencil.and.list.clipboard")
-                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                        Text("Copy full text")
-                                    }
-                                }
-                                .focusable()
-                                .onKeyPress(.space) {
-                                    logger.verbose("Pressed space on copy personal message for feature", context: "User")
-                                    copyPersonalMessage()
-                                    return .handled
-                                }
-
-                                Button(action: {
-                                    showingMessageEditor.toggle()
-                                }) {
-                                    HStack(alignment: .center) {
-                                        Image(systemName: "xmark")
-                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                                        Text("Close")
-                                    }
-                                }
-                                .focusable()
-                                .onKeyPress(.space) {
-                                    showingMessageEditor.toggle()
-                                    return .handled
-                                }
-                            }
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding()
+                Button(action: {
+                    logger.verbose("Tapped edit scripts for feature", context: "User")
+                    viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
+                    launchVeroScripts()
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "pencil.and.list.clipboard")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                     }
-                    .frame(width: 800, height: 160)
-                })
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+                    .frame(width: 12)
+
+                Button(action: {
+                    logger.verbose("Tapped edit personal message for feature", context: "User")
+                    viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
+                    showingMessageEditor.toggle()
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "bubble.and.pencil")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+
+            if feature.isPickAllowed {
+                Spacer()
+                    .frame(width: 12)
+
+                Button(action: {
+                    feature.isPicked.toggle()
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: feature.isPicked ? "star.slash" : "star")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+
+            Spacer()
+                .frame(width: 12)
+
+            Button(action: {
+                withAnimation {
+                    viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
+                    viewModel.visibleView = .FeatureEditorView
+                }
+            }) {
+                HStack(alignment: .center) {
+                    Image(systemName: "pencil")
+                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+                .frame(width: 12)
+
+            Button(action: {
+                viewModel.selectedFeature = nil
+                viewModel.features.removeAll(where: { $0.id == feature.id })
+                viewModel.markDocumentDirty()
+            }) {
+                HStack(alignment: .center) {
+                    Image(systemName: "trash")
+                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                }
+            }
+            .buttonStyle(.plain)
         }
-        .testBackground()
+        .sheet(
+            isPresented: $showingMessageEditor,
+            content: {
+                ZStack {
+                    Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+
+                    VStack(alignment: .leading) {
+                        Text("Personal message for feature: \(feature.userName) - \(feature.featureDescription)")
+
+                        Spacer()
+                            .frame(height: 8)
+
+                        HStack(alignment: .center) {
+                            Text("Personal message (from your account): ")
+                            TextField(
+                                "",
+                                text: $feature.personalMessage.onChange { value in
+                                    viewModel.markDocumentDirty()
+                                }
+                            )
+                            .autocorrectionDisabled(false)
+                            .disableAutocorrection(false)
+                            .textFieldStyle(.plain)
+                            .padding(4)
+                            .background(Color.BackgroundColorEditor)
+                            .border(Color.gray.opacity(0.25))
+                            .cornerRadius(4)
+                        }
+
+                        Spacer()
+
+                        HStack(alignment: .center) {
+                            Spacer()
+
+                            Button(action: {
+                                logger.verbose("Tapped copy personal message for feature", context: "User")
+                                copyPersonalMessage()
+                            }) {
+                                HStack(alignment: .center) {
+                                    Image(systemName: "pencil.and.list.clipboard")
+                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                    Text("Copy full text")
+                                }
+                            }
+                            .buttonStyle(.bordered)
+
+                            Button(action: {
+                                showingMessageEditor.toggle()
+                            }) {
+                                HStack(alignment: .center) {
+                                    Image(systemName: "xmark")
+                                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                    Text("Close")
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
+                }
+                .frame(width: 800, height: 160)
+            })
     }
 
     private func copyPersonalMessage() {

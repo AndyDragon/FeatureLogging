@@ -156,7 +156,7 @@ struct PostDownloaderImageView: View {
             logger.error("Failed to save the image file: \(error.localizedDescription)", context: "System")
             debugPrint("Failed to save file")
             debugPrint(error.localizedDescription)
-            viewModel.showToast(.error, "Failed to save", "Failed to saved the image to your Pictures folder - \(error.localizedDescription)")
+            viewModel.showToast(.error, "Failed to save", "Failed to saved the image to your Pictures/VERO folder - \(error.localizedDescription)")
         }
     }
 }

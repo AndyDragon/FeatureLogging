@@ -34,7 +34,6 @@ struct FeatureListView: View {
 
     @Bindable private var viewModel: ContentView.ViewModel
     @State private var logURL: Binding<URL?>
-    @State private var focusedField: FocusState<FocusField?>.Binding
     @State private var logDocument: Binding<LogDocument>
     @State private var showFileImporter: Binding<Bool>
     @State private var showFileExporter: Binding<Bool>
@@ -57,7 +56,6 @@ struct FeatureListView: View {
     init(
         _ viewModel: ContentView.ViewModel,
         _ logURL: Binding<URL?>,
-        _ focusedField: FocusState<FocusField?>.Binding,
         _ logDocument: Binding<LogDocument>,
         _ showFileImporter: Binding<Bool>,
         _ showFileExporter: Binding<Bool>,
@@ -76,7 +74,6 @@ struct FeatureListView: View {
     ) {
         self.viewModel = viewModel
         self.logURL = logURL
-        self.focusedField = focusedField
         self.logDocument = logDocument
         self.showFileImporter = showFileImporter
         self.showFileExporter = showFileExporter
@@ -105,16 +102,18 @@ struct FeatureListView: View {
                 PageSelectorView()
                 
                 Divider()
+                    .padding(.bottom, 8)
 
                 // You
                 ModeratorView()
 
                 Divider()
+                    .padding(.top, 8)
 
                 // Feature list buttons
                 FeatureListButtonView()
                     .padding([.trailing], 2)
-                
+
                 // Feature list
                 ScrollViewReader { proxy in
                     FeatureList(
@@ -122,7 +121,6 @@ struct FeatureListView: View {
                         showScriptView
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(4)
                     .presentationBackground(.clear)
                     .onChange(
                         of: shouldScrollFeatureListToSelection.wrappedValue,
@@ -132,13 +130,6 @@ struct FeatureListView: View {
                             }
                         }
                     )
-                    .onTapGesture {
-                        withAnimation {
-                            viewModel.selectedFeature = nil
-                        }
-                    }
-                    .focusable()
-                    .focused(focusedField, equals: .featureList)
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color.BackgroundColorList)
@@ -146,118 +137,141 @@ struct FeatureListView: View {
                 .cornerRadius(4)
             }
             .toolbar {
-                // Open log
-                Button(action: {
-                    logger.verbose("Tapped open log", context: "User")
-                    if viewModel.isDirty {
-                        documentDirtyAfterSaveAction.wrappedValue = {
-                            showFileImporter.wrappedValue.toggle()
-                        }
-                        documentDirtyAfterDismissAction.wrappedValue = {
-                            showFileImporter.wrappedValue.toggle()
-                        }
-                        documentDirtyAlertConfirmation.wrappedValue = "Would you like to save this log file before opening another log?"
-                        viewModel.isShowingDocumentDirtyAlert.toggle()
-                    } else {
-                        showFileImporter.wrappedValue.toggle()
-                    }
-                }) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.up.on.square")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Open log")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text("    ⌘ O")
-                            .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
-                    }
-                    .padding(4)
-                }
-                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Spacer()
 
-                // Save log
-                Button(action: {
-                    logger.verbose("Tapped save log", context: "User")
-                    logDocument.wrappedValue = LogDocument(page: viewModel.selectedPage!, features: viewModel.features)
-                    if let file = logURL.wrappedValue {
-                        saveLog(file)
-                        viewModel.clearDocumentDirty()
-                    } else {
-                        showFileExporter.wrappedValue.toggle()
-                    }
-                }) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.down.on.square")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Save log")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text("    ⌘ S")
-                            .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
-                    }
-                    .padding(4)
-                }
-                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
-
-                // Copy report
-                Button(action: {
-                    logger.verbose("Tapped generate report", context: "User")
-                    copyReportToClipboard()
-                }) {
-                    HStack {
-                        Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Generate report")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                    }
-                    .padding(4)
-                }
-                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
-
-                // Save report
-                Button(action: {
-                    logger.verbose("Tapped save report", context: "User")
-                    reportDocument.wrappedValue = ReportDocument(initialText: viewModel.generateReport(personalMessageFormat, personalMessageFirstFormat))
-                    showReportFileExporter.wrappedValue.toggle()
-                }) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.down.on.square")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Save report")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
-                        Text("    ⌘ ⇧ S")
-                            .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
-                    }
-                    .padding(4)
-                }
-                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
-
-                // Theme
-                Menu("Theme", systemImage: "paintpalette") {
-                    Picker("Theme:", selection: $theme.onChange({ newTheme in
-                        setTheme(newTheme)
-                        setThemeLocal(newTheme)
-                    })) {
-                        ForEach(Theme.allCases) { itemTheme in
-                            if itemTheme != .notSet {
-                                Text(itemTheme.rawValue).tag(itemTheme)
+                    // New log
+                    Button(action: {
+                        logger.verbose("Tapped new log", context: "User")
+                        if viewModel.isDirty {
+                            documentDirtyAfterSaveAction.wrappedValue = {
+                                logURL.wrappedValue = nil
+                                viewModel.selectedFeature = nil
+                                viewModel.features = [ObservableFeature]()
+                                viewModel.clearDocumentDirty()
+                                logger.verbose("New log created", context: "System")
                             }
+                            documentDirtyAfterDismissAction.wrappedValue = {
+                                logURL.wrappedValue = nil
+                                viewModel.selectedFeature = nil
+                                viewModel.features = [ObservableFeature]()
+                                viewModel.clearDocumentDirty()
+                                logger.verbose("New log created", context: "System")
+                            }
+                            documentDirtyAlertConfirmation.wrappedValue = "Would you like to save this log file before creating a new log?"
+                            viewModel.isShowingDocumentDirtyAlert.toggle()
+                        } else {
+                            logURL.wrappedValue = nil
+                            viewModel.selectedFeature = nil
+                            viewModel.features = [ObservableFeature]()
+                            viewModel.clearDocumentDirty()
+                            logger.verbose("New log created", context: "System")
                         }
+                    }) {
+                        HStack {
+                            Image(systemName: "document.badge.plus")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("New log")
+                        }
+                        .padding(4)
                     }
-                    .pickerStyle(.inline)
+                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+
+                    // Open log
+                    Button(action: {
+                        logger.verbose("Tapped open log", context: "User")
+                        if viewModel.isDirty {
+                            documentDirtyAfterSaveAction.wrappedValue = {
+                                showFileImporter.wrappedValue.toggle()
+                            }
+                            documentDirtyAfterDismissAction.wrappedValue = {
+                                showFileImporter.wrappedValue.toggle()
+                            }
+                            documentDirtyAlertConfirmation.wrappedValue = "Would you like to save this log file before opening another log?"
+                            viewModel.isShowingDocumentDirtyAlert.toggle()
+                        } else {
+                            showFileImporter.wrappedValue.toggle()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up.on.square")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Open log")
+                        }
+                        .padding(4)
+                    }
+                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+
+                    // Save log
+                    Button(action: {
+                        logger.verbose("Tapped save log", context: "User")
+                        logDocument.wrappedValue = LogDocument(page: viewModel.selectedPage!, features: viewModel.features)
+                        if let file = logURL.wrappedValue {
+                            saveLog(file)
+                            viewModel.clearDocumentDirty()
+                        } else {
+                            showFileExporter.wrappedValue.toggle()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.down.on.square")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Save log")
+                        }
+                        .padding(4)
+                    }
+                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+
+                    // Copy report
+                    Button(action: {
+                        logger.verbose("Tapped generate report", context: "User")
+                        copyReportToClipboard()
+                    }) {
+                        HStack {
+                            Image(systemName: "pencil.and.list.clipboard")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Copy report")
+                        }
+                        .padding(4)
+                    }
+                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+
+                    // Save report
+                    Button(action: {
+                        logger.verbose("Tapped save report", context: "User")
+                        reportDocument.wrappedValue = ReportDocument(initialText: viewModel.generateReport(personalMessageFormat, personalMessageFirstFormat))
+                        showReportFileExporter.wrappedValue.toggle()
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.down.on.square")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("Save report")
+                        }
+                        .padding(4)
+                    }
+                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+
+                    // Statistics
+                    Button(action: {
+                        logger.verbose("Tapped statistics", context: "User")
+                        viewModel.visibleView = .StatisticsView
+                    }) {
+                        HStack {
+                            Image(systemName: "chart.pie")
+                                .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                            Text("Stats")
+                        }
+                        .padding(4)
+                    }
+                    .disabled(viewModel.hasModalToasts)
+
+                    Spacer()
                 }
-                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                .disabled(viewModel.hasModalToasts)
             }
+            .toolbarVisibility(.visible, for: .bottomBar)
             .padding([.leading, .top, .trailing])
         }
         .onAppear(perform: {
-            focusedField.wrappedValue = .pagePicker
             setTheme(theme)
         })
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
@@ -267,11 +281,16 @@ struct FeatureListView: View {
     private func PageSelectorView() -> some View {
         HStack(alignment: .center) {
             Text("Page:")
-                .frame(width: labelWidth - 5, alignment: .trailing)
+                .lineLimit(1)
+                .truncationMode(.tail)
             Picker(
                 "",
                 selection: $viewModel.selectedPage.onChange { value in
-                    navigateToPage(.same)
+                    UserDefaults.standard.set(viewModel.selectedPage?.id ?? "", forKey: "Page")
+                    logURL.wrappedValue = nil
+                    viewModel.selectedFeature = nil
+                    viewModel.features = [ObservableFeature]()
+                    updateStaffLevelForPage()
                 }
             ) {
                 ForEach(viewModel.loadedCatalogs.loadedPages) { page in
@@ -281,15 +300,8 @@ struct FeatureListView: View {
             .tint(Color.AccentColor)
             .accentColor(Color.AccentColor)
             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-            .focusable(viewModel.features.isEmpty)
-            .focused(focusedField, equals: .pagePicker)
-            .onKeyPress(phases: .down) { keyPress in
-                return navigateToPageWithArrows(keyPress)
-            }
-            .onKeyPress(characters: .alphanumerics) { keyPress in
-                return navigateToPageWithPrefix(keyPress)
-            }
             .disabled(!viewModel.features.isEmpty)
+            .frame(minWidth: 240)
 
             // Page staff level picker
             Text("Page staff level: ")
@@ -300,7 +312,7 @@ struct FeatureListView: View {
             Picker(
                 "",
                 selection: $viewModel.selectedPageStaffLevel.onChange { value in
-                    navigateToPageStaffLevel(.same)
+                    storeStaffLevelForPage()
                 }
             ) {
                 ForEach(StaffLevelCase.casesFor(hub: viewModel.selectedPage?.hub)) { staffLevelCase in
@@ -312,15 +324,9 @@ struct FeatureListView: View {
             .tint(Color.AccentColor)
             .accentColor(Color.AccentColor)
             .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-            .focusable()
-            .focused(focusedField, equals: .staffLevel)
-            .onKeyPress(phases: .down) { keyPress in
-                return navigateToPageStaffLevelWithArrows(keyPress)
-            }
-            .onKeyPress(characters: .alphanumerics) { keyPress in
-                return navigateToPageStaffLevelWithPrefix(keyPress)
-            }
-            .frame(maxWidth: 144)
+            .frame(minWidth: 144, maxWidth: 160)
+
+            Spacer()
 
             Menu("Copy tag", systemImage: "tag.fill") {
                 Button(action: {
@@ -371,14 +377,8 @@ struct FeatureListView: View {
             .accentColor(Color.AccentColor)
             .disabled(viewModel.selectedPage?.hub != "click" && viewModel.selectedPage?.hub != "snap")
             .frame(maxWidth: 132)
-            .focusable()
-            .focused(focusedField, equals: .copyTag)
-            .onKeyPress(.space) {
-                copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage?.hub ?? "")_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "")")
-                viewModel.showSuccessToast("Copied to clipboard", "Copied the page tag to the clipboard")
-                return .handled
-            }
             .padding([.leading])
+            .buttonStyle(.bordered)
         }
     }
 
@@ -400,8 +400,6 @@ struct FeatureListView: View {
                     UserDefaults.standard.set(viewModel.yourName, forKey: "YourName")
                 }
             )
-            .focusable()
-            .focused(focusedField, equals: .yourName)
             .lineLimit(1)
             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
             .textFieldStyle(.plain)
@@ -427,8 +425,6 @@ struct FeatureListView: View {
                     UserDefaults.standard.set(viewModel.yourFirstName, forKey: "YourFirstName")
                 }
             )
-            .focusable()
-            .focused(focusedField, equals: .yourFirstName)
             .lineLimit(1)
             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
             .textFieldStyle(.plain)
@@ -458,15 +454,7 @@ struct FeatureListView: View {
                 }
             }
             .disabled(viewModel.loadedCatalogs.waitingForPages)
-            .keyboardShortcut("+", modifiers: .command)
-            .focusable()
-            .focused(focusedField, equals: .addFeature)
-            .onKeyPress(.space) {
-                logger.verbose("Pressed space on add feature button", context: "System")
-                addFeature()
-                shouldScrollFeatureListToSelection.wrappedValue.toggle()
-                return .handled
-            }
+            .buttonStyle(.bordered)
         }
     }
 
@@ -483,78 +471,10 @@ struct FeatureListView: View {
         }
     }
 
-    private func navigateToPage(_ direction: Direction) {
-        let (change, newValue) = navigateGeneric(viewModel.loadedCatalogs.loadedPages, viewModel.selectedPage, direction)
-        if change {
-            if direction != .same {
-                viewModel.selectedPage = newValue
-            }
-            UserDefaults.standard.set(viewModel.selectedPage?.id ?? "", forKey: "Page")
-            logURL.wrappedValue = nil
-            viewModel.selectedFeature = nil
-            viewModel.features = [ObservableFeature]()
-            updateStaffLevelForPage()
-        }
-    }
-
-    private func navigateToPageWithArrows(_ keyPress: KeyPress) -> KeyPress.Result {
-        let direction = directionFromModifiers(keyPress)
-        if direction != .same {
-            navigateToPage(direction)
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToPageWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(viewModel.loadedCatalogs.loadedPages.map({ $0.name }), viewModel.selectedPage?.name ?? "", keyPress.characters.lowercased())
-        if change {
-            if let newPage = viewModel.loadedCatalogs.loadedPages.first(where: { $0.name == newValue }) {
-                viewModel.selectedPage = newPage
-                UserDefaults.standard.set(viewModel.selectedPage?.id ?? "", forKey: "Page")
-                logURL.wrappedValue = nil
-                viewModel.selectedFeature = nil
-                viewModel.features = [ObservableFeature]()
-                updateStaffLevelForPage()
-            }
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToPageStaffLevel(_ direction: Direction) {
-        let (change, newValue) = navigateGeneric(StaffLevelCase.allCases, viewModel.selectedPageStaffLevel, direction)
-        if change {
-            if direction != .same {
-                viewModel.selectedPageStaffLevel = newValue
-            }
-            storeStaffLevelForPage()
-        }
-    }
-
-    private func navigateToPageStaffLevelWithArrows(_ keyPress: KeyPress) -> KeyPress.Result {
-        let direction = directionFromModifiers(keyPress)
-        if direction != .same {
-            navigateToPageStaffLevel(direction)
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToPageStaffLevelWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(StaffLevelCase.allCases, viewModel.selectedPageStaffLevel, keyPress.characters.lowercased())
-        if change {
-            viewModel.selectedPageStaffLevel = newValue
-            storeStaffLevelForPage()
-            return .handled
-        }
-        return .ignored
-    }
-
     private func addFeature() {
         let linkText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
         let existingFeature = viewModel.features.first(where: { $0.postLink.lowercased() == linkText.lowercased() })
-        if let feature = existingFeature {
+        if let feature = existingFeature, !linkText.isEmpty {
             logger.warning("Added a feature which already exists", context: "System")
             viewModel.showToast(
                 .warning,

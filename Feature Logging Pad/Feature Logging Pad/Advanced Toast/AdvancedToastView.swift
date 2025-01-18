@@ -48,15 +48,23 @@ struct AdvancedToastView: View {
                         .font(.callout)
                         .foregroundColor(Color.black)
                 }
-                
+
                 Spacer(minLength: 10)
+
                 Divider()
                     .frame(height: 46, alignment: Alignment.center)
                     .padding(.vertical, -8)
-                    .foregroundColor(Color.gray)
-                Spacer(minLength: 10)
+                    .opacity(0.000000001)
 
                 if (type != .progress) {
+                    HStack(alignment: .center) {
+                        Divider()
+                            .frame(height: 46, alignment: Alignment.center)
+                            .foregroundColor(Color.gray)
+                    }
+
+                    Spacer(minLength: 10)
+
                     Button {
                         onButtonTapped()
                     } label: {

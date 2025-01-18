@@ -7,65 +7,6 @@
 
 import SwiftUI
 
-enum FocusField: Hashable {
-    case copyFeatureScript, // ScriptContentView
-         featureScript,
-         copyCommentScript,
-         commentScript,
-         copyOriginalPostScript,
-         originalPostScript,
-         newMembership,
-         copyNewMembershipScript,
-         newMembershipScript,
-
-         pagePicker, // Content view
-         staffLevel,
-         copyTag,
-         yourName,
-         yourFirstName,
-         addFeature,
-         removeFeature,
-         featureList,
-
-         picked, // Feature editor
-         postLink,
-         userAlias,
-         userName,
-         userLevel,
-         teammate,
-         tagSource,
-         photoFeatureOnPage,
-         photoFeatureOnHub,
-         photoLastFeaturedOnHub,
-         photoLastFeaturedPage,
-         description,
-         userHasFeaturesOnPage,
-         lastFeaturedOnPage,
-         featureCountOnPage,
-         userHasFeaturesOnHub,
-         lastFeaturedOnHub,
-         lastFeaturedPage,
-         featureCountOnHub,
-         featureCountOnRawPage,
-         featureCountOnRawHub,
-         tooSoonToFeatureUser,
-         tinEyeResults,
-         aiCheckResults,
-
-         postUserAlias, // Post downloader
-         postUserName,
-         postUserLevel,
-         postTeammate,
-         postDescription,
-         postPhotoFeaturedOnPage,
-         postPhotoFeaturedOnHub,
-         postPhotoLastFeaturedOnHub,
-         postPhotoLastFeaturedPage,
-
-         openFolder, // Statistics
-         statsPagePicker
-}
-
 enum MembershipCase: String, CaseIterable, Identifiable, Codable {
     case none = "None"
     
@@ -140,8 +81,8 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
     }
 
     func scriptMembershipStringForHub(hub: String?) -> String {
-        (hub == "snap" && self != .commonArtist) ? "Snap \(self.rawValue)"
-        : (hub == "click" && self != .commonArtist) ? "Click \(self.rawValue)"
+        (hub == "snap" && self != .commonArtist && self != .none) ? "Snap \(self.rawValue)"
+        : (hub == "click" && self != .commonArtist && self != .none) ? "Click \(self.rawValue)"
         : self.rawValue
     }
 }
@@ -297,6 +238,12 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
 
     static func caseValidFor(hub: String?, _ value: NewMembershipCase) -> Bool {
         return casesFor(hub: hub).contains(value)
+    }
+
+    func scriptNewMembershipStringForHub(hub: String?) -> String {
+        (hub == "snap" && self != .none) ? "Snap \(self.rawValue)"
+        : (hub == "click" && self != .none) ? "Click \(self.rawValue)"
+        : self.rawValue
     }
 }
 
