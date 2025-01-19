@@ -53,6 +53,7 @@ extension ContentView {
         var yourFirstName = UserDefaults.standard.string(forKey: "YourFirstName") ?? ""
         private(set) var isDirty = false
         var isShowingDocumentDirtyAlert = false
+        var imageValidationImageUrl: URL? = nil
 
         // MARK: Document
         func markDocumentDirty() {
@@ -97,14 +98,6 @@ extension ContentView {
                         if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
                             self.logger.verbose("Launching browser to get new application version", context: "User")
                             launchURL(url)
-                            let terminationTask = DispatchWorkItem {
-#if os(macOS)
-                                NSApplication.shared.terminate(nil)
-#else
-                                // TODO andydragon
-#endif
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: terminationTask)
                         }
                     },
                     onDismissed: {
@@ -131,14 +124,6 @@ extension ContentView {
                         if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
                             self.logger.verbose("Launching browser to get new application version", context: "User")
                             launchURL(url)
-                            let terminationTask = DispatchWorkItem {
-#if os(macOS)
-                                NSApplication.shared.terminate(nil)
-#else
-                                // TODO andydragon
-#endif
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: terminationTask)
                         }
                     }
                 )

@@ -15,7 +15,6 @@ struct FeatureEditor: View {
     private var close: () -> Void
     private var markDocumentDirty: () -> Void
     private var updateList: () -> Void
-    private var showDownloaderView: () -> Void
 
     @AppStorage(
         "preference_includehash",
@@ -31,8 +30,7 @@ struct FeatureEditor: View {
         _ selectedFeature: ObservableFeatureWrapper,
         _ close: @escaping () -> Void,
         _ markDocumentDirty: @escaping () -> Void,
-        _ updateList: @escaping () -> Void,
-        _ showDownloaderView: @escaping () -> Void
+        _ updateList: @escaping () -> Void
     ) {
         self.viewModel = viewModel
         self.selectedPage = selectedPage
@@ -40,7 +38,6 @@ struct FeatureEditor: View {
         self.close = close
         self.markDocumentDirty = markDocumentDirty
         self.updateList = updateList
-        self.showDownloaderView = showDownloaderView
     }
 
     fileprivate func IsPackedView() -> some View {
@@ -85,7 +82,7 @@ struct FeatureEditor: View {
             Button(action: {
                 logger.verbose("Tapped load post button", context: "User")
                 if !selectedFeature.feature.postLink.isEmpty {
-                    showDownloaderView()
+                    viewModel.visibleView = .PostDownloadView
                 }
             }) {
                 HStack(alignment: .center) {

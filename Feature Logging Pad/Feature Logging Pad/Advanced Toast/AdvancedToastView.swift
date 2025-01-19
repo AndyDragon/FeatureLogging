@@ -17,7 +17,7 @@ struct AdvancedToastView: View {
     var onButtonTapped: () -> Void
     var body: some View {
         VStack(alignment: .leading) {
-            HStack(alignment: .top) {
+            HStack(alignment: .center) {
                 if type == .progress {
                     ProgressView()
                         .frame(width: 40, height: 40)
@@ -52,16 +52,13 @@ struct AdvancedToastView: View {
                 Spacer(minLength: 10)
 
                 Divider()
-                    .frame(height: 46, alignment: Alignment.center)
-                    .padding(.vertical, -8)
+                    .frame(height: 48, alignment: Alignment.center)
                     .opacity(0.000000001)
 
                 if (type != .progress) {
-                    HStack(alignment: .center) {
-                        Divider()
-                            .frame(height: 46, alignment: Alignment.center)
-                            .foregroundColor(Color.gray)
-                    }
+                    Divider()
+                        .frame(maxHeight: 40)
+                        .foregroundColor(Color.gray)
 
                     Spacer(minLength: 10)
 
@@ -72,7 +69,6 @@ struct AdvancedToastView: View {
                             .foregroundColor(type.blocking ? Color.black : Color.gray)
                             .font(.callout)
                     }
-                    .padding(.top, 13)
                 }
             }
             .padding(.leading, 16)

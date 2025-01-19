@@ -16,6 +16,7 @@ struct FeatureListView: View {
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var theme = Theme.notSet
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
+    @Environment(\.showAbout) private var showAbout: ShowAboutAction?
     @State private var isDarkModeOn = true
 
     // PREFS
@@ -45,8 +46,7 @@ struct FeatureListView: View {
     @State private var shouldScrollFeatureListToSelection: Binding<Bool>
     @State private var yourNameValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var yourFirstNameValidation: (valid: Bool, reason: String?) = (true, nil)
-    private var showScriptView: () -> Void
-    private var showDownloaderView: () -> Void
+    @State private var showingSettings = false
     private var updateStaffLevelForPage: () -> Void
     private var storeStaffLevelForPage: () -> Void
     private var saveLog: (_ file: URL) -> Void
@@ -65,8 +65,6 @@ struct FeatureListView: View {
         _ documentDirtyAfterSaveAction: Binding<() -> Void>,
         _ documentDirtyAfterDismissAction: Binding<() -> Void>,
         _ shouldScrollFeatureListToSelection: Binding<Bool>,
-        _ showScriptView: @escaping () -> Void,
-        _ showDownloaderView: @escaping () -> Void,
         _ updateStaffLevelForPage: @escaping () -> Void,
         _ storeStaffLevelForPage: @escaping () -> Void,
         _ saveLog: @escaping (_ file: URL) -> Void,
@@ -83,8 +81,6 @@ struct FeatureListView: View {
         self.documentDirtyAfterSaveAction = documentDirtyAfterSaveAction
         self.documentDirtyAfterDismissAction = documentDirtyAfterDismissAction
         self.shouldScrollFeatureListToSelection = shouldScrollFeatureListToSelection
-        self.showScriptView = showScriptView
-        self.showDownloaderView = showDownloaderView
         self.updateStaffLevelForPage = updateStaffLevelForPage
         self.storeStaffLevelForPage = storeStaffLevelForPage
         self.saveLog = saveLog
@@ -117,8 +113,7 @@ struct FeatureListView: View {
                 // Feature list
                 ScrollViewReader { proxy in
                     FeatureList(
-                        viewModel,
-                        showScriptView
+                        viewModel
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .presentationBackground(.clear)
@@ -222,27 +217,13 @@ struct FeatureListView: View {
                     }
                     .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
 
-                    // Copy report
-                    Button(action: {
-                        logger.verbose("Tapped generate report", context: "User")
-                        copyReportToClipboard()
-                    }) {
-                        HStack {
-                            Image(systemName: "pencil.and.list.clipboard")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                            Text("Copy report")
-                        }
-                        .padding(4)
-                    }
-                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
-
                     // Save report
                     Button(action: {
                         logger.verbose("Tapped save report", context: "User")
                         reportDocument.wrappedValue = ReportDocument(initialText: viewModel.generateReport(personalMessageFormat, personalMessageFirstFormat))
                         showReportFileExporter.wrappedValue.toggle()
                     }) {
-                        HStack {
+                        HStack(alignment: .center) {
                             Image(systemName: "square.and.arrow.down.on.square")
                                 .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                             Text("Save report")
@@ -251,15 +232,29 @@ struct FeatureListView: View {
                     }
                     .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
 
-                    // Statistics
+                    // Settings
                     Button(action: {
-                        logger.verbose("Tapped statistics", context: "User")
-                        viewModel.visibleView = .StatisticsView
+                        logger.verbose("Tapped settings", context: "User")
+                        showingSettings.toggle()
                     }) {
                         HStack {
-                            Image(systemName: "chart.pie")
+                            Image(systemName: "gear")
                                 .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
-                            Text("Stats")
+                            Text("Settings")
+                        }
+                        .padding(4)
+                    }
+                    .disabled(viewModel.hasModalToasts)
+
+                    // About
+                    Button(action: {
+                        logger.verbose("Tapped about", context: "User")
+                        showAbout?()
+                    }) {
+                        HStack {
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            Text("About")
                         }
                         .padding(4)
                     }
@@ -270,6 +265,15 @@ struct FeatureListView: View {
             }
             .toolbarVisibility(.visible, for: .bottomBar)
             .padding([.leading, .top, .trailing])
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsPane()
+                .onAppear {
+                    logger.verbose("Opened settings pane", context: "User")
+                }
+                .onDisappear {
+                    logger.verbose("Closed settings pane", context: "User")
+                }
         }
         .onAppear(perform: {
             setTheme(theme)
@@ -454,6 +458,20 @@ struct FeatureListView: View {
                 }
             }
             .disabled(viewModel.loadedCatalogs.waitingForPages)
+            .buttonStyle(.bordered)
+
+            // Copy report
+            Button(action: {
+                logger.verbose("Tapped generate report", context: "User")
+                copyReportToClipboard()
+            }) {
+                HStack(alignment: .center) {
+                    Image(systemName: "pencil.and.list.clipboard")
+                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                    Text("Copy report")
+                }
+            }
+            .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
             .buttonStyle(.bordered)
         }
     }

@@ -22,8 +22,6 @@ struct PostDownloaderView: View {
     private var selectedPage: ObservablePage
     @Bindable private var selectedFeature: ObservableFeatureWrapper
     @State private var focusedField: FocusState<FocusField?>.Binding
-    private var hideDownloaderView: () -> Void
-    private var showImageValidationView: (_ imageUrl: URL) -> Void
     private var updateList: () -> Void
 
     @State private var imageUrls: [URL] = []
@@ -57,16 +55,13 @@ struct PostDownloaderView: View {
         _ selectedPage: ObservablePage,
         _ selectedFeature: ObservableFeatureWrapper,
         _ focusedField: FocusState<FocusField?>.Binding,
-        _ hideDownloaderView: @escaping () -> Void,
-        _ showImageValidationView: @escaping (_ imageUrl: URL) -> Void,
         _ updateList: @escaping () -> Void
     ) {
         self.viewModel = viewModel
         self.selectedPage = selectedPage
         self.selectedFeature = selectedFeature
         self.focusedField = focusedField
-        self.hideDownloaderView = hideDownloaderView
-        self.showImageValidationView = showImageValidationView
+        self.updateList = updateList
         self.updateList = updateList
     }
 
@@ -169,7 +164,7 @@ struct PostDownloaderView: View {
             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
             .toolbar {
                 Button(action: {
-                    hideDownloaderView()
+                    viewModel.visibleView = .FeatureView
                 }) {
                     HStack {
                         Image(systemName: "xmark")
@@ -212,7 +207,8 @@ struct PostDownloaderView: View {
         }
     }
 
-    // MARK: Subviews
+    // MARK: - sub views
+    
     private func PageScopeView() -> some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading) {
@@ -222,12 +218,14 @@ struct PostDownloaderView: View {
                     Spacer()
                 }
                 .frame(height: 20)
+                
                 HStack(alignment: .center) {
                     ValidationLabel("Page tags: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
                     ValidationLabel(selectedPage.hashTags.joined(separator: ", "), validation: true, validColor: .AccentColor)
                     Spacer()
                 }
                 .frame(height: 20)
+                
                 HStack(alignment: .center) {
                     ValidationLabel("Excluded hashtags: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
                     HStack(alignment: .center) {
@@ -237,7 +235,6 @@ struct PostDownloaderView: View {
                                 storeExcludedTagsForPage()
                             }
                         )
-                        .focusable()
                         .focused(focusedField, equals: .postUserName)
                     }
                     .autocorrectionDisabled(false)
@@ -250,10 +247,13 @@ struct PostDownloaderView: View {
                     Spacer()
                 }
                 .frame(height: 20)
+                
                 HStack(alignment: .center) {
                     ValidationLabel("Post URL: ", labelWidth: -mainLabelWidth, validation: !selectedFeature.feature.postLink.isEmpty, validColor: .green)
                     ValidationLabel(selectedFeature.feature.postLink, validation: true, validColor: .AccentColor)
+                    
                     Spacer()
+                    
                     Button(action: {
                         logger.verbose("Tapped copy URL for post", context: "User")
                         copyToClipboard(selectedFeature.feature.postLink)
@@ -272,8 +272,10 @@ struct PostDownloaderView: View {
                         viewModel.showSuccessToast("Copied to clipboard", "Copied the post URL to the clipboard")
                         return .handled
                     }
+                    
                     Spacer()
                         .frame(width: 10)
+                    
                     Button(action: {
                         if let url = URL(string: selectedFeature.feature.postLink) {
                             logger.verbose("Tapped launch for post", context: "User")
@@ -297,10 +299,13 @@ struct PostDownloaderView: View {
                     }
                 }
                 .frame(height: 20)
+                
                 HStack(alignment: .center) {
                     ValidationLabel("User profile URL: ", labelWidth: -mainLabelWidth, validation: !userProfileLink.isEmpty, validColor: .green)
                     ValidationLabel(userProfileLink, validation: true, validColor: .AccentColor)
+                    
                     Spacer()
+                    
                     Button(action: {
                         logger.verbose("Tapped copy URL for profile", context: "User")
                         copyToClipboard(userProfileLink)
@@ -319,8 +324,10 @@ struct PostDownloaderView: View {
                         viewModel.showSuccessToast("Copied to clipboard", "Copied the user profile URL to the clipboard")
                         return .handled
                     }
+                    
                     Spacer()
                         .frame(width: 10)
+                    
                     Button(action: {
                         if let url = URL(string: userProfileLink) {
                             logger.verbose("Tapped launch for profile", context: "User")
@@ -355,7 +362,9 @@ struct PostDownloaderView: View {
                 HStack(alignment: .center) {
                     ValidationLabel("User alias: ", labelWidth: -mainLabelWidth, validation: !userAlias.isEmpty, validColor: .green)
                     ValidationLabel(userAlias, validation: true, validColor: .AccentColor)
+                    
                     Spacer()
+                    
                     ValidationLabel(
                         "User alias:", labelWidth: labelWidth,
                         validation: !selectedFeature.feature.userAlias.isEmpty && !selectedFeature.feature.userAlias.contains(where: \.isNewline))
@@ -367,7 +376,6 @@ struct PostDownloaderView: View {
                                 viewModel.markDocumentDirty()
                             }
                         )
-                        .focusable()
                         .focused(focusedField, equals: .postUserAlias)
                     }
                     .autocorrectionDisabled(false)
@@ -377,6 +385,7 @@ struct PostDownloaderView: View {
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .frame(maxWidth: 240)
+                    
                     Button(action: {
                         selectedFeature.feature.userAlias = userAlias
                     }) {
@@ -397,10 +406,13 @@ struct PostDownloaderView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 20)
+                
                 HStack(alignment: .center) {
                     ValidationLabel("User name: ", labelWidth: -mainLabelWidth, validation: !userName.isEmpty, validColor: .green)
                     ValidationLabel(userName, validation: true, validColor: .AccentColor)
+                    
                     Spacer()
+                    
                     ValidationLabel(
                         "User name:", labelWidth: labelWidth,
                         validation: !selectedFeature.feature.userName.isEmpty && !selectedFeature.feature.userName.contains(where: \.isNewline))
@@ -412,7 +424,6 @@ struct PostDownloaderView: View {
                                 viewModel.markDocumentDirty()
                             }
                         )
-                        .focusable()
                         .focused(focusedField, equals: .postUserName)
                     }
                     .autocorrectionDisabled(false)
@@ -422,6 +433,7 @@ struct PostDownloaderView: View {
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .frame(maxWidth: 240)
+                    
                     Button(action: {
                         selectedFeature.feature.userName = userName
                     }) {
@@ -442,9 +454,12 @@ struct PostDownloaderView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 20)
+                
                 HStack(alignment: .center) {
                     ValidationLabel("User BIO:", validation: !userBio.isEmpty, validColor: .green)
+                    
                     Spacer()
+                    
                     ValidationLabel("User level:", labelWidth: labelWidth, validation: selectedFeature.feature.userLevel != MembershipCase.none)
                     Picker(
                         "",
@@ -472,6 +487,7 @@ struct PostDownloaderView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
+                
                 HStack(alignment: .top) {
                     ScrollView {
                         if #available(macOS 14.0, *) {
@@ -500,7 +516,9 @@ struct PostDownloaderView: View {
                         }
                     }
                     .frame(maxHeight: 80)
+                    
                     Spacer()
+                    
                     Toggle(
                         isOn: $selectedFeature.feature.userIsTeammate.onChange { value in
                             viewModel.markDocumentDirty()
@@ -533,14 +551,18 @@ struct PostDownloaderView: View {
                     Spacer()
                 }
                 .frame(height: 20)
+                
                 HStack(alignment: .center) {
                     ValidationLabel(excludedHashtagCheck, validation: !hasExcludedHashtag, validColor: .green)
                     Spacer()
                 }
                 .frame(height: 20)
+                
                 HStack(alignment: .center) {
                     ValidationLabel("Post description:", validation: !description.isEmpty, validColor: .green)
+                    
                     Spacer()
+                    
                     ValidationLabel("Description:", labelWidth: labelWidth, validation: !selectedFeature.feature.featureDescription.isEmpty)
                     TextField(
                         "enter the description",
@@ -548,7 +570,6 @@ struct PostDownloaderView: View {
                             viewModel.markDocumentDirty()
                         }
                     )
-                    .focusable()
                     .focused(focusedField, equals: .postDescription)
                     .autocorrectionDisabled(false)
                     .textFieldStyle(.plain)
@@ -559,6 +580,7 @@ struct PostDownloaderView: View {
                     .frame(maxWidth: 320)
                 }
                 .frame(maxWidth: .infinity)
+                
                 ScrollView {
                     HStack {
                         if #available(macOS 14.0, *) {
@@ -585,6 +607,7 @@ struct PostDownloaderView: View {
                                 .disableAutocorrection(false)
                                 .font(.system(size: 14))
                         }
+                        
                         Spacer()
                     }
                 }
@@ -600,7 +623,9 @@ struct PostDownloaderView: View {
                 if !pageComments.isEmpty {
                     HStack(alignment: .center) {
                         ValidationLabel("Found comments from page (possibly already featured on page): ", validation: true, validColor: .red)
+                        
                         Spacer()
+                        
                         Toggle(
                             isOn: $selectedFeature.feature.photoFeaturedOnPage.onChange { value in
                                 updateList()
@@ -623,14 +648,17 @@ struct PostDownloaderView: View {
                         }
                     }
                     .frame(height: 20)
+                    
                     ScrollView {
                         ForEach(pageComments.sorted { $0.2 ?? .distantPast < $1.2 ?? .distantPast }, id: \.0) { comment in
                             HStack(alignment: .center) {
                                 Text("\(comment.0) [\(comment.2.formatTimestamp())]: \(comment.1)")
                                     .foregroundStyle(.red, .black)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+                                
                                 Spacer()
                                     .frame(width: 10)
+                                
                                 Button(action: {
                                     selectedFeature.feature.photoFeaturedOnPage = true
                                     updateList()
@@ -654,13 +682,17 @@ struct PostDownloaderView: View {
                     }
                     .frame(maxHeight: 40)
                 }
+                
                 if !pageComments.isEmpty && !hubComments.isEmpty {
                     Divider()
                 }
+                
                 if !hubComments.isEmpty {
                     HStack(alignment: .center) {
                         ValidationLabel("Found comments from hub (possibly already featured on another page): ", validation: true, validColor: .orange)
+                
                         Spacer()
+                        
                         Toggle(
                             isOn: $selectedFeature.feature.photoFeaturedOnHub.onChange { value in
                                 updateList()
@@ -696,7 +728,6 @@ struct PostDownloaderView: View {
                                     viewModel.markDocumentDirty()
                                 }
                             )
-                            .focusable()
                             .focused(focusedField, equals: .postPhotoLastFeaturedOnHub)
                             .autocorrectionDisabled(false)
                             .textFieldStyle(.plain)
@@ -712,7 +743,6 @@ struct PostDownloaderView: View {
                                     viewModel.markDocumentDirty()
                                 }
                             )
-                            .focusable()
                             .focused(focusedField, equals: .postPhotoLastFeaturedPage)
                             .autocorrectionDisabled(false)
                             .textFieldStyle(.plain)
@@ -724,14 +754,17 @@ struct PostDownloaderView: View {
                         }
                     }
                     .frame(height: 20)
+                    
                     ScrollView {
                         ForEach(hubComments.sorted { $0.2 ?? .distantPast < $1.2 ?? .distantPast }, id: \.0) { comment in
                             HStack(alignment: .center) {
                                 Text("\(comment.0) [\(comment.2.formatTimestamp())]: \(comment.1)")
                                     .foregroundStyle(.orange, .black)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+
                                 Spacer()
                                     .frame(width: 10)
+
                                 Button(action: {
                                     selectedFeature.feature.photoFeaturedOnHub = true
                                     selectedFeature.feature.photoLastFeaturedPage = comment.3
@@ -757,6 +790,7 @@ struct PostDownloaderView: View {
                     }
                     .frame(maxHeight: 40)
                 }
+                
                 if moreComments {
                     Divider()
                     HStack(alignment: .center) {
@@ -775,6 +809,7 @@ struct PostDownloaderView: View {
             VStack(alignment: .leading) {
                 HStack(alignment: .center) {
                     ValidationLabel("There were more comments than downloaded in the post, open the post IN VERO to check to previous features.", validation: true, validColor: .orange)
+
                     Spacer()
                 }
                 .frame(height: 20)
@@ -788,11 +823,13 @@ struct PostDownloaderView: View {
             HStack(alignment: .center) {
                 ValidationLabel("Image\(imageUrls.count == 1 ? "" : "s") found: ", validation: imageUrls.count > 0, validColor: .green)
                 ValidationLabel("\(imageUrls.count)", validation: imageUrls.count > 0, validColor: .AccentColor)
+
                 Spacer()
             }
             .frame(height: 20)
             .frame(maxWidth: 1280)
             .padding([.leading, .trailing])
+            
             ScrollView(.horizontal) {
                 VStack(alignment: .center) {
                     HStack {
@@ -801,8 +838,7 @@ struct PostDownloaderView: View {
                                 viewModel: viewModel,
                                 imageUrl: imageUrl,
                                 userName: userName,
-                                index: index,
-                                showImageValidationView: showImageValidationView)
+                                index: index)
                             .padding(.all, 0.001)
                         }
                     }
@@ -818,7 +854,9 @@ struct PostDownloaderView: View {
         VStack {
             HStack(alignment: .top) {
                 ValidationLabel("LOGGING: ", validation: true, validColor: .orange)
+
                 Spacer()
+
                 Button(action: {
                     logger.verbose("Tapped copy for log", context: "User")
                     copyToClipboard(logging.map { $0.1 }.joined(separator: "\n"))
@@ -839,6 +877,7 @@ struct PostDownloaderView: View {
                 }
             }
             .frame(maxWidth: 1280)
+            
             ScrollView(.horizontal) {
                 ForEach(Array(logging.enumerated()), id: \.offset) { index, log in
                     Text(log.1)
@@ -849,9 +888,55 @@ struct PostDownloaderView: View {
             .frame(maxWidth: 1280, maxHeight: .infinity)
         }
     }
+
+    // MARK: - user level navigation
+    
+    /// Navigates to a user level using the given direction.
+    /// - Parameters:
+    ///   - direction: The `Direction` for the navigation.
+    private func navigateToUserLevel(_ direction: Direction) {
+        let (change, newValue) = navigateGeneric(MembershipCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.userLevel, direction)
+        if change {
+            if direction != .same {
+                selectedFeature.feature.userLevel = newValue
+            }
+            viewModel.markDocumentDirty()
+        }
+    }
+    
+    /// Navigates to a user level using the key press arrows.
+    /// - Parameters:
+    ///   - keyPress: The key press for the arrows.
+    /// - Returns: The key press result.
+    private func navigateToUserLevelWithArrows(_ keyPress: KeyPress) -> KeyPress.Result {
+        let direction = directionFromModifiers(keyPress)
+        if direction != .same {
+            navigateToUserLevel(direction)
+            return .handled
+        }
+        return .ignored
+    }
+    
+    /// Navigates to a user level using the key press characters as a prefix.
+    /// - Parameters:
+    ///   - keyPress: The key press for the characters.
+    /// - Returns: The key press result.
+    private func navigateToUserLevelWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
+        let (change, newValue) = navigateGenericWithPrefix(MembershipCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.userLevel, keyPress.characters.lowercased())
+        if change {
+            selectedFeature.feature.userLevel = newValue
+            viewModel.markDocumentDirty()
+            return .handled
+        }
+        return .ignored
+    }
 }
 
 extension PostDownloaderView {
+    // MARK: - parsing helpers
+    
+    /// Parses the contents of the loaded post.
+    /// - Parameter contents: The contents of the loaded post from the server.
     @MainActor
     func parsePost(_ contents: String) {
         do {
@@ -1043,45 +1128,7 @@ extension PostDownloaderView {
         }
     }
     
-    /// Navigates to a user level using the given direction.
-    /// - Parameters:
-    ///   - direction: The `Direction` for the navigation.
-    private func navigateToUserLevel(_ direction: Direction) {
-        let (change, newValue) = navigateGeneric(MembershipCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.userLevel, direction)
-        if change {
-            if direction != .same {
-                selectedFeature.feature.userLevel = newValue
-            }
-            viewModel.markDocumentDirty()
-        }
-    }
-    
-    /// Navigates to a user level using the key press arrows.
-    /// - Parameters:
-    ///   - keyPress: The key press for the arrows.
-    /// - Returns: The key press result.
-    private func navigateToUserLevelWithArrows(_ keyPress: KeyPress) -> KeyPress.Result {
-        let direction = directionFromModifiers(keyPress)
-        if direction != .same {
-            navigateToUserLevel(direction)
-            return .handled
-        }
-        return .ignored
-    }
-    
-    /// Navigates to a user level using the key press characters as a prefix.
-    /// - Parameters:
-    ///   - keyPress: The key press for the characters.
-    /// - Returns: The key press result.
-    private func navigateToUserLevelWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(MembershipCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.userLevel, keyPress.characters.lowercased())
-        if change {
-            selectedFeature.feature.userLevel = newValue
-            viewModel.markDocumentDirty()
-            return .handled
-        }
-        return .ignored
-    }
+    // MARK: - excluded hash tags
 
     /// Loads the excluded hashtags for the current page.
     private func loadExcludedTagsForPage() {

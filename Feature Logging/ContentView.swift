@@ -19,7 +19,7 @@ struct ContentView: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-
+    
     // THEME
     @AppStorage(
         Constants.THEME_APP_STORE_KEY,
@@ -27,33 +27,28 @@ struct ContentView: View {
     ) var theme = Theme.notSet
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @State private var isDarkModeOn = true
-
+    
     @EnvironmentObject var commandModel: AppCommandModel
-
+    
     @Environment(\.openURL) private var openURL
-
+    
     @State private var viewModel = ViewModel()
     @FocusState private var focusedField: FocusField?
-
+    
     @ObservedObject var featureScriptPlaceholders = PlaceholderList()
     @ObservedObject var commentScriptPlaceholders = PlaceholderList()
     @ObservedObject var originalPostScriptPlaceholders = PlaceholderList()
     @State private var documentDirtyAlertConfirmation = "Would you like to save this log file?"
     @State private var documentDirtyAfterSaveAction: () -> Void = {}
     @State private var documentDirtyAfterDismissAction: () -> Void = {}
-    @State private var imageValidationImageUrl: URL?
     @State private var showFileImporter = false
     @State private var showFileExporter = false
     @State private var logDocument = LogDocument()
     @State private var logURL: URL? = nil
     @State private var showReportFileExporter = false
     @State private var reportDocument = ReportDocument()
-    @State private var isShowingScriptView = false
-    @State private var isShowingStatisticsView = false
-    @State private var isShowingDownloaderView = false
-    @State private var isShowingImageValidationView = false
     @State private var shouldScrollFeatureListToSelection = false
-
+    
     private let appState: VersionCheckAppState
     private let logger = SwiftyBeaver.self
     private var descriptionSuffix: String {
@@ -65,13 +60,13 @@ struct ContentView: View {
         return ""
     }
     private var titleSuffix: String {
-        isShowingScriptView
+        viewModel.visibleView == .ScriptView
         ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - scripts" : " - scripts for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
-            : (isShowingDownloaderView
-                ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - post viewer" : " - post viewer for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
-                : (isShowingStatisticsView
-                    ? " - statistics"
-                    : ""))
+        : (viewModel.visibleView == .PostDownloadView
+           ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - post viewer" : " - post viewer for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
+           : (viewModel.visibleView == .StatisticsView
+              ? " - statistics"
+              : ""))
     }
     private var fileNameDateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -79,17 +74,17 @@ struct ContentView: View {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }
-
+    
     init(_ appState: VersionCheckAppState) {
         self.appState = appState
     }
-
+    
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-
+            
             VStack {
-                if isShowingScriptView {
+                if viewModel.visibleView == .ScriptView {
                     ScriptContentView(
                         viewModel,
                         viewModel.selectedPage!,
@@ -98,33 +93,23 @@ struct ContentView: View {
                         commentScriptPlaceholders,
                         originalPostScriptPlaceholders,
                         $focusedField,
-                        { isShowingScriptView = false },
                         navigateToNextFeature
                     )
-                } else if isShowingDownloaderView {
-                    if isShowingImageValidationView {
-                        ImageValidationView(
-                            viewModel,
-                            $focusedField,
-                            $imageValidationImageUrl,
-                            { isShowingImageValidationView = false },
-                            { shouldScrollFeatureListToSelection.toggle() }
-                        )
-                    } else {
-                        PostDownloaderView(
-                            viewModel,
-                            viewModel.selectedPage!,
-                            viewModel.selectedFeature!,
-                            $focusedField,
-                            { isShowingDownloaderView = false },
-                            { imageUrl in
-                                imageValidationImageUrl = imageUrl
-                                isShowingImageValidationView = true
-                            },
-                            { shouldScrollFeatureListToSelection.toggle() }
-                        )
-                    }
-                } else if isShowingStatisticsView {
+                } else if viewModel.visibleView == .ImageValidationView {
+                    ImageValidationView(
+                        viewModel,
+                        $focusedField,
+                        { shouldScrollFeatureListToSelection.toggle() }
+                    )
+                } else if viewModel.visibleView == .PostDownloadView {
+                    PostDownloaderView(
+                        viewModel,
+                        viewModel.selectedPage!,
+                        viewModel.selectedFeature!,
+                        $focusedField,
+                        { shouldScrollFeatureListToSelection.toggle() }
+                    )
+                } else if viewModel.visibleView == .StatisticsView {
                     StatisticsContentView(
                         viewModel,
                         $focusedField,
@@ -144,15 +129,13 @@ struct ContentView: View {
                         $documentDirtyAfterSaveAction,
                         $documentDirtyAfterDismissAction,
                         $shouldScrollFeatureListToSelection,
-                        { isShowingScriptView = true },
-                        { isShowingDownloaderView = true },
                         updateStaffLevelForPage,
                         storeStaffLevelForPage,
                         saveLog,
                         setTheme
                     )
                 }
-
+                
                 // Log importer
                 HStack { }
                     .frame(width: 0, height: 0)
@@ -169,7 +152,7 @@ struct ContentView: View {
                         }
                     }
                     .fileDialogConfirmationLabel("Open log")
-
+                
                 // Log exporter
                 HStack { }
                     .frame(width: 0, height: 0)
@@ -193,7 +176,7 @@ struct ContentView: View {
                     }
                     .fileExporterFilenameLabel("Save log as: ") // filename label
                     .fileDialogConfirmationLabel("Save log")
-
+                
                 // Report exporter
                 HStack { }
                     .frame(width: 0, height: 0)
@@ -280,7 +263,7 @@ struct ContentView: View {
             showReportFileExporter.toggle()
         }
         .onChange(of: commandModel.showStatistics) {
-            isShowingStatisticsView = commandModel.showStatistics
+            viewModel.visibleView = .StatisticsView
         }
         .onChange(of: commandModel.reloadPageCatalog) {
             if !viewModel.features.isEmpty {
@@ -332,16 +315,25 @@ struct ContentView: View {
                 "Loading pages...",
                 "Loading the page catalog from the server"
             )
-
+            
             await loadPageCatalog()
-
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                 viewModel.dismissToast(loadingPagesToast)
+                if viewModel.selectedPage != nil {
+                    focusedField = .addFeature
+                } else {
+                    focusedField = .pagePicker
+                }
             }
         }
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
     }
+}
 
+extension ContentView {
+    // MARK: - utilities
+    
     private func delayAndTerminate() {
         viewModel.clearDocumentDirty()
         DispatchQueue.main.asyncAfter(
@@ -587,7 +579,7 @@ struct ContentView: View {
                             viewModel.selectedFeature = ObservableFeatureWrapper(using: page, from: viewModel.sortedFeatures[nextIndex])
 
                             // Ensure the ScriptContentView is visible
-                            isShowingScriptView = true
+                            viewModel.visibleView = .ScriptView
                             return
                         }
                     }
@@ -598,6 +590,8 @@ struct ContentView: View {
 }
 
 extension ContentView: DocumentManagerDelegate {
+    // MARK: - document management
+    
     func onCanTerminate() -> Bool {
         if viewModel.isDirty {
             documentDirtyAfterDismissAction = {

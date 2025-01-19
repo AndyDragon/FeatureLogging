@@ -16,7 +16,6 @@ struct ScriptContentView: View {
     @ObservedObject private var featureScriptPlaceholders: PlaceholderList
     @ObservedObject private var commentScriptPlaceholders: PlaceholderList
     @ObservedObject private var originalPostScriptPlaceholders: PlaceholderList
-    private var hideScriptView: () -> Void
     private var navigateToNextFeature: (_ forward: Bool) -> Void
 
     @State private var membershipValidation: (valid: Bool, reason: String?) = (true, nil)
@@ -59,7 +58,6 @@ struct ScriptContentView: View {
         _ featureScriptPlaceholders: PlaceholderList,
         _ commentScriptPlaceholders: PlaceholderList,
         _ originalPostScriptPlaceholders: PlaceholderList,
-        _ hideScriptView: @escaping () -> Void,
         _ navigateToNextFeature: @escaping (_ forward: Bool) -> Void
     ) {
         self.viewModel = viewModel
@@ -68,7 +66,6 @@ struct ScriptContentView: View {
         self.featureScriptPlaceholders = featureScriptPlaceholders
         self.commentScriptPlaceholders = commentScriptPlaceholders
         self.originalPostScriptPlaceholders = originalPostScriptPlaceholders
-        self.hideScriptView = hideScriptView
         self.navigateToNextFeature = navigateToNextFeature
     }
 
@@ -155,7 +152,7 @@ struct ScriptContentView: View {
                     Spacer()
 
                     Button(action: {
-                        hideScriptView()
+                        viewModel.visibleView = .FeatureListView
                     }) {
                         HStack {
                             Image(systemName: "xmark")

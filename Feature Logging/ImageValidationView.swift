@@ -17,13 +17,11 @@ enum AiVerdict {
 
 struct ImageValidationView: View {
     @Environment(\.openURL) private var openURL
-
+    
     private var viewModel: ContentView.ViewModel
     @State private var focusedField: FocusState<FocusField?>.Binding
-    @State private var imageValidationImageUrl: Binding<URL?>
-    private var hideImageValidationView: () -> Void
     private var updateList: () -> Void
-
+    
     @State private var aiVerdictString = ""
     @State private var aiVerdict = AiVerdict.indeterminate
     @State private var returnedJson = ""
@@ -32,38 +30,34 @@ struct ImageValidationView: View {
     @State private var loadedImageUrl: URL?
     @State private var isLoading = false
     @State private var error: Error?
-
+    
     private let languagePrefix = Locale.preferredLanguageCode
     private let logger = SwiftyBeaver.self
-
+    
     init(
         _ viewModel: ContentView.ViewModel,
         _ focusedField: FocusState<FocusField?>.Binding,
-        _ imageValidationImageUrl: Binding<URL?>,
-        _ hideImageValidationView: @escaping () -> Void,
         _ updateList: @escaping () -> Void
     ) {
         self.viewModel = viewModel
         self.focusedField = focusedField
-        self.imageValidationImageUrl = imageValidationImageUrl
-        self.hideImageValidationView = hideImageValidationView
         self.updateList = updateList
     }
-
+    
     var body: some View {
         ZStack {
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-
+            
             if viewModel.selectedFeature != nil {
                 let selectedFeature = Binding<ObservableFeatureWrapper>(
                     get: { viewModel.selectedFeature! },
                     set: { viewModel.selectedFeature = $0 }
                 )
-
+                
                 VStack(alignment: .leading) {
                     VStack(alignment: .leading) {
                         ValidationSummaryView(selectedFeature)
-
+                        
                         CustomTabView(tabBarPosition: .top, content: [
                             (
                                 tabText: "TinEye Results",
@@ -79,10 +73,10 @@ struct ImageValidationView: View {
                             )
                         ])
                     }
-
+                    
                     Spacer()
                         .frame(height: 8)
-
+                    
                     HStack {
                         Image(systemName: uploadToServer != nil ? "arrow.triangle.2.circlepath.icloud" : "icloud")
                             .foregroundColor(uploadToServer != nil ? .yellow : .green)
@@ -99,7 +93,7 @@ struct ImageValidationView: View {
                 .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
                 .toolbar {
                     Button(action: {
-                        hideImageValidationView()
+                        viewModel.visibleView = .PostDownloadView
                     }) {
                         HStack {
                             Image(systemName: "xmark")
@@ -125,7 +119,9 @@ struct ImageValidationView: View {
             prepareHiveResults()
         }
     }
-
+    
+    // MARK: - sub views
+    
     private func ValidationSummaryView(_ selectedFeature: Binding<ObservableFeatureWrapper>) -> some View {
         HStack(alignment: .center) {
             Spacer()
@@ -275,10 +271,80 @@ struct ImageValidationView: View {
             Spacer()
         }
     }
+    
+    // MARK: - tineye results navigation
+
+    private func navigateToTinEyeResult(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ direction: Direction) {
+        let (change, newValue) = navigateGeneric(TinEyeResults.allCases, selectedFeature.feature.tinEyeResults.wrappedValue, direction)
+        if change {
+            if direction != .same {
+                selectedFeature.feature.tinEyeResults.wrappedValue = newValue
+            }
+            updateList()
+            viewModel.markDocumentDirty()
+        }
+    }
+
+    private func navigateToTinEyeResultWithArrows(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
+        let direction = directionFromModifiers(keyPress)
+        if direction != .same {
+            navigateToTinEyeResult(selectedFeature, direction)
+            return .handled
+        }
+        return .ignored
+    }
+
+    private func navigateToTinEyeResultWithPrefix(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
+        let (change, newValue) = navigateGenericWithPrefix(TinEyeResults.allCases, selectedFeature.feature.tinEyeResults.wrappedValue, keyPress.characters.lowercased())
+        if change {
+            selectedFeature.feature.tinEyeResults.wrappedValue = newValue
+            updateList()
+            viewModel.markDocumentDirty()
+            return .handled
+        }
+        return .ignored
+    }
+
+    // MARK: - ai check results navigation
+
+    private func navigateToAiCheckResult(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ direction: Direction) {
+        let (change, newValue) = navigateGeneric(AiCheckResults.allCases, selectedFeature.feature.aiCheckResults.wrappedValue, direction)
+        if change {
+            if direction != .same {
+                selectedFeature.feature.aiCheckResults.wrappedValue = newValue
+            }
+            updateList()
+            viewModel.markDocumentDirty()
+        }
+    }
+
+    private func navigateToAiCheckResultWithArrows(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
+        let direction = directionFromModifiers(keyPress)
+        if direction != .same {
+            navigateToAiCheckResult(selectedFeature, direction)
+            return .handled
+        }
+        return .ignored
+    }
+
+    private func navigateToAiCheckResultWithPrefix(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
+        let (change, newValue) = navigateGenericWithPrefix(AiCheckResults.allCases, selectedFeature.feature.aiCheckResults.wrappedValue, keyPress.characters.lowercased())
+        if change {
+            selectedFeature.feature.aiCheckResults.wrappedValue = newValue
+            updateList()
+            viewModel.markDocumentDirty()
+            return .handled
+        }
+        return .ignored
+    }
+}
+
+extension ImageValidationView {
+    // MARK: - utilities
 
     private func openTinEyeResults() {
         logger.verbose("Opening the TinEye browser URL", context: "System")
-        let imageUrlToEncode = imageValidationImageUrl.wrappedValue
+        let imageUrlToEncode = viewModel.imageValidationImageUrl
         if imageUrlToEncode != nil {
             let finalUrl = imageUrlToEncode!.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
             loadedImageUrl = URL(string: "https://www.tineye.com/search/?pluginver=chrome-2.0.4&sort=score&order=desc&url=\(finalUrl!)")
@@ -362,70 +428,8 @@ struct ImageValidationView: View {
         let url = "https://plugin.hivemoderation.com/api/v1/image/ai_detection"
         var request = MultipartFormDataRequest(url: URL(string: url)!)
         request.addHeader(header: "Accept", value: "application/json")
-        request.addDataField(fieldName: "url", fieldValue: imageValidationImageUrl.wrappedValue!.absoluteString)
+        request.addDataField(fieldName: "url", fieldValue: viewModel.imageValidationImageUrl!.absoluteString)
         request.addDataField(fieldName: "request_id", fieldValue: UUID().uuidString)
         URLSession.shared.dataTask(with: request, completionHandler: completionHandler).resume()
-    }
-
-    private func navigateToTinEyeResult(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ direction: Direction) {
-        let (change, newValue) = navigateGeneric(TinEyeResults.allCases, selectedFeature.feature.tinEyeResults.wrappedValue, direction)
-        if change {
-            if direction != .same {
-                selectedFeature.feature.tinEyeResults.wrappedValue = newValue
-            }
-            updateList()
-            viewModel.markDocumentDirty()
-        }
-    }
-
-    private func navigateToTinEyeResultWithArrows(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
-        let direction = directionFromModifiers(keyPress)
-        if direction != .same {
-            navigateToTinEyeResult(selectedFeature, direction)
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToTinEyeResultWithPrefix(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(TinEyeResults.allCases, selectedFeature.feature.tinEyeResults.wrappedValue, keyPress.characters.lowercased())
-        if change {
-            selectedFeature.feature.tinEyeResults.wrappedValue = newValue
-            updateList()
-            viewModel.markDocumentDirty()
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToAiCheckResult(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ direction: Direction) {
-        let (change, newValue) = navigateGeneric(AiCheckResults.allCases, selectedFeature.feature.aiCheckResults.wrappedValue, direction)
-        if change {
-            if direction != .same {
-                selectedFeature.feature.aiCheckResults.wrappedValue = newValue
-            }
-            updateList()
-            viewModel.markDocumentDirty()
-        }
-    }
-
-    private func navigateToAiCheckResultWithArrows(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
-        let direction = directionFromModifiers(keyPress)
-        if direction != .same {
-            navigateToAiCheckResult(selectedFeature, direction)
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToAiCheckResultWithPrefix(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(AiCheckResults.allCases, selectedFeature.feature.aiCheckResults.wrappedValue, keyPress.characters.lowercased())
-        if change {
-            selectedFeature.feature.aiCheckResults.wrappedValue = newValue
-            updateList()
-            viewModel.markDocumentDirty()
-            return .handled
-        }
-        return .ignored
     }
 }

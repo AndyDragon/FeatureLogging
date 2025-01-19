@@ -10,8 +10,6 @@ import SwiftyBeaver
 import UniformTypeIdentifiers
 
 struct ContentView: View {
-    //    @EnvironmentObject var commandModel: AppCommandModel
-    
     @Environment(\.openURL) private var openURL
    
     // THEME
@@ -30,7 +28,6 @@ struct ContentView: View {
     @State private var documentDirtyAlertConfirmation = "Would you like to save this log file?"
     @State private var documentDirtyAfterSaveAction: () -> Void = {}
     @State private var documentDirtyAfterDismissAction: () -> Void = {}
-    @State private var imageValidationImageUrl: URL?
     @State private var showFileImporter = false
     @State private var showFileExporter = false
     @State private var logDocument = LogDocument()
@@ -65,7 +62,6 @@ struct ContentView: View {
         return formatter
     }
     
-    
     init(_ appState: VersionCheckAppState) {
         self.appState = appState
     }
@@ -87,8 +83,6 @@ struct ContentView: View {
                     $documentDirtyAfterSaveAction,
                     $documentDirtyAfterDismissAction,
                     $shouldScrollFeatureListToSelection,
-                    { viewModel.visibleView = .ScriptView },
-                    { viewModel.visibleView = .PostDownloadView },
                     updateStaffLevelForPage,
                     storeStaffLevelForPage,
                     saveLog,
@@ -107,8 +101,6 @@ struct ContentView: View {
                     $documentDirtyAfterSaveAction,
                     $documentDirtyAfterDismissAction,
                     $shouldScrollFeatureListToSelection,
-                    { viewModel.visibleView = .ScriptView },
-                    { viewModel.visibleView = .PostDownloadView },
                     updateStaffLevelForPage,
                     storeStaffLevelForPage,
                     saveLog,
@@ -119,18 +111,11 @@ struct ContentView: View {
                     viewModel,
                     viewModel.selectedPage!,
                     viewModel.selectedFeature!,
-                    { viewModel.visibleView = .FeatureEditorView },
-                    { imageUrl in
-                        imageValidationImageUrl = imageUrl
-                        viewModel.visibleView = .ImageValidationView
-                    },
                     { shouldScrollFeatureListToSelection.toggle() }
                 )
             } else if (viewModel.visibleView == .ImageValidationView) {
                 ImageValidationView(
                     viewModel,
-                    $imageValidationImageUrl,
-                    { viewModel.visibleView = .PostDownloadView },
                     { shouldScrollFeatureListToSelection.toggle() }
                 )
             } else if (viewModel.visibleView == .ScriptView) {
@@ -141,13 +126,7 @@ struct ContentView: View {
                     featureScriptPlaceholders,
                     commentScriptPlaceholders,
                     originalPostScriptPlaceholders,
-                    { viewModel.visibleView = .FeatureListView },
                     navigateToNextFeature
-                )
-            } else if (viewModel.visibleView == .StatisticsView) {
-                StatisticsContentView(
-                    viewModel,
-                    { viewModel.visibleView = .FeatureListView }
                 )
             }
             
@@ -216,7 +195,7 @@ struct ContentView: View {
             }
         }
         .padding()
-        .navigationTitle("Feature Logging v2.1\(titleSuffix)" + (viewModel.isDirty ? " - edited" : ""))
+        .navigationTitle("Feature Logging Pad v1.0\(titleSuffix)" + (viewModel.isDirty ? " - edited" : ""))
         .background(Color.BackgroundColor)
         .sheet(isPresented: $viewModel.isShowingDocumentDirtyAlert) {
             DocumentDirtySheet(

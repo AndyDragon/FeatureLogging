@@ -269,6 +269,8 @@ struct StatisticsContentView: View {
         hubFeatureCountPieChart = makeHubFeatureCountChartData(pageLogs)
     }
     
+    // MARK: - stats page navigation
+    
     private func navigateToStatsPage(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(pages, selectedPage, direction)
         if change {
@@ -296,6 +298,8 @@ struct StatisticsContentView: View {
         return .ignored
     }
 
+    // MARK: - chart data factories
+    
     private func makePickedFeatureChartData(_ logs: [LogFile]) -> PieChartData {
         let levelColors = makeLevelColors(1)
         let data = PieDataSet(
@@ -424,6 +428,8 @@ struct StatisticsContentView: View {
             chartStyle: PieChartStyle(infoBoxPlacement: .header))
     }
 
+    // MARK: - utilities
+    
     private func isFeaturePicked(_ feature: LogFeature) -> Bool {
         return feature.isPicked && !feature.photoFeaturedOnPage && feature.tinEyeResults != .matchFound && feature.aiCheckResults != .ai && !feature.tooSoonToFeatureUser
     }

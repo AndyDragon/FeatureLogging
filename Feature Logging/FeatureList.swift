@@ -9,16 +9,13 @@ import SwiftUI
 
 struct FeatureList: View {
     private var viewModel: ContentView.ViewModel
-    private var showScriptView: () -> Void
 
     @State private var hoveredFeature: UUID? = nil
 
     init(
-        _ viewModel: ContentView.ViewModel,
-        _ showScriptView: @escaping () -> Void
+        _ viewModel: ContentView.ViewModel
     ) {
         self.viewModel = viewModel
-        self.showScriptView = showScriptView
     }
 
     var body: some View {
@@ -26,8 +23,7 @@ struct FeatureList: View {
             ForEach(viewModel.sortedFeatures, id: \.self) { feature in
                 FeatureListRow(
                     viewModel,
-                    feature,
-                    showScriptView
+                    feature
                 )
                 .padding([.top, .bottom], 8)
                 .padding([.leading, .trailing])

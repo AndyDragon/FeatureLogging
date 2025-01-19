@@ -17,9 +17,9 @@ struct SettingsPane: View {
     @State private var isDarkModeOn = true
     @State private var showingCullingAppFileImporter = false
     @State private var showingAiCheckAppFileImporter = false
-
+    
     @Environment(\.dismiss) private var dismiss
-
+    
     @AppStorage(
         "preference_includehash",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -48,12 +48,12 @@ struct SettingsPane: View {
         "preference_aiCheckAppName",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var aiCheckAppName = "AI Check Tool"
-
+    
     var body: some View {
         ZStack {
-
+            
             Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-
+            
             VStack(alignment: .leading) {
                 ZStack {
                     Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
@@ -76,10 +76,10 @@ struct SettingsPane: View {
                     .padding([.leading, .trailing], 16)
                 }
                 .frame(height: 56)
-
+                
                 Spacer()
                     .frame(height: 12)
-
+                
                 ZStack {
                     Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
                     VStack(alignment: .leading) {
@@ -87,7 +87,6 @@ struct SettingsPane: View {
                             HStack(alignment: .center) {
                                 Text("Personal message: ")
                                 TextField("", text: $personalMessage)
-                                    .focusable()
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
@@ -96,14 +95,13 @@ struct SettingsPane: View {
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
                             }
-
+                            
                             Spacer()
                                 .frame(height: 8)
-
+                            
                             HStack(alignment: .center) {
                                 Text("Personal message (first feature): ")
                                 TextField("", text: $personalMessageFirst)
-                                    .focusable()
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
@@ -112,10 +110,10 @@ struct SettingsPane: View {
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
                             }
-
+                            
                             Spacer()
                                 .frame(height: 8)
-
+                            
                             Text("For personal message templates, use these placeholders:")
                                 .padding([.leading], 40)
                             Text("%%PAGENAME%% - populated with page name, ie click_machines or snap_longexposure")
@@ -137,10 +135,10 @@ struct SettingsPane: View {
                     .padding([.leading, .trailing], 16)
                 }
                 .frame(height: 200)
-
+                
                 Spacer()
                     .frame(height: 12)
-
+                
                 ZStack {
                     Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
                     VStack(alignment: .leading) {
@@ -148,7 +146,6 @@ struct SettingsPane: View {
                             HStack(alignment: .center) {
                                 Text("Culling app: ")
                                 TextField("", text: $cullingAppName)
-                                    .focusable()
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
@@ -158,7 +155,6 @@ struct SettingsPane: View {
                                     .frame(maxWidth: .infinity)
                                 Text("Bundle ID for app: ")
                                 TextField("", text: $cullingApp)
-                                    .focusable()
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
@@ -187,14 +183,13 @@ struct SettingsPane: View {
                                     }
                                 }
                             }
-
+                            
                             Spacer()
                                 .frame(height: 8)
-
+                            
                             HStack(alignment: .center) {
                                 Text("AI Check app: ")
                                 TextField("", text: $aiCheckAppName)
-                                    .focusable()
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
@@ -204,7 +199,6 @@ struct SettingsPane: View {
                                     .frame(maxWidth: .infinity)
                                 Text("Bundle ID for app: ")
                                 TextField("", text: $aiCheckApp)
-                                    .focusable()
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
@@ -242,12 +236,12 @@ struct SettingsPane: View {
                     .padding([.leading, .trailing], 16)
                 }
                 .frame(height: 98)
-
+                
                 Spacer()
-
+                
                 HStack {
                     Spacer()
-
+                    
                     Button(
                         action: {
                             dismiss()
@@ -271,7 +265,11 @@ struct SettingsPane: View {
         })
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
     }
+}
 
+extension SettingsPane {
+    // MARK: - utilities
+    
     private func setTheme(_ newTheme: Theme) {
         if newTheme == .notSet {
             isDarkModeOn = colorScheme == .dark
@@ -295,6 +293,8 @@ struct SettingsPane: View {
         return nil
     }
 }
+
+// MARK: - preview
 
 #Preview {
     SettingsPane()

@@ -26,7 +26,6 @@ struct PostDownloaderImageView: View {
     var imageUrl: URL
     var userName: String
     var index: Int
-    var showImageValidationView: (_ imageUrl: URL) -> Void
 
     private let logger = SwiftyBeaver.self
 
@@ -81,7 +80,8 @@ struct PostDownloaderImageView: View {
 
             HStack {
                 Button(action: {
-                    showImageValidationView(imageUrl)
+                    viewModel.imageValidationImageUrl = imageUrl
+                    viewModel.visibleView = .ImageValidationView
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "photo.badge.checkmark.fill")

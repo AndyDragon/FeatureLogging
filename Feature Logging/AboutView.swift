@@ -45,7 +45,7 @@ struct AboutView: View {
                 .frame(maxWidth: .infinity)
             }
             .padding(20)
-            .padding(.vertical, showCredits ? 10 : 64)
+            .padding(.vertical, showCredits ? 15 : 74)
             .frame(maxWidth: .infinity)
             .background(.white.opacity(0.08))
             .background()
@@ -54,7 +54,7 @@ struct AboutView: View {
                 HStack(alignment: .center) {
                     Spacer()
                     Text(showCredits ? "This app uses the following packages / code:" : "")
-                        .font(.body)
+                        .font(.footnote)
                         .fontWeight(.bold)
                         .foregroundStyle(Color(red: 0.5, green: 0.1, blue: 0.6 ))
                         .animation(.easeIn(duration: showCredits ? 1.6 : 0).delay(showCredits ? 0.1 : 0), value: showCredits)
@@ -98,7 +98,7 @@ struct AboutView: View {
                 .animation(.easeIn(duration: showCredits ? 1 : 0).delay(showCredits ? 0.4 : 0), value: showCredits)
                 Spacer()
             }
-            .frame(maxWidth: .infinity, maxHeight: showCredits ? 200 : 20)
+            .frame(maxWidth: .infinity, maxHeight: showCredits ? 240 : 20)
             .background(.white.opacity(showCredits ? 0.9 : 0.08))
             .background()
 
@@ -122,13 +122,17 @@ struct AboutView: View {
         .background(.white.opacity(0.9))
         .background()
         .frame(width: 600, height: 400)
-        .frame(minWidth: 600, maxWidth: 600, minHeight: 400, maxHeight: 400)
+        .frame(minWidth: 600, maxWidth: 600, minHeight: 420, maxHeight: 420)
     }
 }
+
+// MARK: - preview
 
 #Preview {
     AboutView(packages: ["Application": ["AndyDragon ([Github profile](https://github.com/AndyDragon))"]])
 }
+
+// MARK: - utility types
 
 struct Triangle: Shape {
     func path(in rect: CGRect) -> Path {

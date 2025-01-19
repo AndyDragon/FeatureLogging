@@ -36,6 +36,10 @@ class ObservableFeature: Identifiable, Hashable {
     var aiCheckResults = AiCheckResults.human
     var personalMessage = ""
 
+    var isPickAllowed: Bool {
+        !tooSoonToFeatureUser && !photoFeaturedOnPage && tinEyeResults != .matchFound && aiCheckResults != .ai
+    }
+
     var isPickedAndAllowed: Bool {
         isPicked && !tooSoonToFeatureUser && !photoFeaturedOnPage && tinEyeResults != .matchFound && aiCheckResults != .ai
     }

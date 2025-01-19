@@ -19,8 +19,6 @@ struct ImageValidationView: View {
     @Environment(\.openURL) private var openURL
 
     private var viewModel: ContentView.ViewModel
-    @State private var imageValidationImageUrl: Binding<URL?>
-    private var hideImageValidationView: () -> Void
     private var updateList: () -> Void
 
     @State private var aiVerdictString = ""
@@ -37,13 +35,9 @@ struct ImageValidationView: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ imageValidationImageUrl: Binding<URL?>,
-        _ hideImageValidationView: @escaping () -> Void,
         _ updateList: @escaping () -> Void
     ) {
         self.viewModel = viewModel
-        self.imageValidationImageUrl = imageValidationImageUrl
-        self.hideImageValidationView = hideImageValidationView
         self.updateList = updateList
     }
 
@@ -99,7 +93,7 @@ struct ImageValidationView: View {
                         Spacer()
 
                         Button(action: {
-                            hideImageValidationView()
+                            viewModel.visibleView = .PostDownloadView
                         }) {
                             HStack {
                                 Image(systemName: "xmark")
@@ -263,7 +257,7 @@ struct ImageValidationView: View {
 
     private func openTinEyeResults() {
         logger.verbose("Opening the TinEye browser URL", context: "System")
-        let imageUrlToEncode = imageValidationImageUrl.wrappedValue
+        let imageUrlToEncode = viewModel.imageValidationImageUrl
         if imageUrlToEncode != nil {
             let finalUrl = imageUrlToEncode!.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
             loadedImageUrl = URL(string: "https://www.tineye.com/search/?pluginver=chrome-2.0.4&sort=score&order=desc&url=\(finalUrl!)")
@@ -347,7 +341,7 @@ struct ImageValidationView: View {
         let url = "https://plugin.hivemoderation.com/api/v1/image/ai_detection"
         var request = MultipartFormDataRequest(url: URL(string: url)!)
         request.addHeader(header: "Accept", value: "application/json")
-        request.addDataField(fieldName: "url", fieldValue: imageValidationImageUrl.wrappedValue!.absoluteString)
+        request.addDataField(fieldName: "url", fieldValue: viewModel.imageValidationImageUrl!.absoluteString)
         request.addDataField(fieldName: "request_id", fieldValue: UUID().uuidString)
         URLSession.shared.dataTask(with: request, completionHandler: completionHandler).resume()
     }

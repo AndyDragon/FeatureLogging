@@ -87,6 +87,22 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+extension MembershipCase {
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let decodedValue = try container.decode(String.self)
+        if decodedValue.hasPrefix("Click ") {
+            let rawValueWithoutPrefix = String(decodedValue[decodedValue.index(decodedValue.startIndex, offsetBy: "Click ".count)...])
+            self = MembershipCase(rawValue: rawValueWithoutPrefix) ?? .none
+        } else if decodedValue.hasPrefix("Snap ") {
+            let rawValueWithoutPrefix = String(decodedValue[decodedValue.index(decodedValue.startIndex, offsetBy: "Snap ".count)...])
+            self = MembershipCase(rawValue: rawValueWithoutPrefix) ?? .none
+        } else {
+            self = MembershipCase(rawValue: decodedValue) ?? .none
+        }
+    }
+}
+
 enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
     case commonPageTag = "Page tag"
     

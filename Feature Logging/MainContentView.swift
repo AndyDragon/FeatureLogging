@@ -46,8 +46,6 @@ struct MainContentView: View {
     @State private var shouldScrollFeatureListToSelection: Binding<Bool>
     @State private var yourNameValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var yourFirstNameValidation: (valid: Bool, reason: String?) = (true, nil)
-    private var showScriptView: () -> Void
-    private var showDownloaderView: () -> Void
     private var updateStaffLevelForPage: () -> Void
     private var storeStaffLevelForPage: () -> Void
     private var saveLog: (_ file: URL) -> Void
@@ -67,8 +65,6 @@ struct MainContentView: View {
         _ documentDirtyAfterSaveAction: Binding<() -> Void>,
         _ documentDirtyAfterDismissAction: Binding<() -> Void>,
         _ shouldScrollFeatureListToSelection: Binding<Bool>,
-        _ showScriptView: @escaping () -> Void,
-        _ showDownloaderView: @escaping () -> Void,
         _ updateStaffLevelForPage: @escaping () -> Void,
         _ storeStaffLevelForPage: @escaping () -> Void,
         _ saveLog: @escaping (_ file: URL) -> Void,
@@ -86,8 +82,6 @@ struct MainContentView: View {
         self.documentDirtyAfterSaveAction = documentDirtyAfterSaveAction
         self.documentDirtyAfterDismissAction = documentDirtyAfterDismissAction
         self.shouldScrollFeatureListToSelection = shouldScrollFeatureListToSelection
-        self.showScriptView = showScriptView
-        self.showDownloaderView = showDownloaderView
         self.updateStaffLevelForPage = updateStaffLevelForPage
         self.storeStaffLevelForPage = storeStaffLevelForPage
         self.saveLog = saveLog
@@ -117,8 +111,7 @@ struct MainContentView: View {
                             focusedField,
                             { viewModel.selectedFeature = nil },
                             { viewModel.markDocumentDirty() },
-                            { shouldScrollFeatureListToSelection.wrappedValue.toggle() },
-                            showDownloaderView
+                            { shouldScrollFeatureListToSelection.wrappedValue.toggle() }
                         )
                     }
                 }
@@ -136,8 +129,7 @@ struct MainContentView: View {
                 // Feature list
                 ScrollViewReader { proxy in
                     FeatureList(
-                        viewModel,
-                        showScriptView
+                        viewModel
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(4)
@@ -275,13 +267,15 @@ struct MainContentView: View {
             .padding([.leading, .top, .trailing])
         }
         .onAppear(perform: {
-            focusedField.wrappedValue = .pagePicker
+            focusedField.wrappedValue = .addFeature
             setTheme(theme)
         })
         .preferredColorScheme(isDarkModeOn ? .dark : .light)
         .testBackground()
     }
 
+    // MARK: - sub views
+    
     private func PageSelectorView() -> some View {
         HStack(alignment: .center) {
             Text("Page:")
@@ -420,7 +414,6 @@ struct MainContentView: View {
                     UserDefaults.standard.set(viewModel.yourName, forKey: "YourName")
                 }
             )
-            .focusable()
             .focused(focusedField, equals: .yourName)
             .lineLimit(1)
             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
@@ -446,7 +439,6 @@ struct MainContentView: View {
                     UserDefaults.standard.set(viewModel.yourFirstName, forKey: "YourFirstName")
                 }
             )
-            .focusable()
             .focused(focusedField, equals: .yourFirstName)
             .lineLimit(1)
             .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
@@ -519,19 +511,8 @@ struct MainContentView: View {
         }
     }
 
-    private func setThemeLocal(_ newTheme: Theme) {
-        if newTheme == .notSet {
-            isDarkModeOn = colorScheme != .dark
-            isDarkModeOn = colorScheme == .dark
-        } else {
-            if let details = ThemeDetails[newTheme] {
-                isDarkModeOn = !details.darkTheme
-                isDarkModeOn = details.darkTheme
-                theme = newTheme
-            }
-        }
-    }
-
+    // MARK: - page navigation
+    
     private func navigateToPage(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(viewModel.loadedCatalogs.loadedPages, viewModel.selectedPage, direction)
         if change {
@@ -571,6 +552,8 @@ struct MainContentView: View {
         return .ignored
     }
 
+    // MARK: - page staff level navigation
+    
     private func navigateToPageStaffLevel(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(StaffLevelCase.allCases, viewModel.selectedPageStaffLevel, direction)
         if change {
@@ -598,6 +581,23 @@ struct MainContentView: View {
             return .handled
         }
         return .ignored
+    }
+}
+
+extension MainContentView {
+    // MARK: - utilities
+    
+    private func setThemeLocal(_ newTheme: Theme) {
+        if newTheme == .notSet {
+            isDarkModeOn = colorScheme != .dark
+            isDarkModeOn = colorScheme == .dark
+        } else {
+            if let details = ThemeDetails[newTheme] {
+                isDarkModeOn = !details.darkTheme
+                isDarkModeOn = details.darkTheme
+                theme = newTheme
+            }
+        }
     }
 
     private func addFeature() {

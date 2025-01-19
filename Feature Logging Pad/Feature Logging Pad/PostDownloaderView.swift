@@ -21,8 +21,6 @@ struct PostDownloaderView: View {
     private var viewModel: ContentView.ViewModel
     private var selectedPage: ObservablePage
     @Bindable private var selectedFeature: ObservableFeatureWrapper
-    private var hideDownloaderView: () -> Void
-    private var showImageValidationView: (_ imageUrl: URL) -> Void
     private var updateList: () -> Void
 
     @State private var imageUrls: [URL] = []
@@ -54,15 +52,11 @@ struct PostDownloaderView: View {
         _ viewModel: ContentView.ViewModel,
         _ selectedPage: ObservablePage,
         _ selectedFeature: ObservableFeatureWrapper,
-        _ hideDownloaderView: @escaping () -> Void,
-        _ showImageValidationView: @escaping (_ imageUrl: URL) -> Void,
         _ updateList: @escaping () -> Void
     ) {
         self.viewModel = viewModel
         self.selectedPage = selectedPage
         self.selectedFeature = selectedFeature
-        self.hideDownloaderView = hideDownloaderView
-        self.showImageValidationView = showImageValidationView
         self.updateList = updateList
     }
 
@@ -166,7 +160,7 @@ struct PostDownloaderView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .bottomBar) {
                     Button(action: {
-                        hideDownloaderView()
+                        viewModel.visibleView = .FeatureEditorView
                     }) {
                         HStack {
                             Image(systemName: "xmark")
@@ -794,8 +788,8 @@ struct PostDownloaderView: View {
                                 viewModel: viewModel,
                                 imageUrl: imageUrl,
                                 userName: userName,
-                                index: index,
-                                showImageValidationView: showImageValidationView)
+                                index: index
+                            )
                             .padding(.all, 0.001)
                         }
                     }

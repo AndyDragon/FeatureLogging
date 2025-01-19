@@ -32,236 +32,107 @@ struct SettingsPane: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirst = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-    @AppStorage(
-        "preference_cullingApp",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var cullingApp = "com.adobe.bridge14"
-    @AppStorage(
-        "preference_cullingAppName",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var cullingAppName = "Adobe Bridge"
-    @AppStorage(
-        "preference_aiCheckApp",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var aiCheckApp = "com.andydragon.AI-Check-Tool"
-    @AppStorage(
-        "preference_aiCheckAppName",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var aiCheckAppName = "AI Check Tool"
 
     var body: some View {
-        ZStack {
-
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-
-            VStack(alignment: .leading) {
-                ZStack {
-                    Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
-                    VStack(alignment: .leading) {
-                        Section {
-                            HStack {
-                                Toggle(isOn: $includeHash) {
-                                    Text("Include '#' when copying tags to the clipboard")
-                                }
-                                .tint(Color.AccentColor)
-                                .accentColor(Color.AccentColor)
-                                Spacer()
+        VStack(alignment: .center) {
+            Text("Settings")
+                .font(.title)
+            
+            ZStack {
+                Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
+                
+                VStack(alignment: .leading) {
+                    Section {
+                        HStack {
+                            Toggle(isOn: $includeHash) {
+                                Text("Include '#' when copying tags to the clipboard")
                             }
-                        } header: {
-                            Text("Tags:")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .tint(Color.AccentColor)
+                            .accentColor(Color.AccentColor)
                         }
+                    } header: {
+                        Text("Tags:")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding([.leading, .trailing], 16)
                 }
-                .frame(height: 56)
-
-                Spacer()
-                    .frame(height: 12)
-
-                ZStack {
-                    Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
-                    VStack(alignment: .leading) {
-                        Section {
-                            HStack(alignment: .center) {
-                                Text("Personal message: ")
-                                TextField("", text: $personalMessage)
-                                    .textFieldStyle(.plain)
-                                    .padding(4)
-                                    .background(Color.BackgroundColorEditor)
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
-                                    .frame(maxWidth: .infinity)
-                                    .autocorrectionDisabled()
-                                    .disableAutocorrection(true)
-                            }
-
-                            Spacer()
-                                .frame(height: 8)
-
-                            HStack(alignment: .center) {
-                                Text("Personal message (first feature): ")
-                                TextField("", text: $personalMessageFirst)
-                                    .textFieldStyle(.plain)
-                                    .padding(4)
-                                    .background(Color.BackgroundColorEditor)
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
-                                    .frame(maxWidth: .infinity)
-                                    .autocorrectionDisabled()
-                                    .disableAutocorrection(true)
-                            }
-
-                            Spacer()
-                                .frame(height: 8)
-
-                            Text("For personal message templates, use these placeholders:")
-                                .padding([.leading], 40)
-                            Text("%%PAGENAME%% - populated with page name, ie click_machines or snap_longexposure")
-                                .padding([.leading], 80)
-                            Text("%%HUBNAME%% - populated with hub name, ie click or snap")
-                                .padding([.leading], 80)
-                            Text("%%USERNAME%% - populated with the user's full name")
-                                .padding([.leading], 80)
-                            Text("%%USERALIAS%% - populated with the user's alias (username)")
-                                .padding([.leading], 80)
-                            Text("%%PERSONALMESSAGE%% - populated with your personal message for each feature")
-                                .padding([.leading], 80)
-                        } header: {
-                            Text("Personalized messages:")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding([.leading, .trailing], 16)
-                }
-                .frame(height: 200)
-
-                Spacer()
-                    .frame(height: 12)
-
-                ZStack {
-                    Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
-                    VStack(alignment: .leading) {
-                        Section {
-                            HStack(alignment: .center) {
-                                Text("Culling app: ")
-                                TextField("", text: $cullingAppName)
-                                    .textFieldStyle(.plain)
-                                    .padding(4)
-                                    .background(Color.BackgroundColorEditor)
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
-                                    .frame(maxWidth: .infinity)
-                                    .autocorrectionDisabled()
-                                    .disableAutocorrection(true)
-
-                                Text("Bundle ID for app: ")
-                                TextField("", text: $cullingApp)
-                                    .autocorrectionDisabled(false)
-                                    .textFieldStyle(.plain)
-                                    .padding(4)
-                                    .background(Color.BackgroundColorEditor)
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
-                                    .frame(maxWidth: .infinity)
-                                    .autocorrectionDisabled()
-                                    .disableAutocorrection(true)
-
-                                Button(action: {
-                                    showingCullingAppFileImporter.toggle()
-                                }) {
-                                    Text("Pick app...")
-                                        .padding([.leading, .trailing], 12)
-                                }
-                                .buttonStyle(.bordered)
-                                .fileImporter(isPresented: $showingCullingAppFileImporter, allowedContentTypes: [.application]) { result in
-                                    switch result {
-                                    case .success(let file):
-                                        if let appBundle = getBundleIdentifier(from: file) {
-                                            cullingApp = (appBundle["id"] ?? "") ?? ""
-                                            cullingAppName = (appBundle["name"] ?? "") ?? ""
-                                        }
-                                    case .failure(let error):
-                                        debugPrint(error.localizedDescription)
-                                    }
-                                }
-                            }
-
-                            Spacer()
-                                .frame(height: 8)
-
-                            HStack(alignment: .center) {
-                                Text("AI Check app: ")
-                                TextField("", text: $aiCheckAppName)
-                                    .textFieldStyle(.plain)
-                                    .padding(4)
-                                    .background(Color.BackgroundColorEditor)
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
-                                    .frame(maxWidth: .infinity)
-                                    .autocorrectionDisabled()
-                                    .disableAutocorrection(true)
-
-                                Text("Bundle ID for app: ")
-                                TextField("", text: $aiCheckApp)
-                                    .textFieldStyle(.plain)
-                                    .padding(4)
-                                    .background(Color.BackgroundColorEditor)
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
-                                    .frame(maxWidth: .infinity)
-                                    .autocorrectionDisabled()
-                                    .disableAutocorrection(true)
-
-                                Button(action: {
-                                    showingAiCheckAppFileImporter.toggle()
-                                }) {
-                                    Text("Pick app...")
-                                        .padding([.leading, .trailing], 12)
-                                }
-                                .buttonStyle(.bordered)
-                                .fileImporter(isPresented: $showingAiCheckAppFileImporter, allowedContentTypes: [.application]) { result in
-                                    switch result {
-                                    case .success(let file):
-                                        if let appBundle = getBundleIdentifier(from: file) {
-                                            aiCheckApp = (appBundle["id"] ?? "") ?? ""
-                                            aiCheckAppName = (appBundle["name"] ?? "") ?? ""
-                                        }
-                                    case .failure(let error):
-                                        debugPrint(error.localizedDescription)
-                                    }
-                                }
-                            }
-                        } header: {
-                            Text("External apps:")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding([.leading, .trailing], 16)
-                }
-                .frame(height: 98)
-
-                Spacer()
-
-                HStack {
-                    Spacer()
-
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Text("Close")
-                            .padding([.leading, .trailing], 12)
-                    }
-                    .buttonStyle(.bordered)
-                }
+                .frame(maxWidth: .infinity)
+                .padding()
             }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal)
+            
+            ZStack {
+                Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
+                
+                VStack(alignment: .leading) {
+                    Section {
+                        Spacer()
+                            .frame(height: 8)
+                        
+                        Text("Personal message: ")
+                        TextEditor(text: $personalMessage)
+                            .padding(4)
+                            .border(Color.gray.opacity(0.25))
+                            .cornerRadius(4)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 100)
+                        
+                        Spacer()
+                            .frame(height: 20)
+                        
+                        Text("Personal message (first feature): ")
+                        TextEditor(text: $personalMessageFirst)
+                            .padding(4)
+                            .border(Color.gray.opacity(0.25))
+                            .cornerRadius(4)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 100)
+                        
+                        Spacer()
+                            .frame(height: 8)
+                        
+                        Text("For personal message templates, use these placeholders:")
+                            .padding([.leading], 40)
+                            .font(.footnote)
+                        Text("%%PAGENAME%% - populated with page name, ie click_machines or snap_longexposure")
+                            .padding([.leading], 80)
+                            .font(.footnote)
+                        Text("%%HUBNAME%% - populated with hub name, ie click or snap")
+                            .padding([.leading], 80)
+                            .font(.footnote)
+                        Text("%%USERNAME%% - populated with the user's full name")
+                            .padding([.leading], 80)
+                            .font(.footnote)
+                        Text("%%USERALIAS%% - populated with the user's alias (username)")
+                            .padding([.leading], 80)
+                            .font(.footnote)
+                        Text("%%PERSONALMESSAGE%% - populated with your personal message for each feature")
+                            .padding([.leading], 80)
+                            .font(.footnote)
+                    } header: {
+                        Text("Personalized messages:")
+                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+            }
+            .padding(.horizontal)
+                        
+            HStack {
+                Spacer()
+                
+                Button(action: {
+                    dismiss()
+                }) {
+                    Text("Close")
+                        .padding([.leading, .trailing], 12)
+                }
+                .buttonStyle(.bordered)
+            }
+            .padding(.horizontal)
         }
-        .frame(height: 444)
+        .padding()
         .frame(minWidth: 800)
         .onChange(of: theme) {
             setTheme(theme)

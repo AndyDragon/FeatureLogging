@@ -78,7 +78,6 @@ struct NewMembershipEditor: View {
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
                 .focused(focusedField, equals: editorFocusField)
-                .focusable()
                 .textEditorStyle(.plain)
                 .foregroundStyle(valid ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
                 .scrollContentBackground(.hidden)
@@ -93,7 +92,6 @@ struct NewMembershipEditor: View {
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
                 .focused(focusedField, equals: editorFocusField)
-                .focusable()
                 .foregroundStyle(valid ? Color.TextColorPrimary : Color.TextColorRequired, Color.TextColorSecondary)
                 .scrollContentBackground(.hidden)
                 .padding(4)
@@ -104,6 +102,8 @@ struct NewMembershipEditor: View {
                 .disableAutocorrection(false)
         }
     }
+    
+    // MARK: - new membership navigation
     
     private func navigateToNewMembership(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(NewMembershipCase.casesFor(hub: selectedPage.hub), newMembership, direction)

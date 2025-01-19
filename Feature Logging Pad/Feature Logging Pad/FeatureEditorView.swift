@@ -45,8 +45,6 @@ struct FeatureEditorView: View {
     @State private var shouldScrollFeatureListToSelection: Binding<Bool>
     @State private var yourNameValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var yourFirstNameValidation: (valid: Bool, reason: String?) = (true, nil)
-    private var showScriptView: () -> Void
-    private var showDownloaderView: () -> Void
     private var updateStaffLevelForPage: () -> Void
     private var storeStaffLevelForPage: () -> Void
     private var saveLog: (_ file: URL) -> Void
@@ -65,8 +63,6 @@ struct FeatureEditorView: View {
         _ documentDirtyAfterSaveAction: Binding<() -> Void>,
         _ documentDirtyAfterDismissAction: Binding<() -> Void>,
         _ shouldScrollFeatureListToSelection: Binding<Bool>,
-        _ showScriptView: @escaping () -> Void,
-        _ showDownloaderView: @escaping () -> Void,
         _ updateStaffLevelForPage: @escaping () -> Void,
         _ storeStaffLevelForPage: @escaping () -> Void,
         _ saveLog: @escaping (_ file: URL) -> Void,
@@ -83,8 +79,6 @@ struct FeatureEditorView: View {
         self.documentDirtyAfterSaveAction = documentDirtyAfterSaveAction
         self.documentDirtyAfterDismissAction = documentDirtyAfterDismissAction
         self.shouldScrollFeatureListToSelection = shouldScrollFeatureListToSelection
-        self.showScriptView = showScriptView
-        self.showDownloaderView = showDownloaderView
         self.updateStaffLevelForPage = updateStaffLevelForPage
         self.storeStaffLevelForPage = storeStaffLevelForPage
         self.saveLog = saveLog
@@ -111,8 +105,7 @@ struct FeatureEditorView: View {
                                 viewModel.visibleView = .FeatureListView
                             },
                             { viewModel.markDocumentDirty() },
-                            { shouldScrollFeatureListToSelection.wrappedValue.toggle() },
-                            showDownloaderView
+                            { shouldScrollFeatureListToSelection.wrappedValue.toggle() }
                         )
                     }
                 }

@@ -19,13 +19,26 @@ extension View {
 }
 
 extension ContentView {
+    enum VisibleView {
+        case FeatureView
+        case PostDownloadView
+        case ImageValidationView
+        case ScriptView
+        case StatisticsView
+    }
+
     @Observable
     class ViewModel {
         init() {}
 
         private let logger = SwiftyBeaver.self
+        
+        // MARK: Visible view
+        
+        var visibleView: VisibleView = .FeatureView
 
         // MARK: Catalog and Features
+        
         var loadedCatalogs = LoadedCatalogs()
         var selectedPage: ObservablePage?
         var selectedPageStaffLevel: StaffLevelCase = .mod
@@ -41,8 +54,10 @@ extension ContentView {
         var yourFirstName = UserDefaults.standard.string(forKey: "YourFirstName") ?? ""
         private(set) var isDirty = false
         var isShowingDocumentDirtyAlert = false
+        var imageValidationImageUrl: URL? = nil
 
         // MARK: Document
+        
         func markDocumentDirty() {
             if !isDirty {
                 isDirty = true
@@ -56,6 +71,7 @@ extension ContentView {
         }
 
         // MARK: Version check
+        
         private var lastVersionCheckResult = VersionCheckResult.complete
 
         func handleVersionCheck(
@@ -162,6 +178,7 @@ extension ContentView {
         }
 
         // MARK: Reports
+        
         func generateReport(
             _ personalMessageFormat: String,
             _ personalMessageFirstFormat: String
@@ -413,6 +430,7 @@ extension ContentView {
         }
 
         // MARK: Toasts
+        
         var toastViews = [AdvancedToast]()
         var hasModalToasts: Bool {
             return toastViews.count(where: { $0.modal }) > 0
@@ -477,6 +495,8 @@ extension ContentView {
         }
     }
 
+    // MARK: - utilities
+    
     static func compareFeatures(_ lhs: ObservableFeature, _ rhs: ObservableFeature) -> Bool {
         // Empty names always at the bottom
         if lhs.userName.isEmpty {

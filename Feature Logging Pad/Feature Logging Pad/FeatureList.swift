@@ -10,18 +10,11 @@ import SystemColors
 
 struct FeatureList: View {
     private var viewModel: ContentView.ViewModel
-    private var showScriptView: () -> Void
-
-#if os(macOS)
-    @State private var hoveredFeature: UUID? = nil
-#endif
 
     init(
-        _ viewModel: ContentView.ViewModel,
-        _ showScriptView: @escaping () -> Void
+        _ viewModel: ContentView.ViewModel
     ) {
         self.viewModel = viewModel
-        self.showScriptView = showScriptView
     }
 
     var body: some View {
@@ -29,22 +22,8 @@ struct FeatureList: View {
             ForEach(viewModel.sortedFeatures, id: \.self) { feature in
                 FeatureListRow(
                     viewModel,
-                    feature,
-                    showScriptView
+                    feature
                 )
-#if os(macOS)
-                .onHover(perform: { hovering in
-                    if !hovering {
-                        if hoveredFeature == feature.id {
-                            hoveredFeature = nil
-                        }
-                    } else {
-                        if hoveredFeature != feature.id {
-                            hoveredFeature = feature.id
-                        }
-                    }
-                })
-#endif
                 .onTapGesture {
                     withAnimation {
                         viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
@@ -53,16 +32,7 @@ struct FeatureList: View {
                 }
                 .padding([.top, .bottom], 4)
                 .padding([.leading, .trailing])
-#if os(macOS)
-                .foregroundStyle(
-                    Color(
-                        nsColor: hoveredFeature == feature.id
-                        ? NSColor.selectedControlTextColor
-                        : NSColor.labelColor), Color(nsColor: .labelColor)
-                )
-#else
                 .foregroundStyle(Color.label, Color.label)
-#endif
                 .background(Color.backgroundColor)
                 .cornerRadius(4)
                 .padding([.top, .bottom], 4)

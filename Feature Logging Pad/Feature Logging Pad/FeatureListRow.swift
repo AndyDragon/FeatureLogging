@@ -11,7 +11,6 @@ import SwiftyBeaver
 struct FeatureListRow: View {
     private var viewModel: ContentView.ViewModel
     @Bindable private var feature: ObservableFeature
-    private var showScriptView: () -> Void
 
     @State var showingMessageEditor = false
 
@@ -28,12 +27,10 @@ struct FeatureListRow: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ feature: ObservableFeature,
-        _ showScriptView: @escaping () -> Void
+        _ feature: ObservableFeature
     ) {
         self.viewModel = viewModel
         self.feature = feature
-        self.showScriptView = showScriptView
     }
     
     var body: some View {
@@ -362,6 +359,6 @@ struct FeatureListRow: View {
         viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
 
         // Launch the ScriptContentView
-        showScriptView()
+        viewModel.visibleView = .ScriptView
     }
 }
