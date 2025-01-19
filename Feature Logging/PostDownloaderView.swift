@@ -67,7 +67,7 @@ struct PostDownloaderView: View {
 
     var body: some View {
         ZStack {
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+            Color.backgroundColor.edgesIgnoringSafeArea(.all)
 
             ScrollView(.vertical) {
                 VStack {
@@ -79,7 +79,7 @@ struct PostDownloaderView: View {
                                 .frame(maxWidth: .infinity)
                                 .background {
                                     Rectangle()
-                                        .foregroundStyle(Color.BackgroundColorList)
+                                        .foregroundStyle(Color.controlBackground)
                                         .cornerRadius(8)
                                         .opacity(0.5)
                                 }
@@ -91,7 +91,7 @@ struct PostDownloaderView: View {
                                     .frame(maxWidth: .infinity)
                                     .background {
                                         Rectangle()
-                                            .foregroundStyle(Color.BackgroundColorList)
+                                            .foregroundStyle(Color.controlBackground)
                                             .cornerRadius(8)
                                             .opacity(0.5)
                                     }
@@ -104,7 +104,7 @@ struct PostDownloaderView: View {
                                     .frame(maxWidth: .infinity)
                                     .background {
                                         Rectangle()
-                                            .foregroundStyle(Color.BackgroundColorList)
+                                            .foregroundStyle(Color.controlBackground)
                                             .cornerRadius(8)
                                             .opacity(0.5)
                                     }
@@ -116,7 +116,7 @@ struct PostDownloaderView: View {
                                         .frame(maxWidth: .infinity)
                                         .background {
                                             Rectangle()
-                                                .foregroundStyle(Color.BackgroundColorList)
+                                                .foregroundStyle(Color.controlBackground)
                                                 .cornerRadius(8)
                                                 .opacity(0.5)
                                         }
@@ -126,7 +126,7 @@ struct PostDownloaderView: View {
                                         .frame(maxWidth: .infinity)
                                         .background {
                                             Rectangle()
-                                                .foregroundStyle(Color.BackgroundColorList)
+                                                .foregroundStyle(Color.controlBackground)
                                                 .cornerRadius(8)
                                                 .opacity(0.5)
                                         }
@@ -138,7 +138,7 @@ struct PostDownloaderView: View {
                                     .frame(maxWidth: .infinity)
                                     .background {
                                         Rectangle()
-                                            .foregroundStyle(Color.BackgroundColorList)
+                                            .foregroundStyle(Color.controlBackground)
                                             .cornerRadius(8)
                                             .opacity(0.5)
                                     }
@@ -150,7 +150,7 @@ struct PostDownloaderView: View {
                                 .frame(maxWidth: .infinity)
                                 .background {
                                     Rectangle()
-                                        .foregroundStyle(Color.BackgroundColorList)
+                                        .foregroundStyle(Color.controlBackground)
                                         .cornerRadius(8)
                                         .opacity(0.5)
                                 }
@@ -161,20 +161,20 @@ struct PostDownloaderView: View {
                 }
                 .padding()
             }
-            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+            .foregroundStyle(Color.label, Color.secondaryLabel)
             .toolbar {
                 Button(action: {
                     viewModel.visibleView = .FeatureView
                 }) {
                     HStack {
                         Image(systemName: "xmark")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Close")
                             .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.label, Color.secondaryLabel)
                         Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
                             .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                            .foregroundStyle(Color.gray, Color.secondaryLabel)
                     }
                     .padding(4)
                 }
@@ -183,7 +183,7 @@ struct PostDownloaderView: View {
             }
         }
         .frame(minWidth: 1024, minHeight: 600)
-        .background(Color.BackgroundColor)
+        .background(Color.backgroundColor)
         .onAppear {
             postLoaded = false
             pageHashtagCheck = ""
@@ -214,14 +214,14 @@ struct PostDownloaderView: View {
             VStack(alignment: .leading) {
                 HStack(alignment: .center) {
                     ValidationLabel("Page: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
-                    ValidationLabel(selectedPage.displayTitle, validation: true, validColor: .AccentColor)
+                    ValidationLabel(selectedPage.displayTitle, validation: true, validColor: .accentColor)
                     Spacer()
                 }
                 .frame(height: 20)
                 
                 HStack(alignment: .center) {
                     ValidationLabel("Page tags: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
-                    ValidationLabel(selectedPage.hashTags.joined(separator: ", "), validation: true, validColor: .AccentColor)
+                    ValidationLabel(selectedPage.hashTags.joined(separator: ", "), validation: true, validColor: .accentColor)
                     Spacer()
                 }
                 .frame(height: 20)
@@ -240,7 +240,7 @@ struct PostDownloaderView: View {
                     .autocorrectionDisabled(false)
                     .textFieldStyle(.plain)
                     .padding(4)
-                    .background(Color.BackgroundColorEditor)
+                    .background(Color.controlBackground.opacity(0.5))
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .frame(maxWidth: 480)
@@ -250,7 +250,7 @@ struct PostDownloaderView: View {
                 
                 HStack(alignment: .center) {
                     ValidationLabel("Post URL: ", labelWidth: -mainLabelWidth, validation: !selectedFeature.feature.postLink.isEmpty, validColor: .green)
-                    ValidationLabel(selectedFeature.feature.postLink, validation: true, validColor: .AccentColor)
+                    ValidationLabel(selectedFeature.feature.postLink, validation: true, validColor: .accentColor)
                     
                     Spacer()
                     
@@ -261,7 +261,7 @@ struct PostDownloaderView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "pencil.and.list.clipboard")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Copy URL")
                         }
                     }
@@ -284,7 +284,7 @@ struct PostDownloaderView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "globe")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Launch")
                         }
                     }
@@ -302,7 +302,7 @@ struct PostDownloaderView: View {
                 
                 HStack(alignment: .center) {
                     ValidationLabel("User profile URL: ", labelWidth: -mainLabelWidth, validation: !userProfileLink.isEmpty, validColor: .green)
-                    ValidationLabel(userProfileLink, validation: true, validColor: .AccentColor)
+                    ValidationLabel(userProfileLink, validation: true, validColor: .accentColor)
                     
                     Spacer()
                     
@@ -313,7 +313,7 @@ struct PostDownloaderView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "pencil.and.list.clipboard")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Copy URL")
                         }
                     }
@@ -336,7 +336,7 @@ struct PostDownloaderView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "globe")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Launch")
                         }
                     }
@@ -361,7 +361,7 @@ struct PostDownloaderView: View {
             VStack(alignment: .leading) {
                 HStack(alignment: .center) {
                     ValidationLabel("User alias: ", labelWidth: -mainLabelWidth, validation: !userAlias.isEmpty, validColor: .green)
-                    ValidationLabel(userAlias, validation: true, validColor: .AccentColor)
+                    ValidationLabel(userAlias, validation: true, validColor: .accentColor)
                     
                     Spacer()
                     
@@ -381,7 +381,7 @@ struct PostDownloaderView: View {
                     .autocorrectionDisabled(false)
                     .textFieldStyle(.plain)
                     .padding(4)
-                    .background(Color.BackgroundColorEditor)
+                    .background(Color.controlBackground.opacity(0.5))
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .frame(maxWidth: 240)
@@ -391,7 +391,7 @@ struct PostDownloaderView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "pencil.line")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Transfer")
                         }
                     }
@@ -409,7 +409,7 @@ struct PostDownloaderView: View {
                 
                 HStack(alignment: .center) {
                     ValidationLabel("User name: ", labelWidth: -mainLabelWidth, validation: !userName.isEmpty, validColor: .green)
-                    ValidationLabel(userName, validation: true, validColor: .AccentColor)
+                    ValidationLabel(userName, validation: true, validColor: .accentColor)
                     
                     Spacer()
                     
@@ -429,7 +429,7 @@ struct PostDownloaderView: View {
                     .autocorrectionDisabled(false)
                     .textFieldStyle(.plain)
                     .padding(4)
-                    .background(Color.BackgroundColorEditor)
+                    .background(Color.controlBackground.opacity(0.5))
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .frame(maxWidth: 240)
@@ -439,7 +439,7 @@ struct PostDownloaderView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "pencil.line")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Transfer")
                         }
                     }
@@ -470,12 +470,12 @@ struct PostDownloaderView: View {
                         ForEach(MembershipCase.casesFor(hub: selectedPage.hub)) { level in
                             Text(level.rawValue)
                                 .tag(level)
-                                .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                                .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                         }
                     }
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
-                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                    .tint(Color.accentColor)
+                    .accentColor(Color.accentColor)
+                    .foregroundStyle(Color.accentColor, Color.label)
                     .focusable()
                     .focused(focusedField, equals: .postUserLevel)
                     .frame(maxWidth: 240)
@@ -496,7 +496,7 @@ struct PostDownloaderView: View {
                                 .focusable(false)
                                 .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
                                 .textEditorStyle(.plain)
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                .foregroundStyle(Color.label, Color.secondaryLabel)
                                 .scrollContentBackground(.hidden)
                                 .padding(4)
                                 .autocorrectionDisabled(false)
@@ -507,7 +507,7 @@ struct PostDownloaderView: View {
                                 .scrollIndicators(.never)
                                 .focusable(false)
                                 .frame(maxWidth: 620, maxHeight: .infinity, alignment: .leading)
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                .foregroundStyle(Color.label, Color.secondaryLabel)
                                 .scrollContentBackground(.hidden)
                                 .padding(4)
                                 .autocorrectionDisabled(false)
@@ -528,8 +528,8 @@ struct PostDownloaderView: View {
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
+                    .tint(Color.accentColor)
+                    .accentColor(Color.accentColor)
                     .focusable()
                     .focused(focusedField, equals: .postTeammate)
                     .onKeyPress(.space) {
@@ -574,7 +574,7 @@ struct PostDownloaderView: View {
                     .autocorrectionDisabled(false)
                     .textFieldStyle(.plain)
                     .padding(4)
-                    .background(Color.BackgroundColorEditor)
+                    .background(Color.controlBackground.opacity(0.5))
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .frame(maxWidth: 320)
@@ -589,7 +589,7 @@ struct PostDownloaderView: View {
                                 .focusable(false)
                                 .frame(maxWidth: 960, maxHeight: .infinity, alignment: .leading)
                                 .textEditorStyle(.plain)
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                .foregroundStyle(Color.label, Color.secondaryLabel)
                                 .scrollContentBackground(.hidden)
                                 .padding(4)
                                 .autocorrectionDisabled(false)
@@ -600,7 +600,7 @@ struct PostDownloaderView: View {
                                 .scrollIndicators(.never)
                                 .focusable(false)
                                 .frame(maxWidth: 960, maxHeight: .infinity, alignment: .leading)
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                .foregroundStyle(Color.label, Color.secondaryLabel)
                                 .scrollContentBackground(.hidden)
                                 .padding(4)
                                 .autocorrectionDisabled(false)
@@ -636,8 +636,8 @@ struct PostDownloaderView: View {
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                         }
-                        .tint(Color.AccentColor)
-                        .accentColor(Color.AccentColor)
+                        .tint(Color.accentColor)
+                        .accentColor(Color.accentColor)
                         .focusable()
                         .focused(focusedField, equals: .postPhotoFeaturedOnPage)
                         .onKeyPress(.space) {
@@ -666,7 +666,7 @@ struct PostDownloaderView: View {
                                 }) {
                                     HStack(alignment: .center) {
                                         Image(systemName: "checkmark.square")
-                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                                         Text("Mark post")
                                     }
                                 }
@@ -703,8 +703,8 @@ struct PostDownloaderView: View {
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                         }
-                        .tint(Color.AccentColor)
-                        .accentColor(Color.AccentColor)
+                        .tint(Color.accentColor)
+                        .accentColor(Color.accentColor)
                         .focusable()
                         .focused(focusedField, equals: .postPhotoFeaturedOnHub)
                         .onKeyPress(.space) {
@@ -732,7 +732,7 @@ struct PostDownloaderView: View {
                             .autocorrectionDisabled(false)
                             .textFieldStyle(.plain)
                             .padding(4)
-                            .background(Color.BackgroundColorEditor)
+                            .background(Color.controlBackground.opacity(0.5))
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
                             .frame(maxWidth: 160)
@@ -747,7 +747,7 @@ struct PostDownloaderView: View {
                             .autocorrectionDisabled(false)
                             .textFieldStyle(.plain)
                             .padding(4)
-                            .background(Color.BackgroundColorEditor)
+                            .background(Color.controlBackground.opacity(0.5))
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
                             .frame(maxWidth: 160)
@@ -773,7 +773,7 @@ struct PostDownloaderView: View {
                                 }) {
                                     HStack(alignment: .center) {
                                         Image(systemName: "checkmark.square")
-                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                                         Text("Mark post")
                                     }
                                 }
@@ -822,7 +822,7 @@ struct PostDownloaderView: View {
         VStack(alignment: .center) {
             HStack(alignment: .center) {
                 ValidationLabel("Image\(imageUrls.count == 1 ? "" : "s") found: ", validation: imageUrls.count > 0, validColor: .green)
-                ValidationLabel("\(imageUrls.count)", validation: imageUrls.count > 0, validColor: .AccentColor)
+                ValidationLabel("\(imageUrls.count)", validation: imageUrls.count > 0, validColor: .accentColor)
 
                 Spacer()
             }
@@ -864,7 +864,7 @@ struct PostDownloaderView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Copy log")
                     }
                 }

@@ -21,13 +21,6 @@ struct ContentView: View {
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
     
     // THEME
-    @AppStorage(
-        Constants.THEME_APP_STORE_KEY,
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var theme = Theme.notSet
-    @Environment(\.colorScheme) private var colorScheme: ColorScheme
-    @State private var isDarkModeOn = true
-    
     @EnvironmentObject var commandModel: AppCommandModel
     
     @Environment(\.openURL) private var openURL
@@ -81,7 +74,7 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+            Color.backgroundColor.edgesIgnoringSafeArea(.all)
             
             VStack {
                 if viewModel.visibleView == .ScriptView {
@@ -131,8 +124,7 @@ struct ContentView: View {
                         $shouldScrollFeatureListToSelection,
                         updateStaffLevelForPage,
                         storeStaffLevelForPage,
-                        saveLog,
-                        setTheme
+                        saveLog
                     )
                 }
                 
@@ -152,7 +144,7 @@ struct ContentView: View {
                         }
                     }
                     .fileDialogConfirmationLabel("Open log")
-                
+
                 // Log exporter
                 HStack { }
                     .frame(width: 0, height: 0)
@@ -176,7 +168,7 @@ struct ContentView: View {
                     }
                     .fileExporterFilenameLabel("Save log as: ") // filename label
                     .fileDialogConfirmationLabel("Save log")
-                
+
                 // Report exporter
                 HStack { }
                     .frame(width: 0, height: 0)
@@ -205,7 +197,7 @@ struct ContentView: View {
         .navigationTitle("Feature Logging v2.1\(titleSuffix)")
 #endif
         .frame(minWidth: 1024, minHeight: 720)
-        .background(Color.BackgroundColor)
+        .background(Color.backgroundColor)
         .onChange(of: commandModel.newLog) {
             if viewModel.isDirty {
                 documentDirtyAfterSaveAction = {
@@ -304,10 +296,6 @@ struct ContentView: View {
         .attachVersionCheckState(viewModel, appState) { url in
             openURL(url)
         }
-        .onAppear(perform: {
-            setTheme(theme)
-            DocumentManager.default.registerReceiver(receiver: self)
-        })
         .navigationSubtitle(viewModel.isDirty ? "edited" : "")
         .task {
             let loadingPagesToast = viewModel.showToast(
@@ -315,19 +303,16 @@ struct ContentView: View {
                 "Loading pages...",
                 "Loading the page catalog from the server"
             )
-            
+
             await loadPageCatalog()
-            
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                 viewModel.dismissToast(loadingPagesToast)
-                if viewModel.selectedPage != nil {
-                    focusedField = .addFeature
-                } else {
-                    focusedField = .pagePicker
-                }
             }
         }
-        .preferredColorScheme(isDarkModeOn ? .dark : .light)
+        .onAppear {
+            DocumentManager.default.registerReceiver(receiver: self)
+        }
     }
 }
 
@@ -339,26 +324,12 @@ extension ContentView {
         DispatchQueue.main.asyncAfter(
             deadline: .now() + 0.2,
             execute: {
+#if os(macOS)
                 NSApplication.shared.terminate(nil)
+#else
+                // TODO andydragon
+#endif
             })
-    }
-
-    private func setTheme(_ newTheme: Theme) {
-        if newTheme == .notSet {
-            logger.verbose("Set theme to nothing", context: "User")
-
-            isDarkModeOn = colorScheme == .dark
-            Color.isDarkModeOn = colorScheme == .dark
-        } else {
-            logger.verbose("Set theme to \(newTheme.rawValue)", context: "User")
-
-            if let details = ThemeDetails[newTheme] {
-                Color.currentTheme = details.colorTheme
-                isDarkModeOn = details.darkTheme
-                Color.isDarkModeOn = details.darkTheme
-                theme = newTheme
-            }
-        }
     }
 
     private func updateStaffLevelForPage() {

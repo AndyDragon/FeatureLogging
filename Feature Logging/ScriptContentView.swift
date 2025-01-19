@@ -74,7 +74,7 @@ struct ScriptContentView: View {
     
     var body: some View {
         ZStack {
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+            Color.backgroundColor.edgesIgnoringSafeArea(.all)
             
             VStack {
                 // Fields
@@ -86,7 +86,7 @@ struct ScriptContentView: View {
                 // New membership
                 NewMembershipEditorView()
             }
-            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+            .foregroundStyle(Color.label, Color.secondaryLabel)
             .padding()
             .sheet(isPresented: $showingPlaceholderSheet) {
                 PlaceholderSheet(
@@ -145,13 +145,13 @@ struct ScriptContentView: View {
                     }) {
                         HStack {
                             Image(systemName: "arrowtriangle.backward.fill")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Previous feature")
                                 .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                .foregroundStyle(Color.label, Color.secondaryLabel)
                             Text("    ⌘ ⌥ ◀")
                                 .font(.system(.body, design: .rounded))
-                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                                .foregroundStyle(Color.gray, Color.secondaryLabel)
                         }
                         .padding(4)
                     }
@@ -164,13 +164,13 @@ struct ScriptContentView: View {
                 }) {
                     HStack {
                         Image(systemName: "xmark")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Close")
                             .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.label, Color.secondaryLabel)
                         Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
                             .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                            .foregroundStyle(Color.gray, Color.secondaryLabel)
                     }
                     .padding(4)
                 }
@@ -184,13 +184,13 @@ struct ScriptContentView: View {
                     }) {
                         HStack {
                             Image(systemName: "arrowtriangle.forward.fill")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Next feature")
                                 .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                .foregroundStyle(Color.label, Color.secondaryLabel)
                             Text("    ⌘ ⌥ ▶")
                                 .font(.system(.body, design: .rounded))
-                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                                .foregroundStyle(Color.gray, Color.secondaryLabel)
                         }
                         .padding(4)
                     }
@@ -200,7 +200,7 @@ struct ScriptContentView: View {
             }
         }
         .frame(minWidth: 1024, minHeight: 600)
-        .background(Color.BackgroundColor)
+        .background(Color.backgroundColor)
         .onAppear {
             populateFromSharedFeature()
         }
@@ -215,14 +215,14 @@ struct ScriptContentView: View {
                 // User name
                 if !userNameValidation.valid {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorRequired)
+                        .foregroundStyle(Color.accentColor, Color.red)
                         .help(userNameValidation.reason ?? "unknown error")
                         .imageScale(.small)
                 }
                 Text("User: ")
                     .foregroundStyle(
-                        userNameValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
-                        Color.TextColorSecondary
+                        userNameValidation.valid ? Color.label : Color.red,
+                        Color.secondaryLabel
                     )
                     .frame(width: !userNameValidation.valid ? 42 : 60, alignment: .leading)
                     .lineLimit(1)
@@ -230,9 +230,9 @@ struct ScriptContentView: View {
                     .padding([.leading], !userNameValidation.valid ? 8 : 0)
                 ZStack {
                     Text(selectedFeature.feature.userName)
-                        .tint(Color.AccentColor)
-                        .accentColor(Color.AccentColor)
-                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                        .tint(Color.accentColor)
+                        .accentColor(Color.accentColor)
+                        .foregroundStyle(Color.accentColor, Color.label)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding([.leading, .trailing], 4)
                     Spacer()
@@ -247,15 +247,15 @@ struct ScriptContentView: View {
                 // User level
                 if !membershipValidation.valid {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorRequired)
+                        .foregroundStyle(Color.accentColor, Color.red)
                         .help(membershipValidation.reason ?? "unknown error")
                         .imageScale(.small)
                         .padding([.leading], 8)
                 }
                 Text("Level: ")
                     .foregroundStyle(
-                        membershipValidation.valid ? Color.TextColorPrimary : Color.TextColorRequired,
-                        Color.TextColorSecondary
+                        membershipValidation.valid ? Color.label : Color.red,
+                        Color.secondaryLabel
                     )
                     .frame(width: !membershipValidation.valid ? 42 : 60, alignment: .leading)
                     .lineLimit(1)
@@ -263,9 +263,9 @@ struct ScriptContentView: View {
                     .padding([.leading], 8)
                 ZStack {
                     Text(selectedFeature.userLevel.rawValue)
-                        .tint(Color.AccentColor)
-                        .accentColor(Color.AccentColor)
-                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                        .tint(Color.accentColor)
+                        .accentColor(Color.accentColor)
+                        .foregroundStyle(Color.accentColor, Color.label)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding([.leading, .trailing], 4)
                     Spacer()
@@ -281,9 +281,9 @@ struct ScriptContentView: View {
                 HStack {
                     Text(selectedFeature.firstFeature ? "☑" : "☐")
                         .font(.system(size: 22, design: .monospaced))
-                        .tint(Color.AccentColor)
-                        .accentColor(Color.AccentColor)
-                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                        .tint(Color.accentColor)
+                        .accentColor(Color.accentColor)
+                        .foregroundStyle(Color.accentColor, Color.label)
                         .frame(alignment: .trailing)
                     Text("First feature on page")
                         .lineLimit(1)
@@ -297,9 +297,9 @@ struct ScriptContentView: View {
                     HStack {
                         Text(tagSource == TagSourceCase.clickCommunityTag ? "☑" : "☐")
                             .font(.system(size: 22, design: .monospaced))
-                            .tint(Color.AccentColor)
-                            .accentColor(Color.AccentColor)
-                            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                            .tint(Color.accentColor)
+                            .accentColor(Color.accentColor)
+                            .foregroundStyle(Color.accentColor, Color.label)
                             .frame(alignment: .trailing)
                         Text("From community tag")
                             .lineLimit(1)
@@ -311,9 +311,9 @@ struct ScriptContentView: View {
                     HStack {
                         Text(tagSource == TagSourceCase.clickHubTag ? "☑" : "☐")
                             .font(.system(size: 22, design: .monospaced))
-                            .tint(Color.AccentColor)
-                            .accentColor(Color.AccentColor)
-                            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                            .tint(Color.accentColor)
+                            .accentColor(Color.accentColor)
+                            .foregroundStyle(Color.accentColor, Color.label)
                             .frame(alignment: .trailing)
                         Text("From hub tag")
                             .lineLimit(1)
@@ -325,9 +325,9 @@ struct ScriptContentView: View {
                     HStack {
                         Text((tagSource == TagSourceCase.snapRawPageTag || tagSource == TagSourceCase.snapRawCommunityTag) ? "☑" : "☐")
                             .font(.system(size: 22, design: .monospaced))
-                            .tint(Color.AccentColor)
-                            .accentColor(Color.AccentColor)
-                            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                            .tint(Color.accentColor)
+                            .accentColor(Color.accentColor)
+                            .foregroundStyle(Color.accentColor, Color.label)
                             .frame(alignment: .trailing)
                         Text("From RAW tag")
                             .lineLimit(1)
@@ -339,9 +339,9 @@ struct ScriptContentView: View {
                     HStack {
                         Text((tagSource == TagSourceCase.snapCommunityTag || tagSource == TagSourceCase.snapRawCommunityTag) ? "☑" : "☐")
                             .font(.system(size: 22, design: .monospaced))
-                            .tint(Color.AccentColor)
-                            .accentColor(Color.AccentColor)
-                            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                            .tint(Color.accentColor)
+                            .accentColor(Color.accentColor)
+                            .foregroundStyle(Color.accentColor, Color.label)
                             .frame(alignment: .trailing)
                         Text("From community tag")
                             .lineLimit(1)

@@ -11,10 +11,6 @@ import UniformTypeIdentifiers
 
 struct FeatureListView: View {
     // THEME
-    @AppStorage(
-        Constants.THEME_APP_STORE_KEY,
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var theme = Theme.notSet
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @Environment(\.showAbout) private var showAbout: ShowAboutAction?
     @State private var isDarkModeOn = true
@@ -50,7 +46,6 @@ struct FeatureListView: View {
     private var updateStaffLevelForPage: () -> Void
     private var storeStaffLevelForPage: () -> Void
     private var saveLog: (_ file: URL) -> Void
-    private var setTheme: (_ newTheme: Theme) -> Void
     private var logger = SwiftyBeaver.self
 
     init(
@@ -67,8 +62,7 @@ struct FeatureListView: View {
         _ shouldScrollFeatureListToSelection: Binding<Bool>,
         _ updateStaffLevelForPage: @escaping () -> Void,
         _ storeStaffLevelForPage: @escaping () -> Void,
-        _ saveLog: @escaping (_ file: URL) -> Void,
-        _ setTheme: @escaping (_ newTheme: Theme) -> Void
+        _ saveLog: @escaping (_ file: URL) -> Void
     ) {
         self.viewModel = viewModel
         self.logURL = logURL
@@ -84,14 +78,13 @@ struct FeatureListView: View {
         self.updateStaffLevelForPage = updateStaffLevelForPage
         self.storeStaffLevelForPage = storeStaffLevelForPage
         self.saveLog = saveLog
-        self.setTheme = setTheme
     }
 
     private let labelWidth: CGFloat = 80
 
     var body: some View {
         ZStack {
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+            Color.backgroundColor.edgesIgnoringSafeArea(.all)
 
             VStack {
                 // Page / staff level picker
@@ -127,7 +120,7 @@ struct FeatureListView: View {
                     )
                 }
                 .scrollContentBackground(.hidden)
-                .background(Color.BackgroundColorList)
+                .background(Color.secondaryBackgroundColor)
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
             }
@@ -164,8 +157,13 @@ struct FeatureListView: View {
                         }
                     }) {
                         HStack {
-                            Image(systemName: "document.badge.plus")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            if #available(iOS 18.0, *) {
+                                Image(systemName: "document.badge.plus")
+                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            } else {
+                                Image(systemName: "doc.badge.plus")
+                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            }
                             Text("New log")
                         }
                         .padding(4)
@@ -190,7 +188,7 @@ struct FeatureListView: View {
                     }) {
                         HStack {
                             Image(systemName: "square.and.arrow.up.on.square")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Open log")
                         }
                         .padding(4)
@@ -210,7 +208,7 @@ struct FeatureListView: View {
                     }) {
                         HStack {
                             Image(systemName: "square.and.arrow.down.on.square")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Save log")
                         }
                         .padding(4)
@@ -225,7 +223,7 @@ struct FeatureListView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "square.and.arrow.down.on.square")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Save report")
                         }
                         .padding(4)
@@ -239,7 +237,7 @@ struct FeatureListView: View {
                     }) {
                         HStack {
                             Image(systemName: "gear")
-                                .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                                .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                             Text("Settings")
                         }
                         .padding(4)
@@ -253,7 +251,7 @@ struct FeatureListView: View {
                     }) {
                         HStack {
                             Image(systemName: "info.circle")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("About")
                         }
                         .padding(4)
@@ -263,7 +261,7 @@ struct FeatureListView: View {
                     Spacer()
                 }
             }
-            .toolbarVisibility(.visible, for: .bottomBar)
+            .safeToolbarVisibility(.visible, for: .bottomBar)
             .padding([.leading, .top, .trailing])
         }
         .sheet(isPresented: $showingSettings) {
@@ -275,10 +273,6 @@ struct FeatureListView: View {
                     logger.verbose("Closed settings pane", context: "User")
                 }
         }
-        .onAppear(perform: {
-            setTheme(theme)
-        })
-        .preferredColorScheme(isDarkModeOn ? .dark : .light)
         .testBackground()
     }
 
@@ -301,11 +295,11 @@ struct FeatureListView: View {
                     Text(page.displayName).tag(page)
                 }
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
+            .foregroundStyle(Color.accentColor, Color.label)
             .disabled(!viewModel.features.isEmpty)
-            .frame(minWidth: 240)
+            .frame(minWidth: 200, maxWidth: 240)
 
             // Page staff level picker
             Text("Page staff level: ")
@@ -320,15 +314,15 @@ struct FeatureListView: View {
                 }
             ) {
                 ForEach(StaffLevelCase.casesFor(hub: viewModel.selectedPage?.hub)) { staffLevelCase in
-                    Text(staffLevelCase.rawValue)
+                    Text(staffLevelCase.shortString)
                         .tag(staffLevelCase)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                 }
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
-            .frame(minWidth: 144, maxWidth: 160)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
+            .foregroundStyle(Color.accentColor, Color.label)
+            .frame(minWidth: 120, maxWidth: 160)
 
             Spacer()
 
@@ -376,13 +370,15 @@ struct FeatureListView: View {
                     }
                 }
             }
-            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .disabled(viewModel.selectedPage?.hub != "click" && viewModel.selectedPage?.hub != "snap")
             .frame(maxWidth: 132)
             .padding([.leading])
             .buttonStyle(.bordered)
+            .lineLimit(1)
+            .truncationMode(.tail)
         }
     }
 
@@ -405,10 +401,10 @@ struct FeatureListView: View {
                 }
             )
             .lineLimit(1)
-            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+            .foregroundStyle(Color.label, Color.secondaryLabel)
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.backgroundColor.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
             .autocapitalization(.none)
@@ -430,10 +426,10 @@ struct FeatureListView: View {
                 }
             )
             .lineLimit(1)
-            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+            .foregroundStyle(Color.label, Color.secondaryLabel)
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.backgroundColor.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
             .autocapitalization(.none)
@@ -453,7 +449,7 @@ struct FeatureListView: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "person.fill.badge.plus")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Add feature")
                 }
             }
@@ -467,25 +463,12 @@ struct FeatureListView: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "pencil.and.list.clipboard")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Copy report")
                 }
             }
             .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
             .buttonStyle(.bordered)
-        }
-    }
-
-    private func setThemeLocal(_ newTheme: Theme) {
-        if newTheme == .notSet {
-            isDarkModeOn = colorScheme != .dark
-            isDarkModeOn = colorScheme == .dark
-        } else {
-            if let details = ThemeDetails[newTheme] {
-                isDarkModeOn = !details.darkTheme
-                isDarkModeOn = details.darkTheme
-                theme = newTheme
-            }
         }
     }
 

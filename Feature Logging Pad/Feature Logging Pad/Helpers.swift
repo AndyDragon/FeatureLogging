@@ -420,3 +420,22 @@ struct AnimatedBackground: ViewModifier {
             })
     }
 }
+
+extension View {
+    nonisolated public func safeToolbarVisibility(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
+        if #available(iOS 18.0, *) {
+            for bar in bars {
+                _ = self.toolbarVisibility(visibility, for: bar)
+            }
+            return self
+        }
+        return self
+    }
+
+    @inlinable nonisolated public func safeMinWidthFrame(minWidth: CGFloat, maxWidth: CGFloat) -> some View {
+        if #available(iOS 18.0, *) {
+            return self.frame(minWidth: minWidth, maxWidth: maxWidth)
+        }
+        return self.frame(maxWidth: maxWidth)
+    }
+}

@@ -60,13 +60,13 @@ struct ValidationLabel: View {
             HStack(alignment: .center) {
                 if !validation {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorRequired)
+                        .foregroundStyle(Color.accentColor, Color.red)
                         .imageScale(.small)
                 }
                 if let label {
                     Text(label)
                         .padding([.trailing], 8)
-                        .foregroundStyle(!validation ? Color.TextColorRequired : (validColor ?? Color.TextColorPrimary), Color.TextColorSecondary)
+                        .foregroundStyle(!validation ? Color.red : (validColor ?? Color.label), Color.secondaryLabel)
                 }
             }
             .frame(width: abs(width), alignment: width < 0 ? .leading : .trailing)
@@ -74,13 +74,13 @@ struct ValidationLabel: View {
             HStack(alignment: .center) {
                 if !validation {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorRequired)
+                        .foregroundStyle(Color.accentColor, Color.red)
                         .imageScale(.small)
                 }
                 if let label {
                     Text(label)
                         .padding([.trailing], 8)
-                        .foregroundStyle(!validation ? Color.TextColorRequired : (validColor ?? Color.TextColorPrimary), Color.TextColorSecondary)
+                        .foregroundStyle(!validation ? Color.red : (validColor ?? Color.label), Color.secondaryLabel)
                 }
             }
         }

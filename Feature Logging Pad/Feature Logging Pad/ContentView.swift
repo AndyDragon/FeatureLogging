@@ -12,14 +12,6 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @Environment(\.openURL) private var openURL
    
-    // THEME
-    @AppStorage(
-        Constants.THEME_APP_STORE_KEY,
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var theme = Theme.notSet
-    @Environment(\.colorScheme) private var colorScheme: ColorScheme
-    @State private var isDarkModeOn = true
-
     @State private var viewModel = ViewModel()
     
     @ObservedObject var featureScriptPlaceholders = PlaceholderList()
@@ -68,7 +60,7 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+            Color.backgroundColor.edgesIgnoringSafeArea(.all)
             
             if (viewModel.visibleView == .FeatureListView) {
                 FeatureListView(
@@ -85,8 +77,7 @@ struct ContentView: View {
                     $shouldScrollFeatureListToSelection,
                     updateStaffLevelForPage,
                     storeStaffLevelForPage,
-                    saveLog,
-                    setTheme
+                    saveLog
                 )
             } else if (viewModel.visibleView == .FeatureEditorView) {
                 FeatureEditorView(
@@ -103,8 +94,7 @@ struct ContentView: View {
                     $shouldScrollFeatureListToSelection,
                     updateStaffLevelForPage,
                     storeStaffLevelForPage,
-                    saveLog,
-                    setTheme
+                    saveLog
                 )
             } else if (viewModel.visibleView == .PostDownloadView) {
                 PostDownloaderView(
@@ -196,7 +186,7 @@ struct ContentView: View {
         }
         .padding()
         .navigationTitle("Feature Logging Pad v1.0\(titleSuffix)" + (viewModel.isDirty ? " - edited" : ""))
-        .background(Color.BackgroundColor)
+        .background(Color.backgroundColor)
         .sheet(isPresented: $viewModel.isShowingDocumentDirtyAlert) {
             DocumentDirtySheet(
                 isShowing: $viewModel.isShowingDocumentDirtyAlert,
@@ -232,8 +222,11 @@ struct ContentView: View {
                 viewModel.dismissToast(loadingPagesToast)
             }
         }
-        .preferredColorScheme(isDarkModeOn ? .dark : .light)
     }
+}
+
+extension ContentView {
+    // MARK: - utilities
     
     private func delayAndTerminate() {
         viewModel.clearDocumentDirty()
@@ -246,24 +239,6 @@ struct ContentView: View {
                 // TODO andydragon
 #endif
             })
-    }
-
-    private func setTheme(_ newTheme: Theme) {
-        if newTheme == .notSet {
-            logger.verbose("Set theme to nothing", context: "User")
-
-            isDarkModeOn = colorScheme == .dark
-            Color.isDarkModeOn = colorScheme == .dark
-        } else {
-            logger.verbose("Set theme to \(newTheme.rawValue)", context: "User")
-
-            if let details = ThemeDetails[newTheme] {
-                Color.currentTheme = details.colorTheme
-                isDarkModeOn = details.darkTheme
-                Color.isDarkModeOn = details.darkTheme
-                theme = newTheme
-            }
-        }
     }
 
     private func updateStaffLevelForPage() {
@@ -495,6 +470,8 @@ struct ContentView: View {
 }
 
 extension ContentView: DocumentManagerDelegate {
+    // MARK: - document management
+    
     func onCanTerminate() -> Bool {
         if viewModel.isDirty {
             documentDirtyAfterDismissAction = {

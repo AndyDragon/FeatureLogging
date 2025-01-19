@@ -10,14 +10,6 @@ import SwiftyBeaver
 import UniformTypeIdentifiers
 
 struct MainContentView: View {
-    // THEME
-    @AppStorage(
-        Constants.THEME_APP_STORE_KEY,
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var theme = Theme.notSet
-    @Environment(\.colorScheme) private var colorScheme: ColorScheme
-    @State private var isDarkModeOn = true
-
     // PREFS
     @AppStorage(
         "preference_personalMessage",
@@ -49,7 +41,6 @@ struct MainContentView: View {
     private var updateStaffLevelForPage: () -> Void
     private var storeStaffLevelForPage: () -> Void
     private var saveLog: (_ file: URL) -> Void
-    private var setTheme: (_ newTheme: Theme) -> Void
     private var logger = SwiftyBeaver.self
 
     init(
@@ -67,8 +58,7 @@ struct MainContentView: View {
         _ shouldScrollFeatureListToSelection: Binding<Bool>,
         _ updateStaffLevelForPage: @escaping () -> Void,
         _ storeStaffLevelForPage: @escaping () -> Void,
-        _ saveLog: @escaping (_ file: URL) -> Void,
-        _ setTheme: @escaping (_ newTheme: Theme) -> Void
+        _ saveLog: @escaping (_ file: URL) -> Void
     ) {
         self.viewModel = viewModel
         self.logURL = logURL
@@ -85,15 +75,12 @@ struct MainContentView: View {
         self.updateStaffLevelForPage = updateStaffLevelForPage
         self.storeStaffLevelForPage = storeStaffLevelForPage
         self.saveLog = saveLog
-        self.setTheme = setTheme
     }
 
     private let labelWidth: CGFloat = 80
 
     var body: some View {
         ZStack {
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-
             VStack {
                 // Page / staff level picker
                 PageSelectorView()
@@ -117,7 +104,7 @@ struct MainContentView: View {
                 }
                 .frame(height: 360)
                 .frame(maxWidth: .infinity)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25), width: 1)
                 .cornerRadius(2)
                 .padding([.bottom], 4)
@@ -125,7 +112,7 @@ struct MainContentView: View {
                 // Feature list buttons
                 FeatureListButtonView()
                     .padding([.trailing], 2)
-                
+
                 // Feature list
                 ScrollViewReader { proxy in
                     FeatureList(
@@ -151,36 +138,73 @@ struct MainContentView: View {
                     .focused(focusedField, equals: .featureList)
                 }
                 .scrollContentBackground(.hidden)
-                .background(Color.BackgroundColorList)
+                .background(Color.controlBackground)
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
             }
             .toolbar {
+                // New log
+                Button(action: {
+                    logger.verbose("Tapped new log", context: "User")
+                    let createNewLog = {
+                        logURL.wrappedValue = nil
+                        viewModel.selectedFeature = nil
+                        viewModel.features = [ObservableFeature]()
+                        viewModel.clearDocumentDirty()
+                        logger.verbose("New log created", context: "System")
+                    }
+                    if viewModel.isDirty {
+                        documentDirtyAfterSaveAction.wrappedValue = createNewLog
+                        documentDirtyAfterDismissAction.wrappedValue = createNewLog
+                        documentDirtyAlertConfirmation.wrappedValue = "Would you like to save this log file before creating a new log?"
+                        viewModel.isShowingDocumentDirtyAlert.toggle()
+                    } else {
+                        createNewLog()
+                    }
+                }) {
+                    HStack {
+                        if #available(macOS 15.0, *) {
+                            Image(systemName: "document.badge.plus")
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                        } else {
+                            Image(systemName: "doc.badge.plus")
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                        }
+                        Text("New log")
+                            .font(.system(.body, design: .rounded).bold())
+                            .foregroundStyle(Color.label, Color.secondaryLabel)
+                        Text("    ⌘ N")
+                            .font(.system(.body, design: .rounded))
+                            .foregroundStyle(Color.gray, Color.secondaryLabel)
+                    }
+                    .padding(4)
+                }
+                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+
                 // Open log
                 Button(action: {
                     logger.verbose("Tapped open log", context: "User")
+                    let openSavedLog = {
+                        showFileImporter.wrappedValue.toggle()
+                    }
                     if viewModel.isDirty {
-                        documentDirtyAfterSaveAction.wrappedValue = {
-                            showFileImporter.wrappedValue.toggle()
-                        }
-                        documentDirtyAfterDismissAction.wrappedValue = {
-                            showFileImporter.wrappedValue.toggle()
-                        }
+                        documentDirtyAfterSaveAction.wrappedValue = openSavedLog
+                        documentDirtyAfterDismissAction.wrappedValue = openSavedLog
                         documentDirtyAlertConfirmation.wrappedValue = "Would you like to save this log file before opening another log?"
                         viewModel.isShowingDocumentDirtyAlert.toggle()
                     } else {
-                        showFileImporter.wrappedValue.toggle()
+                        openSavedLog()
                     }
                 }) {
                     HStack {
                         Image(systemName: "square.and.arrow.up.on.square")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Open log")
                             .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.label, Color.secondaryLabel)
                         Text("    ⌘ O")
                             .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                            .foregroundStyle(Color.gray, Color.secondaryLabel)
                     }
                     .padding(4)
                 }
@@ -199,29 +223,13 @@ struct MainContentView: View {
                 }) {
                     HStack {
                         Image(systemName: "square.and.arrow.down.on.square")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Save log")
                             .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.label, Color.secondaryLabel)
                         Text("    ⌘ S")
                             .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
-                    }
-                    .padding(4)
-                }
-                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
-
-                // Copy report
-                Button(action: {
-                    logger.verbose("Tapped generate report", context: "User")
-                    copyReportToClipboard()
-                }) {
-                    HStack {
-                        Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                        Text("Generate report")
-                            .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.gray, Color.secondaryLabel)
                     }
                     .padding(4)
                 }
@@ -235,42 +243,23 @@ struct MainContentView: View {
                 }) {
                     HStack {
                         Image(systemName: "square.and.arrow.down.on.square")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Save report")
                             .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.label, Color.secondaryLabel)
                         Text("    ⌘ ⇧ S")
                             .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                            .foregroundStyle(Color.gray, Color.secondaryLabel)
                     }
                     .padding(4)
                 }
                 .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
-
-                // Theme
-                Menu("Theme", systemImage: "paintpalette") {
-                    Picker("Theme:", selection: $theme.onChange({ newTheme in
-                        setTheme(newTheme)
-                        setThemeLocal(newTheme)
-                    })) {
-                        ForEach(Theme.allCases) { itemTheme in
-                            if itemTheme != .notSet {
-                                Text(itemTheme.rawValue).tag(itemTheme)
-                            }
-                        }
-                    }
-                    .pickerStyle(.inline)
-                }
-                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-                .disabled(viewModel.hasModalToasts)
             }
             .padding([.leading, .top, .trailing])
         }
-        .onAppear(perform: {
+        .onAppear {
             focusedField.wrappedValue = .addFeature
-            setTheme(theme)
-        })
-        .preferredColorScheme(isDarkModeOn ? .dark : .light)
+        }
         .testBackground()
     }
 
@@ -290,9 +279,9 @@ struct MainContentView: View {
                     Text(page.displayName).tag(page)
                 }
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
+            .foregroundStyle(Color.accentColor, Color.label)
             .focusable(viewModel.features.isEmpty)
             .focused(focusedField, equals: .pagePicker)
             .onKeyPress(phases: .down) { keyPress in
@@ -318,12 +307,12 @@ struct MainContentView: View {
                 ForEach(StaffLevelCase.casesFor(hub: viewModel.selectedPage?.hub)) { staffLevelCase in
                     Text(staffLevelCase.rawValue)
                         .tag(staffLevelCase)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                 }
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
+            .foregroundStyle(Color.accentColor, Color.label)
             .focusable()
             .focused(focusedField, equals: .staffLevel)
             .onKeyPress(phases: .down) { keyPress in
@@ -378,9 +367,9 @@ struct MainContentView: View {
                     }
                 }
             }
-            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .disabled(viewModel.selectedPage?.hub != "click" && viewModel.selectedPage?.hub != "snap")
             .frame(maxWidth: 132)
             .focusable()
@@ -416,10 +405,10 @@ struct MainContentView: View {
             )
             .focused(focusedField, equals: .yourName)
             .lineLimit(1)
-            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+            .foregroundStyle(Color.label, Color.secondaryLabel)
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.controlBackground.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
 
@@ -441,10 +430,10 @@ struct MainContentView: View {
             )
             .focused(focusedField, equals: .yourFirstName)
             .lineLimit(1)
-            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+            .foregroundStyle(Color.label, Color.secondaryLabel)
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.controlBackground.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
         }
@@ -462,9 +451,13 @@ struct MainContentView: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "person.fill.badge.plus")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Add feature")
+                    Text("    ⌘ +")
+                        .font(.system(.body, design: .rounded))
+                        .foregroundStyle(Color.gray, Color.secondaryLabel)
                 }
+                .padding(2)
             }
             .disabled(viewModel.loadedCatalogs.waitingForPages)
             .keyboardShortcut("+", modifiers: .command)
@@ -491,9 +484,13 @@ struct MainContentView: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "person.fill.badge.minus")
-                        .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
+                        .foregroundStyle(Color.red, Color.secondaryLabel)
                     Text("Remove feature")
+                    Text("    ⌘ -")
+                        .font(.system(.body, design: .rounded))
+                        .foregroundStyle(Color.gray, Color.secondaryLabel)
                 }
+                .padding(2)
             }
             .disabled(viewModel.selectedFeature == nil)
             .keyboardShortcut("-", modifiers: .command)
@@ -506,6 +503,34 @@ struct MainContentView: View {
                     viewModel.features.removeAll(where: { $0.id == currentFeature.feature.id })
                     viewModel.markDocumentDirty()
                 }
+                return .handled
+            }
+
+            Spacer()
+                .frame(width: 16)
+
+            // Copy report
+            Button(action: {
+                logger.verbose("Tapped generate report button", context: "User")
+                copyReportToClipboard()
+            }) {
+                HStack {
+                    Image(systemName: "pencil.and.list.clipboard")
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                    Text("Generate report")
+                    Text("    ⌘ ⇧ G")
+                        .font(.system(.body, design: .rounded))
+                        .foregroundStyle(Color.gray, Color.secondaryLabel)
+                }
+                .padding(2)
+            }
+            .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+            .keyboardShortcut("G", modifiers: [.command, .shift])
+            .focusable()
+            .focused(focusedField, equals: .generateReport)
+            .onKeyPress(.space) {
+                logger.verbose("Pressed space on generate report button", context: "System")
+                copyReportToClipboard()
                 return .handled
             }
         }
@@ -586,19 +611,6 @@ struct MainContentView: View {
 
 extension MainContentView {
     // MARK: - utilities
-    
-    private func setThemeLocal(_ newTheme: Theme) {
-        if newTheme == .notSet {
-            isDarkModeOn = colorScheme != .dark
-            isDarkModeOn = colorScheme == .dark
-        } else {
-            if let details = ThemeDetails[newTheme] {
-                isDarkModeOn = !details.darkTheme
-                isDarkModeOn = details.darkTheme
-                theme = newTheme
-            }
-        }
-    }
 
     private func addFeature() {
         let linkText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)

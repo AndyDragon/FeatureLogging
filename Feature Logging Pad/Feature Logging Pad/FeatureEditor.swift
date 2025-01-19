@@ -52,8 +52,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .frame(maxWidth: 200)
 
             Spacer()
@@ -73,7 +73,7 @@ struct FeatureEditor: View {
             )
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.backgroundColor.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
             .autocapitalization(.none)
@@ -87,7 +87,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "arrow.down.circle.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Load post")
                         .font(.system(.body, design: .rounded).bold())
                 }
@@ -112,7 +112,7 @@ struct FeatureEditor: View {
             )
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.backgroundColor.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
             .frame(maxWidth: 320)
@@ -137,7 +137,7 @@ struct FeatureEditor: View {
             )
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.backgroundColor.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
             .frame(maxWidth: 320)
@@ -164,12 +164,12 @@ struct FeatureEditor: View {
                 ForEach(MembershipCase.casesFor(hub: selectedPage.hub)) { level in
                     Text(level.rawValue)
                         .tag(level)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                 }
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
+            .foregroundStyle(Color.accentColor, Color.label)
 
             Text("|")
                 .padding([.leading, .trailing])
@@ -183,8 +183,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .frame(maxWidth: 240)
             
             Spacer()
@@ -203,7 +203,7 @@ struct FeatureEditor: View {
                 ForEach(TagSourceCase.casesFor(hub: selectedPage.hub)) { source in
                     Text(source.rawValue)
                         .tag(source)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                 }
             }
             .pickerStyle(.segmented)
@@ -223,8 +223,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .frame(minWidth: 280, maxWidth: 280)
             
             Spacer()
@@ -244,8 +244,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .frame(minWidth: 280, maxWidth: 280)
             .padding(.trailing, 8)
             
@@ -264,7 +264,7 @@ struct FeatureEditor: View {
                 )
                 .textFieldStyle(.plain)
                 .padding(4)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.backgroundColor.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
                 .autocapitalization(.none)
@@ -278,7 +278,7 @@ struct FeatureEditor: View {
                 )
                 .textFieldStyle(.plain)
                 .padding(4)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.backgroundColor.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
                 .autocapitalization(.none)
@@ -302,7 +302,7 @@ struct FeatureEditor: View {
             )
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.backgroundColor.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
             .autocapitalization(.none)
@@ -323,8 +323,8 @@ struct FeatureEditor: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
                 .frame(minWidth: 240, maxWidth: 240)
                 .padding(.trailing, 8)
 
@@ -343,7 +343,7 @@ struct FeatureEditor: View {
                     )
                     .textFieldStyle(.plain)
                     .padding(4)
-                    .background(Color.BackgroundColorEditor)
+                    .background(Color.backgroundColor.opacity(0.5))
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .autocapitalization(.none)
@@ -369,9 +369,9 @@ struct FeatureEditor: View {
                         }
                     }
                     .frame(maxWidth: 200)
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
-                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                    .tint(Color.accentColor)
+                    .accentColor(Color.accentColor)
+                    .foregroundStyle(Color.accentColor, Color.label)
 
                     Spacer()
                 }
@@ -388,7 +388,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Copy tag")
                     }
                 }
@@ -410,8 +410,8 @@ struct FeatureEditor: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
                 .frame(minWidth: 240, maxWidth: 240)
                 .padding(.trailing, 8)
                 
@@ -430,7 +430,7 @@ struct FeatureEditor: View {
                     )
                     .textFieldStyle(.plain)
                     .padding(4)
-                    .background(Color.BackgroundColorEditor)
+                    .background(Color.backgroundColor.opacity(0.5))
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .autocapitalization(.none)
@@ -444,7 +444,7 @@ struct FeatureEditor: View {
                     )
                     .textFieldStyle(.plain)
                     .padding(4)
-                    .background(Color.BackgroundColorEditor)
+                    .background(Color.backgroundColor.opacity(0.5))
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .autocapitalization(.none)
@@ -471,9 +471,9 @@ struct FeatureEditor: View {
                         }
                     }
                     .frame(maxWidth: 200)
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
-                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                    .tint(Color.accentColor)
+                    .accentColor(Color.accentColor)
+                    .foregroundStyle(Color.accentColor, Color.label)
 
                     Spacer()
                 }
@@ -490,7 +490,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Copy tag")
                     }
                 }
@@ -522,8 +522,8 @@ struct FeatureEditor: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
                 .frame(minWidth: 290, maxWidth: 290)
                 
                 // User featured on page
@@ -541,7 +541,7 @@ struct FeatureEditor: View {
                     )
                     .textFieldStyle(.plain)
                     .padding(4)
-                    .background(Color.BackgroundColorEditor)
+                    .background(Color.backgroundColor.opacity(0.5))
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .autocapitalization(.none)
@@ -567,9 +567,9 @@ struct FeatureEditor: View {
                             Text("\(value)").tag("\(value)")
                         }
                     }
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
-                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                    .tint(Color.accentColor)
+                    .accentColor(Color.accentColor)
+                    .foregroundStyle(Color.accentColor, Color.label)
 
                     Text("|")
                         .padding([.leading, .trailing])
@@ -586,9 +586,9 @@ struct FeatureEditor: View {
                             Text("\(value)").tag("\(value)")
                         }
                     }
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
-                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                    .tint(Color.accentColor)
+                    .accentColor(Color.accentColor)
+                    .foregroundStyle(Color.accentColor, Color.label)
 
                     Spacer()
                 }
@@ -607,7 +607,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Copy tag")
                     }
                 }
@@ -621,7 +621,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Copy RAW tag")
                     }
                 }
@@ -642,8 +642,8 @@ struct FeatureEditor: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
                 .frame(minWidth: 290, maxWidth: 290)
 
                 // User featured on hub
@@ -661,7 +661,7 @@ struct FeatureEditor: View {
                     )
                     .textFieldStyle(.plain)
                     .padding(4)
-                    .background(Color.BackgroundColorEditor)
+                    .background(Color.backgroundColor.opacity(0.5))
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .autocapitalization(.none)
@@ -675,7 +675,7 @@ struct FeatureEditor: View {
                     )
                     .textFieldStyle(.plain)
                     .padding(4)
-                    .background(Color.BackgroundColorEditor)
+                    .background(Color.backgroundColor.opacity(0.5))
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .autocapitalization(.none)
@@ -701,9 +701,9 @@ struct FeatureEditor: View {
                             Text("\(value)").tag("\(value)")
                         }
                     }
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
-                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                    .tint(Color.accentColor)
+                    .accentColor(Color.accentColor)
+                    .foregroundStyle(Color.accentColor, Color.label)
 
                     Text("|")
                         .padding([.leading, .trailing])
@@ -720,9 +720,9 @@ struct FeatureEditor: View {
                             Text("\(value)").tag("\(value)")
                         }
                     }
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
-                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                    .tint(Color.accentColor)
+                    .accentColor(Color.accentColor)
+                    .foregroundStyle(Color.accentColor, Color.label)
 
                     Spacer()
                 }
@@ -738,7 +738,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Copy tag")
                     }
                 }
@@ -750,7 +750,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Copy RAW tag")
                     }
                 }
@@ -781,8 +781,8 @@ struct FeatureEditor: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
                 .frame(minWidth: 240, maxWidth: 240)
                 .padding(.trailing, 8)
 
@@ -798,7 +798,7 @@ struct FeatureEditor: View {
                     )
                     .textFieldStyle(.plain)
                     .padding(4)
-                    .background(Color.BackgroundColorEditor)
+                    .background(Color.backgroundColor.opacity(0.5))
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .autocapitalization(.none)
@@ -824,9 +824,9 @@ struct FeatureEditor: View {
                         }
                     }
                     .frame(maxWidth: 200)
-                    .tint(Color.AccentColor)
-                    .accentColor(Color.AccentColor)
-                    .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                    .tint(Color.accentColor)
+                    .accentColor(Color.accentColor)
+                    .foregroundStyle(Color.accentColor, Color.label)
 
                     Spacer()
                 }
@@ -843,7 +843,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Copy tag")
                     }
                 }
@@ -873,8 +873,8 @@ struct FeatureEditor: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
                 .frame(minWidth: 320, maxWidth: 320)
                 
                 Spacer()
@@ -893,12 +893,12 @@ struct FeatureEditor: View {
                     ForEach(TinEyeResults.allCases) { source in
                         Text(source.rawValue)
                             .tag(source)
-                            .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                     }
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
-                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
+                .foregroundStyle(Color.accentColor, Color.label)
 
                 Text("|")
                     .padding([.leading, .trailing])
@@ -914,12 +914,12 @@ struct FeatureEditor: View {
                     ForEach(AiCheckResults.allCases) { source in
                         Text(source.rawValue)
                             .tag(source)
-                            .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                     }
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
-                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
+                .foregroundStyle(Color.accentColor, Color.label)
                 
                 Spacer()
             }

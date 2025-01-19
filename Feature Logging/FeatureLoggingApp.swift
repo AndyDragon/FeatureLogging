@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftyBeaver
-import FirebaseCore
 
 @main
 struct Feature_LoggingApp: App {
@@ -249,11 +248,6 @@ struct Feature_LoggingApp: App {
     class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         @EnvironmentObject var commandModel: AppCommandModel
         
-        func application(_ application: NSApplication) -> Bool {
-            FirebaseApp.configure()
-            return true
-        }
-
         private let logger = SwiftyBeaver.self
 
         func applicationWillFinishLaunching(_ notification: Notification) {

@@ -85,26 +85,28 @@ struct PostDownloaderImageView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "photo.badge.checkmark.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Validate")
                     }
                 }
                 .disabled(data == nil)
                 .buttonStyle(.bordered)
                 .scaleEffect(0.75, anchor: .leading)
+                .padding(.trailing, -20)
 
                 Button(action: {
                     saveImage()
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "square.and.arrow.down.fill")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Save image")
                     }
                 }
                 .disabled(data == nil)
                 .buttonStyle(.bordered)
                 .scaleEffect(0.75, anchor: .leading)
+                .padding(.trailing, -20)
 
                 Button(action: {
                     logger.verbose("Tapped copy URL for image URL", context: "User")
@@ -113,12 +115,13 @@ struct PostDownloaderImageView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Copy URL")
                     }
                 }
                 .buttonStyle(.bordered)
                 .scaleEffect(0.75, anchor: .leading)
+                .padding(.trailing, -20)
 
                 Button(action: {
                     logger.verbose("Tapped launch for image URL", context: "User")
@@ -126,16 +129,18 @@ struct PostDownloaderImageView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "globe")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Launch")
                     }
                 }
                 .buttonStyle(.bordered)
                 .scaleEffect(0.75, anchor: .leading)
+                .padding(.trailing, -20)
             }
+            .padding(.leading, 4)
         }
     }
-    
+
     private func saveImage() {
 #if os(macOS)
         let folderURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("VERO")

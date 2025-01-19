@@ -6,15 +6,9 @@
 //
 
 import SwiftUI
+import SystemColors
 
 struct SettingsPane: View {
-    // THEME
-    @AppStorage(
-        Constants.THEME_APP_STORE_KEY,
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var theme = Theme.notSet
-    @Environment(\.colorScheme) private var colorScheme: ColorScheme
-    @State private var isDarkModeOn = true
     @State private var showingCullingAppFileImporter = false
     @State private var showingAiCheckAppFileImporter = false
     
@@ -51,25 +45,22 @@ struct SettingsPane: View {
     
     var body: some View {
         ZStack {
-            
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
-            
             VStack(alignment: .leading) {
                 ZStack {
-                    Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
+                    Color.controlBackground.cornerRadius(8).opacity(0.4)
                     VStack(alignment: .leading) {
                         Section {
                             HStack {
                                 Toggle(isOn: $includeHash) {
                                     Text("Include '#' when copying tags to the clipboard")
                                 }
-                                .tint(Color.AccentColor)
-                                .accentColor(Color.AccentColor)
+                                .tint(Color.accentColor)
+                                .accentColor(Color.accentColor)
                                 Spacer()
                             }
                         } header: {
                             Text("Tags:")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         }
                     }
                     .frame(maxWidth: .infinity)
@@ -81,7 +72,7 @@ struct SettingsPane: View {
                     .frame(height: 12)
                 
                 ZStack {
-                    Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
+                    Color.controlBackground.cornerRadius(8).opacity(0.4)
                     VStack(alignment: .leading) {
                         Section {
                             HStack(alignment: .center) {
@@ -90,7 +81,7 @@ struct SettingsPane: View {
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
-                                    .background(Color.BackgroundColorEditor)
+                                    .background(Color.controlBackground.opacity(0.5))
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
@@ -105,7 +96,7 @@ struct SettingsPane: View {
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
-                                    .background(Color.BackgroundColorEditor)
+                                    .background(Color.controlBackground.opacity(0.5))
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
@@ -128,7 +119,7 @@ struct SettingsPane: View {
                                 .padding([.leading], 80)
                         } header: {
                             Text("Personalized messages:")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         }
                     }
                     .frame(maxWidth: .infinity)
@@ -140,7 +131,7 @@ struct SettingsPane: View {
                     .frame(height: 12)
                 
                 ZStack {
-                    Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
+                    Color.controlBackground.cornerRadius(8).opacity(0.4)
                     VStack(alignment: .leading) {
                         Section {
                             HStack(alignment: .center) {
@@ -149,7 +140,7 @@ struct SettingsPane: View {
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
-                                    .background(Color.BackgroundColorEditor)
+                                    .background(Color.controlBackground.opacity(0.5))
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
@@ -158,7 +149,7 @@ struct SettingsPane: View {
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
-                                    .background(Color.BackgroundColorEditor)
+                                    .background(Color.controlBackground.opacity(0.5))
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
@@ -193,7 +184,7 @@ struct SettingsPane: View {
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
-                                    .background(Color.BackgroundColorEditor)
+                                    .background(Color.controlBackground.opacity(0.5))
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
@@ -202,7 +193,7 @@ struct SettingsPane: View {
                                     .autocorrectionDisabled(false)
                                     .textFieldStyle(.plain)
                                     .padding(4)
-                                    .background(Color.BackgroundColorEditor)
+                                    .background(Color.controlBackground.opacity(0.5))
                                     .border(Color.gray.opacity(0.25))
                                     .cornerRadius(4)
                                     .frame(maxWidth: .infinity)
@@ -229,7 +220,7 @@ struct SettingsPane: View {
                             }
                         } header: {
                             Text("External apps:")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         }
                     }
                     .frame(maxWidth: .infinity)
@@ -257,31 +248,12 @@ struct SettingsPane: View {
         }
         .frame(height: 444)
         .frame(minWidth: 800)
-        .onChange(of: theme) {
-            setTheme(theme)
-        }
-        .onAppear(perform: {
-            setTheme(theme)
-        })
-        .preferredColorScheme(isDarkModeOn ? .dark : .light)
     }
 }
 
 extension SettingsPane {
     // MARK: - utilities
     
-    private func setTheme(_ newTheme: Theme) {
-        if newTheme == .notSet {
-            isDarkModeOn = colorScheme == .dark
-        } else {
-            if let details = ThemeDetails[newTheme] {
-                Color.currentTheme = details.colorTheme
-                isDarkModeOn = details.darkTheme
-                theme = newTheme
-            }
-        }
-    }
-
     private func getBundleIdentifier(from: URL) -> [String: String?]? {
         if let appBundle = Bundle(url: from) {
             return [

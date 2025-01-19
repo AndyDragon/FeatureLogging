@@ -25,6 +25,7 @@ enum FocusField: Hashable {
          yourFirstName,
          addFeature,
          removeFeature,
+         generateReport,
          featureList,
 
          picked, // Feature editor

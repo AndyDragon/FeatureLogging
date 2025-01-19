@@ -8,13 +8,6 @@
 import SwiftUI
 
 struct SettingsPane: View {
-    // THEME
-    @AppStorage(
-        Constants.THEME_APP_STORE_KEY,
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var theme = Theme.notSet
-    @Environment(\.colorScheme) private var colorScheme: ColorScheme
-    @State private var isDarkModeOn = true
     @State private var showingCullingAppFileImporter = false
     @State private var showingAiCheckAppFileImporter = false
 
@@ -34,41 +27,36 @@ struct SettingsPane: View {
     ) var personalMessageFirst = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
 
     var body: some View {
-        VStack(alignment: .center) {
+        VStack {
+            Spacer()
+
             Text("Settings")
                 .font(.title)
-            
-            ZStack {
-                Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
-                
-                VStack(alignment: .leading) {
-                    Section {
-                        HStack {
-                            Toggle(isOn: $includeHash) {
-                                Text("Include '#' when copying tags to the clipboard")
-                            }
-                            .tint(Color.AccentColor)
-                            .accentColor(Color.AccentColor)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Section {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Toggle(isOn: $includeHash) {
+                            Text("Include '#' when copying tags to the clipboard")
                         }
-                    } header: {
-                        Text("Tags:")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .tint(Color.accentColor)
+                        .accentColor(Color.accentColor)
                     }
+                } header: {
+                    Text("Tags:")
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                 }
-                .frame(maxWidth: .infinity)
                 .padding()
+
+                Spacer()
             }
+            .background(Color.secondaryBackgroundColor.cornerRadius(8).opacity(0.4))
             .frame(maxWidth: .infinity)
-            .padding(.horizontal)
-            
-            ZStack {
-                Color.BackgroundColorList.cornerRadius(8).opacity(0.4)
-                
-                VStack(alignment: .leading) {
-                    Section {
-                        Spacer()
-                            .frame(height: 8)
-                        
+            .padding()
+
+            VStack(alignment: .leading, spacing: 0) {
+                Section {
+                    VStack(alignment: .leading, spacing: 0) {
                         Text("Personal message: ")
                         TextEditor(text: $personalMessage)
                             .padding(4)
@@ -76,22 +64,18 @@ struct SettingsPane: View {
                             .cornerRadius(4)
                             .frame(maxWidth: .infinity)
                             .frame(height: 100)
-                        
-                        Spacer()
-                            .frame(height: 20)
-                        
+
                         Text("Personal message (first feature): ")
+                            .padding(.top)
                         TextEditor(text: $personalMessageFirst)
                             .padding(4)
                             .border(Color.gray.opacity(0.25))
                             .cornerRadius(4)
                             .frame(maxWidth: .infinity)
                             .frame(height: 100)
-                        
-                        Spacer()
-                            .frame(height: 8)
-                        
+
                         Text("For personal message templates, use these placeholders:")
+                            .padding(.top)
                             .padding([.leading], 40)
                             .font(.footnote)
                         Text("%%PAGENAME%% - populated with page name, ie click_machines or snap_longexposure")
@@ -109,50 +93,39 @@ struct SettingsPane: View {
                         Text("%%PERSONALMESSAGE%% - populated with your personal message for each feature")
                             .padding([.leading], 80)
                             .font(.footnote)
-                    } header: {
-                        Text("Personalized messages:")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
                     }
+                } header: {
+                    Text("Personalized messages:")
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                 }
-                .frame(maxWidth: .infinity)
                 .padding()
-            }
-            .padding(.horizontal)
-                        
-            HStack {
+
                 Spacer()
-                
-                Button(action: {
-                    dismiss()
-                }) {
-                    Text("Close")
-                        .padding([.leading, .trailing], 12)
-                }
-                .buttonStyle(.bordered)
             }
+            .background(Color.secondaryBackgroundColor.cornerRadius(8).opacity(0.4))
+            .frame(maxWidth: .infinity)
             .padding(.horizontal)
+
+            VStack(alignment: .leading) {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Text("Close")
+                            .padding([.leading, .trailing], 12)
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding([.leading, .top, .trailing])
+
+            Spacer()
         }
         .padding()
-        .frame(minWidth: 800)
-        .onChange(of: theme) {
-            setTheme(theme)
-        }
-        .onAppear(perform: {
-            setTheme(theme)
-        })
-        .preferredColorScheme(isDarkModeOn ? .dark : .light)
-    }
-
-    private func setTheme(_ newTheme: Theme) {
-        if newTheme == .notSet {
-            isDarkModeOn = colorScheme == .dark
-        } else {
-            if let details = ThemeDetails[newTheme] {
-                Color.currentTheme = details.colorTheme
-                isDarkModeOn = details.darkTheme
-                theme = newTheme
-            }
-        }
+        .safeMinWidthFrame(minWidth: 760, maxWidth: .infinity)
+        .testBackground()
     }
 
     private func getBundleIdentifier(from: URL) -> [String: String?]? {

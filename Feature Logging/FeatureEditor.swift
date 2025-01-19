@@ -107,8 +107,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .focusable()
             .focused(focusedField, equals: .picked)
             .onKeyPress(.space) {
@@ -124,7 +124,7 @@ struct FeatureEditor: View {
                 close()
             }) {
                 Image(systemName: "xmark")
-                    .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                    .foregroundStyle(Color.label, Color.secondaryLabel)
             }
             .focusable()
             .onKeyPress(.space) {
@@ -149,7 +149,7 @@ struct FeatureEditor: View {
             .autocorrectionDisabled(false)
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.controlBackground.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
             
@@ -159,7 +159,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "list.clipboard.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Paste")
                 }
             }
@@ -178,13 +178,13 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "arrow.down.circle.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Load post")
                         .font(.system(.body, design: .rounded).bold())
-                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.label, Color.secondaryLabel)
                     Text("  ⌘ L")
                         .font(.system(.body, design: .rounded))
-                        .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                        .foregroundStyle(Color.gray, Color.secondaryLabel)
                 }
             }
             .disabled(!selectedFeature.feature.postLink.starts(with: "https://vero.co/"))
@@ -215,7 +215,7 @@ struct FeatureEditor: View {
             .autocorrectionDisabled(false)
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.controlBackground.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
             
@@ -224,7 +224,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "list.clipboard.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Paste")
                 }
             }
@@ -252,7 +252,7 @@ struct FeatureEditor: View {
             .autocorrectionDisabled(false)
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.controlBackground.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
             
@@ -262,7 +262,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "list.clipboard.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Paste")
                 }
             }
@@ -287,12 +287,12 @@ struct FeatureEditor: View {
                 ForEach(MembershipCase.casesFor(hub: selectedPage.hub)) { level in
                     Text(level.rawValue)
                         .tag(level)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                 }
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
+            .foregroundStyle(Color.accentColor, Color.label)
             .focusable()
             .focused(focusedField, equals: .userLevel)
             .onKeyPress(phases: .down) { keyPress in
@@ -314,8 +314,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .focusable()
             .focused(focusedField, equals: .teammate)
             .onKeyPress(.space) {
@@ -339,7 +339,7 @@ struct FeatureEditor: View {
                 ForEach(TagSourceCase.casesFor(hub: selectedPage.hub)) { source in
                     Text(source.rawValue)
                         .tag(source)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                 }
             }
             .focusable()
@@ -370,8 +370,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .focusable()
             .focused(focusedField, equals: .photoFeatureOnPage)
             .onKeyPress(.space) {
@@ -395,8 +395,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .focusable()
             .focused(focusedField, equals: .photoFeatureOnHub)
             .onKeyPress(.space) {
@@ -424,7 +424,7 @@ struct FeatureEditor: View {
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
                 .padding(4)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
                 
@@ -438,7 +438,7 @@ struct FeatureEditor: View {
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
                 .padding(4)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
             }
@@ -460,7 +460,7 @@ struct FeatureEditor: View {
             .autocorrectionDisabled(false)
             .textFieldStyle(.plain)
             .padding(4)
-            .background(Color.BackgroundColorEditor)
+            .background(Color.controlBackground.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
         }
@@ -480,8 +480,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .focusable()
             .focused(focusedField, equals: .userHasFeaturesOnPage)
             .onKeyPress(.space) {
@@ -496,10 +496,10 @@ struct FeatureEditor: View {
             
             if selectedFeature.feature.userHasFeaturesOnPage {
                 ValidationLabel(
-                    "Last date featured:",
+                    "Last featured:",
                     validation: !selectedFeature.feature.lastFeaturedOnPage.isEmpty)
                 TextField(
-                    "",
+                    "last date featured",
                     text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in
                         markDocumentDirty()
                     }
@@ -508,14 +508,14 @@ struct FeatureEditor: View {
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
                 .padding(4)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
                 
                 Text("|")
                     .padding([.leading, .trailing])
                 
-                Text("Number of features on page:")
+                Text("Page feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnPage.onChange { value in
@@ -528,9 +528,9 @@ struct FeatureEditor: View {
                     }
                 }
                 .frame(maxWidth: 200)
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
-                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
+                .foregroundStyle(Color.accentColor, Color.label)
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnPage)
                 .onKeyPress(phases: .down) { keyPress in
@@ -549,7 +549,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "tag.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Copy tag")
                 }
             }
@@ -576,8 +576,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .focusable()
             .focused(focusedField, equals: .userHasFeaturesOnHub)
             .onKeyPress(.space) {
@@ -592,10 +592,10 @@ struct FeatureEditor: View {
             
             if selectedFeature.feature.userHasFeaturesOnHub {
                 ValidationLabel(
-                    "Last date featured:",
+                    "Last featured:",
                     validation: !(selectedFeature.feature.lastFeaturedOnHub.isEmpty || selectedFeature.feature.lastFeaturedPage.isEmpty))
                 TextField(
-                    "",
+                    "last date featured",
                     text: $selectedFeature.feature.lastFeaturedOnHub.onChange { value in
                         markDocumentDirty()
                     }
@@ -604,7 +604,7 @@ struct FeatureEditor: View {
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
                 .padding(4)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
                 
@@ -618,14 +618,14 @@ struct FeatureEditor: View {
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
                 .padding(4)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
                 
                 Text("|")
                     .padding([.leading, .trailing])
-                
-                Text("Number of features on Click:")
+
+                Text("Click feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnHub.onChange { value in
@@ -638,9 +638,9 @@ struct FeatureEditor: View {
                     }
                 }
                 .frame(maxWidth: 200)
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
-                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
+                .foregroundStyle(Color.accentColor, Color.label)
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnHub)
                 .onKeyPress(phases: .down) { keyPress in
@@ -659,7 +659,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "tag.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Copy tag")
                 }
             }
@@ -696,8 +696,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .focusable()
             .focused(focusedField, equals: .userHasFeaturesOnPage)
             .onKeyPress(.space) {
@@ -712,10 +712,10 @@ struct FeatureEditor: View {
             
             if selectedFeature.feature.userHasFeaturesOnPage {
                 ValidationLabel(
-                    "Last date featured:",
+                    "Last featured:",
                     validation: !selectedFeature.feature.lastFeaturedOnPage.isEmpty)
                 TextField(
-                    "",
+                    "last date featured",
                     text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in
                         markDocumentDirty()
                     }
@@ -724,14 +724,14 @@ struct FeatureEditor: View {
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
                 .padding(4)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
                 
                 Text("|")
                     .padding([.leading, .trailing])
                 
-                Text("Number of features on Snap page:")
+                Text("Page feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnPage.onChange { value in
@@ -743,9 +743,9 @@ struct FeatureEditor: View {
                         Text("\(value)").tag("\(value)")
                     }
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
-                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
+                .foregroundStyle(Color.accentColor, Color.label)
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnPage)
                 .onKeyPress(phases: .down) { keyPress in
@@ -758,7 +758,7 @@ struct FeatureEditor: View {
                 Text("|")
                     .padding([.leading, .trailing])
                 
-                Text("Number of features on RAW page:")
+                Text("RAW feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnRawPage.onChange { value in
@@ -770,9 +770,9 @@ struct FeatureEditor: View {
                         Text("\(value)").tag("\(value)")
                     }
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
-                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
+                .foregroundStyle(Color.accentColor, Color.label)
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnRawPage)
                 .onKeyPress(phases: .down) { keyPress in
@@ -793,7 +793,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "tag.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Copy tag")
                 }
             }
@@ -814,7 +814,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "tag.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Copy RAW tag")
                 }
             }
@@ -843,8 +843,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .focusable()
             .focused(focusedField, equals: .userHasFeaturesOnHub)
             .onKeyPress(.space) {
@@ -859,10 +859,10 @@ struct FeatureEditor: View {
             
             if selectedFeature.feature.userHasFeaturesOnHub {
                 ValidationLabel(
-                    "Last date featured:",
+                    "Last featured:",
                     validation: !(selectedFeature.feature.lastFeaturedOnHub.isEmpty || selectedFeature.feature.lastFeaturedPage.isEmpty))
                 TextField(
-                    "",
+                    "last date featured",
                     text: $selectedFeature.feature.lastFeaturedOnHub.onChange { value in
                         markDocumentDirty()
                     }
@@ -871,7 +871,7 @@ struct FeatureEditor: View {
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
                 .padding(4)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
                 
@@ -885,14 +885,14 @@ struct FeatureEditor: View {
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
                 .padding(4)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
                 
                 Text("|")
                     .padding([.leading, .trailing])
                 
-                Text("Number of features on Snap:")
+                Text("Snap feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnHub.onChange { value in
@@ -904,9 +904,9 @@ struct FeatureEditor: View {
                         Text("\(value)").tag("\(value)")
                     }
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
-                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
+                .foregroundStyle(Color.accentColor, Color.label)
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnHub)
                 .onKeyPress(phases: .down) { keyPress in
@@ -919,7 +919,7 @@ struct FeatureEditor: View {
                 Text("|")
                     .padding([.leading, .trailing])
                 
-                Text("Number of features on RAW:")
+                Text("RAW feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnRawHub.onChange { value in
@@ -931,9 +931,9 @@ struct FeatureEditor: View {
                         Text("\(value)").tag("\(value)")
                     }
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
-                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
+                .foregroundStyle(Color.accentColor, Color.label)
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnRawHub)
                 .onKeyPress(phases: .down) { keyPress in
@@ -952,7 +952,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "tag.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Copy tag")
                 }
             }
@@ -969,7 +969,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "tag.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Copy RAW tag")
                 }
             }
@@ -1006,8 +1006,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .focusable()
             .focused(focusedField, equals: .userHasFeaturesOnPage)
             .onKeyPress(.space) {
@@ -1022,10 +1022,10 @@ struct FeatureEditor: View {
             
             if selectedFeature.feature.userHasFeaturesOnPage {
                 ValidationLabel(
-                    "Last date featured:",
+                    "Last featured:",
                     validation: !selectedFeature.feature.lastFeaturedOnPage.isEmpty)
                 TextField(
-                    "",
+                    "last date featured",
                     text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in
                         markDocumentDirty()
                     }
@@ -1034,14 +1034,14 @@ struct FeatureEditor: View {
                 .autocorrectionDisabled(false)
                 .textFieldStyle(.plain)
                 .padding(4)
-                .background(Color.BackgroundColorEditor)
+                .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
                 
                 Text("|")
                     .padding([.leading, .trailing])
                 
-                Text("Number of features on page:")
+                Text("Page feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnPage.onChange { value in
@@ -1054,9 +1054,9 @@ struct FeatureEditor: View {
                     }
                 }
                 .frame(maxWidth: 200)
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
-                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
+                .foregroundStyle(Color.accentColor, Color.label)
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnPage)
                 .onKeyPress(phases: .down) { keyPress in
@@ -1075,7 +1075,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "tag.fill")
-                        .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                     Text("Copy tag")
                 }
             }
@@ -1111,8 +1111,8 @@ struct FeatureEditor: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
             .focusable()
             .focused(focusedField, equals: .tooSoonToFeatureUser)
             .onKeyPress(.space) {
@@ -1135,12 +1135,12 @@ struct FeatureEditor: View {
                 ForEach(TinEyeResults.allCases) { source in
                     Text(source.rawValue)
                         .tag(source)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                 }
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
+            .foregroundStyle(Color.accentColor, Color.label)
             .focusable()
             .focused(focusedField, equals: .tinEyeResults)
             .onKeyPress(phases: .down) { keyPress in
@@ -1163,12 +1163,12 @@ struct FeatureEditor: View {
                 ForEach(AiCheckResults.allCases) { source in
                     Text(source.rawValue)
                         .tag(source)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                 }
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
+            .foregroundStyle(Color.accentColor, Color.label)
             .focusable()
             .focused(focusedField, equals: .aiCheckResults)
             .onKeyPress(phases: .down) { keyPress in

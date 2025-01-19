@@ -43,7 +43,7 @@ struct ImageValidationView: View {
 
     var body: some View {
         ZStack {
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+            Color.backgroundColor.edgesIgnoringSafeArea(.all)
 
             if viewModel.selectedFeature != nil {
                 let selectedFeature = Binding<ObservableFeatureWrapper>(
@@ -87,7 +87,7 @@ struct ImageValidationView: View {
                     .font(.system(size: 16))
                 }
                 .padding([.leading, .top, .trailing])
-                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                .foregroundStyle(Color.label, Color.secondaryLabel)
                 .toolbar {
                     ToolbarItemGroup(placement: .bottomBar) {
                         Spacer()
@@ -97,21 +97,37 @@ struct ImageValidationView: View {
                         }) {
                             HStack {
                                 Image(systemName: "xmark")
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                                 Text("Close")
                             }
                             .padding(4)
                         }
                         .disabled(viewModel.hasModalToasts || uploadToServer != nil)
 
+                        Button(action: {
+                            logger.verbose("Tapped remove feature button", context: "System")
+                            if let currentFeature = viewModel.selectedFeature {
+                                viewModel.selectedFeature = nil
+                                viewModel.features.removeAll(where: { $0.id == currentFeature.feature.id })
+                                viewModel.markDocumentDirty()
+                                viewModel.visibleView = .FeatureListView
+                            }
+                        }) {
+                            HStack(alignment: .center) {
+                                Image(systemName: "person.fill.badge.minus")
+                                    .foregroundStyle(Color.red, Color.secondaryLabel)
+                                Text("Remove feature")
+                            }
+                        }
+                        .disabled(viewModel.hasModalToasts || viewModel.selectedFeature == nil)
+
                         Spacer()
                     }
                 }
-                .toolbarVisibility(.visible, for: .bottomBar)
+                .safeToolbarVisibility(.visible, for: .bottomBar)
             }
         }
-        .frame(minHeight: 800)
-        .background(Color.BackgroundColor)
+        .background(Color.backgroundColor)
         .onAppear {
             openTinEyeResults()
             prepareHiveResults()
@@ -134,12 +150,12 @@ struct ImageValidationView: View {
                     ForEach(TinEyeResults.allCases) { source in
                         Text(source.rawValue)
                             .tag(source)
-                            .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                     }
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
-                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
+                .foregroundStyle(Color.accentColor, Color.label)
                 .frame(width: 160)
 
                 Text("|")
@@ -156,12 +172,12 @@ struct ImageValidationView: View {
                     ForEach(AiCheckResults.allCases) { source in
                         Text(source.rawValue)
                             .tag(source)
-                            .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                     }
                 }
-                .tint(Color.AccentColor)
-                .accentColor(Color.AccentColor)
-                .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                .tint(Color.accentColor)
+                .accentColor(Color.accentColor)
+                .foregroundStyle(Color.accentColor, Color.label)
                 .frame(width: 160)
                 Spacer()
             }
@@ -215,7 +231,7 @@ struct ImageValidationView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "pencil.and.list.clipboard")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Copy result")
                         }
                     }
@@ -238,7 +254,7 @@ struct ImageValidationView: View {
                         Spacer()
                     }
                 }
-                .background(Color.BackgroundColorList)
+                .background(Color.secondaryBackgroundColor)
                 .cornerRadius(10)
             }
 

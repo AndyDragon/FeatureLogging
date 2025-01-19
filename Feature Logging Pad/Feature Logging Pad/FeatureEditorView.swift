@@ -10,14 +10,6 @@ import SwiftyBeaver
 import UniformTypeIdentifiers
 
 struct FeatureEditorView: View {
-    // THEME
-    @AppStorage(
-        Constants.THEME_APP_STORE_KEY,
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var theme = Theme.notSet
-    @Environment(\.colorScheme) private var colorScheme: ColorScheme
-    @State private var isDarkModeOn = true
-
     // PREFS
     @AppStorage(
         "preference_personalMessage",
@@ -48,7 +40,6 @@ struct FeatureEditorView: View {
     private var updateStaffLevelForPage: () -> Void
     private var storeStaffLevelForPage: () -> Void
     private var saveLog: (_ file: URL) -> Void
-    private var setTheme: (_ newTheme: Theme) -> Void
     private var logger = SwiftyBeaver.self
 
     init(
@@ -65,8 +56,7 @@ struct FeatureEditorView: View {
         _ shouldScrollFeatureListToSelection: Binding<Bool>,
         _ updateStaffLevelForPage: @escaping () -> Void,
         _ storeStaffLevelForPage: @escaping () -> Void,
-        _ saveLog: @escaping (_ file: URL) -> Void,
-        _ setTheme: @escaping (_ newTheme: Theme) -> Void
+        _ saveLog: @escaping (_ file: URL) -> Void
     ) {
         self.viewModel = viewModel
         self.logURL = logURL
@@ -82,7 +72,6 @@ struct FeatureEditorView: View {
         self.updateStaffLevelForPage = updateStaffLevelForPage
         self.storeStaffLevelForPage = storeStaffLevelForPage
         self.saveLog = saveLog
-        self.setTheme = setTheme
     }
 
     private let languagePrefix = Locale.preferredLanguageCode
@@ -90,7 +79,7 @@ struct FeatureEditorView: View {
 
     var body: some View {
         ZStack {
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+            Color.backgroundColor.edgesIgnoringSafeArea(.all)
 
             VStack {
                 // Feature editor
@@ -123,14 +112,12 @@ struct FeatureEditorView: View {
                     }) {
                         HStack {
                             Image(systemName: "xmark")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Close")
                         }
                         .padding(4)
                     }
                     .disabled(viewModel.hasModalToasts)
-
-                    Spacer()
 
                     Button(action: {
                         logger.verbose("Tapped remove feature button", context: "System")
@@ -143,32 +130,17 @@ struct FeatureEditorView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "person.fill.badge.minus")
-                                .foregroundStyle(Color.TextColorRequired, Color.TextColorSecondary)
+                                .foregroundStyle(Color.red, Color.secondaryLabel)
                             Text("Remove feature")
                         }
                     }
-                    .disabled(viewModel.selectedFeature == nil)
+                    .disabled(viewModel.hasModalToasts || viewModel.selectedFeature == nil)
+
+                    Spacer()
                 }
             }
-            .toolbarVisibility(.visible, for: .bottomBar)
+            .safeToolbarVisibility(.visible, for: .bottomBar)
         }
-        .onAppear(perform: {
-            setTheme(theme)
-        })
-        .preferredColorScheme(isDarkModeOn ? .dark : .light)
         .testBackground()
-    }
-
-    private func setThemeLocal(_ newTheme: Theme) {
-        if newTheme == .notSet {
-            isDarkModeOn = colorScheme != .dark
-            isDarkModeOn = colorScheme == .dark
-        } else {
-            if let details = ThemeDetails[newTheme] {
-                isDarkModeOn = !details.darkTheme
-                isDarkModeOn = details.darkTheme
-                theme = newTheme
-            }
-        }
     }
 }

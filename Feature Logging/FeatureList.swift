@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SystemColors
 
 struct FeatureList: View {
     private var viewModel: ContentView.ViewModel
@@ -28,17 +29,15 @@ struct FeatureList: View {
                 .padding([.top, .bottom], 8)
                 .padding([.leading, .trailing])
                 .foregroundStyle(
-                    Color(
-                        nsColor: hoveredFeature == feature.id
-                        ? NSColor.selectedControlTextColor
-                        : NSColor.labelColor), Color(nsColor: .labelColor)
+                    (viewModel.selectedFeature?.feature == feature || hoveredFeature == feature.id) ? Color(nsColor: .selectedTextColor) : Color.label,
+                    Color.label
                 )
                 .background(
                     viewModel.selectedFeature?.feature == feature
-                    ? Color.BackgroundColorListSelected
+                    ? Color(nsColor: .selectedTextBackgroundColor)
                     : hoveredFeature == feature.id
-                    ? Color.BackgroundColorListSelected.opacity(0.33)
-                    : Color.BackgroundColorList
+                    ? Color(nsColor: .selectedTextBackgroundColor).opacity(0.33)
+                    : Color.controlBackground
                 )
                 .cornerRadius(4)
                 .onHover(perform: { hovering in

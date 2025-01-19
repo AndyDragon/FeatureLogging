@@ -46,7 +46,7 @@ struct ImageValidationView: View {
     
     var body: some View {
         ZStack {
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+            Color.backgroundColor.edgesIgnoringSafeArea(.all)
             
             if viewModel.selectedFeature != nil {
                 let selectedFeature = Binding<ObservableFeatureWrapper>(
@@ -90,20 +90,20 @@ struct ImageValidationView: View {
                     .font(.system(size: 16))
                 }
                 .padding([.leading, .top, .trailing])
-                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                .foregroundStyle(Color.label, Color.secondaryLabel)
                 .toolbar {
                     Button(action: {
                         viewModel.visibleView = .PostDownloadView
                     }) {
                         HStack {
                             Image(systemName: "xmark")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Close")
                                 .font(.system(.body, design: .rounded).bold())
-                                .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                                .foregroundStyle(Color.label, Color.secondaryLabel)
                             Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
                                 .font(.system(.body, design: .rounded))
-                                .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                                .foregroundStyle(Color.gray, Color.secondaryLabel)
                         }
                         .padding(4)
                     }
@@ -113,7 +113,7 @@ struct ImageValidationView: View {
             }
         }
         .frame(minWidth: 1280, minHeight: 800)
-        .background(Color.BackgroundColor)
+        .background(Color.backgroundColor)
         .onAppear {
             openTinEyeResults()
             prepareHiveResults()
@@ -136,12 +136,12 @@ struct ImageValidationView: View {
                 ForEach(TinEyeResults.allCases) { source in
                     Text(source.rawValue)
                         .tag(source)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                 }
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
+            .foregroundStyle(Color.accentColor, Color.label)
             .frame(width: 160)
             .focusable()
             .focused(focusedField, equals: .tinEyeResults)
@@ -165,12 +165,12 @@ struct ImageValidationView: View {
                 ForEach(AiCheckResults.allCases) { source in
                     Text(source.rawValue)
                         .tag(source)
-                        .foregroundStyle(Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
                 }
             }
-            .tint(Color.AccentColor)
-            .accentColor(Color.AccentColor)
-            .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+            .tint(Color.accentColor)
+            .accentColor(Color.accentColor)
+            .foregroundStyle(Color.accentColor, Color.label)
             .frame(width: 160)
             .focusable()
             .focused(focusedField, equals: .aiCheckResults)
@@ -228,7 +228,7 @@ struct ImageValidationView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "pencil.and.list.clipboard")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Copy result")
                         }
                     }
@@ -255,7 +255,7 @@ struct ImageValidationView: View {
                         Spacer()
                     }
                 }
-                .background(Color.BackgroundColorList)
+                .background(Color.controlBackground)
                 .cornerRadius(10)
             }
 

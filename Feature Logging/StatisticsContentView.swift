@@ -49,7 +49,7 @@ struct StatisticsContentView: View {
 
     var body: some View {
         ZStack {
-            Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+            Color.backgroundColor.edgesIgnoringSafeArea(.all)
 
             VStack {
                 HStack {
@@ -58,10 +58,10 @@ struct StatisticsContentView: View {
                     }) {
                         HStack {
                             Image(systemName: "folder")
-                                .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                             Text("Open folder containing your log files...")
                         }
-                        .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                        .foregroundStyle(Color.label, Color.secondaryLabel)
                     }
                     .focusable()
                     .focused(focusedField, equals: .openFolder)
@@ -146,9 +146,9 @@ struct StatisticsContentView: View {
                         }
                         .focusable()
                         .focused(focusedField, equals: .statsPagePicker)
-                        .tint(Color.AccentColor)
-                        .accentColor(Color.AccentColor)
-                        .foregroundStyle(Color.AccentColor, Color.TextColorPrimary)
+                        .tint(Color.accentColor)
+                        .accentColor(Color.accentColor)
+                        .foregroundStyle(Color.accentColor, Color.label)
                         .onKeyPress(phases: .down) { keyPress in
                             return navigateToStatsPageWithArrows(keyPress)
                         }
@@ -229,13 +229,13 @@ struct StatisticsContentView: View {
                 }) {
                     HStack {
                         Image(systemName: "xmark")
-                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Close")
                             .font(.system(.body, design: .rounded).bold())
-                            .foregroundStyle(Color.TextColorPrimary, Color.TextColorSecondary)
+                            .foregroundStyle(Color.label, Color.secondaryLabel)
                         Text(languagePrefix == "en" ? "    ⌘ `" : "    ⌘ ⌥ x")
                             .font(.system(.body, design: .rounded))
-                            .foregroundStyle(Color.gray, Color.TextColorSecondary)
+                            .foregroundStyle(Color.gray, Color.secondaryLabel)
                     }
                     .padding(4)
                 }
@@ -244,7 +244,7 @@ struct StatisticsContentView: View {
             }
         }
         .frame(minWidth: 1024, minHeight: 600)
-        .background(Color.BackgroundColor)
+        .background(Color.backgroundColor)
         .onAppear(perform: {
             focusedField.wrappedValue = .openFolder
         })

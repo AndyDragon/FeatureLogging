@@ -181,6 +181,13 @@ enum StaffLevelCase: String, CaseIterable, Identifiable, Codable {
     static func caseValidFor(hub: String?, _ value: StaffLevelCase) -> Bool {
         return casesFor(hub: hub).contains(value)
     }
+
+    var shortString: String {
+        if self == .snapGuestMod {
+            return "Guest"
+        }
+        return self.rawValue
+    }
 }
 
 enum PlaceholderSheetCase {

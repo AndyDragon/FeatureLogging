@@ -5,12 +5,12 @@
         "vital": false
     },
     "macOS_v2": {
-        "current": "2.1.69",
+        "current": "2.1.70",
         "link": "https://vero.andydragon.com/app/featurelogging/macInstall_v2",
         "vital": false
     },
     "iPad": {
-        "current": "1.0.1",
+        "current": "1.0.2",
         "link": "https://vero.andydragon.com/app/featurelogging/iPadInstall",
         "vital": false
     },

@@ -108,28 +108,28 @@ struct FeatureListRow: View {
                     Text(" | ")
                     
                     Image(systemName: "tag.square")
-                        .foregroundStyle(feature.photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary, feature.photoFeaturedOnHub ? Color.AccentColor : Color.TextColorSecondary)
+                        .foregroundStyle(feature.photoFeaturedOnHub ? Color.accentColor : Color.secondaryLabel, feature.photoFeaturedOnHub ? Color.accentColor : Color.secondaryLabel)
                         .font(.system(size: 14))
                         .frame(width: 16, height: 16)
                         .help(feature.photoFeaturedOnHub ? "Photo featured on hub" : "Photo not featured on hub")
                     Spacer()
                         .frame(width: 6)
                     Image(systemName: "tag")
-                        .foregroundStyle(feature.userHasFeaturesOnPage ? Color.AccentColor : Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(feature.userHasFeaturesOnPage ? Color.accentColor : Color.secondaryLabel, Color.secondaryLabel)
                         .font(.system(size: 14))
                         .frame(width: 16, height: 16)
                         .help(feature.userHasFeaturesOnPage ? "User has features on page" : "First feature on page")
                     Spacer()
                         .frame(width: 6)
                     Image(systemName: "tag.fill")
-                        .foregroundStyle(feature.userHasFeaturesOnHub ? Color.AccentColor : Color.TextColorSecondary, Color.TextColorSecondary)
+                        .foregroundStyle(feature.userHasFeaturesOnHub ? Color.accentColor : Color.secondaryLabel, Color.secondaryLabel)
                         .font(.system(size: 14))
                         .frame(width: 16, height: 16)
                         .help(feature.userHasFeaturesOnHub ? "User has features on hub" : "First feature on hub")
                     Spacer()
                         .frame(width: 6)
                     Image(systemName: "person.badge.key.fill")
-                        .foregroundStyle(Color.TextColorSecondary, feature.userIsTeammate ? Color.AccentColor : Color.TextColorSecondary)
+                        .foregroundStyle(Color.secondaryLabel, feature.userIsTeammate ? Color.accentColor : Color.secondaryLabel)
                         .font(.system(size: 14))
                         .frame(width: 16, height: 16)
                         .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
@@ -144,7 +144,7 @@ struct FeatureListRow: View {
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "pencil.and.list.clipboard")
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                                 Text("Edit scripts")
                             }
                         }
@@ -166,7 +166,7 @@ struct FeatureListRow: View {
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "square.and.pencil")
-                                    .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                                 Text("Edit personal message")
                             }
                         }
@@ -190,7 +190,7 @@ struct FeatureListRow: View {
                 isPresented: $showingMessageEditor,
                 content: {
                     ZStack {
-                        Color.BackgroundColor.edgesIgnoringSafeArea(.all)
+                        Color.backgroundColor.edgesIgnoringSafeArea(.all)
                         
                         VStack(alignment: .leading) {
                             Text("Personal message for feature: \(feature.userName) - \(feature.featureDescription)")
@@ -210,7 +210,7 @@ struct FeatureListRow: View {
                                 .disableAutocorrection(false)
                                 .textFieldStyle(.plain)
                                 .padding(4)
-                                .background(Color.BackgroundColorEditor)
+                                .background(Color.controlBackground.opacity(0.5))
                                 .border(Color.gray.opacity(0.25))
                                 .cornerRadius(4)
                             }
@@ -226,7 +226,7 @@ struct FeatureListRow: View {
                                 }) {
                                     HStack(alignment: .center) {
                                         Image(systemName: "pencil.and.list.clipboard")
-                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                                         Text("Copy full text")
                                     }
                                 }
@@ -242,7 +242,7 @@ struct FeatureListRow: View {
                                 }) {
                                     HStack(alignment: .center) {
                                         Image(systemName: "xmark")
-                                            .foregroundStyle(Color.AccentColor, Color.TextColorSecondary)
+                                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                                         Text("Close")
                                     }
                                 }
