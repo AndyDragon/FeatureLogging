@@ -1050,7 +1050,7 @@ namespace FeatureLogging
             return template?.Template ?? "";
         }
 
-        private string GetNewMembershipScriptName(string hubName, string newMembershipLevel)
+        private static string GetNewMembershipScriptName(string hubName, string newMembershipLevel)
         {
             if (hubName == "snap")
             {

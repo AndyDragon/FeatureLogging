@@ -44,6 +44,50 @@ namespace FeatureLogging
         }
     }
 
+    public class BooleanToIndicatorColorConverter : IValueConverter
+    {
+        public Brush? ZeroBrush { get; set; }
+        public Brush? ValueBrush { get; set; }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool boolValue)
+            {
+                return boolValue
+                    ? ValueBrush ?? Brushes.LimeGreen
+                    : ZeroBrush ?? Brushes.White;
+            }
+            return value;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class BooleanToIndicatorOpacityConverter : IValueConverter
+    {
+        public double? ZeroOpacity { get; set; }
+        public double? ValueOpacity { get; set; }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool boolValue)
+            {
+                return boolValue
+                    ? ValueOpacity ?? 1.0
+                    : ZeroOpacity ?? 0.2;
+            }
+            return value;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class BooleanToBorderColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

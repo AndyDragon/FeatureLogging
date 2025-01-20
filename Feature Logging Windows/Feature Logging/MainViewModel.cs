@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Net.Http.Headers;
 using System.Net.Http;
@@ -141,9 +140,12 @@ namespace FeatureLogging
                 OnPropertyChanged(nameof(HasFeatures));
                 OnPropertyChanged(nameof(FeatureNavigationVisibility));
                 OnPropertyChanged(nameof(CanChangePage));
+                SaveFeaturesCommand?.OnCanExecuteChanged();
+                GenerateReportCommand?.OnCanExecuteChanged();
+                SaveReportCommand?.OnCanExecuteChanged();
                 View = ViewMode.LogView;
                 IsDirty = false;
-            });
+            }, (_) => !WaitingForPages);
 
             OpenFeaturesCommand = new CommandWithParameter((ignoreDirty) =>
             {
@@ -187,7 +189,7 @@ namespace FeatureLogging
                                         PostLink = (string)feature["postLink"],
                                         UserName = (string)feature["userName"],
                                         UserAlias = (string)feature["userAlias"],
-                                        UserLevel = new List<string>(Memberships).Contains((string)feature["userLevel"]) ? (string)feature["userLevel"] : Memberships[0],
+                                        UserLevel = MapMembershipLevelFromFile((string)feature["userLevel"]),
                                         UserIsTeammate = (bool)feature["userIsTeammate"],
                                         TagSource = new List<string>(TagSources).Contains((string)feature["tagSource"]) ? (string)feature["tagSource"] : TagSources[0],
                                         PhotoFeaturedOnPage = (bool)feature["photoFeaturedOnPage"],
@@ -211,9 +213,12 @@ namespace FeatureLogging
                                     };
                                     Features.Add(loadedFeature);
                                 }
-                                OnPropertyChanged(nameof(HasFeatures));
-                                OnPropertyChanged(nameof(FeatureNavigationVisibility));
-                                OnPropertyChanged(nameof(CanChangePage));
+                                base.OnPropertyChanged(nameof(HasFeatures));
+                                base.OnPropertyChanged(nameof(FeatureNavigationVisibility));
+                                base.OnPropertyChanged(nameof(CanChangePage));
+                                SaveFeaturesCommand?.OnCanExecuteChanged();
+                                GenerateReportCommand?.OnCanExecuteChanged();
+                                SaveReportCommand?.OnCanExecuteChanged();
                                 lastFilename = dialog.FileName;
                                 View = ViewMode.LogView;
                                 IsDirty = false;
@@ -240,7 +245,7 @@ namespace FeatureLogging
                             areaName: "WindowArea");
                     }
                 }
-            });
+            }, (_) => !WaitingForPages);
 
             SaveFeaturesCommand = new Command(() =>
             {
@@ -302,7 +307,7 @@ namespace FeatureLogging
                             areaName: "WindowArea");
                     }
                 }
-            });
+            }, () => !WaitingForPages && HasFeatures);
 
             GenerateReportCommand = new Command(() =>
             {
@@ -312,7 +317,7 @@ namespace FeatureLogging
                 }
 
                 CopyTextToClipboard(GenerateLogReport(), "Generated report", "Copied the report of features to the clipboard");
-            });
+            }, () => !WaitingForPages && HasFeatures);
 
             SaveReportCommand = new Command(() =>
             {
@@ -341,7 +346,7 @@ namespace FeatureLogging
                 {
                     File.WriteAllText(dialog.FileName, GenerateLogReport());
                 }
-            });
+            }, () => !WaitingForPages && HasFeatures);
 
             LaunchSettingsCommand = new Command(() =>
             {
@@ -423,7 +428,10 @@ namespace FeatureLogging
                 OnPropertyChanged(nameof(HasFeatures));
                 OnPropertyChanged(nameof(FeatureNavigationVisibility));
                 OnPropertyChanged(nameof(CanChangePage));
-            });
+                SaveFeaturesCommand?.OnCanExecuteChanged();
+                GenerateReportCommand?.OnCanExecuteChanged();
+                SaveReportCommand?.OnCanExecuteChanged();
+            }, () => !WaitingForPages);
 
             RemoveFeatureCommand = new Command(() =>
             {
@@ -434,8 +442,11 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(HasFeatures));
                     OnPropertyChanged(nameof(FeatureNavigationVisibility));
                     OnPropertyChanged(nameof(CanChangePage));
+                    SaveFeaturesCommand?.OnCanExecuteChanged();
+                    GenerateReportCommand?.OnCanExecuteChanged();
+                    SaveReportCommand?.OnCanExecuteChanged();
                 }
-            });
+            }, () => SelectedFeature != null);
 
             PastePostLinkCommand = new Command(() =>
             {
@@ -681,6 +692,19 @@ namespace FeatureLogging
             #endregion
         }
 
+        private string MapMembershipLevelFromFile(string userLevelFromFile)
+        {
+            if (Memberships.Contains(userLevelFromFile))
+            {
+                return userLevelFromFile;
+            }
+            if (OldMembershipMap.TryGetValue(userLevelFromFile, out string? value))
+            {
+                return value;
+            }
+            return Memberships[0];
+        }
+
         #region User settings
 
         public static string GetDataLocationPath(bool shared = false)
@@ -782,6 +806,7 @@ namespace FeatureLogging
                 {
                     scriptViewModel.TemplatesCatalog = JsonConvert.DeserializeObject<TemplatesCatalog>(content) ?? new TemplatesCatalog();
                 }
+                WaitingForPages = false;
             }
             catch (Exception ex)
             {
@@ -821,23 +846,23 @@ namespace FeatureLogging
 
         #region Commands
 
-        public ICommand NewFeaturesCommand { get; }
+        public CommandWithParameter NewFeaturesCommand { get; }
 
-        public ICommand OpenFeaturesCommand { get; }
+        public CommandWithParameter OpenFeaturesCommand { get; }
 
-        public ICommand SaveFeaturesCommand { get; }
+        public Command SaveFeaturesCommand { get; }
 
-        public ICommand GenerateReportCommand { get; }
+        public Command GenerateReportCommand { get; }
 
-        public ICommand SaveReportCommand { get; }
+        public Command SaveReportCommand { get; }
 
         public ICommand LaunchSettingsCommand { get; }
 
         public ICommand CopyPageTagCommand { get; }
 
-        public ICommand AddFeatureCommand { get; }
+        public Command AddFeatureCommand { get; }
 
-        public ICommand RemoveFeatureCommand { get; }
+        public Command RemoveFeatureCommand { get; }
 
         public ICommand PastePostLinkCommand { get; }
 
@@ -871,6 +896,29 @@ namespace FeatureLogging
 
         #endregion
 
+        #region Waiting state
+
+        private bool waitingForPages = true;
+        public bool WaitingForPages
+        {
+            get => waitingForPages;
+            set
+            {
+                if (Set(ref waitingForPages, value))
+                {
+                    NewFeaturesCommand.OnCanExecuteChanged();
+                    OpenFeaturesCommand.OnCanExecuteChanged();
+                    SaveFeaturesCommand.OnCanExecuteChanged();
+                    GenerateReportCommand.OnCanExecuteChanged();
+                    SaveReportCommand.OnCanExecuteChanged();
+                    AddFeatureCommand.OnCanExecuteChanged();
+
+                }
+            }
+        }
+        
+        #endregion
+        
         #region Dirty state
 
         private bool isDirty = false;
@@ -1244,6 +1292,7 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(HasSelectedFeature));
                     OnPropertyChanged(nameof(SelectedFeatureVisibility));
                     OnPropertyChanged(nameof(Title));
+                    RemoveFeatureCommand.OnCanExecuteChanged();
                     LoadPostCommand.OnCanExecuteChanged();
                     if (oldSelectedFeature != null)
                     {
@@ -1321,6 +1370,27 @@ namespace FeatureLogging
             SelectedPage?.HubName == "click" ? ClickMemberships :
             SelectedPage?.HubName == "snap" ? SnapMemberships :
             OtherMemberships;
+
+        public Dictionary<string, string> OldMembershipMap =>
+            SelectedPage?.HubName == "click" ? new Dictionary<string, string>
+            {
+                { "Member", "Click Member" },
+                { "Bronze Member", "Click Bronze Member" },
+                { "Silver Member", "Click Silver Member" },
+                { "Gold Member", "Click Gold Member" },
+                { "Platinum Member", "Click Platinum Member" },
+            } :
+            SelectedPage?.HubName == "snap" ? new Dictionary<string, string>
+            {
+                { "Member", "Snap Member" },
+                { "VIP Member", "Snap VIP Member" },
+                { "VIP Gold Member", "Snap VIP Gold Member" },
+                { "Platinum Member", "Snap Platinum Member" },
+                { "Elite Member", "Snap Elite Member" },
+                { "Hall of Fame Member", "Snap Hall of Fame Member" },
+                { "Diamond Member", "Snap Diamond Member" },
+            } : 
+            [];
 
         #endregion
 
@@ -2549,7 +2619,7 @@ namespace FeatureLogging
         public string PostLink
         {
             get => postLink;
-            set => SetWithDirtyCallback(ref postLink, value, () => IsDirty = true, [nameof(PostLinkValidation)]);
+            set => SetWithDirtyCallback(ref postLink, value, () => IsDirty = true, [nameof(PostLinkValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
         public ValidationResult PostLinkValidation => Validation.ValidateValueNotEmpty(postLink);
@@ -2559,7 +2629,7 @@ namespace FeatureLogging
         public string UserName
         {
             get => userName;
-            set => SetWithDirtyCallback(ref userName, value, () => IsDirty = true, [nameof(UserNameValidation), nameof(SortKey)]);
+            set => SetWithDirtyCallback(ref userName, value, () => IsDirty = true, [nameof(UserNameValidation), nameof(SortKey), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
         public ValidationResult UserNameValidation => Validation.ValidateValueNotEmptyAndContainsNoNewlines(userName);
@@ -2569,7 +2639,7 @@ namespace FeatureLogging
         public string UserAlias
         {
             get => userAlias;
-            set => SetWithDirtyCallback(ref userAlias, value, () => IsDirty = true, [nameof(UserAliasValidation)]);
+            set => SetWithDirtyCallback(ref userAlias, value, () => IsDirty = true, [nameof(UserAliasValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
         public ValidationResult UserAliasValidation => Validation.ValidateUserName(userAlias);
@@ -2579,7 +2649,7 @@ namespace FeatureLogging
         public string UserLevel
         {
             get => userLevel;
-            set => SetWithDirtyCallback(ref userLevel, value, () => IsDirty = true, [nameof(UserLevelValidation)]);
+            set => SetWithDirtyCallback(ref userLevel, value, () => IsDirty = true, [nameof(UserLevelValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
         public ValidationResult UserLevelValidation => Validation.ValidateValueNotDefault(userLevel, "None");
@@ -2621,7 +2691,7 @@ namespace FeatureLogging
         public string PhotoLastFeaturedOnHub
         {
             get => photoLastFeaturedOnHub;
-            set => SetWithDirtyCallback(ref photoLastFeaturedOnHub, value, () => IsDirty = true, [nameof(PhotoLastFeaturedOnHubValidation)]);
+            set => SetWithDirtyCallback(ref photoLastFeaturedOnHub, value, () => IsDirty = true, [nameof(PhotoLastFeaturedOnHubValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
         public ValidationResult PhotoLastFeaturedOnHubValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedOnHub);
@@ -2631,7 +2701,7 @@ namespace FeatureLogging
         public string PhotoLastFeaturedPage
         {
             get => photoLastFeaturedPage;
-            set => SetWithDirtyCallback(ref photoLastFeaturedPage, value, () => IsDirty = true, [nameof(PhotoLastFeaturedPageValidation)]);
+            set => SetWithDirtyCallback(ref photoLastFeaturedPage, value, () => IsDirty = true, [nameof(PhotoLastFeaturedPageValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
         public ValidationResult PhotoLastFeaturedPageValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedPage);
@@ -2641,10 +2711,8 @@ namespace FeatureLogging
         public string FeatureDescription
         {
             get => featureDescription;
-            set => SetWithDirtyCallback(ref featureDescription, value, () => IsDirty = true, [nameof(FeatureDescriptionValidation)]);
+            set => SetWithDirtyCallback(ref featureDescription, value, () => IsDirty = true);
         }
-        [JsonIgnore]
-        public ValidationResult FeatureDescriptionValidation => Validation.ValidateValueNotEmpty(featureDescription);
 
         private bool userHasFeaturesOnPage = false;
         [JsonProperty(PropertyName = "userHasFeaturesOnPage")]
@@ -2659,7 +2727,7 @@ namespace FeatureLogging
         public string LastFeaturedOnPage
         {
             get => lastFeaturedOnPage;
-            set => SetWithDirtyCallback(ref lastFeaturedOnPage, value, () => IsDirty = true, [nameof(LastFeaturedOnPageValidation)]);
+            set => SetWithDirtyCallback(ref lastFeaturedOnPage, value, () => IsDirty = true, [nameof(LastFeaturedOnPageValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
         public ValidationResult LastFeaturedOnPageValidation => Validation.ValidateValueNotEmpty(lastFeaturedOnPage);
@@ -2693,7 +2761,7 @@ namespace FeatureLogging
         public string LastFeaturedOnHub
         {
             get => lastFeaturedOnHub;
-            set => SetWithDirtyCallback(ref lastFeaturedOnHub, value, () => IsDirty = true, [nameof(LastFeaturedOnHubValidation)]);
+            set => SetWithDirtyCallback(ref lastFeaturedOnHub, value, () => IsDirty = true, [nameof(LastFeaturedOnHubValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
         public ValidationResult LastFeaturedOnHubValidation => Validation.ValidateValueNotEmpty(lastFeaturedOnHub);
@@ -2703,10 +2771,10 @@ namespace FeatureLogging
         public string LastFeaturedPage
         {
             get => lastFeaturedPage;
-            set => SetWithDirtyCallback(ref lastFeaturedPage, value, () => IsDirty = true, [nameof(LastFeaturedPageValidation)]);
+            set => SetWithDirtyCallback(ref lastFeaturedPage, value, () => IsDirty = true, [nameof(LastFeaturedPageValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
-        public ValidationResult LastFeaturedPageValidation => Validation.ValidateValueNotEmpty(lastFeaturedPage);
+        public ValidationResult LastFeaturedPageValidation => TooSoonToFeatureUser ? new ValidationResult(true) : Validation.ValidateValueNotEmpty(lastFeaturedPage);
 
         private string featureCountOnHub = "many";
         [JsonProperty(PropertyName = "featureCountOnHub")]
@@ -2729,7 +2797,7 @@ namespace FeatureLogging
         public bool TooSoonToFeatureUser
         {
             get => tooSoonToFeatureUser;
-            set => SetWithDirtyCallback(ref tooSoonToFeatureUser, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey)]);
+            set => SetWithDirtyCallback(ref tooSoonToFeatureUser, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey), nameof(LastFeaturedPageValidation)]);
         }
 
         private string tinEyeResults = "0 matches";
@@ -2844,6 +2912,61 @@ namespace FeatureLogging
         }
 
         [JsonIgnore]
+
+        public bool HasValidationErrors
+        {
+            get =>
+                !PostLinkValidation.Valid ||
+                !UserNameValidation.Valid ||
+                !UserAliasValidation.Valid ||
+                !UserLevelValidation.Valid ||
+                (PhotoFeaturedOnPage && !PhotoLastFeaturedPageValidation.Valid) ||
+                (PhotoFeaturedOnHub && !PhotoLastFeaturedOnHubValidation.Valid) ||
+                (UserHasFeaturesOnPage && !LastFeaturedOnPageValidation.Valid) ||
+                (UserHasFeaturesOnHub && (!LastFeaturedOnHubValidation.Valid || !LastFeaturedPageValidation.Valid));
+        }
+
+        [JsonIgnore]
+
+        public string ValidationErrorSummary
+        {
+            get
+            {
+                List<string> validationErrors = [];
+                AddValidationError(validationErrors, PostLinkValidation, "Post link");
+                AddValidationError(validationErrors, UserNameValidation, "User name");
+                AddValidationError(validationErrors, UserAliasValidation, "User alias");
+                AddValidationError(validationErrors, UserLevelValidation, "User level");
+                if (PhotoFeaturedOnPage)
+                {
+                    AddValidationError(validationErrors, PhotoLastFeaturedPageValidation, "Photo last featured on page");
+                }
+                if (PhotoFeaturedOnHub)
+                {
+                    AddValidationError(validationErrors, PhotoLastFeaturedOnHubValidation, "Photo last featured on hub");
+                }
+                if (UserHasFeaturesOnPage)
+                {
+                    AddValidationError(validationErrors, LastFeaturedOnPageValidation, "User last featured on page");
+                }
+                if (UserHasFeaturesOnHub)
+                {
+                    AddValidationError(validationErrors, LastFeaturedOnHubValidation, "User last featured on hub");
+                    AddValidationError(validationErrors, LastFeaturedPageValidation, "User last featured page");
+                }
+                return string.Join(",", validationErrors);
+            }
+        }
+
+        private static void AddValidationError(List<string> validationErrors, ValidationResult result, string validation)
+        {
+            if (!result.Valid)
+            {
+                validationErrors.Add(validation + ": " + (result.Message ?? result.Error ?? "unknown validation error"));
+            }
+        }
+
+        [JsonIgnore]
         public ICommand OpenFeatureInVeroScriptsCommand { get; }
 
         [JsonIgnore]
@@ -2855,7 +2978,6 @@ namespace FeatureLogging
             OnPropertyChanged(nameof(UserAliasValidation));
             OnPropertyChanged(nameof(UserNameValidation));
             OnPropertyChanged(nameof(UserLevelValidation));
-            OnPropertyChanged(nameof(FeatureDescriptionValidation));
             OnPropertyChanged(nameof(PhotoLastFeaturedOnHubValidation));
             OnPropertyChanged(nameof(PhotoLastFeaturedPageValidation));
             OnPropertyChanged(nameof(LastFeaturedOnPageValidation));
