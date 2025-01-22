@@ -81,7 +81,7 @@ struct ScriptContentView: View {
                 // New membership
                 NewMembershipEditorView()
             }
-            .foregroundStyle(Color.label, Color.secondaryLabel)
+            .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
             .padding()
             .sheet(isPresented: $showingPlaceholderSheet) {
                 PlaceholderSheet(
@@ -141,7 +141,7 @@ struct ScriptContentView: View {
                         }) {
                             HStack {
                                 Image(systemName: "arrowtriangle.backward.fill")
-                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                    .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                                 Text("Previous feature")
                             }
                             .padding(4)
@@ -156,7 +156,7 @@ struct ScriptContentView: View {
                     }) {
                         HStack {
                             Image(systemName: "xmark")
-                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             Text("Close")
                         }
                         .padding(4)
@@ -172,7 +172,7 @@ struct ScriptContentView: View {
                         }) {
                             HStack {
                                 Image(systemName: "arrowtriangle.forward.fill")
-                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                    .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                                 Text("Next feature")
                             }
                             .padding(4)
@@ -200,7 +200,7 @@ struct ScriptContentView: View {
                     Text(selectedFeature.feature.userName)
                         .tint(Color.accentColor)
                         .accentColor(Color.accentColor)
-                        .foregroundStyle(Color.accentColor, Color.label)
+                        .foregroundStyle(Color.accentColor, Color(UIColor.label))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding([.leading, .trailing], 4)
                     Spacer()
@@ -221,7 +221,7 @@ struct ScriptContentView: View {
                     Text(selectedFeature.userLevel.rawValue)
                         .tint(Color.accentColor)
                         .accentColor(Color.accentColor)
-                        .foregroundStyle(Color.accentColor, Color.label)
+                        .foregroundStyle(Color.accentColor, Color(UIColor.label))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding([.leading, .trailing], 4)
                     Spacer()
@@ -241,7 +241,7 @@ struct ScriptContentView: View {
                         .font(.system(size: 22, design: .monospaced))
                         .tint(Color.accentColor)
                         .accentColor(Color.accentColor)
-                        .foregroundStyle(Color.accentColor, Color.label)
+                        .foregroundStyle(Color.accentColor, Color(UIColor.label))
                         .frame(alignment: .trailing)
                     Text("First feature on page")
                         .lineLimit(1)
@@ -257,7 +257,7 @@ struct ScriptContentView: View {
                             .font(.system(size: 22, design: .monospaced))
                             .tint(Color.accentColor)
                             .accentColor(Color.accentColor)
-                            .foregroundStyle(Color.accentColor, Color.label)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.label))
                             .frame(alignment: .trailing)
                         Text("From community tag")
                             .lineLimit(1)
@@ -271,7 +271,7 @@ struct ScriptContentView: View {
                             .font(.system(size: 22, design: .monospaced))
                             .tint(Color.accentColor)
                             .accentColor(Color.accentColor)
-                            .foregroundStyle(Color.accentColor, Color.label)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.label))
                             .frame(alignment: .trailing)
                         Text("From hub tag")
                             .lineLimit(1)
@@ -285,7 +285,7 @@ struct ScriptContentView: View {
                             .font(.system(size: 22, design: .monospaced))
                             .tint(Color.accentColor)
                             .accentColor(Color.accentColor)
-                            .foregroundStyle(Color.accentColor, Color.label)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.label))
                             .frame(alignment: .trailing)
                         Text("From RAW tag")
                             .lineLimit(1)
@@ -299,7 +299,7 @@ struct ScriptContentView: View {
                             .font(.system(size: 22, design: .monospaced))
                             .tint(Color.accentColor)
                             .accentColor(Color.accentColor)
-                            .foregroundStyle(Color.accentColor, Color.label)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.label))
                             .frame(alignment: .trailing)
                         Text("From community tag")
                             .lineLimit(1)

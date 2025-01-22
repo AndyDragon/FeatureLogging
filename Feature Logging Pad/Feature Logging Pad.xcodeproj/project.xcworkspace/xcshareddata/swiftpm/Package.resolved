@@ -1,5 +1,5 @@
 {
-  "originHash" : "7f9f21c3d8ac2f7398cfc5fc055e5c289ae394ba994ebf7cffd8e13af3b53062",
+  "originHash" : "ba76bde087eec80916dd106be610e1a0d548f409327b69efa01f39aa8a43a61d",
   "pins" : [
     {
       "identity" : "kingfisher",
@@ -17,15 +17,6 @@
       "state" : {
         "revision" : "0837db354faf9c9deb710dc597046edaadf5360f",
         "version" : "2.7.6"
-      }
-    },
-    {
-      "identity" : "swiftui-system-colors",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/diniska/swiftui-system-colors.git",
-      "state" : {
-        "revision" : "5127afab23337699a714e036588f02d9481ae612",
-        "version" : "1.2.0"
       }
     },
     {

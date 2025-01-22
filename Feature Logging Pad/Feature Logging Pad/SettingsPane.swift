@@ -44,7 +44,7 @@ struct SettingsPane: View {
                     }
                 } header: {
                     Text("Tags:")
-                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                        .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                 }
                 .padding()
 
@@ -96,7 +96,7 @@ struct SettingsPane: View {
                     }
                 } header: {
                     Text("Personalized messages:")
-                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                        .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                 }
                 .padding()
 

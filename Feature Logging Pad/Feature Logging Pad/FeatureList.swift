@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SystemColors
 
 struct FeatureList: View {
     private var viewModel: ContentView.ViewModel
@@ -32,7 +31,7 @@ struct FeatureList: View {
                 }
                 .padding([.top, .bottom], 4)
                 .padding([.leading, .trailing])
-                .foregroundStyle(Color.label, Color.label)
+                .foregroundStyle(Color(UIColor.label), Color(UIColor.label))
                 .background(Color.backgroundColor)
                 .cornerRadius(4)
                 .padding([.top, .bottom], 4)

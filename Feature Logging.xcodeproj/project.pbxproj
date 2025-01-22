@@ -55,11 +55,11 @@
 		4930AB8E2BB7348F00C72CA9 /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		4930AB8F2BB7348F00C72CA9 /* Types.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		4930AB9C2BB74F1500C72CA9 /* FeatureEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureEditor.swift; sourceTree = "<group>"; };
+		493FA1372D40768B00F4F9D9 /* Standalone.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Standalone.xcconfig; sourceTree = "<group>"; };
 		495A85852C36E46F00C112C6 /* PlaceholderEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceholderEditor.swift; sourceTree = "<group>"; };
 		495A85862C36E46F00C112C6 /* ScriptEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptEditor.swift; sourceTree = "<group>"; };
 		495A85882C36E46F00C112C6 /* NewMembershipEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewMembershipEditor.swift; sourceTree = "<group>"; };
 		495A85892C36E46F00C112C6 /* ScriptContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptContentView.swift; sourceTree = "<group>"; };
-		495A858F2C36FA4100C112C6 /* testing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = testing.xcconfig; sourceTree = "<group>"; };
 		496E913F2D33812C006BCEB4 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		497891012CFF81BD00A100B4 /* CustomTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabView.swift; sourceTree = "<group>"; };
 		497891032CFF81DD00A100B4 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
@@ -155,7 +155,7 @@
 				490DF5C72BC1E70B005E0F93 /* Feature-Logging-Info.plist */,
 				49D8280C2BB7327200153786 /* Assets.xcassets */,
 				49D828112BB7327200153786 /* Feature_Logging.entitlements */,
-				495A858F2C36FA4100C112C6 /* testing.xcconfig */,
+				493FA1372D40768B00F4F9D9 /* Standalone.xcconfig */,
 				49D8280E2BB7327200153786 /* Preview Content */,
 			);
 			path = "Feature Logging";
@@ -311,9 +311,9 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		495A85902C36FA7200C112C6 /* Release - Script Testing */ = {
+		493FA1382D40797F00F4F9D9 /* Standalone */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 495A858F2C36FA4100C112C6 /* testing.xcconfig */;
+			baseConfigurationReference = 493FA1372D40768B00F4F9D9 /* Standalone.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -366,11 +366,11 @@
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
-			name = "Release - Script Testing";
+			name = Standalone;
 		};
-		495A85912C36FA7200C112C6 /* Release - Script Testing */ = {
+		493FA1392D40797F00F4F9D9 /* Standalone */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 495A858F2C36FA4100C112C6 /* testing.xcconfig */;
+			baseConfigurationReference = 493FA1372D40768B00F4F9D9 /* Standalone.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -378,7 +378,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 70;
+				CURRENT_PROJECT_VERSION = 71;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -400,7 +400,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
-			name = "Release - Script Testing";
+			name = Standalone;
 		};
 		49D828122BB7327200153786 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -531,7 +531,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 70;
+				CURRENT_PROJECT_VERSION = 71;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -564,7 +564,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 70;
+				CURRENT_PROJECT_VERSION = 71;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -596,7 +596,7 @@
 			buildConfigurations = (
 				49D828122BB7327200153786 /* Debug */,
 				49D828132BB7327200153786 /* Release */,
-				495A85902C36FA7200C112C6 /* Release - Script Testing */,
+				493FA1382D40797F00F4F9D9 /* Standalone */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -606,7 +606,7 @@
 			buildConfigurations = (
 				49D828152BB7327200153786 /* Debug */,
 				49D828162BB7327200153786 /* Release */,
-				495A85912C36FA7200C112C6 /* Release - Script Testing */,
+				493FA1392D40797F00F4F9D9 /* Standalone */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

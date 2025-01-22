@@ -159,10 +159,10 @@ struct FeatureListView: View {
                         HStack {
                             if #available(iOS 18.0, *) {
                                 Image(systemName: "document.badge.plus")
-                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                    .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             } else {
                                 Image(systemName: "doc.badge.plus")
-                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                    .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             }
                             Text("New log")
                         }
@@ -188,7 +188,7 @@ struct FeatureListView: View {
                     }) {
                         HStack {
                             Image(systemName: "square.and.arrow.up.on.square")
-                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             Text("Open log")
                         }
                         .padding(4)
@@ -208,7 +208,7 @@ struct FeatureListView: View {
                     }) {
                         HStack {
                             Image(systemName: "square.and.arrow.down.on.square")
-                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             Text("Save log")
                         }
                         .padding(4)
@@ -223,7 +223,7 @@ struct FeatureListView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "square.and.arrow.down.on.square")
-                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             Text("Save report")
                         }
                         .padding(4)
@@ -237,7 +237,7 @@ struct FeatureListView: View {
                     }) {
                         HStack {
                             Image(systemName: "gear")
-                                .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
+                                .foregroundStyle(Color(UIColor.secondaryLabel), Color(UIColor.secondaryLabel))
                             Text("Settings")
                         }
                         .padding(4)
@@ -251,7 +251,7 @@ struct FeatureListView: View {
                     }) {
                         HStack {
                             Image(systemName: "info.circle")
-                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             Text("About")
                         }
                         .padding(4)
@@ -297,7 +297,7 @@ struct FeatureListView: View {
             }
             .tint(Color.accentColor)
             .accentColor(Color.accentColor)
-            .foregroundStyle(Color.accentColor, Color.label)
+            .foregroundStyle(Color.accentColor, Color(UIColor.label))
             .disabled(!viewModel.features.isEmpty)
             .frame(minWidth: 200, maxWidth: 240)
 
@@ -316,12 +316,12 @@ struct FeatureListView: View {
                 ForEach(StaffLevelCase.casesFor(hub: viewModel.selectedPage?.hub)) { staffLevelCase in
                     Text(staffLevelCase.shortString)
                         .tag(staffLevelCase)
-                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
+                        .foregroundStyle(Color(UIColor.secondaryLabel), Color(UIColor.secondaryLabel))
                 }
             }
             .tint(Color.accentColor)
             .accentColor(Color.accentColor)
-            .foregroundStyle(Color.accentColor, Color.label)
+            .foregroundStyle(Color.accentColor, Color(UIColor.label))
             .frame(minWidth: 120, maxWidth: 160)
 
             Spacer()
@@ -370,7 +370,7 @@ struct FeatureListView: View {
                     }
                 }
             }
-            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
             .tint(Color.accentColor)
             .accentColor(Color.accentColor)
             .disabled(viewModel.selectedPage?.hub != "click" && viewModel.selectedPage?.hub != "snap")
@@ -401,7 +401,7 @@ struct FeatureListView: View {
                 }
             )
             .lineLimit(1)
-            .foregroundStyle(Color.label, Color.secondaryLabel)
+            .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
             .textFieldStyle(.plain)
             .padding(4)
             .background(Color.backgroundColor.opacity(0.5))
@@ -426,7 +426,7 @@ struct FeatureListView: View {
                 }
             )
             .lineLimit(1)
-            .foregroundStyle(Color.label, Color.secondaryLabel)
+            .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
             .textFieldStyle(.plain)
             .padding(4)
             .background(Color.backgroundColor.opacity(0.5))
@@ -449,7 +449,7 @@ struct FeatureListView: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "person.fill.badge.plus")
-                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                        .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                     Text("Add feature")
                 }
             }
@@ -463,7 +463,7 @@ struct FeatureListView: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "pencil.and.list.clipboard")
-                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                        .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                     Text("Copy report")
                 }
             }

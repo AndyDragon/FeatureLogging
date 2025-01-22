@@ -9,12 +9,14 @@ import SwiftUI
 import SwiftyBeaver
 
 @main
-struct Feature_LoggingApp: App {
+struct FeatureLoggingApp: App {
     @Environment(\.openWindow) private var openWindow
 
+#if STANDALONE
     @State var checkingForUpdates = false
     @State var versionCheckResult: VersionCheckResult = .complete
     @State var versionCheckToast = VersionCheckToast()
+#endif
 
     @ObservedObject var commandModel = AppCommandModel()
 
@@ -48,17 +50,27 @@ struct Feature_LoggingApp: App {
 
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     var body: some Scene {
+#if STANDALONE
         let appState = VersionCheckAppState(
             isCheckingForUpdates: $checkingForUpdates,
             versionCheckResult: $versionCheckResult,
             versionCheckToast: $versionCheckToast,
             versionLocation: "https://vero.andydragon.com/static/data/featurelogging/version.json")
+#endif
         WindowGroup {
+#if STANDALONE
             ContentView(appState)
                 .environmentObject(commandModel)
                 .onAppear {
                     NSWindow.allowsAutomaticWindowTabbing = false
                 }
+#else
+            ContentView()
+                .environmentObject(commandModel)
+                .onAppear {
+                    NSWindow.allowsAutomaticWindowTabbing = false
+                }
+#endif
         }
         .commands {
             CommandGroup(replacing: CommandGroupPlacement.appInfo) {
@@ -74,6 +86,7 @@ struct Feature_LoggingApp: App {
             CommandGroup(
                 replacing: .appSettings,
                 addition: {
+#if STANDALONE
                     Button(
                         action: {
                             logger.verbose("Manual check for updates", context: "User")
@@ -89,7 +102,8 @@ struct Feature_LoggingApp: App {
                     .keyboardShortcut("u", modifiers: [.command, .control])
                     
                     Divider()
-                    
+#endif
+
                     Button(
                         action: {
                             logger.verbose("Show statistics", context: "User")

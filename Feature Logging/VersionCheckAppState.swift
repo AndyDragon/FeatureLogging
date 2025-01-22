@@ -5,6 +5,8 @@
 //  Created by Andrew Forget on 2024-02-18.
 //
 
+#if STANDALONE
+
 import SwiftUI
 import SwiftyBeaver
 
@@ -118,3 +120,5 @@ struct VersionCheckAppState {
         }
     }
 }
+
+#endif

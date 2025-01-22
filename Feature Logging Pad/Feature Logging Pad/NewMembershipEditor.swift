@@ -28,12 +28,12 @@ struct NewMembershipEditor: View {
                 ForEach(NewMembershipCase.casesFor(hub: selectedPage.hub)) { level in
                     Text(level.scriptNewMembershipStringForHub(hub: selectedPage.hub))
                         .tag(level)
-                        .foregroundStyle(Color.label, Color.secondaryLabel)
+                        .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
                 }
             }
             .tint(Color.accentColor)
             .accentColor(Color.accentColor)
-            .foregroundStyle(Color.accentColor, Color.label)
+            .foregroundStyle(Color.accentColor, Color(UIColor.label))
             .frame(width: 320)
 
             Button(action: {
@@ -55,7 +55,7 @@ struct NewMembershipEditor: View {
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
                 .textEditorStyle(.plain)
-                .foregroundStyle(valid ? Color.label : Color.red, Color.secondaryLabel)
+                .foregroundStyle(valid ? Color(UIColor.label) : Color.red, Color(UIColor.secondaryLabel))
                 .scrollContentBackground(.hidden)
                 .padding(4)
                 .background(Color.backgroundColor.opacity(0.5))
@@ -67,7 +67,7 @@ struct NewMembershipEditor: View {
             TextEditor(text: $script)
                 .font(.system(size: 14))
                 .frame(minWidth: 200, maxWidth: .infinity, minHeight: minHeight, maxHeight: maxHeight)
-                .foregroundStyle(valid ? Color.label : Color.red, Color.secondaryLabel)
+                .foregroundStyle(valid ? Color(UIColor.label) : Color.red, Color(UIColor.secondaryLabel))
                 .scrollContentBackground(.hidden)
                 .padding(4)
                 .background(Color.backgroundColor.opacity(0.5))

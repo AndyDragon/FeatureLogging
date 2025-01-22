@@ -8,16 +8,6 @@
 import SwiftUI
 import SwiftyBeaver
 
-extension View {
-    func attachVersionCheckState(_ viewModel: ContentView.ViewModel, _ appState: VersionCheckAppState, _ launchUrl: @escaping (_ url: URL) -> Void) -> some View {
-        self.onChange(of: appState.versionCheckResult.wrappedValue) {
-            viewModel.handleVersionCheck(appState) { url in
-                launchUrl(url)
-            }
-        }
-    }
-}
-
 extension ContentView {
     enum VisibleView {
         case FeatureListView
@@ -65,104 +55,6 @@ extension ContentView {
         func clearDocumentDirty() {
             if isDirty {
                 isDirty = false
-            }
-        }
-
-        // MARK: Version check
-        private var lastVersionCheckResult = VersionCheckResult.complete
-
-        func handleVersionCheck(
-            _ appState: VersionCheckAppState,
-            _ launchURL: @escaping (_ url: URL) -> Void
-        ) {
-            if appState.versionCheckResult.wrappedValue == lastVersionCheckResult {
-                return;
-            }
-            lastVersionCheckResult = appState.versionCheckResult.wrappedValue
-            switch appState.versionCheckResult.wrappedValue {
-            case .newAvailable:
-                logger.info("New version of the application is available", context: "Version")
-                dismissAllNonBlockingToasts()
-                showToast(
-                    .alert,
-                    "New version available",
-                    String {
-                        "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) "
-                        "and v\(appState.versionCheckToast.wrappedValue.currentVersion) is available"
-                        "\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click Download to open your browser") "
-                        "(this will go away in \(AdvancedToastStyle.alert.duration) seconds)"
-                    },
-                    width: 720,
-                    buttonTitle: "Download",
-                    onButtonTapped: {
-                        if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
-                            self.logger.verbose("Launching browser to get new application version", context: "User")
-                            launchURL(url)
-                        }
-                    },
-                    onDismissed: {
-                        self.logger.verbose("New version of the application ignored", context: "User")
-                        appState.resetCheckingForUpdates()
-                    }
-                )
-                break
-            case .newRequired:
-                logger.info("New version of the application is required", context: "Version")
-                dismissAllNonBlockingToasts()
-                showToast(
-                    .fatal,
-                    "New version required",
-                    String {
-                        "You are using v\(appState.versionCheckToast.wrappedValue.appVersion) "
-                        "and v\(appState.versionCheckToast.wrappedValue.currentVersion) is required"
-                        "\(appState.versionCheckToast.wrappedValue.linkToCurrentVersion.isEmpty ? "" : ", click Download to open your browser") "
-                        "or ⌘ + Q to Quit"
-                    },
-                    width: 720,
-                    buttonTitle: "Download",
-                    onButtonTapped: {
-                        if let url = URL(string: appState.versionCheckToast.wrappedValue.linkToCurrentVersion) {
-                            self.logger.verbose("Launching browser to get new application version", context: "User")
-                            launchURL(url)
-                        }
-                    }
-                )
-                break
-            case .manualCheckComplete:
-                self.logger.verbose("Using latest application version", context: "Version")
-                showToast(
-                    .info,
-                    "Latest version",
-                    "You are using the latest version v\(appState.versionCheckToast.wrappedValue.appVersion)",
-                    onDismissed: {
-                        appState.resetCheckingForUpdates()
-                    }
-                )
-                break
-            case .checkFailed:
-                self.logger.verbose("Version check failed", context: "Version")
-                dismissAllNonBlockingToasts()
-                showToast(
-                    .alert,
-                    "Failed to check version",
-                    String {
-                        "Failed to check the app version. You are using v\(appState.versionCheckToast.wrappedValue.appVersion)"
-                        "(this will go away in \(AdvancedToastStyle.alert.duration) seconds)"
-                    },
-                    width: 720,
-                    buttonTitle: "Retry",
-                    onButtonTapped: {
-                        appState.resetCheckingForUpdates()
-                        appState.checkForUpdates()
-                    },
-                    onDismissed: {
-                        appState.resetCheckingForUpdates()
-                    }
-                )
-                break
-            default:
-                // do nothing
-                break
             }
         }
 

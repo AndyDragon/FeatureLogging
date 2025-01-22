@@ -42,7 +42,6 @@ struct ContentView: View {
     @State private var reportDocument = ReportDocument()
     @State private var shouldScrollFeatureListToSelection = false
     
-    private let appState: VersionCheckAppState
     private let logger = SwiftyBeaver.self
     private var descriptionSuffix: String {
         if let description = viewModel.selectedFeature?.feature.featureDescription {
@@ -67,11 +66,14 @@ struct ContentView: View {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }
-    
+
+#if STANDALONE
+    private let appState: VersionCheckAppState
     init(_ appState: VersionCheckAppState) {
         self.appState = appState
     }
-    
+#endif
+
     var body: some View {
         ZStack {
             Color.backgroundColor.edgesIgnoringSafeArea(.all)
@@ -191,8 +193,11 @@ struct ContentView: View {
                     .fileDialogConfirmationLabel("Save report")
             }
         }
-#if TESTING
-        .navigationTitle("Feature Logging v2.1 - Script Testing\(titleSuffix)")
+#if STANDALONE
+        .navigationTitle("Feature Logging v2.1 - Standalone Version\(titleSuffix)")
+        .attachVersionCheckState(viewModel, appState) { url in
+            openURL(url)
+        }
 #else
         .navigationTitle("Feature Logging v2.1\(titleSuffix)")
 #endif
@@ -293,9 +298,6 @@ struct ContentView: View {
                 })
         }
         .advancedToastView(toasts: $viewModel.toastViews)
-        .attachVersionCheckState(viewModel, appState) { url in
-            openURL(url)
-        }
         .navigationSubtitle(viewModel.isDirty ? "edited" : "")
         .task {
             let loadingPagesToast = viewModel.showToast(
@@ -364,11 +366,7 @@ extension ContentView {
         logger.verbose("Loading page catalog from server", context: "System")
 
         do {
-#if TESTING
-            let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/pages.json")!
-#else
             let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
-#endif
             let pagesCatalog = try await URLSession.shared.decode(ScriptsCatalog.self, from: pagesUrl)
             var pages = [ObservablePage]()
             for hubPair in (pagesCatalog.hubs) {
@@ -405,11 +403,7 @@ extension ContentView {
 
             logger.verbose("Loading template catalog from server", context: "System")
 
-#if TESTING
-            let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/testing/templates.json")!
-#else
             let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/templates.json")!
-#endif
             viewModel.loadedCatalogs.templatesCatalog = try await URLSession.shared.decode(TemplateCatalog.self, from: templatesUrl)
             viewModel.loadedCatalogs.waitingForTemplates = false
 
@@ -421,11 +415,7 @@ extension ContentView {
 
                 logger.verbose("Loading disallow list from server", context: "System")
 
-#if TESTING
-                let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/testing/disallowlists.json")!
-#else
                 let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json")!
-#endif
                 viewModel.loadedCatalogs.disallowList = try await URLSession.shared.decode([String: [String]].self, from: disallowListUrl)
                 viewModel.loadedCatalogs.waitingForDisallowList = false
 
@@ -436,6 +426,7 @@ extension ContentView {
                 debugPrint(error.localizedDescription)
             }
 
+#if STANDALONE
             do {
                 // Delay the start of the disallowed list download so the window can be ready faster
                 try await Task.sleep(nanoseconds: 100_000_000)
@@ -445,6 +436,7 @@ extension ContentView {
                 // do nothing, the version check is not critical
                 debugPrint(error.localizedDescription)
             }
+#endif
         } catch {
             logger.error("Failed to load page catalog or template catalog from server: \(error.localizedDescription)", context: "System")
             viewModel.dismissAllNonBlockingToasts(includeProgress: true)

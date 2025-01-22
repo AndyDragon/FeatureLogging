@@ -16,6 +16,7 @@ struct AboutView: View {
     @Environment(\.dismissWindow) var dismissWindow
 
     @State private var showCredits = false
+    @State private var loggedDisclosure = false
 
     let packages: [String:[String]]
 
@@ -70,6 +71,10 @@ struct AboutView: View {
                     Button {
                         withAnimation {
                             showCredits.toggle()
+                        }
+                        if !loggedDisclosure && showCredits {
+                            loggedDisclosure.toggle()
+                            logger.verbose("Disclosed the credit in about view", context: "User")
                         }
                     } label: {
                         Triangle()

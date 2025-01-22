@@ -66,7 +66,7 @@ struct ValidationLabel: View {
                 if let label {
                     Text(label)
                         .padding([.trailing], 8)
-                        .foregroundStyle(!validation ? Color.red : (validColor ?? Color.label), Color.secondaryLabel)
+                        .foregroundStyle(!validation ? Color.red : (validColor ?? Color(UIColor.label)), Color(UIColor.secondaryLabel))
                 }
             }
             .frame(width: abs(width), alignment: width < 0 ? .leading : .trailing)
@@ -80,7 +80,7 @@ struct ValidationLabel: View {
                 if let label {
                     Text(label)
                         .padding([.trailing], 8)
-                        .foregroundStyle(!validation ? Color.red : (validColor ?? Color.label), Color.secondaryLabel)
+                        .foregroundStyle(!validation ? Color.red : (validColor ?? Color(UIColor.label)), Color(UIColor.secondaryLabel))
                 }
             }
         }

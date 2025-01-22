@@ -112,7 +112,7 @@ struct FeatureEditorView: View {
                     }) {
                         HStack {
                             Image(systemName: "xmark")
-                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             Text("Close")
                         }
                         .padding(4)
@@ -130,7 +130,7 @@ struct FeatureEditorView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "person.fill.badge.minus")
-                                .foregroundStyle(Color.red, Color.secondaryLabel)
+                                .foregroundStyle(Color.red, Color(UIColor.secondaryLabel))
                             Text("Remove feature")
                         }
                     }

@@ -31,9 +31,6 @@ extension EnvironmentValues {
 struct FeatureLoggingApp: App {
     @Environment(\.openWindow) private var openWindow
 
-    @State private var checkingForUpdates = false
-    @State private var versionCheckResult: VersionCheckResult = .complete
-    @State private var versionCheckToast = VersionCheckToast()
     @State private var showingAboutBox = false
     
     let logger = SwiftyBeaver.self
@@ -48,13 +45,8 @@ struct FeatureLoggingApp: App {
     }
 
     var body: some Scene {
-        let appState = VersionCheckAppState(
-            isCheckingForUpdates: $checkingForUpdates,
-            versionCheckResult: $versionCheckResult,
-            versionCheckToast: $versionCheckToast,
-            versionLocation: "https://vero.andydragon.com/static/data/featurelogging/version.json")
         WindowGroup {
-            ContentView(appState)
+            ContentView()
                 .sheet(isPresented: $showingAboutBox) {
                     AboutView(packages: [
                         "Kingfisher": [
@@ -68,9 +60,6 @@ struct FeatureLoggingApp: App {
                         ],
                         "SwiftyBeaver": [
                             "SwiftyBeaver ([Github profile](https://github.com/SwiftyBeaver))"
-                        ],
-                        "SystemColors": [
-                            "Denis ([Github profile](https://github.com/diniska))"
                         ],
                         "ToastView-SwiftUI": [
                             "Gaurav Tak ([Github profile](https://github.com/gauravtakroro))",
@@ -94,19 +83,6 @@ struct FeatureLoggingApp: App {
                         Text("About \(Bundle.main.displayName ?? "Feature Logging")")
                     }
                 }
-            CommandGroup(
-                replacing: .appSettings,
-                addition: {
-                    Button(action: {
-                        logger.verbose("Manual check for updates", context: "User")
-                        
-                        // Manually check for updates
-                        appState.checkForUpdates(true)
-                    }) {
-                        Text("Check for updates...")
-                    }
-                    .disabled(checkingForUpdates)
-                })
         }
     }
 

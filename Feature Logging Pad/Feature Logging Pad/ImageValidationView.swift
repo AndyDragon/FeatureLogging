@@ -87,7 +87,7 @@ struct ImageValidationView: View {
                     .font(.system(size: 16))
                 }
                 .padding([.leading, .top, .trailing])
-                .foregroundStyle(Color.label, Color.secondaryLabel)
+                .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
                 .toolbar {
                     ToolbarItemGroup(placement: .bottomBar) {
                         Spacer()
@@ -97,7 +97,7 @@ struct ImageValidationView: View {
                         }) {
                             HStack {
                                 Image(systemName: "xmark")
-                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                    .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                                 Text("Close")
                             }
                             .padding(4)
@@ -115,7 +115,7 @@ struct ImageValidationView: View {
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "person.fill.badge.minus")
-                                    .foregroundStyle(Color.red, Color.secondaryLabel)
+                                    .foregroundStyle(Color.red, Color(UIColor.secondaryLabel))
                                 Text("Remove feature")
                             }
                         }
@@ -150,12 +150,12 @@ struct ImageValidationView: View {
                     ForEach(TinEyeResults.allCases) { source in
                         Text(source.rawValue)
                             .tag(source)
-                            .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
+                            .foregroundStyle(Color(UIColor.secondaryLabel), Color(UIColor.secondaryLabel))
                     }
                 }
                 .tint(Color.accentColor)
                 .accentColor(Color.accentColor)
-                .foregroundStyle(Color.accentColor, Color.label)
+                .foregroundStyle(Color.accentColor, Color(UIColor.label))
                 .frame(width: 160)
 
                 Text("|")
@@ -172,12 +172,12 @@ struct ImageValidationView: View {
                     ForEach(AiCheckResults.allCases) { source in
                         Text(source.rawValue)
                             .tag(source)
-                            .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
+                            .foregroundStyle(Color(UIColor.secondaryLabel), Color(UIColor.secondaryLabel))
                     }
                 }
                 .tint(Color.accentColor)
                 .accentColor(Color.accentColor)
-                .foregroundStyle(Color.accentColor, Color.label)
+                .foregroundStyle(Color.accentColor, Color(UIColor.label))
                 .frame(width: 160)
                 Spacer()
             }
@@ -231,7 +231,7 @@ struct ImageValidationView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "pencil.and.list.clipboard")
-                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             Text("Copy result")
                         }
                     }

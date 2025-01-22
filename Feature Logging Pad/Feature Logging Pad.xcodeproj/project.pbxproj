@@ -11,7 +11,6 @@
 		496E1DBC2D397625001FF25E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 496E1DBB2D397625001FF25E /* Kingfisher */; };
 		496E1DBF2D397659001FF25E /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 496E1DBE2D397659001FF25E /* SwiftSoup */; };
 		496E1DC22D3978D8001FF25E /* SwiftUICharts in Frameworks */ = {isa = PBXBuildFile; productRef = 496E1DC12D3978D8001FF25E /* SwiftUICharts */; };
-		496E1DC52D397998001FF25E /* SystemColors in Frameworks */ = {isa = PBXBuildFile; productRef = 496E1DC42D397998001FF25E /* SystemColors */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,7 +33,6 @@
 				496E1DBC2D397625001FF25E /* Kingfisher in Frameworks */,
 				496E1DC22D3978D8001FF25E /* SwiftUICharts in Frameworks */,
 				496E1DB92D397577001FF25E /* SwiftyBeaver in Frameworks */,
-				496E1DC52D397998001FF25E /* SystemColors in Frameworks */,
 				496E1DBF2D397659001FF25E /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -82,7 +80,6 @@
 				496E1DBB2D397625001FF25E /* Kingfisher */,
 				496E1DBE2D397659001FF25E /* SwiftSoup */,
 				496E1DC12D3978D8001FF25E /* SwiftUICharts */,
-				496E1DC42D397998001FF25E /* SystemColors */,
 			);
 			productName = "Feature Logging Pad";
 			productReference = 496E1D6C2D39707A001FF25E /* Feature Logging Pad.app */;
@@ -117,7 +114,6 @@
 				496E1DBA2D397625001FF25E /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				496E1DBD2D397659001FF25E /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 				496E1DC02D3978D8001FF25E /* XCRemoteSwiftPackageReference "SwiftUICharts" */,
-				496E1DC32D397998001FF25E /* XCRemoteSwiftPackageReference "swiftui-system-colors" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 496E1D6D2D39707A001FF25E /* Products */;
@@ -275,14 +271,16 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging Pad/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Feature-Logging-Pad-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Feature Logging Pad";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Store the feature photo in the photo library for posting.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Store the feature photo in the photo library for posting.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -312,14 +310,16 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging Pad/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Feature-Logging-Pad-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Feature Logging Pad";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Store the feature photo in the photo library for posting.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Store the feature photo in the photo library for posting.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -399,14 +399,6 @@
 				minimumVersion = 2.10.3;
 			};
 		};
-		496E1DC32D397998001FF25E /* XCRemoteSwiftPackageReference "swiftui-system-colors" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/diniska/swiftui-system-colors.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.2.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -429,11 +421,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 496E1DC02D3978D8001FF25E /* XCRemoteSwiftPackageReference "SwiftUICharts" */;
 			productName = SwiftUICharts;
-		};
-		496E1DC42D397998001FF25E /* SystemColors */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 496E1DC32D397998001FF25E /* XCRemoteSwiftPackageReference "swiftui-system-colors" */;
-			productName = SystemColors;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -87,7 +87,7 @@ struct FeatureEditor: View {
             }) {
                 HStack(alignment: .center) {
                     Image(systemName: "arrow.down.circle.fill")
-                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                        .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                     Text("Load post")
                         .font(.system(.body, design: .rounded).bold())
                 }
@@ -164,12 +164,12 @@ struct FeatureEditor: View {
                 ForEach(MembershipCase.casesFor(hub: selectedPage.hub)) { level in
                     Text(level.rawValue)
                         .tag(level)
-                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
+                        .foregroundStyle(Color(UIColor.secondaryLabel), Color(UIColor.secondaryLabel))
                 }
             }
             .tint(Color.accentColor)
             .accentColor(Color.accentColor)
-            .foregroundStyle(Color.accentColor, Color.label)
+            .foregroundStyle(Color.accentColor, Color(UIColor.label))
 
             Text("|")
                 .padding([.leading, .trailing])
@@ -203,7 +203,7 @@ struct FeatureEditor: View {
                 ForEach(TagSourceCase.casesFor(hub: selectedPage.hub)) { source in
                     Text(source.rawValue)
                         .tag(source)
-                        .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
+                        .foregroundStyle(Color(UIColor.secondaryLabel), Color(UIColor.secondaryLabel))
                 }
             }
             .pickerStyle(.segmented)
@@ -371,7 +371,7 @@ struct FeatureEditor: View {
                     .frame(maxWidth: 200)
                     .tint(Color.accentColor)
                     .accentColor(Color.accentColor)
-                    .foregroundStyle(Color.accentColor, Color.label)
+                    .foregroundStyle(Color.accentColor, Color(UIColor.label))
 
                     Spacer()
                 }
@@ -388,7 +388,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Copy tag")
                     }
                 }
@@ -473,7 +473,7 @@ struct FeatureEditor: View {
                     .frame(maxWidth: 200)
                     .tint(Color.accentColor)
                     .accentColor(Color.accentColor)
-                    .foregroundStyle(Color.accentColor, Color.label)
+                    .foregroundStyle(Color.accentColor, Color(UIColor.label))
 
                     Spacer()
                 }
@@ -490,7 +490,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Copy tag")
                     }
                 }
@@ -569,7 +569,7 @@ struct FeatureEditor: View {
                     }
                     .tint(Color.accentColor)
                     .accentColor(Color.accentColor)
-                    .foregroundStyle(Color.accentColor, Color.label)
+                    .foregroundStyle(Color.accentColor, Color(UIColor.label))
 
                     Text("|")
                         .padding([.leading, .trailing])
@@ -588,7 +588,7 @@ struct FeatureEditor: View {
                     }
                     .tint(Color.accentColor)
                     .accentColor(Color.accentColor)
-                    .foregroundStyle(Color.accentColor, Color.label)
+                    .foregroundStyle(Color.accentColor, Color(UIColor.label))
 
                     Spacer()
                 }
@@ -607,7 +607,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Copy tag")
                     }
                 }
@@ -621,7 +621,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Copy RAW tag")
                     }
                 }
@@ -703,7 +703,7 @@ struct FeatureEditor: View {
                     }
                     .tint(Color.accentColor)
                     .accentColor(Color.accentColor)
-                    .foregroundStyle(Color.accentColor, Color.label)
+                    .foregroundStyle(Color.accentColor, Color(UIColor.label))
 
                     Text("|")
                         .padding([.leading, .trailing])
@@ -722,7 +722,7 @@ struct FeatureEditor: View {
                     }
                     .tint(Color.accentColor)
                     .accentColor(Color.accentColor)
-                    .foregroundStyle(Color.accentColor, Color.label)
+                    .foregroundStyle(Color.accentColor, Color(UIColor.label))
 
                     Spacer()
                 }
@@ -738,7 +738,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Copy tag")
                     }
                 }
@@ -750,7 +750,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Copy RAW tag")
                     }
                 }
@@ -826,7 +826,7 @@ struct FeatureEditor: View {
                     .frame(maxWidth: 200)
                     .tint(Color.accentColor)
                     .accentColor(Color.accentColor)
-                    .foregroundStyle(Color.accentColor, Color.label)
+                    .foregroundStyle(Color.accentColor, Color(UIColor.label))
 
                     Spacer()
                 }
@@ -843,7 +843,7 @@ struct FeatureEditor: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "tag.fill")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Copy tag")
                     }
                 }
@@ -893,12 +893,12 @@ struct FeatureEditor: View {
                     ForEach(TinEyeResults.allCases) { source in
                         Text(source.rawValue)
                             .tag(source)
-                            .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
+                            .foregroundStyle(Color(UIColor.secondaryLabel), Color(UIColor.secondaryLabel))
                     }
                 }
                 .tint(Color.accentColor)
                 .accentColor(Color.accentColor)
-                .foregroundStyle(Color.accentColor, Color.label)
+                .foregroundStyle(Color.accentColor, Color(UIColor.label))
 
                 Text("|")
                     .padding([.leading, .trailing])
@@ -914,12 +914,12 @@ struct FeatureEditor: View {
                     ForEach(AiCheckResults.allCases) { source in
                         Text(source.rawValue)
                             .tag(source)
-                            .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
+                            .foregroundStyle(Color(UIColor.secondaryLabel), Color(UIColor.secondaryLabel))
                     }
                 }
                 .tint(Color.accentColor)
                 .accentColor(Color.accentColor)
-                .foregroundStyle(Color.accentColor, Color.label)
+                .foregroundStyle(Color.accentColor, Color(UIColor.label))
                 
                 Spacer()
             }

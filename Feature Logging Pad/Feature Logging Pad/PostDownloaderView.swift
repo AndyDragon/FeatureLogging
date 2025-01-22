@@ -156,7 +156,7 @@ struct PostDownloaderView: View {
                 }
                 .padding()
             }
-            .foregroundStyle(Color.label, Color.secondaryLabel)
+            .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
             .toolbar {
                 ToolbarItemGroup(placement: .bottomBar) {
                     Spacer()
@@ -166,7 +166,7 @@ struct PostDownloaderView: View {
                     }) {
                         HStack {
                             Image(systemName: "xmark")
-                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             Text("Close")
                         }
                         .padding(4)
@@ -184,7 +184,7 @@ struct PostDownloaderView: View {
                     }) {
                         HStack(alignment: .center) {
                             Image(systemName: "person.fill.badge.minus")
-                                .foregroundStyle(Color.red, Color.secondaryLabel)
+                                .foregroundStyle(Color.red, Color(UIColor.secondaryLabel))
                             Text("Remove feature")
                         }
                     }
@@ -291,7 +291,7 @@ struct PostDownloaderView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Copy URL")
                     }
                 }
@@ -309,7 +309,7 @@ struct PostDownloaderView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "globe")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Launch")
                     }
                 }
@@ -343,7 +343,7 @@ struct PostDownloaderView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Copy URL")
                     }
                 }
@@ -361,7 +361,7 @@ struct PostDownloaderView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "globe")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Launch")
                     }
                 }
@@ -412,7 +412,7 @@ struct PostDownloaderView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "pencil.line")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Transfer")
                     }
                 }
@@ -458,7 +458,7 @@ struct PostDownloaderView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "pencil.line")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Transfer")
                     }
                 }
@@ -479,7 +479,7 @@ struct PostDownloaderView: View {
                         .scrollIndicators(.never)
                         .frame(maxWidth: 480, maxHeight: .infinity, alignment: .leading)
                         .textEditorStyle(.plain)
-                        .foregroundStyle(Color.label, Color.secondaryLabel)
+                        .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
                         .scrollContentBackground(.hidden)
                         .padding(.horizontal, 4)
                         .autocorrectionDisabled(false)
@@ -503,12 +503,12 @@ struct PostDownloaderView: View {
                     ForEach(MembershipCase.casesFor(hub: selectedPage.hub)) { level in
                         Text(level.rawValue)
                             .tag(level)
-                            .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
+                            .foregroundStyle(Color(UIColor.secondaryLabel), Color(UIColor.secondaryLabel))
                     }
                 }
                 .tint(Color.accentColor)
                 .accentColor(Color.accentColor)
-                .foregroundStyle(Color.accentColor, Color.label)
+                .foregroundStyle(Color.accentColor, Color(UIColor.label))
                 .frame(maxWidth: 160)
 
                 Toggle(
@@ -560,7 +560,7 @@ struct PostDownloaderView: View {
                         .scrollIndicators(.never)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                         .textEditorStyle(.plain)
-                        .foregroundStyle(Color.label, Color.secondaryLabel)
+                        .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
                         .scrollContentBackground(.hidden)
                         .padding(.horizontal, 4)
                         .autocorrectionDisabled(false)
@@ -644,7 +644,7 @@ struct PostDownloaderView: View {
                             }) {
                                 HStack(alignment: .center) {
                                     Image(systemName: "checkmark.square")
-                                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                        .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                                     Text("Mark post")
                                 }
                             }
@@ -746,7 +746,7 @@ struct PostDownloaderView: View {
                             }) {
                                 HStack(alignment: .center) {
                                     Image(systemName: "checkmark.square")
-                                        .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                        .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                                     Text("Mark post")
                                 }
                             }
@@ -837,7 +837,7 @@ struct PostDownloaderView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Copy log")
                     }
                 }

@@ -34,7 +34,7 @@ struct PlaceholderView: View {
                         .font(.body)
                         .frame(height: 48)
                         .frame(minWidth: 320)
-                        .foregroundStyle(Color.label, Color.secondaryLabel)
+                        .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
                         .scrollContentBackground(.hidden)
                         .padding(4)
                         .background(Color.backgroundColor.opacity(0.5))
@@ -48,7 +48,7 @@ struct PlaceholderView: View {
                         .font(.body)
                         .frame(height: 48)
                         .frame(minWidth: 320)
-                        .foregroundStyle(Color.label, Color.secondaryLabel)
+                        .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
                         .scrollContentBackground(.hidden)
                         .padding(4)
                         .background(Color.backgroundColor.opacity(0.5))
@@ -62,7 +62,7 @@ struct PlaceholderView: View {
                     .lineLimit(1)
                     .font(.body)
                     .frame(minWidth: 320)
-                    .foregroundStyle(Color.label, Color.secondaryLabel)
+                    .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
                     .textFieldStyle(.plain)
                     .padding(4)
                     .background(Color.backgroundColor.opacity(0.5))
@@ -165,7 +165,7 @@ struct PlaceholderSheet: View {
                     .buttonStyle(.bordered)
                 }
             }
-            .foregroundStyle(Color.label, Color.secondaryLabel)
+            .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
             .frame(minWidth: 800, maxWidth: .infinity, minHeight: 600, maxHeight: .infinity)
             .padding()
         }

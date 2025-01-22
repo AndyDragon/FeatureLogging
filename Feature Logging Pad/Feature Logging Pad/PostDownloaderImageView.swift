@@ -85,7 +85,7 @@ struct PostDownloaderImageView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "photo.badge.checkmark.fill")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Validate")
                     }
                 }
@@ -99,7 +99,7 @@ struct PostDownloaderImageView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "square.and.arrow.down.fill")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Save image")
                     }
                 }
@@ -115,7 +115,7 @@ struct PostDownloaderImageView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Copy URL")
                     }
                 }
@@ -129,7 +129,7 @@ struct PostDownloaderImageView: View {
                 }) {
                     HStack(alignment: .center) {
                         Image(systemName: "globe")
-                            .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                         Text("Launch")
                     }
                 }
