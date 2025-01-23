@@ -24,7 +24,7 @@
 		<ApplicationTitle>Feature Logging MAUI</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.featureloggingmaui</ApplicationId>
+		<ApplicationId>com.andydragon.feature_logging_maui</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>

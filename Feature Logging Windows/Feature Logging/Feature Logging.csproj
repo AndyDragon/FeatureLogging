@@ -17,6 +17,7 @@
     <Company>AndyDragon Software</Company>
     <Authors>Andrew Forget</Authors>
     <Version>2.1.24</Version>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
   <ItemGroup>
