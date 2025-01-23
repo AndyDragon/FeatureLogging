@@ -2,7 +2,7 @@ using System;
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 
-namespace Feature_Logging_MAUI
+namespace FeatureLogging
 {
     internal class Program : MauiApplication
     {

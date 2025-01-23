@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Runtime;
 
-namespace Feature_Logging_MAUI
+namespace FeatureLogging
 {
     [Application]
     public class MainApplication : MauiApplication

@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace Feature_Logging_MAUI
+namespace FeatureLogging
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate

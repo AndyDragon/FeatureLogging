@@ -1,4 +1,4 @@
-﻿namespace Feature_Logging_MAUI
+﻿namespace FeatureLogging
 {
     public partial class App : Application
     {

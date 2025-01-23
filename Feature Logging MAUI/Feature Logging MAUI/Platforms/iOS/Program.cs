@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace Feature_Logging_MAUI
+namespace FeatureLogging
 {
     public class Program
     {
