@@ -67,7 +67,7 @@ struct ImageValidationView: View {
                                 tabIconName: "photo.badge.checkmark.fill",
                                 tabIconColors: (.secondary, .accentColor),
                                 view: AnyView(HiveAiResultsView())
-                            )
+                            ),
                         ])
                     }
 
@@ -142,7 +142,7 @@ struct ImageValidationView: View {
                 Text("TinEye:")
                 Picker(
                     "",
-                    selection: selectedFeature.feature.tinEyeResults.onChange { value in
+                    selection: selectedFeature.feature.tinEyeResults.onChange { _ in
                         updateList()
                         viewModel.markDocumentDirty()
                     }
@@ -164,7 +164,7 @@ struct ImageValidationView: View {
                 Text("AI Check:")
                 Picker(
                     "",
-                    selection: selectedFeature.feature.aiCheckResults.onChange { value in
+                    selection: selectedFeature.feature.aiCheckResults.onChange { _ in
                         updateList()
                         viewModel.markDocumentDirty()
                     }
@@ -218,7 +218,7 @@ struct ImageValidationView: View {
                 Spacer()
             }
         }
-        //.frame(maxWidth: .infinity, minHeight: 640, maxHeight: .infinity)
+        // .frame(maxWidth: .infinity, minHeight: 640, maxHeight: .infinity)
     }
 
     private func HiveAiResultsView() -> some View {
@@ -301,7 +301,7 @@ struct ImageValidationView: View {
         errorFromServer = ""
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-M-d-HH-mm-ss"
-        sendRequestToHive() { data, urlResponse, error in
+        sendRequestToHive { data, _, error in
             uploadToServer = nil
             if let errorResult = error {
                 errorFromServer = "Error result: " + errorResult.localizedDescription
@@ -310,13 +310,12 @@ struct ImageValidationView: View {
                 viewModel.dismissAllNonBlockingToasts(includeProgress: true)
             } else if let dataResult = data {
                 logger.verbose("Received result from HIVE", context: "System")
-                do
-                {
+                do {
                     returnedJson = String(data: dataResult, encoding: .utf8) ?? ""
                     let decoder = JSONDecoder()
                     let results = try decoder.decode(HiveResponse.self, from: dataResult)
                     if results.status_code >= 200 && results.status_code <= 299 {
-                        if let verdictClass = results.data.classes.first(where : { $0.class == "not_ai_generated" }) {
+                        if let verdictClass = results.data.classes.first(where: { $0.class == "not_ai_generated" }) {
                             aiVerdictString = "\(verdictClass.score > 0.8 ? "Not AI" : verdictClass.score < 0.5 ? "AI" : "Indeterminate") (\(String(format: "%.1f", verdictClass.score * 100)) % not AI)"
                             aiVerdict = verdictClass.score > 0.8 ? .notAi : verdictClass.score < 0.5 ? .ai : .indeterminate
                         }
@@ -331,8 +330,7 @@ struct ImageValidationView: View {
                     logger.verbose("Parsed result from HIVE", context: "System")
                 } catch {
                     logger.error("Error parsing results from HIVE: \(error.localizedDescription)", context: "System")
-                    do
-                    {
+                    do {
                         let decoder = JSONDecoder()
                         let results = try decoder.decode(ServerMessage.self, from: dataResult)
                         errorFromServer = results.message

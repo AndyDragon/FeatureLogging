@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftyBeaver
 
 struct ShowAboutAction {
-    typealias Action = () -> ()
+    typealias Action = () -> Void
     let action: Action
     func callAsFunction() {
         action()
@@ -32,7 +32,7 @@ struct FeatureLoggingApp: App {
     @Environment(\.openWindow) private var openWindow
 
     @State private var showingAboutBox = false
-    
+
     let logger = SwiftyBeaver.self
     let loggerConsole = ConsoleDestination()
     let loggerFile = FileDestination()
@@ -50,21 +50,21 @@ struct FeatureLoggingApp: App {
                 .sheet(isPresented: $showingAboutBox) {
                     AboutView(packages: [
                         "Kingfisher": [
-                            "Wei Wang ([Github profile](https://github.com/onevcat))"
+                            "Wei Wang ([Github profile](https://github.com/onevcat))",
                         ],
                         "SwiftSoup": [
-                            "Nabil Chatbi ([Github profile](https://github.com/scinfu))"
+                            "Nabil Chatbi ([Github profile](https://github.com/scinfu))",
                         ],
                         "SwiftUICharts": [
-                            "Will Dale ([Github profile](https://github.com/willdale))"
+                            "Will Dale ([Github profile](https://github.com/willdale))",
                         ],
                         "SwiftyBeaver": [
-                            "SwiftyBeaver ([Github profile](https://github.com/SwiftyBeaver))"
+                            "SwiftyBeaver ([Github profile](https://github.com/SwiftyBeaver))",
                         ],
                         "ToastView-SwiftUI": [
                             "Gaurav Tak ([Github profile](https://github.com/gauravtakroro))",
-                            "modified by AndyDragon ([Github profile](https://github.com/AndyDragon))"
-                        ]
+                            "modified by AndyDragon ([Github profile](https://github.com/AndyDragon))",
+                        ],
                     ])
                     .presentationDetents([.height(440)])
                 }
@@ -77,7 +77,7 @@ struct FeatureLoggingApp: App {
                 replacing: CommandGroupPlacement.appInfo) {
                     Button(action: {
                         logger.verbose("Open about view", context: "User")
-                        
+
                         showingAboutBox.toggle()
                     }) {
                         Text("About \(Bundle.main.displayName ?? "Feature Logging")")

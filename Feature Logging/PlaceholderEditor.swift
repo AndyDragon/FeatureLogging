@@ -82,7 +82,7 @@ struct PlaceholderView: View {
         self.element = element
         let start = element.key.index(element.key.startIndex, offsetBy: 2)
         let end = element.key.index(element.key.endIndex, offsetBy: -3)
-        editorName = String(element.key[start...end])
+        editorName = String(element.key[start ... end])
         editorValue = element.value.value
         editorLongForm = isLongForm
     }

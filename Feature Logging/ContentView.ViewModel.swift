@@ -11,7 +11,7 @@ import SwiftyBeaver
 #if STANDALONE
 extension View {
     func attachVersionCheckState(_ viewModel: ContentView.ViewModel, _ appState: VersionCheckAppState, _ launchUrl: @escaping (_ url: URL) -> Void) -> some View {
-        self.onChange(of: appState.versionCheckResult.wrappedValue) {
+        onChange(of: appState.versionCheckResult.wrappedValue) {
             viewModel.handleVersionCheck(appState) { url in
                 launchUrl(url)
             }
@@ -34,13 +34,13 @@ extension ContentView {
         init() {}
 
         private let logger = SwiftyBeaver.self
-        
+
         // MARK: Visible view
-        
+
         var visibleView: VisibleView = .FeatureView
 
         // MARK: Catalog and Features
-        
+
         var loadedCatalogs = LoadedCatalogs()
         var selectedPage: ObservablePage?
         var selectedPageStaffLevel: StaffLevelCase = .mod
@@ -49,17 +49,19 @@ extension ContentView {
         var sortedFeatures: [ObservableFeature] {
             return features.sorted(by: compareFeatures)
         }
+
         var pickedFeatures: [ObservableFeature] {
             return sortedFeatures.filter({ $0.isPicked })
         }
+
         var yourName = UserDefaults.standard.string(forKey: "YourName") ?? ""
         var yourFirstName = UserDefaults.standard.string(forKey: "YourFirstName") ?? ""
         private(set) var isDirty = false
         var isShowingDocumentDirtyAlert = false
-        var imageValidationImageUrl: URL? = nil
+        var imageValidationImageUrl: URL?
 
         // MARK: Document
-        
+
         func markDocumentDirty() {
             if !isDirty {
                 isDirty = true
@@ -73,7 +75,7 @@ extension ContentView {
         }
 
         // MARK: Version check
-        
+
 #if STANDALONE
         private var lastVersionCheckResult = VersionCheckResult.complete
 
@@ -82,7 +84,7 @@ extension ContentView {
             _ launchURL: @escaping (_ url: URL) -> Void
         ) {
             if appState.versionCheckResult.wrappedValue == lastVersionCheckResult {
-                return;
+                return
             }
             lastVersionCheckResult = appState.versionCheckResult.wrappedValue
             switch appState.versionCheckResult.wrappedValue {
@@ -143,7 +145,7 @@ extension ContentView {
                 )
                 break
             case .manualCheckComplete:
-                self.logger.verbose("Using latest application version", context: "Version")
+                logger.verbose("Using latest application version", context: "Version")
                 showToast(
                     .info,
                     "Latest version",
@@ -154,7 +156,7 @@ extension ContentView {
                 )
                 break
             case .checkFailed:
-                self.logger.verbose("Version check failed", context: "Version")
+                logger.verbose("Version check failed", context: "Version")
                 dismissAllNonBlockingToasts()
                 showToast(
                     .alert,
@@ -182,7 +184,7 @@ extension ContentView {
 #endif
 
         // MARK: Reports
-        
+
         func generateReport(
             _ personalMessageFormat: String,
             _ personalMessageFirstFormat: String
@@ -260,12 +262,12 @@ extension ContentView {
                             let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                             let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
                             let fullPersonalMessage =
-                            personalMessageTemplate
-                                .replacingOccurrences(of: "%%PAGENAME%%", with: selectedPage.displayName)
-                                .replacingOccurrences(of: "%%HUBNAME%%", with: selectedPage.hub)
-                                .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
-                                .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
-                                .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+                                personalMessageTemplate
+                                    .replacingOccurrences(of: "%%PAGENAME%%", with: selectedPage.displayName)
+                                    .replacingOccurrences(of: "%%HUBNAME%%", with: selectedPage.hub)
+                                    .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                                    .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                                    .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
                             personalLines.append(fullPersonalMessage)
                         }
                     }
@@ -346,12 +348,12 @@ extension ContentView {
                             let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                             let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
                             let fullPersonalMessage =
-                            personalMessageTemplate
-                                .replacingOccurrences(of: "%%PAGENAME%%", with: selectedPage.displayName)
-                                .replacingOccurrences(of: "%%HUBNAME%%", with: selectedPage.hub)
-                                .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
-                                .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
-                                .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+                                personalMessageTemplate
+                                    .replacingOccurrences(of: "%%PAGENAME%%", with: selectedPage.displayName)
+                                    .replacingOccurrences(of: "%%HUBNAME%%", with: selectedPage.hub)
+                                    .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                                    .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                                    .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
                             personalLines.append(fullPersonalMessage)
                         }
                     }
@@ -411,12 +413,12 @@ extension ContentView {
                             let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
                             let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
                             let fullPersonalMessage =
-                            personalMessageTemplate
-                                .replacingOccurrences(of: "%%PAGENAME%%", with: selectedPage.displayName)
-                                .replacingOccurrences(of: "%%HUBNAME%%", with: "")
-                                .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
-                                .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
-                                .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+                                personalMessageTemplate
+                                    .replacingOccurrences(of: "%%PAGENAME%%", with: selectedPage.displayName)
+                                    .replacingOccurrences(of: "%%HUBNAME%%", with: "")
+                                    .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                                    .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                                    .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
                             personalLines.append(fullPersonalMessage)
                         }
                     }
@@ -434,7 +436,7 @@ extension ContentView {
         }
 
         // MARK: Toasts
-        
+
         var toastViews = [AdvancedToast]()
         var hasModalToasts: Bool {
             return toastViews.count(where: { $0.modal }) > 0
@@ -500,7 +502,7 @@ extension ContentView {
     }
 
     // MARK: - utilities
-    
+
     static func compareFeatures(_ lhs: ObservableFeature, _ rhs: ObservableFeature) -> Bool {
         // Empty names always at the bottom
         if lhs.userName.isEmpty {

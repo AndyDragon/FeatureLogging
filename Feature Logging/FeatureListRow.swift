@@ -11,9 +11,9 @@ import SwiftyBeaver
 struct FeatureListRow: View {
     private var viewModel: ContentView.ViewModel
     @Bindable private var feature: ObservableFeature
-    
+
     @State var showingMessageEditor = false
-    
+
     @AppStorage(
         "preference_personalMessage",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -22,9 +22,9 @@ struct FeatureListRow: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-    
+
     private let logger = SwiftyBeaver.self
-    
+
     init(
         _ viewModel: ContentView.ViewModel,
         _ feature: ObservableFeature
@@ -32,7 +32,7 @@ struct FeatureListRow: View {
         self.viewModel = viewModel
         self.feature = feature
     }
-    
+
     var body: some View {
         HStack(alignment: .center) {
             if feature.photoFeaturedOnPage {
@@ -72,11 +72,11 @@ struct FeatureListRow: View {
                     .frame(width: 32, height: 32)
                     .opacity(0.0000001)
             }
-            
+
             VStack {
                 HStack {
                     Text("Feature: ")
-                    
+
                     if !feature.userName.isEmpty {
                         Text(feature.userName)
                     } else {
@@ -84,9 +84,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-                    
+
                     Text(" | ")
-                    
+
                     if !feature.userAlias.isEmpty {
                         Text("@\(feature.userAlias)")
                     } else {
@@ -94,9 +94,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-                    
+
                     Text(" | ")
-                    
+
                     if !feature.featureDescription.isEmpty {
                         Text(feature.featureDescription)
                     } else {
@@ -104,9 +104,9 @@ struct FeatureListRow: View {
                             .foregroundStyle(.gray, .secondary)
                             .italic()
                     }
-                    
+
                     Text(" | ")
-                    
+
                     Image(systemName: "tag.square")
                         .foregroundStyle(feature.photoFeaturedOnHub ? Color.accentColor : Color.secondaryLabel, feature.photoFeaturedOnHub ? Color.accentColor : Color.secondaryLabel)
                         .font(.system(size: 14))
@@ -133,7 +133,7 @@ struct FeatureListRow: View {
                         .font(.system(size: 14))
                         .frame(width: 16, height: 16)
                         .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
-                    
+
                     let validationResult = feature.validationResult
                     if validationResult != .Success {
                         Text(" | ")
@@ -142,7 +142,7 @@ struct FeatureListRow: View {
                     }
 
                     Spacer()
-                    
+
                     if feature.isPickedAndAllowed {
                         Button(action: {
                             logger.verbose("Tapped edit scripts for feature", context: "User")
@@ -162,10 +162,10 @@ struct FeatureListRow: View {
                             launchVeroScripts()
                             return .handled
                         }
-                        
+
                         Spacer()
                             .frame(width: 8)
-                        
+
                         Button(action: {
                             logger.verbose("Tapped edit personal message for feature", context: "User")
                             viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
@@ -189,7 +189,7 @@ struct FeatureListRow: View {
                 HStack {
                     Text(feature.postLink)
                         .font(.footnote)
-                    
+
                     Spacer()
                 }
             }
@@ -198,18 +198,18 @@ struct FeatureListRow: View {
                 content: {
                     ZStack {
                         Color.backgroundColor.edgesIgnoringSafeArea(.all)
-                        
+
                         VStack(alignment: .leading) {
                             Text("Personal message for feature: \(feature.userName) - \(feature.featureDescription)")
-                            
+
                             Spacer()
                                 .frame(height: 8)
-                            
+
                             HStack(alignment: .center) {
                                 Text("Personal message (from your account): ")
                                 TextField(
                                     "",
-                                    text: $feature.personalMessage.onChange { value in
+                                    text: $feature.personalMessage.onChange { _ in
                                         viewModel.markDocumentDirty()
                                     }
                                 )
@@ -221,12 +221,12 @@ struct FeatureListRow: View {
                                 .border(Color.gray.opacity(0.25))
                                 .cornerRadius(4)
                             }
-                            
+
                             Spacer()
-                            
+
                             HStack(alignment: .center) {
                                 Spacer()
-                                
+
                                 Button(action: {
                                     logger.verbose("Tapped copy personal message for feature", context: "User")
                                     copyPersonalMessage()
@@ -243,7 +243,7 @@ struct FeatureListRow: View {
                                     copyPersonalMessage()
                                     return .handled
                                 }
-                                
+
                                 Button(action: {
                                     showingMessageEditor.toggle()
                                 }) {
@@ -276,8 +276,7 @@ extension FeatureListRow {
     private func copyPersonalMessage() {
         let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
         let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
-        let fullPersonalMessage =
-        personalMessageTemplate
+        let fullPersonalMessage = personalMessageTemplate
             .replacingOccurrences(of: "%%PAGENAME%%", with: viewModel.selectedPage!.displayName)
             .replacingOccurrences(of: "%%HUBNAME%%", with: viewModel.selectedPage!.hub == "other" ? "" : viewModel.selectedPage!.hub)
             .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)

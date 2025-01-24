@@ -91,14 +91,14 @@ struct FeatureEditor: View {
     }
 
     // MARK: - sub views
-    
+
     fileprivate func IsPickedView() -> some View {
         HStack(alignment: .center) {
             Spacer()
                 .frame(width: labelWidth + 16, alignment: .trailing)
-            
+
             Toggle(
-                isOn: $selectedFeature.feature.isPicked.onChange { value in
+                isOn: $selectedFeature.feature.isPicked.onChange { _ in
                     updateList()
                     markDocumentDirty()
                 }
@@ -117,9 +117,9 @@ struct FeatureEditor: View {
                 markDocumentDirty()
                 return .handled
             }
-            
+
             Spacer()
-            
+
             Button(action: {
                 close()
             }) {
@@ -133,7 +133,7 @@ struct FeatureEditor: View {
             }
         }
     }
-    
+
     fileprivate func PostLinkView() -> some View {
         HStack(alignment: .center) {
             ValidationLabel(
@@ -142,7 +142,7 @@ struct FeatureEditor: View {
             )
             TextField(
                 "enter the post link",
-                text: $selectedFeature.feature.postLink.onChange { value in
+                text: $selectedFeature.feature.postLink.onChange { _ in
                     markDocumentDirty()
                 }
             )
@@ -153,7 +153,7 @@ struct FeatureEditor: View {
             .background(Color.controlBackground.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
-            
+
             Button(action: {
                 logger.verbose("Tapped on paste link button", context: "User")
                 pasteClipboardToPostLink()
@@ -170,7 +170,7 @@ struct FeatureEditor: View {
                 pasteClipboardToPostLink()
                 return .handled
             }
-            
+
             Button(action: {
                 logger.verbose("Tapped load post button", context: "User")
                 if !selectedFeature.feature.postLink.isEmpty {
@@ -198,17 +198,17 @@ struct FeatureEditor: View {
             }
         }
     }
-    
+
     fileprivate func UserAliasView() -> some View {
         HStack(alignment: .center) {
             ValidationLabel(
                 "User alias:", labelWidth: labelWidth,
                 validation: !(selectedFeature.feature.userAlias.isEmpty || selectedFeature.feature.userAlias.starts(with: "@")
-                              || selectedFeature.feature.userAlias.count <= 1) && !selectedFeature.feature.userAlias.contains(where: \.isNewline)
+                    || selectedFeature.feature.userAlias.count <= 1) && !selectedFeature.feature.userAlias.contains(where: \.isNewline)
             )
             TextField(
                 "enter the user alias",
-                text: $selectedFeature.feature.userAlias.onChange { value in
+                text: $selectedFeature.feature.userAlias.onChange { _ in
                     markDocumentDirty()
                 }
             )
@@ -219,7 +219,7 @@ struct FeatureEditor: View {
             .background(Color.controlBackground.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
-            
+
             Button(action: {
                 pasteClipboardToUserAlias()
             }) {
@@ -236,7 +236,7 @@ struct FeatureEditor: View {
             }
         }
     }
-    
+
     fileprivate func UserNameView() -> some View {
         HStack(alignment: .center) {
             ValidationLabel(
@@ -245,7 +245,7 @@ struct FeatureEditor: View {
             )
             TextField(
                 "enter the user name",
-                text: $selectedFeature.feature.userName.onChange { value in
+                text: $selectedFeature.feature.userName.onChange { _ in
                     updateList()
                     markDocumentDirty()
                 }
@@ -257,7 +257,7 @@ struct FeatureEditor: View {
             .background(Color.controlBackground.opacity(0.5))
             .border(Color.gray.opacity(0.25))
             .cornerRadius(4)
-            
+
             Button(action: {
                 logger.verbose("Tapped on paste user name button", context: "User")
                 pasteClipboardToUserName()
@@ -276,7 +276,7 @@ struct FeatureEditor: View {
             }
         }
     }
-    
+
     fileprivate func UserLevelView() -> some View {
         HStack(alignment: .center) {
             ValidationLabel(
@@ -286,7 +286,7 @@ struct FeatureEditor: View {
             )
             Picker(
                 "",
-                selection: $selectedFeature.feature.userLevel.onChange { value in
+                selection: $selectedFeature.feature.userLevel.onChange { _ in
                     navigateToUserLevel(.same)
                 }
             ) {
@@ -302,17 +302,17 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .userLevel)
             .onKeyPress(phases: .down) { keyPress in
-                return navigateToUserLevelWithArrows(keyPress)
+                navigateToUserLevelWithArrows(keyPress)
             }
             .onKeyPress(characters: .alphanumerics) { keyPress in
-                return navigateToUserLevelWithPrefix(keyPress)
+                navigateToUserLevelWithPrefix(keyPress)
             }
-            
+
             Text("|")
                 .padding([.leading, .trailing])
-            
+
             Toggle(
-                isOn: $selectedFeature.feature.userIsTeammate.onChange { value in
+                isOn: $selectedFeature.feature.userIsTeammate.onChange { _ in
                     markDocumentDirty()
                 }
             ) {
@@ -325,20 +325,20 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .teammate)
             .onKeyPress(.space) {
-                selectedFeature.feature.userIsTeammate.toggle();
+                selectedFeature.feature.userIsTeammate.toggle()
                 markDocumentDirty()
                 return .handled
             }
         }
     }
-    
+
     fileprivate func TagSourceView() -> some View {
         HStack(alignment: .center) {
             Text("Found using:")
                 .frame(width: labelWidth, alignment: .trailing)
             Picker(
                 "",
-                selection: $selectedFeature.feature.tagSource.onChange { value in
+                selection: $selectedFeature.feature.tagSource.onChange { _ in
                     navigateToTagSource(.same)
                 }
             ) {
@@ -351,23 +351,23 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .tagSource)
             .onKeyPress(phases: .down) { keyPress in
-                return navigateToTagSourceWithArrows(keyPress)
+                navigateToTagSourceWithArrows(keyPress)
             }
             .onKeyPress(characters: .alphanumerics) { keyPress in
-                return navigateToTagSourceWithPrefix(keyPress)
+                navigateToTagSourceWithPrefix(keyPress)
             }
             .pickerStyle(.segmented)
         }
     }
-    
+
     fileprivate func PhotoFeaturedView() -> some View {
         HStack(alignment: .center) {
             Spacer()
                 .frame(width: labelWidth + 16, height: 28, alignment: .trailing)
-            
+
             // Photo featured on page
             Toggle(
-                isOn: $selectedFeature.feature.photoFeaturedOnPage.onChange { value in
+                isOn: $selectedFeature.feature.photoFeaturedOnPage.onChange { _ in
                     updateList()
                     markDocumentDirty()
                 }
@@ -381,18 +381,18 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .photoFeatureOnPage)
             .onKeyPress(.space) {
-                selectedFeature.feature.photoFeaturedOnPage.toggle();
+                selectedFeature.feature.photoFeaturedOnPage.toggle()
                 updateList()
                 markDocumentDirty()
                 return .handled
             }
-            
+
             Text("|")
                 .padding([.leading, .trailing])
-            
+
             // Photo featured on hub
             Toggle(
-                isOn: $selectedFeature.feature.photoFeaturedOnHub.onChange { value in
+                isOn: $selectedFeature.feature.photoFeaturedOnHub.onChange { _ in
                     updateList()
                     markDocumentDirty()
                 }
@@ -406,16 +406,16 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .photoFeatureOnHub)
             .onKeyPress(.space) {
-                selectedFeature.feature.photoFeaturedOnHub.toggle();
+                selectedFeature.feature.photoFeaturedOnHub.toggle()
                 updateList()
                 markDocumentDirty()
                 return .handled
             }
-            
+
             if selectedFeature.feature.photoFeaturedOnHub {
                 Text("|")
                     .padding([.leading, .trailing])
-                
+
                 ValidationLabel(
                     "Last date featured:",
                     validation: !(selectedFeature.feature.photoLastFeaturedOnHub.isEmpty || selectedFeature.feature.photoLastFeaturedPage.isEmpty),
@@ -423,7 +423,7 @@ struct FeatureEditor: View {
                 )
                 TextField(
                     "",
-                    text: $selectedFeature.feature.photoLastFeaturedOnHub.onChange { value in
+                    text: $selectedFeature.feature.photoLastFeaturedOnHub.onChange { _ in
                         markDocumentDirty()
                     }
                 )
@@ -434,10 +434,10 @@ struct FeatureEditor: View {
                 .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
+
                 TextField(
                     "on page",
-                    text: $selectedFeature.feature.photoLastFeaturedPage.onChange { value in
+                    text: $selectedFeature.feature.photoLastFeaturedPage.onChange { _ in
                         markDocumentDirty()
                     }
                 )
@@ -449,11 +449,11 @@ struct FeatureEditor: View {
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
             }
-            
+
             Spacer()
         }
     }
-    
+
     fileprivate func FeatureDescriptionView() -> some View {
         HStack(alignment: .center) {
             ValidationLabel(
@@ -464,7 +464,7 @@ struct FeatureEditor: View {
             )
             TextField(
                 "enter the description of the feature (not used in scripts)",
-                text: $selectedFeature.feature.featureDescription.onChange { value in
+                text: $selectedFeature.feature.featureDescription.onChange { _ in
                     markDocumentDirty()
                 }
             )
@@ -477,14 +477,14 @@ struct FeatureEditor: View {
             .cornerRadius(4)
         }
     }
-    
+
     fileprivate func ClickUserFeaturedOnPageView() -> some View {
         HStack(alignment: .center) {
             Spacer()
                 .frame(width: labelWidth + 16, height: 28, alignment: .trailing)
-            
+
             Toggle(
-                isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { value in
+                isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { _ in
                     markDocumentDirty()
                 }
             ) {
@@ -497,15 +497,15 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .userHasFeaturesOnPage)
             .onKeyPress(.space) {
-                selectedFeature.feature.userHasFeaturesOnPage.toggle();
+                selectedFeature.feature.userHasFeaturesOnPage.toggle()
                 markDocumentDirty()
                 return .handled
             }
-            
+
             Text("|")
                 .padding([.leading, .trailing])
                 .opacity(selectedFeature.feature.userHasFeaturesOnPage ? 1 : 0)
-            
+
             if selectedFeature.feature.userHasFeaturesOnPage {
                 ValidationLabel(
                     "Last featured:",
@@ -514,7 +514,7 @@ struct FeatureEditor: View {
                 )
                 TextField(
                     "last date featured",
-                    text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in
+                    text: $selectedFeature.feature.lastFeaturedOnPage.onChange { _ in
                         markDocumentDirty()
                     }
                 )
@@ -525,19 +525,19 @@ struct FeatureEditor: View {
                 .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
+
                 Text("|")
                     .padding([.leading, .trailing])
-                
+
                 Text("Page feature count:")
                 Picker(
                     "",
-                    selection: $selectedFeature.feature.featureCountOnPage.onChange { value in
+                    selection: $selectedFeature.feature.featureCountOnPage.onChange { _ in
                         navigateToFeatureCountOnPage(75, .same)
                     }
                 ) {
                     Text("many").tag("many")
-                    ForEach(0..<76) { value in
+                    ForEach(0 ..< 76) { value in
                         Text("\(value)").tag("\(value)")
                     }
                 }
@@ -548,15 +548,15 @@ struct FeatureEditor: View {
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnPage)
                 .onKeyPress(phases: .down) { keyPress in
-                    return navigateToFeatureCountOnPageWithArrows(75, keyPress)
+                    navigateToFeatureCountOnPageWithArrows(75, keyPress)
                 }
                 .onKeyPress(characters: .alphanumerics) { keyPress in
-                    return navigateToFeatureCountOnPageWithPrefix(75, keyPress)
+                    navigateToFeatureCountOnPageWithPrefix(75, keyPress)
                 }
             }
-            
+
             Spacer()
-            
+
             Button(action: {
                 copyToClipboard("\(includeHash ? "#" : "")click_\(selectedPage.name)_\(selectedFeature.feature.userAlias)")
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
@@ -575,14 +575,14 @@ struct FeatureEditor: View {
             }
         }
     }
-    
+
     fileprivate func ClickUserFeaturedOnHubView() -> some View {
         HStack(alignment: .center) {
             Spacer()
                 .frame(width: labelWidth + 16, height: 28, alignment: .trailing)
-            
+
             Toggle(
-                isOn: $selectedFeature.feature.userHasFeaturesOnHub.onChange { value in
+                isOn: $selectedFeature.feature.userHasFeaturesOnHub.onChange { _ in
                     markDocumentDirty()
                 }
             ) {
@@ -595,15 +595,15 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .userHasFeaturesOnHub)
             .onKeyPress(.space) {
-                selectedFeature.feature.userHasFeaturesOnHub.toggle();
+                selectedFeature.feature.userHasFeaturesOnHub.toggle()
                 markDocumentDirty()
                 return .handled
             }
-            
+
             Text("|")
                 .padding([.leading, .trailing])
                 .opacity(selectedFeature.feature.userHasFeaturesOnHub ? 1 : 0)
-            
+
             if selectedFeature.feature.userHasFeaturesOnHub {
                 ValidationLabel(
                     "Last featured:",
@@ -612,7 +612,7 @@ struct FeatureEditor: View {
                 )
                 TextField(
                     "last date featured",
-                    text: $selectedFeature.feature.lastFeaturedOnHub.onChange { value in
+                    text: $selectedFeature.feature.lastFeaturedOnHub.onChange { _ in
                         markDocumentDirty()
                     }
                 )
@@ -623,10 +623,10 @@ struct FeatureEditor: View {
                 .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
+
                 TextField(
                     "on page",
-                    text: $selectedFeature.feature.lastFeaturedPage.onChange { value in
+                    text: $selectedFeature.feature.lastFeaturedPage.onChange { _ in
                         markDocumentDirty()
                     }
                 )
@@ -637,19 +637,19 @@ struct FeatureEditor: View {
                 .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
+
                 Text("|")
                     .padding([.leading, .trailing])
 
                 Text("Click feature count:")
                 Picker(
                     "",
-                    selection: $selectedFeature.feature.featureCountOnHub.onChange { value in
+                    selection: $selectedFeature.feature.featureCountOnHub.onChange { _ in
                         navigateToFeatureCountOnHub(75, .same)
                     }
                 ) {
                     Text("many").tag("many")
-                    ForEach(0..<76) { value in
+                    ForEach(0 ..< 76) { value in
                         Text("\(value)").tag("\(value)")
                     }
                 }
@@ -660,15 +660,15 @@ struct FeatureEditor: View {
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnHub)
                 .onKeyPress(phases: .down) { keyPress in
-                    return navigateToFeatureCountOnHubWithArrows(75, keyPress)
+                    navigateToFeatureCountOnHubWithArrows(75, keyPress)
                 }
                 .onKeyPress(characters: .alphanumerics) { keyPress in
-                    return navigateToFeatureCountOnHubWithPrefix(75, keyPress)
+                    navigateToFeatureCountOnHubWithPrefix(75, keyPress)
                 }
             }
-            
+
             Spacer()
-            
+
             Button(action: {
                 copyToClipboard("\(includeHash ? "#" : "")click_featured_\(selectedFeature.feature.userAlias)")
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the hub feature tag for the user to the clipboard")
@@ -687,24 +687,24 @@ struct FeatureEditor: View {
             }
         }
     }
-    
+
     fileprivate func ClickUserFeaturedView() -> some View {
         VStack {
             // User featured on page
             ClickUserFeaturedOnPageView()
-            
+
             //  User featured on hub
             ClickUserFeaturedOnHubView()
         }
     }
-    
+
     fileprivate func SnapUserFeaturedOnPageView() -> some View {
         HStack(alignment: .center) {
             Spacer()
                 .frame(width: labelWidth + 16, height: 28, alignment: .trailing)
-            
+
             Toggle(
-                isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { value in
+                isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { _ in
                     markDocumentDirty()
                 }
             ) {
@@ -717,15 +717,15 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .userHasFeaturesOnPage)
             .onKeyPress(.space) {
-                selectedFeature.feature.userHasFeaturesOnPage.toggle();
+                selectedFeature.feature.userHasFeaturesOnPage.toggle()
                 markDocumentDirty()
                 return .handled
             }
-            
+
             Text("|")
                 .padding([.leading, .trailing])
                 .opacity(selectedFeature.feature.userHasFeaturesOnPage ? 1 : 0)
-            
+
             if selectedFeature.feature.userHasFeaturesOnPage {
                 ValidationLabel(
                     "Last featured:",
@@ -734,7 +734,7 @@ struct FeatureEditor: View {
                 )
                 TextField(
                     "last date featured",
-                    text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in
+                    text: $selectedFeature.feature.lastFeaturedOnPage.onChange { _ in
                         markDocumentDirty()
                     }
                 )
@@ -745,19 +745,19 @@ struct FeatureEditor: View {
                 .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
+
                 Text("|")
                     .padding([.leading, .trailing])
-                
+
                 Text("Page feature count:")
                 Picker(
                     "",
-                    selection: $selectedFeature.feature.featureCountOnPage.onChange { value in
+                    selection: $selectedFeature.feature.featureCountOnPage.onChange { _ in
                         navigateToFeatureCountOnPage(20, .same)
                     }
                 ) {
                     Text("many").tag("many")
-                    ForEach(0..<21) { value in
+                    ForEach(0 ..< 21) { value in
                         Text("\(value)").tag("\(value)")
                     }
                 }
@@ -767,24 +767,24 @@ struct FeatureEditor: View {
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnPage)
                 .onKeyPress(phases: .down) { keyPress in
-                    return navigateToFeatureCountOnPageWithArrows(20, keyPress)
+                    navigateToFeatureCountOnPageWithArrows(20, keyPress)
                 }
                 .onKeyPress(characters: .alphanumerics) { keyPress in
-                    return navigateToFeatureCountOnPageWithPrefix(20, keyPress)
+                    navigateToFeatureCountOnPageWithPrefix(20, keyPress)
                 }
-                
+
                 Text("|")
                     .padding([.leading, .trailing])
-                
+
                 Text("RAW feature count:")
                 Picker(
                     "",
-                    selection: $selectedFeature.feature.featureCountOnRawPage.onChange { value in
+                    selection: $selectedFeature.feature.featureCountOnRawPage.onChange { _ in
                         navigateToFeatureCountOnRawPage(20, .same)
                     }
                 ) {
                     Text("many").tag("many")
-                    ForEach(0..<21) { value in
+                    ForEach(0 ..< 21) { value in
                         Text("\(value)").tag("\(value)")
                     }
                 }
@@ -794,15 +794,15 @@ struct FeatureEditor: View {
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnRawPage)
                 .onKeyPress(phases: .down) { keyPress in
-                    return navigateToFeatureCountOnRawPageWithArrows(20, keyPress)
+                    navigateToFeatureCountOnRawPageWithArrows(20, keyPress)
                 }
                 .onKeyPress(characters: .alphanumerics) { keyPress in
-                    return navigateToFeatureCountOnRawPageWithPrefix(20, keyPress)
+                    navigateToFeatureCountOnRawPageWithPrefix(20, keyPress)
                 }
             }
-            
+
             Spacer()
-            
+
             Button(action: {
                 copyToClipboard(
                     "\(includeHash ? "#" : "")snap_\(selectedPage.pageName ?? selectedPage.name)_\(selectedFeature.feature.userAlias)"
@@ -823,7 +823,7 @@ struct FeatureEditor: View {
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard")
                 return .handled
             }
-            
+
             Button(action: {
                 copyToClipboard(
                     "\(includeHash ? "#" : "")raw_\(selectedPage.pageName ?? selectedPage.name)_\(selectedFeature.feature.userAlias)"
@@ -846,14 +846,14 @@ struct FeatureEditor: View {
             }
         }
     }
-    
+
     fileprivate func SnapUserFeaturedOnHubView() -> some View {
         HStack(alignment: .center) {
             Spacer()
                 .frame(width: labelWidth + 16, height: 28, alignment: .trailing)
-            
+
             Toggle(
-                isOn: $selectedFeature.feature.userHasFeaturesOnHub.onChange { value in
+                isOn: $selectedFeature.feature.userHasFeaturesOnHub.onChange { _ in
                     markDocumentDirty()
                 }
             ) {
@@ -866,15 +866,15 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .userHasFeaturesOnHub)
             .onKeyPress(.space) {
-                selectedFeature.feature.userHasFeaturesOnHub.toggle();
+                selectedFeature.feature.userHasFeaturesOnHub.toggle()
                 markDocumentDirty()
                 return .handled
             }
-            
+
             Text("|")
                 .padding([.leading, .trailing])
                 .opacity(selectedFeature.feature.userHasFeaturesOnHub ? 1 : 0)
-            
+
             if selectedFeature.feature.userHasFeaturesOnHub {
                 ValidationLabel(
                     "Last featured:",
@@ -883,7 +883,7 @@ struct FeatureEditor: View {
                 )
                 TextField(
                     "last date featured",
-                    text: $selectedFeature.feature.lastFeaturedOnHub.onChange { value in
+                    text: $selectedFeature.feature.lastFeaturedOnHub.onChange { _ in
                         markDocumentDirty()
                     }
                 )
@@ -894,10 +894,10 @@ struct FeatureEditor: View {
                 .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
+
                 TextField(
                     "on page",
-                    text: $selectedFeature.feature.lastFeaturedPage.onChange { value in
+                    text: $selectedFeature.feature.lastFeaturedPage.onChange { _ in
                         markDocumentDirty()
                     }
                 )
@@ -908,19 +908,19 @@ struct FeatureEditor: View {
                 .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
+
                 Text("|")
                     .padding([.leading, .trailing])
-                
+
                 Text("Snap feature count:")
                 Picker(
                     "",
-                    selection: $selectedFeature.feature.featureCountOnHub.onChange { value in
+                    selection: $selectedFeature.feature.featureCountOnHub.onChange { _ in
                         navigateToFeatureCountOnHub(20, .same)
                     }
                 ) {
                     Text("many").tag("many")
-                    ForEach(0..<21) { value in
+                    ForEach(0 ..< 21) { value in
                         Text("\(value)").tag("\(value)")
                     }
                 }
@@ -930,24 +930,24 @@ struct FeatureEditor: View {
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnHub)
                 .onKeyPress(phases: .down) { keyPress in
-                    return navigateToFeatureCountOnHubWithArrows(20, keyPress)
+                    navigateToFeatureCountOnHubWithArrows(20, keyPress)
                 }
                 .onKeyPress(characters: .alphanumerics) { keyPress in
-                    return navigateToFeatureCountOnHubWithPrefix(20, keyPress)
+                    navigateToFeatureCountOnHubWithPrefix(20, keyPress)
                 }
-                
+
                 Text("|")
                     .padding([.leading, .trailing])
-                
+
                 Text("RAW feature count:")
                 Picker(
                     "",
-                    selection: $selectedFeature.feature.featureCountOnRawHub.onChange { value in
+                    selection: $selectedFeature.feature.featureCountOnRawHub.onChange { _ in
                         navigateToFeatureCountOnRawHub(20, .same)
                     }
                 ) {
                     Text("many").tag("many")
-                    ForEach(0..<21) { value in
+                    ForEach(0 ..< 21) { value in
                         Text("\(value)").tag("\(value)")
                     }
                 }
@@ -957,15 +957,15 @@ struct FeatureEditor: View {
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnRawHub)
                 .onKeyPress(phases: .down) { keyPress in
-                    return navigateToFeatureCountOnRawHubWithArrows(20, keyPress)
+                    navigateToFeatureCountOnRawHubWithArrows(20, keyPress)
                 }
                 .onKeyPress(characters: .alphanumerics) { keyPress in
-                    return navigateToFeatureCountOnRawHubWithPrefix(20, keyPress)
+                    navigateToFeatureCountOnRawHubWithPrefix(20, keyPress)
                 }
             }
-            
+
             Spacer()
-            
+
             Button(action: {
                 copyToClipboard("\(includeHash ? "#" : "")snap_featured_\(selectedFeature.feature.userAlias)")
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard")
@@ -982,7 +982,7 @@ struct FeatureEditor: View {
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard")
                 return .handled
             }
-            
+
             Button(action: {
                 copyToClipboard("\(includeHash ? "#" : "")raw_featured_\(selectedFeature.feature.userAlias)")
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the RAW hub feature tag for the user to the clipboard")
@@ -1001,24 +1001,24 @@ struct FeatureEditor: View {
             }
         }
     }
-    
+
     fileprivate func SnapUserFeaturedView() -> some View {
         VStack {
             // User featured on page
             SnapUserFeaturedOnPageView()
-            
+
             // User featured on hub
             SnapUserFeaturedOnHubView()
         }
     }
-    
+
     fileprivate func OtherUserFeaturedOnPageView() -> some View {
         HStack(alignment: .center) {
             Spacer()
                 .frame(width: labelWidth + 16, height: 28, alignment: .trailing)
-            
+
             Toggle(
-                isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { value in
+                isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { _ in
                     markDocumentDirty()
                 }
             ) {
@@ -1031,15 +1031,15 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .userHasFeaturesOnPage)
             .onKeyPress(.space) {
-                selectedFeature.feature.userHasFeaturesOnPage.toggle();
+                selectedFeature.feature.userHasFeaturesOnPage.toggle()
                 markDocumentDirty()
                 return .handled
             }
-            
+
             Text("|")
                 .padding([.leading, .trailing])
                 .opacity(selectedFeature.feature.userHasFeaturesOnPage ? 1 : 0)
-            
+
             if selectedFeature.feature.userHasFeaturesOnPage {
                 ValidationLabel(
                     "Last featured:",
@@ -1048,7 +1048,7 @@ struct FeatureEditor: View {
                 )
                 TextField(
                     "last date featured",
-                    text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in
+                    text: $selectedFeature.feature.lastFeaturedOnPage.onChange { _ in
                         markDocumentDirty()
                     }
                 )
@@ -1059,19 +1059,19 @@ struct FeatureEditor: View {
                 .background(Color.controlBackground.opacity(0.5))
                 .border(Color.gray.opacity(0.25))
                 .cornerRadius(4)
-                
+
                 Text("|")
                     .padding([.leading, .trailing])
-                
+
                 Text("Page feature count:")
                 Picker(
                     "",
-                    selection: $selectedFeature.feature.featureCountOnPage.onChange { value in
+                    selection: $selectedFeature.feature.featureCountOnPage.onChange { _ in
                         navigateToFeatureCountOnPage(75, .same)
                     }
                 ) {
                     Text("many").tag("many")
-                    ForEach(0..<76) { value in
+                    ForEach(0 ..< 76) { value in
                         Text("\(value)").tag("\(value)")
                     }
                 }
@@ -1082,15 +1082,15 @@ struct FeatureEditor: View {
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnPage)
                 .onKeyPress(phases: .down) { keyPress in
-                    return navigateToFeatureCountOnPageWithArrows(75, keyPress)
+                    navigateToFeatureCountOnPageWithArrows(75, keyPress)
                 }
                 .onKeyPress(characters: .alphanumerics) { keyPress in
-                    return navigateToFeatureCountOnPageWithPrefix(75, keyPress)
+                    navigateToFeatureCountOnPageWithPrefix(75, keyPress)
                 }
             }
-            
+
             Spacer()
-            
+
             Button(action: {
                 copyToClipboard("\(includeHash ? "#" : "")\(selectedPage.name)_\(selectedFeature.feature.userAlias)")
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
@@ -1109,22 +1109,22 @@ struct FeatureEditor: View {
             }
         }
     }
-    
+
     fileprivate func OtherUserFeaturedView() -> some View {
         VStack {
             // User featured on page
             OtherUserFeaturedOnPageView()
         }
     }
-    
+
     fileprivate func VerificationResultsView() -> some View {
         HStack(alignment: .center) {
             Text("Validation:")
                 .frame(width: labelWidth, alignment: .trailing)
                 .padding([.trailing], 8)
-            
+
             Toggle(
-                isOn: $selectedFeature.feature.tooSoonToFeatureUser.onChange { value in
+                isOn: $selectedFeature.feature.tooSoonToFeatureUser.onChange { _ in
                     updateList()
                     markDocumentDirty()
                 }
@@ -1138,19 +1138,19 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .tooSoonToFeatureUser)
             .onKeyPress(.space) {
-                selectedFeature.feature.tooSoonToFeatureUser.toggle();
+                selectedFeature.feature.tooSoonToFeatureUser.toggle()
                 updateList()
                 markDocumentDirty()
                 return .handled
             }
-            
+
             Text("|")
                 .padding([.leading, .trailing])
-            
+
             Text("TinEye:")
             Picker(
                 "",
-                selection: $selectedFeature.feature.tinEyeResults.onChange { value in
+                selection: $selectedFeature.feature.tinEyeResults.onChange { _ in
                     navigateToTinEyeResult(.same)
                 }
             ) {
@@ -1166,19 +1166,19 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .tinEyeResults)
             .onKeyPress(phases: .down) { keyPress in
-                return navigateToTinEyeResultWithArrows(keyPress)
+                navigateToTinEyeResultWithArrows(keyPress)
             }
             .onKeyPress(characters: .alphanumerics) { keyPress in
-                return navigateToTinEyeResultWithPrefix(keyPress)
+                navigateToTinEyeResultWithPrefix(keyPress)
             }
-            
+
             Text("|")
                 .padding([.leading, .trailing])
-            
+
             Text("AI Check:")
             Picker(
                 "",
-                selection: $selectedFeature.feature.aiCheckResults.onChange { value in
+                selection: $selectedFeature.feature.aiCheckResults.onChange { _ in
                     navigateToAiCheckResult(.same)
                 }
             ) {
@@ -1194,17 +1194,17 @@ struct FeatureEditor: View {
             .focusable()
             .focused(focusedField, equals: .aiCheckResults)
             .onKeyPress(phases: .down) { keyPress in
-                return navigateToAiCheckResultWithArrows(keyPress)
+                navigateToAiCheckResultWithArrows(keyPress)
             }
             .onKeyPress(characters: .alphanumerics) { keyPress in
-                return navigateToAiCheckResultWithPrefix(keyPress)
+                navigateToAiCheckResultWithPrefix(keyPress)
             }
         }
     }
-    
+
     // MARK: - user level navigation
-    
-    private func navigateToUserLevel( _ direction: Direction) {
+
+    private func navigateToUserLevel(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(MembershipCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.userLevel, direction)
         if change {
             if direction != .same {
@@ -1234,7 +1234,7 @@ struct FeatureEditor: View {
     }
 
     // MARK: - tag source navigation
-    
+
     private func navigateToTagSource(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(TagSourceCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.tagSource, direction, allowWrap: false)
         if change {
@@ -1265,9 +1265,9 @@ struct FeatureEditor: View {
     }
 
     // MARK: - feature count on page navigation
-    
+
     private func navigateToFeatureCountOnPage(_ maxCount: Int, _ direction: Direction) {
-        let (change, newValue) = navigateGeneric(["many"] + (0..<(maxCount+1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnPage, direction, allowWrap: false)
+        let (change, newValue) = navigateGeneric(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnPage, direction, allowWrap: false)
         if change {
             if direction != .same {
                 selectedFeature.feature.featureCountOnPage = newValue
@@ -1286,7 +1286,7 @@ struct FeatureEditor: View {
     }
 
     private func navigateToFeatureCountOnPageWithPrefix(_ maxCount: Int, _ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(["many"] + (0..<(maxCount+1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnPage, keyPress.characters.lowercased())
+        let (change, newValue) = navigateGenericWithPrefix(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnPage, keyPress.characters.lowercased())
         if change {
             selectedFeature.feature.featureCountOnPage = newValue
             markDocumentDirty()
@@ -1296,9 +1296,9 @@ struct FeatureEditor: View {
     }
 
     // MARK: - feature count on hub navigation
-    
+
     private func navigateToFeatureCountOnHub(_ maxCount: Int, _ direction: Direction) {
-        let (change, newValue) = navigateGeneric(["many"] + (0..<(maxCount+1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnHub, direction, allowWrap: false)
+        let (change, newValue) = navigateGeneric(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnHub, direction, allowWrap: false)
         if change {
             if direction != .same {
                 selectedFeature.feature.featureCountOnHub = newValue
@@ -1317,7 +1317,7 @@ struct FeatureEditor: View {
     }
 
     private func navigateToFeatureCountOnHubWithPrefix(_ maxCount: Int, _ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(["many"] + (0..<(maxCount+1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnHub, keyPress.characters.lowercased())
+        let (change, newValue) = navigateGenericWithPrefix(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnHub, keyPress.characters.lowercased())
         if change {
             selectedFeature.feature.featureCountOnHub = newValue
             markDocumentDirty()
@@ -1327,9 +1327,9 @@ struct FeatureEditor: View {
     }
 
     // MARK: - feature count on raw page navigation
-    
+
     private func navigateToFeatureCountOnRawPage(_ maxCount: Int, _ direction: Direction) {
-        let (change, newValue) = navigateGeneric(["many"] + (0..<(maxCount+1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawPage, direction, allowWrap: false)
+        let (change, newValue) = navigateGeneric(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawPage, direction, allowWrap: false)
         if change {
             if direction != .same {
                 selectedFeature.feature.featureCountOnRawPage = newValue
@@ -1348,7 +1348,7 @@ struct FeatureEditor: View {
     }
 
     private func navigateToFeatureCountOnRawPageWithPrefix(_ maxCount: Int, _ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(["many"] + (0..<(maxCount+1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawPage, keyPress.characters.lowercased())
+        let (change, newValue) = navigateGenericWithPrefix(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawPage, keyPress.characters.lowercased())
         if change {
             selectedFeature.feature.featureCountOnRawPage = newValue
             markDocumentDirty()
@@ -1358,9 +1358,9 @@ struct FeatureEditor: View {
     }
 
     // MARK: - feature count on raw hub navigation
-    
+
     private func navigateToFeatureCountOnRawHub(_ maxCount: Int, _ direction: Direction) {
-        let (change, newValue) = navigateGeneric(["many"] + (0..<(maxCount+1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawHub, direction, allowWrap: false)
+        let (change, newValue) = navigateGeneric(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawHub, direction, allowWrap: false)
         if change {
             if direction != .same {
                 selectedFeature.feature.featureCountOnRawHub = newValue
@@ -1379,7 +1379,7 @@ struct FeatureEditor: View {
     }
 
     private func navigateToFeatureCountOnRawHubWithPrefix(_ maxCount: Int, _ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(["many"] + (0..<(maxCount+1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawHub, keyPress.characters.lowercased())
+        let (change, newValue) = navigateGenericWithPrefix(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawHub, keyPress.characters.lowercased())
         if change {
             selectedFeature.feature.featureCountOnRawHub = newValue
             markDocumentDirty()
@@ -1389,7 +1389,7 @@ struct FeatureEditor: View {
     }
 
     // MARK: - tin eye result navigation
-    
+
     private func navigateToTinEyeResult(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(TinEyeResults.allCases, selectedFeature.feature.tinEyeResults, direction)
         if change {
@@ -1422,7 +1422,7 @@ struct FeatureEditor: View {
     }
 
     // MARK: - ai check result navigation
-    
+
     private func navigateToAiCheckResult(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(AiCheckResults.allCases, selectedFeature.feature.aiCheckResults, direction)
         if change {
@@ -1457,7 +1457,7 @@ struct FeatureEditor: View {
 
 extension FeatureEditor {
     // MARK: - clipboard utilities
-    
+
     private func pasteClipboardToPostLink() {
         let linkText = stringFromClipboard().trimmingCharacters(in: .whitespacesAndNewlines)
         if linkText.starts(with: "https://vero.co/") {

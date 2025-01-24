@@ -100,7 +100,7 @@ struct FeatureLoggingApp: App {
                     )
                     .disabled(checkingForUpdates)
                     .keyboardShortcut("u", modifiers: [.command, .control])
-                    
+
                     Divider()
 #endif
 
@@ -116,7 +116,7 @@ struct FeatureLoggingApp: App {
                         }
                     )
                     .keyboardShortcut("t", modifiers: [.command])
-                    
+
                     Divider()
                 })
             CommandGroup(replacing: CommandGroupPlacement.newItem) {
@@ -130,7 +130,7 @@ struct FeatureLoggingApp: App {
                     }
                 )
                 .keyboardShortcut("n", modifiers: .command)
-                
+
                 Button(
                     action: {
                         logger.verbose("Open log from menu", context: "User")
@@ -141,9 +141,9 @@ struct FeatureLoggingApp: App {
                     }
                 )
                 .keyboardShortcut("o", modifiers: .command)
-                
+
                 Divider()
-                
+
                 Button(
                     action: {
                         logger.verbose("Save log from menu", context: "User")
@@ -154,7 +154,7 @@ struct FeatureLoggingApp: App {
                     }
                 )
                 .keyboardShortcut("s", modifiers: .command)
-                
+
                 Button(
                     action: {
                         logger.verbose("Save report from menu", context: "User")
@@ -165,9 +165,9 @@ struct FeatureLoggingApp: App {
                     }
                 )
                 .keyboardShortcut("s", modifiers: [.command, .shift])
-                
+
                 Divider()
-                
+
                 Button(
                     action: {
                         if cullingApp.isEmpty {
@@ -184,7 +184,7 @@ struct FeatureLoggingApp: App {
                 )
                 .keyboardShortcut("c", modifiers: [.command, .shift])
                 .disabled(cullingApp.isEmpty)
-                
+
                 Button(
                     action: {
                         if aiCheckApp.isEmpty {
@@ -201,9 +201,9 @@ struct FeatureLoggingApp: App {
                 )
                 .keyboardShortcut("a", modifiers: [.command, .shift])
                 .disabled(aiCheckApp.isEmpty)
-                
+
                 Divider()
-                
+
                 Button(
                     action: {
                         logger.verbose("Manual reload pages catalog", context: "User")
@@ -218,34 +218,34 @@ struct FeatureLoggingApp: App {
                 .keyboardShortcut("r", modifiers: [.command, .shift])
             }
         }
-        
+
         // About view window with id "about"
         Window("About \(Bundle.main.displayName ?? "Feature Logging")", id: "about") {
             AboutView(packages: [
                 "Kingfisher": [
-                    "Wei Wang ([Github profile](https://github.com/onevcat))"
+                    "Wei Wang ([Github profile](https://github.com/onevcat))",
                 ],
                 "SwiftSoup": [
-                    "Nabil Chatbi ([Github profile](https://github.com/scinfu))"
+                    "Nabil Chatbi ([Github profile](https://github.com/scinfu))",
                 ],
                 "SwiftUICharts": [
-                    "Will Dale ([Github profile](https://github.com/willdale))"
+                    "Will Dale ([Github profile](https://github.com/willdale))",
                 ],
                 "SwiftyBeaver": [
-                    "SwiftyBeaver ([Github profile](https://github.com/SwiftyBeaver))"
+                    "SwiftyBeaver ([Github profile](https://github.com/SwiftyBeaver))",
                 ],
                 "SystemColors": [
-                    "Denis ([Github profile](https://github.com/diniska))"
+                    "Denis ([Github profile](https://github.com/diniska))",
                 ],
                 "ToastView-SwiftUI": [
                     "Gaurav Tak ([Github profile](https://github.com/gauravtakroro))",
-                    "modified by AndyDragon ([Github profile](https://github.com/AndyDragon))"
-                ]
+                    "modified by AndyDragon ([Github profile](https://github.com/AndyDragon))",
+                ],
             ])
         }
         .defaultPosition(.center)
         .windowResizability(.contentSize)
-        
+
 #if os(macOS)
         Settings {
             SettingsPane()
@@ -261,7 +261,7 @@ struct FeatureLoggingApp: App {
 
     class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         @EnvironmentObject var commandModel: AppCommandModel
-        
+
         private let logger = SwiftyBeaver.self
 
         func applicationWillFinishLaunching(_ notification: Notification) {

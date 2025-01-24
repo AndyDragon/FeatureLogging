@@ -12,20 +12,20 @@ import SwiftyBeaver
 
 struct PostDownloaderImageView: View {
     @Environment(\.openURL) private var openURL
-    
+
     @State private var width = 0
     @State private var height = 0
     @State private var data: Data?
     @State private var fileExtension = ".png"
     @State private var scale: Float = 0.000000001
-    
+
     var viewModel: ContentView.ViewModel
     var imageUrl: URL
     var userName: String
     var index: Int
-    
+
     private let logger = SwiftyBeaver.self
-    
+
     var body: some View {
         VStack {
             VStack {
@@ -54,7 +54,7 @@ struct PostDownloaderImageView: View {
                 .scaleEffect(CGFloat(scale))
                 .frame(width: 400, height: 360)
                 .clipped()
-                Slider(value: $scale, in: 0.01...2)
+                Slider(value: $scale, in: 0.01 ... 2)
                 Text("Size: \(width)px x \(height)px")
                     .foregroundStyle(.black, .secondary)
             }
@@ -82,10 +82,10 @@ struct PostDownloaderImageView: View {
                     }
                     return .handled
                 }
-                
+
                 Spacer()
                     .frame(width: 10)
-                
+
                 Button(action: {
                     saveImage()
                 }) {
@@ -103,10 +103,10 @@ struct PostDownloaderImageView: View {
                     }
                     return .handled
                 }
-                
+
                 Spacer()
                     .frame(width: 10)
-                
+
                 Button(action: {
                     logger.verbose("Tapped copy URL for image URL", context: "User")
                     copyToClipboard(imageUrl.absoluteString)
@@ -125,10 +125,10 @@ struct PostDownloaderImageView: View {
                     viewModel.showSuccessToast("Copied to clipboard", "Copied the image URL to the clipboard")
                     return .handled
                 }
-                
+
                 Spacer()
                     .frame(width: 10)
-                
+
                 Button(action: {
                     logger.verbose("Tapped launch for image URL", context: "User")
                     openURL(imageUrl)
@@ -152,7 +152,7 @@ struct PostDownloaderImageView: View {
 
 extension PostDownloaderImageView {
     // MARK: - utilities
-    
+
     private func saveImage() {
         let folderURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("VERO")
         do {

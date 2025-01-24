@@ -17,11 +17,11 @@ enum AiVerdict {
 
 struct ImageValidationView: View {
     @Environment(\.openURL) private var openURL
-    
+
     private var viewModel: ContentView.ViewModel
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var updateList: () -> Void
-    
+
     @State private var aiVerdictString = ""
     @State private var aiVerdict = AiVerdict.indeterminate
     @State private var returnedJson = ""
@@ -30,10 +30,10 @@ struct ImageValidationView: View {
     @State private var loadedImageUrl: URL?
     @State private var isLoading = false
     @State private var error: Error?
-    
+
     private let languagePrefix = Locale.preferredLanguageCode
     private let logger = SwiftyBeaver.self
-    
+
     init(
         _ viewModel: ContentView.ViewModel,
         _ focusedField: FocusState<FocusField?>.Binding,
@@ -43,21 +43,21 @@ struct ImageValidationView: View {
         self.focusedField = focusedField
         self.updateList = updateList
     }
-    
+
     var body: some View {
         ZStack {
             Color.backgroundColor.edgesIgnoringSafeArea(.all)
-            
+
             if viewModel.selectedFeature != nil {
                 let selectedFeature = Binding<ObservableFeatureWrapper>(
                     get: { viewModel.selectedFeature! },
                     set: { viewModel.selectedFeature = $0 }
                 )
-                
+
                 VStack(alignment: .leading) {
                     VStack(alignment: .leading) {
                         ValidationSummaryView(selectedFeature)
-                        
+
                         CustomTabView(tabBarPosition: .top, content: [
                             (
                                 tabText: "TinEye Results",
@@ -70,13 +70,13 @@ struct ImageValidationView: View {
                                 tabIconName: "photo.badge.checkmark.fill",
                                 tabIconColors: (.secondary, .accentColor),
                                 view: AnyView(HiveAiResultsView())
-                            )
+                            ),
                         ])
                     }
-                    
+
                     Spacer()
                         .frame(height: 8)
-                    
+
                     HStack {
                         Image(systemName: uploadToServer != nil ? "arrow.triangle.2.circlepath.icloud" : "icloud")
                             .foregroundColor(uploadToServer != nil ? .yellow : .green)
@@ -119,9 +119,9 @@ struct ImageValidationView: View {
             prepareHiveResults()
         }
     }
-    
+
     // MARK: - sub views
-    
+
     private func ValidationSummaryView(_ selectedFeature: Binding<ObservableFeatureWrapper>) -> some View {
         HStack(alignment: .center) {
             Spacer()
@@ -129,7 +129,7 @@ struct ImageValidationView: View {
             Text("TinEye:")
             Picker(
                 "",
-                selection: selectedFeature.feature.tinEyeResults.onChange { value in
+                selection: selectedFeature.feature.tinEyeResults.onChange { _ in
                     navigateToTinEyeResult(selectedFeature, .same)
                 }
             ) {
@@ -146,10 +146,10 @@ struct ImageValidationView: View {
             .focusable()
             .focused(focusedField, equals: .tinEyeResults)
             .onKeyPress(phases: .down) { keyPress in
-                return navigateToTinEyeResultWithArrows(selectedFeature, keyPress)
+                navigateToTinEyeResultWithArrows(selectedFeature, keyPress)
             }
             .onKeyPress(characters: .alphanumerics) { keyPress in
-                return navigateToTinEyeResultWithPrefix(selectedFeature, keyPress)
+                navigateToTinEyeResultWithPrefix(selectedFeature, keyPress)
             }
 
             Text("|")
@@ -158,7 +158,7 @@ struct ImageValidationView: View {
             Text("AI Check:")
             Picker(
                 "",
-                selection: selectedFeature.feature.aiCheckResults.onChange { value in
+                selection: selectedFeature.feature.aiCheckResults.onChange { _ in
                     navigateToAiCheckResult(selectedFeature, .same)
                 }
             ) {
@@ -175,10 +175,10 @@ struct ImageValidationView: View {
             .focusable()
             .focused(focusedField, equals: .aiCheckResults)
             .onKeyPress(phases: .down) { keyPress in
-                return navigateToAiCheckResultWithArrows(selectedFeature, keyPress)
+                navigateToAiCheckResultWithArrows(selectedFeature, keyPress)
             }
             .onKeyPress(phases: .down) { keyPress in
-                return navigateToAiCheckResultWithPrefix(selectedFeature, keyPress)
+                navigateToAiCheckResultWithPrefix(selectedFeature, keyPress)
             }
 
             if !aiVerdictString.isEmpty {
@@ -271,7 +271,7 @@ struct ImageValidationView: View {
             Spacer()
         }
     }
-    
+
     // MARK: - tineye results navigation
 
     private func navigateToTinEyeResult(_ selectedFeature: Binding<ObservableFeatureWrapper>, _ direction: Direction) {
@@ -371,7 +371,7 @@ extension ImageValidationView {
         errorFromServer = ""
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-M-d-HH-mm-ss"
-        sendRequestToHive() { data, urlResponse, error in
+        sendRequestToHive { data, _, error in
             uploadToServer = nil
             if let errorResult = error {
                 errorFromServer = "Error result: " + errorResult.localizedDescription
@@ -380,13 +380,12 @@ extension ImageValidationView {
                 viewModel.dismissAllNonBlockingToasts(includeProgress: true)
             } else if let dataResult = data {
                 logger.verbose("Received result from HIVE", context: "System")
-                do
-                {
+                do {
                     returnedJson = String(data: dataResult, encoding: .utf8) ?? ""
                     let decoder = JSONDecoder()
                     let results = try decoder.decode(HiveResponse.self, from: dataResult)
                     if results.status_code >= 200 && results.status_code <= 299 {
-                        if let verdictClass = results.data.classes.first(where : { $0.class == "not_ai_generated" }) {
+                        if let verdictClass = results.data.classes.first(where: { $0.class == "not_ai_generated" }) {
                             aiVerdictString = "\(verdictClass.score > 0.8 ? "Not AI" : verdictClass.score < 0.5 ? "AI" : "Indeterminate") (\(String(format: "%.1f", verdictClass.score * 100)) % not AI)"
                             aiVerdict = verdictClass.score > 0.8 ? .notAi : verdictClass.score < 0.5 ? .ai : .indeterminate
                         }
@@ -401,8 +400,7 @@ extension ImageValidationView {
                     logger.verbose("Parsed result from HIVE", context: "System")
                 } catch {
                     logger.error("Error parsing results from HIVE: \(error.localizedDescription)", context: "System")
-                    do
-                    {
+                    do {
                         let decoder = JSONDecoder()
                         let results = try decoder.decode(ServerMessage.self, from: dataResult)
                         errorFromServer = results.message

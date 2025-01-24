@@ -17,7 +17,7 @@ struct AboutView: View {
 
     @State private var showCredits = false
 
-    let packages: [String:[String]]
+    let packages: [String: [String]]
 
     private let year = Calendar(identifier: .gregorian).dateComponents([.year], from: Date()).year ?? 2024
     private let logger = SwiftyBeaver.self
@@ -40,13 +40,13 @@ struct AboutView: View {
                     Text("AndyDragon Software")
                         .font(.title3)
                         .fontWeight(.bold)
-                        .foregroundStyle(Color(red: 0.1, green: 0.5, blue: 0.6 ))
+                        .foregroundStyle(Color(red: 0.1, green: 0.5, blue: 0.6))
                     Text("Copyright © 2024\((year > 2024) ? "-\(year)" : "")")
                         .font(.title3)
-                        .foregroundStyle(Color(red: 0.1, green: 0.5, blue: 0.6 ))
+                        .foregroundStyle(Color(red: 0.1, green: 0.5, blue: 0.6))
                     Text("All rights reserved.")
                         .font(.title3)
-                        .foregroundStyle(Color(red: 0.1, green: 0.5, blue: 0.6 ))
+                        .foregroundStyle(Color(red: 0.1, green: 0.5, blue: 0.6))
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -63,7 +63,7 @@ struct AboutView: View {
                     Text(showCredits ? "This app uses the following packages / code:" : "")
                         .font(.footnote)
                         .fontWeight(.bold)
-                        .foregroundStyle(isDarkModeOn ? Color(red: 0.5, green: 0.1, blue: 0.6 ) : Color(red: 0.8, green: 0.4, blue: 0.9))
+                        .foregroundStyle(isDarkModeOn ? Color(red: 0.5, green: 0.1, blue: 0.6) : Color(red: 0.8, green: 0.4, blue: 0.9))
                         .animation(.easeIn(duration: showCredits ? 1.6 : 0).delay(showCredits ? 0.1 : 0), value: showCredits)
                         .padding(.top, 4)
                     Spacer()

@@ -73,7 +73,7 @@ struct StatisticsContentView: View {
                         isPresented: $showDirectoryPicker, allowedContentTypes: [.folder],
                         onCompletion: { result in
                             switch result {
-                            case .success(let folder):
+                            case let .success(folder):
                                 selectedPage = ""
                                 pickedFeaturePieChart = nil
                                 firstFeaturePieChart = nil
@@ -111,7 +111,7 @@ struct StatisticsContentView: View {
                                     debugPrint(error.localizedDescription)
                                 }
                                 folder.stopAccessingSecurityScopedResource()
-                            case .failure(let error):
+                            case let .failure(error):
                                 logger.error("Failed to pick folder for stats: \(error.localizedDescription)", context: "System")
                                 debugPrint(error)
                             }
@@ -130,7 +130,7 @@ struct StatisticsContentView: View {
                         Text("Choose a page:")
                         Picker(
                             "",
-                            selection: $selectedPage.onChange({ page in
+                            selection: $selectedPage.onChange({ _ in
                                 navigateToStatsPage(.same)
                             })
                         ) {
@@ -150,20 +150,19 @@ struct StatisticsContentView: View {
                         .accentColor(Color.accentColor)
                         .foregroundStyle(Color.accentColor, Color.label)
                         .onKeyPress(phases: .down) { keyPress in
-                            return navigateToStatsPageWithArrows(keyPress)
+                            navigateToStatsPageWithArrows(keyPress)
                         }
                         .onKeyPress(characters: .alphanumerics) { keyPress in
-                            return navigateToStatsPageWithPrefix(keyPress)
+                            navigateToStatsPageWithPrefix(keyPress)
                         }
                     }
                 }
                 if let pickedFeaturePieChart,
-                    let firstFeaturePieChart,
-                    let userLevelPieChart,
-                    let photoFeaturedPieChart,
-                    let pageFeatureCountPieChart,
-                    let hubFeatureCountPieChart
-                {
+                   let firstFeaturePieChart,
+                   let userLevelPieChart,
+                   let photoFeaturedPieChart,
+                   let pageFeatureCountPieChart,
+                   let hubFeatureCountPieChart {
                     ZStack {
                         RoundedRectangle(cornerRadius: 8).fill(Color(red: 0.1, green: 0.1, blue: 0.16))
 
@@ -260,7 +259,7 @@ struct StatisticsContentView: View {
             }
             return log.log.page == selectedPage
         })
-        
+
         pickedFeaturePieChart = makePickedFeatureChartData(pageLogs)
         firstFeaturePieChart = makeFirstFeatureChartData(pageLogs)
         photoFeaturedPieChart = makePhotoFeaturedChartData(pageLogs)
@@ -268,9 +267,9 @@ struct StatisticsContentView: View {
         pageFeatureCountPieChart = makePageFeatureCountChartData(pageLogs)
         hubFeatureCountPieChart = makeHubFeatureCountChartData(pageLogs)
     }
-    
+
     // MARK: - stats page navigation
-    
+
     private func navigateToStatsPage(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(pages, selectedPage, direction)
         if change {
@@ -299,7 +298,7 @@ struct StatisticsContentView: View {
     }
 
     // MARK: - chart data factories
-    
+
     private func makePickedFeatureChartData(_ logs: [LogFile]) -> PieChartData {
         let levelColors = makeLevelColors(1)
         let data = PieDataSet(
@@ -307,7 +306,7 @@ struct StatisticsContentView: View {
                 PieChartDataPoint(
                     value: Double(logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) }).count }),
                     description: "Picked",
-                    colour: levelColors[0])
+                    colour: levelColors[0]),
             ], legendTitle: "??")
         return PieChartData(
             dataSets: data,
@@ -429,7 +428,7 @@ struct StatisticsContentView: View {
     }
 
     // MARK: - utilities
-    
+
     private func isFeaturePicked(_ feature: LogFeature) -> Bool {
         return feature.isPicked && !feature.photoFeaturedOnPage && feature.tinEyeResults != .matchFound && feature.aiCheckResults != .ai && !feature.tooSoonToFeatureUser
     }
@@ -439,7 +438,7 @@ struct StatisticsContentView: View {
             return [Color(red: 0, green: 0, blue: 1)]
         }
         let sliceAmount = 0.8 / Double(slices - 1)
-        return (0..<slices).map { Color(red: 0, green: 0.2 + sliceAmount * Double($0), blue: 1 - sliceAmount * Double($0)) }
+        return (0 ..< slices).map { Color(red: 0, green: 0.2 + sliceAmount * Double($0), blue: 1 - sliceAmount * Double($0)) }
     }
 
     private func makeBucketColors(_ slices: Int) -> [Color] {
@@ -447,7 +446,7 @@ struct StatisticsContentView: View {
             return [Color(red: 0, green: 0, blue: 1)]
         }
         let sliceAmount = 0.8 / Double(slices - 1)
-        return (0..<slices).map { Color(red: 0.2 + sliceAmount * Double($0), green: 0, blue: 1 - sliceAmount * Double($0)) }
+        return (0 ..< slices).map { Color(red: 0.2 + sliceAmount * Double($0), green: 0, blue: 1 - sliceAmount * Double($0)) }
     }
 
     private func nextColor(_ color: Color, _ colors: [Color]) -> Color {
@@ -495,7 +494,7 @@ struct StatisticsContentView: View {
 
     private func binFeatureCount(_ featureCount: Int) -> Int {
         if featureCount == 0 || featureCount == Int.max {
-            return featureCount  // 0 and max are special
+            return featureCount // 0 and max are special
         }
         return Int((featureCount - 1) / 5) * 5 + 1
     }
@@ -504,7 +503,7 @@ struct StatisticsContentView: View {
         return featureCount == Int.max
             ? "Many existing \(bucket) features"
             : featureCount == 0
-                ? "No existing \(bucket) features"
-                : "\(featureCount)-\(featureCount + 4) existing \(bucket) features"
+            ? "No existing \(bucket) features"
+            : "\(featureCount)-\(featureCount + 4) existing \(bucket) features"
     }
 }

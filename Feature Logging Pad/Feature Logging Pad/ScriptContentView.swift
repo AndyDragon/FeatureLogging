@@ -44,11 +44,13 @@ struct ScriptContentView: View {
             && yourFirstNameValidation.valid
             && pageValidation.valid
     }
+
     private var canCopyNewMembershipScript: Bool {
         return newMembership != NewMembershipCase.none
             && newMembershipValidation.valid
             && userNameValidation.valid
     }
+
     private var accordionHeightRatio = 3.5
 
     init(
@@ -86,10 +88,10 @@ struct ScriptContentView: View {
             .sheet(isPresented: $showingPlaceholderSheet) {
                 PlaceholderSheet(
                     placeholders: placeholderSheetCase == .featureScript
-                    ? featureScriptPlaceholders
-                    : placeholderSheetCase == .commentScript
-                    ? commentScriptPlaceholders
-                    : originalPostScriptPlaceholders,
+                        ? featureScriptPlaceholders
+                        : placeholderSheetCase == .commentScript
+                        ? commentScriptPlaceholders
+                        : originalPostScriptPlaceholders,
                     scriptWithPlaceholders: $scriptWithPlaceholders,
                     scriptWithPlaceholdersInPlace: $scriptWithPlaceholdersInPlace,
                     isPresenting: $showingPlaceholderSheet,
@@ -132,7 +134,7 @@ struct ScriptContentView: View {
                             "Copied the \(scriptName) script\(suffix) to the clipboard")
                     })
             }
-            .toolbar() {
+            .toolbar {
                 ToolbarItemGroup(placement: .bottomBar) {
                     if viewModel.pickedFeatures.count >= 2 {
                         Button(action: {
@@ -206,7 +208,7 @@ struct ScriptContentView: View {
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
-                .overlay(VStack{
+                .overlay(VStack {
                     Rectangle()
                         .frame(height: 0.5)
                         .foregroundStyle(Color.gray.opacity(0.25))
@@ -227,7 +229,7 @@ struct ScriptContentView: View {
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
-                .overlay(VStack{
+                .overlay(VStack {
                     Rectangle()
                         .frame(height: 0.5)
                         .foregroundStyle(Color.gray.opacity(0.25))
@@ -331,8 +333,7 @@ struct ScriptContentView: View {
                         featureScriptPlaceholders,
                         [commentScriptPlaceholders, originalPostScriptPlaceholders],
                         force: force,
-                        withPlaceholders: withPlaceholders)
-                    {
+                        withPlaceholders: withPlaceholders) {
                         logger.verbose("Copied the feature script", context: "system")
                         viewModel.showSuccessToast(
                             "Copied",
@@ -358,8 +359,7 @@ struct ScriptContentView: View {
                         commentScriptPlaceholders,
                         [featureScriptPlaceholders, originalPostScriptPlaceholders],
                         force: force,
-                        withPlaceholders: withPlaceholders)
-                    {
+                        withPlaceholders: withPlaceholders) {
                         logger.verbose("Copied the comment script", context: "system")
                         viewModel.showSuccessToast(
                             "Copied",
@@ -385,8 +385,7 @@ struct ScriptContentView: View {
                         originalPostScriptPlaceholders,
                         [featureScriptPlaceholders, commentScriptPlaceholders],
                         force: force,
-                        withPlaceholders: withPlaceholders)
-                    {
+                        withPlaceholders: withPlaceholders) {
                         logger.verbose("Copied the original post script", context: "system")
                         viewModel.showSuccessToast(
                             "Copied",
@@ -590,13 +589,12 @@ struct ScriptContentView: View {
                 let placeholderEntry = placeholders.placeholderDict[placeholder]
                 if placeholderEntry == nil {
                     needEditor = true
-                    var value: String? = nil
+                    var value: String?
                     otherPlaceholders.forEach { sourcePlaceholders in
                         let sourcePlaceholderEntry = sourcePlaceholders.placeholderDict[placeholder]
                         if (value == nil || value!.isEmpty)
                             && sourcePlaceholderEntry != nil
-                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty
-                        {
+                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty {
                             value = sourcePlaceholderEntry?.value
                         }
                     }
@@ -614,13 +612,12 @@ struct ScriptContentView: View {
                 let placeholderEntry = placeholders.longPlaceholderDict[placeholder]
                 if placeholderEntry == nil {
                     needEditor = true
-                    var value: String? = nil
+                    var value: String?
                     otherPlaceholders.forEach { sourcePlaceholders in
                         let sourcePlaceholderEntry = sourcePlaceholders.longPlaceholderDict[placeholder]
                         if (value == nil || value!.isEmpty)
                             && sourcePlaceholderEntry != nil
-                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty
-                        {
+                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty {
                             value = sourcePlaceholderEntry?.value
                         }
                     }
@@ -690,17 +687,17 @@ struct ScriptContentView: View {
                 rawTag: rawTag,
                 communityTag: communityTag,
                 hubTag: hubTag)
-            .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
-            .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
-            .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
-            .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
-            .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString ?? MembershipCase.commonArtist.rawValue)
-            .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
-            .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
-            .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
-            // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
-            .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
+                .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
+                .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
+                .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
+                .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
+                .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString ?? MembershipCase.commonArtist.rawValue)
+                .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
+                .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
+                .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
+                // Special case for 'YOUR FIRST NAME' since it's now autofilled.
+                .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
+                .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
 
             commentScript = getTemplateFromCatalog(
                 "comment",
@@ -709,17 +706,17 @@ struct ScriptContentView: View {
                 rawTag: rawTag,
                 communityTag: communityTag,
                 hubTag: hubTag)
-            .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
-            .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
-            .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
-            .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
-            .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString ?? MembershipCase.commonArtist.rawValue)
-            .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
-            .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
-            .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
-            // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
-            .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
+                .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
+                .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
+                .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
+                .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
+                .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString ?? MembershipCase.commonArtist.rawValue)
+                .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
+                .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
+                .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
+                // Special case for 'YOUR FIRST NAME' since it's now autofilled.
+                .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
+                .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
 
             originalPostScript = getTemplateFromCatalog(
                 "original post",
@@ -728,17 +725,17 @@ struct ScriptContentView: View {
                 rawTag: rawTag,
                 communityTag: communityTag,
                 hubTag: hubTag)
-            .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
-            .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
-            .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
-            .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
-            .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString ?? MembershipCase.commonArtist.rawValue)
-            .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
-            .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
-            .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
-            // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
-            .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
+                .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
+                .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
+                .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
+                .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
+                .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString ?? MembershipCase.commonArtist.rawValue)
+                .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
+                .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
+                .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
+                // Special case for 'YOUR FIRST NAME' since it's now autofilled.
+                .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
+                .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
         }
     }
 

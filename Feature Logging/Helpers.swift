@@ -26,11 +26,11 @@ extension Binding where Value: Equatable {
 extension View {
     @ViewBuilder func onValueChanged<T: Equatable>(value: T, onChange: @escaping (T) -> Void) -> some View {
         if #available(macOS 14.0, *) {
-            self.onChange(of: value) { oldValue, newValue in
+            self.onChange(of: value) { _, newValue in
                 onChange(newValue)
             }
         } else {
-            self.onReceive(Just(value)) { (value) in
+            onReceive(Just(value)) { value in
                 onChange(value)
             }
         }
@@ -62,7 +62,7 @@ func matches(of regex: String, in text: String) -> [String] {
 extension Locale {
     static var preferredLanguageCode: String {
         guard let preferredLanguage = preferredLanguages.first,
-            let code = Locale(identifier: preferredLanguage).language.languageCode?.identifier
+              let code = Locale(identifier: preferredLanguage).language.languageCode?.identifier
         else {
             return "en"
         }
@@ -105,7 +105,7 @@ extension URLSession {
 extension NSMutableData {
     func appendString(_ string: String) {
         if let data = string.data(using: .utf8) {
-            self.append(data)
+            append(data)
         }
     }
 }
@@ -125,15 +125,19 @@ extension Bundle {
     var releaseVersionNumber: String? {
         return infoDictionary?["CFBundleShortVersionString"] as? String
     }
+
     var buildVersionNumber: String? {
         return infoDictionary?["CFBundleVersion"] as? String
     }
+
     var releaseVersionNumberPretty: String {
         return "\(releaseVersionNumber ?? "1.0").\(buildVersionNumber ?? "0")"
     }
+
     func releaseVersionOlder(than: String) -> Bool {
         return releaseVersionNumberPretty.compare(than, options: .numeric) == .orderedAscending
     }
+
     var displayName: String? {
         return infoDictionary?["CFBundleDisplayName"] as? String ?? infoDictionary?["CFBundleName"] as? String
     }
@@ -159,10 +163,10 @@ extension String {
     }
 
     public func removeExtraSpaces(includeNewlines: Bool = true) -> String {
-        if (includeNewlines) {
-            return self.replacingOccurrences(of: "[\\s]+", with: " ", options: .regularExpression)
+        if includeNewlines {
+            return replacingOccurrences(of: "[\\s]+", with: " ", options: .regularExpression)
         }
-        return self.split(separator: "\n", omittingEmptySubsequences: false)
+        return split(separator: "\n", omittingEmptySubsequences: false)
             .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "[\\s]+", with: " ", options: .regularExpression) }
             .joined(separator: "\n")
     }
@@ -205,11 +209,11 @@ extension Date? {
 
 extension [String] {
     func includes(_ element: String) -> Bool {
-        return self.contains(where: { item in item == element })
+        return contains(where: { item in item == element })
     }
 
     func includesWithoutCase(_ element: String) -> Bool {
-        return self.contains(where: { item in item.lowercased() == element.lowercased() })
+        return contains(where: { item in item.lowercased() == element.lowercased() })
     }
 }
 
@@ -234,7 +238,7 @@ extension Data {
         let hexDigits = options.contains(.upperCase) ? "0123456789ABCDEF" : "0123456789abcdef"
         if #available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *) {
             let utf8Digits = Array(hexDigits.utf8)
-            return String(unsafeUninitializedCapacity: 2 * self.count) { (ptr) -> Int in
+            return String(unsafeUninitializedCapacity: 2 * self.count) { ptr -> Int in
                 var p = ptr.baseAddress!
                 for byte in self {
                     p[0] = utf8Digits[Int(byte / 16)]
@@ -246,7 +250,7 @@ extension Data {
         } else {
             let utf16Digits = Array(hexDigits.utf16)
             var chars: [unichar] = []
-            chars.reserveCapacity(2 * self.count)
+            chars.reserveCapacity(2 * count)
             for byte in self {
                 chars.append(utf16Digits[Int(byte / 16)])
                 chars.append(utf16Digits[Int(byte % 16)])
@@ -258,13 +262,13 @@ extension Data {
 
 extension URL {
     var lastPathComponentWithoutExtension: String {
-        return String(NSString(string: self.lastPathComponent).deletingPathExtension)
+        return String(NSString(string: lastPathComponent).deletingPathExtension)
     }
 }
 
 extension NSImage {
     var pixelSize: NSSize? {
-        if let rep = self.representations.first {
+        if let rep = representations.first {
             let size = NSSize(width: rep.pixelsWide, height: rep.pixelsHigh)
             return size
         }
@@ -278,7 +282,7 @@ enum Direction {
 
 func directionFromModifiers(_ keyPress: KeyPress, horizontal: Bool = false) -> Direction {
     let maskedModifiers = keyPress.modifiers.rawValue &
-    (EventModifiers.shift.rawValue | EventModifiers.control.rawValue | EventModifiers.option.rawValue | EventModifiers.command.rawValue);
+        (EventModifiers.shift.rawValue | EventModifiers.control.rawValue | EventModifiers.option.rawValue | EventModifiers.command.rawValue)
     if (keyPress.key == .downArrow && !horizontal) || (keyPress.key == .rightArrow && horizontal) {
         if maskedModifiers == EventModifiers.command.rawValue {
             return .last
@@ -334,7 +338,7 @@ func navigateGeneric<T>(_ values: [T], _ selected: T, _ direction: Direction, al
 func navigateGenericWithPrefix(_ values: [String], _ selected: String, _ lowercasePrefix: String) -> (change: Bool, newValue: String) {
     let current = values.firstIndex(where: { selected == $0 })
     if let current {
-        if let nextMatch = values[(current + 1)..<values.count].first(where: { $0.lowercased().hasPrefix(lowercasePrefix) }) {
+        if let nextMatch = values[(current + 1) ..< values.count].first(where: { $0.lowercased().hasPrefix(lowercasePrefix) }) {
             return (nextMatch != selected, nextMatch)
         } else {
             if let firstMatch = values.first(where: { $0.lowercased().hasPrefix(lowercasePrefix) }) {
@@ -352,7 +356,7 @@ func navigateGenericWithPrefix(_ values: [String], _ selected: String, _ lowerca
 func navigateGenericWithPrefix<T: RawRepresentable<String>>(_ values: [T], _ selected: T, _ lowercasePrefix: String) -> (change: Bool, newValue: T) {
     let current = values.firstIndex(where: { selected == $0 })
     if let current {
-        if let nextMatch = values[(current + 1)..<values.count].first(where: { $0.rawValue.lowercased().hasPrefix(lowercasePrefix) }) {
+        if let nextMatch = values[(current + 1) ..< values.count].first(where: { $0.rawValue.lowercased().hasPrefix(lowercasePrefix) }) {
             return (nextMatch != selected, nextMatch)
         } else {
             if let firstMatch = values.first(where: { $0.rawValue.lowercased().hasPrefix(lowercasePrefix) }) {
@@ -376,17 +380,17 @@ extension FileManager {
 struct MultipartFormDataRequest {
     private let boundary: String = UUID().uuidString
     var httpBody = NSMutableData()
-    var headers = [String:String]()
+    var headers = [String: String]()
     let url: URL
-    
+
     init(url: URL) {
         self.url = url
     }
-    
+
     func addTextField(named name: String, value: String) {
         httpBody.appendString(textFormField(named: name, value: value))
     }
-    
+
     private func textFormField(named name: String, value: String) -> String {
         var fieldString = "--\(boundary)\r\n"
         fieldString += "Content-Disposition: form-data; name=\"\(name)\"\r\n"
@@ -394,14 +398,14 @@ struct MultipartFormDataRequest {
         fieldString += "Content-Transfer-Encoding: 8bit\r\n"
         fieldString += "\r\n"
         fieldString += "\(value)\r\n"
-        
+
         return fieldString
     }
-    
+
     func addDataField(fieldName: String, fieldValue: String) {
         httpBody.append(dataFormField(fieldName: fieldName, fieldValue: fieldValue))
     }
-    
+
     private func dataFormField(fieldName: String, fieldValue: String) -> Data {
         let fieldData = NSMutableData()
         fieldData.appendString("--\(boundary)\r\n")
@@ -411,11 +415,11 @@ struct MultipartFormDataRequest {
         fieldData.appendString("\r\n")
         return fieldData as Data
     }
-    
+
     mutating func addHeader(header: String, value: String) {
         headers[header] = value
     }
-    
+
     func asURLRequest() -> URLRequest {
         var request = URLRequest(url: url)
         for header in headers {
@@ -444,19 +448,18 @@ struct RuntimeError: LocalizedError {
 public extension Color {
     static func random(opacity: Double = 0.4) -> Color {
         Color(
-            red: .random(in: 0...1),
-            green: .random(in: 0...1),
-            blue: .random(in: 0...1),
+            red: .random(in: 0 ... 1),
+            green: .random(in: 0 ... 1),
+            blue: .random(in: 0 ... 1),
             opacity: opacity
         )
     }
 }
 
 extension View {
-
     func testListRowBackground() -> some View {
 #if DEBUG_BACKGROUNDS
-        self.listRowBackground(Color.random())
+        listRowBackground(Color.random())
 #else
         self
 #endif
@@ -464,7 +467,7 @@ extension View {
 
     func testBackground() -> some View {
 #if DEBUG_BACKGROUNDS
-        self.background(Color.random())
+        background(Color.random())
 #else
         self
 #endif
@@ -472,7 +475,7 @@ extension View {
 
     func testAnimatedBackground() -> some View {
 #if DEBUG_BACKGROUNDS
-        self.modifier(AnimatedBackground())
+        modifier(AnimatedBackground())
 #else
         self
 #endif

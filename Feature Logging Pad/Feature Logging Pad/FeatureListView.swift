@@ -89,7 +89,7 @@ struct FeatureListView: View {
             VStack {
                 // Page / staff level picker
                 PageSelectorView()
-                
+
                 Divider()
                     .padding(.bottom, 8)
 
@@ -283,7 +283,7 @@ struct FeatureListView: View {
                 .truncationMode(.tail)
             Picker(
                 "",
-                selection: $viewModel.selectedPage.onChange { value in
+                selection: $viewModel.selectedPage.onChange { _ in
                     UserDefaults.standard.set(viewModel.selectedPage?.id ?? "", forKey: "Page")
                     logURL.wrappedValue = nil
                     viewModel.selectedFeature = nil
@@ -309,7 +309,7 @@ struct FeatureListView: View {
 
             Picker(
                 "",
-                selection: $viewModel.selectedPageStaffLevel.onChange { value in
+                selection: $viewModel.selectedPageStaffLevel.onChange { _ in
                     storeStaffLevelForPage()
                 }
             ) {
@@ -343,28 +343,28 @@ struct FeatureListView: View {
                 }
                 Button(action: {
                     copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage?.hub ?? "")_community")
-                    viewModel.showSuccessToast("Copied to clipboard",  "Copied the community tag to the clipboard")
+                    viewModel.showSuccessToast("Copied to clipboard", "Copied the community tag to the clipboard")
                 }) {
                     Text("Community tag")
                 }
                 if viewModel.selectedPage?.hub == "snap" {
                     Button(action: {
                         copyToClipboard("\(includeHash ? "#" : "")raw_community")
-                        viewModel.showSuccessToast("Copied to clipboard",  "Copied the RAW community tag to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the RAW community tag to the clipboard")
                     }) {
                         Text("RAW community tag")
                     }
                 }
                 Button(action: {
                     copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage?.hub ?? "")_hub")
-                    viewModel.showSuccessToast("Copied to clipboard",  "Copied the hub tag to the clipboard")
+                    viewModel.showSuccessToast("Copied to clipboard", "Copied the hub tag to the clipboard")
                 }) {
                     Text("Hub tag")
                 }
                 if viewModel.selectedPage?.hub == "snap" {
                     Button(action: {
                         copyToClipboard("\(includeHash ? "#" : "")raw_hub")
-                        viewModel.showSuccessToast("Copied to clipboard",  "Copied the RAW hub tag to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the RAW hub tag to the clipboard")
                     }) {
                         Text("RAW hub tag")
                     }

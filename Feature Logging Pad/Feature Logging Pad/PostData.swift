@@ -9,11 +9,13 @@ import Foundation
 import SwiftUI
 
 // MARK: - PostData
+
 struct PostData: Codable {
     let loaderData: LoaderData?
 }
 
 // MARK: - LoaderData
+
 struct LoaderData: Codable {
     let entry1: LoaderEntry?
     let entry2: LoaderEntry?
@@ -35,17 +37,20 @@ struct LoaderData: Codable {
 }
 
 // MARK: - LoaderEntry
+
 struct LoaderEntry: Codable {
     let profile: LoaderEntryProfile?
     let post: LoaderEntryPost?
 }
 
 // MARK: - LoaderEntryProfile
+
 struct LoaderEntryProfile: Codable {
     let profile: Profile?
 }
 
 // MARK: - Profile
+
 struct Profile: Codable {
     let id: String?
     let name: String?
@@ -53,7 +58,7 @@ struct Profile: Codable {
     let username: String?
     let bio: String?
     let url: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case name = "firstname"
@@ -65,12 +70,14 @@ struct Profile: Codable {
 }
 
 // MARK: - LoaderEntryPost
+
 struct LoaderEntryPost: Codable {
     let post: Post?
     let comments: [Comment]?
 }
 
 // MARK: - Comment
+
 struct Comment: Codable {
     let id: String?
     let text: String?
@@ -88,11 +95,13 @@ struct Comment: Codable {
 }
 
 // MARK: - Picture
+
 struct Picture: Codable {
     let url: String?
 }
 
 // MARK: - Post
+
 struct Post: Codable {
     let id: String?
     let author: Author?
@@ -118,13 +127,14 @@ struct Post: Codable {
 }
 
 // MARK: - Author
+
 struct Author: Codable {
     let id: String?
     let name: String?
     let picture: Picture?
     let username: String?
     let url: String?
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case name = "firstname"
@@ -135,6 +145,7 @@ struct Author: Codable {
 }
 
 // MARK: - Segment
+
 struct Segment: Codable {
     let type: String? // [text, tag, person, url]
     let value: String?
@@ -144,11 +155,13 @@ struct Segment: Codable {
 }
 
 // MARK: - PostImage
+
 struct PostImage: Codable {
     let url: String?
 }
 
 // MARK: - Encode/decode helpers
+
 class JSONNull: Codable, Hashable {
     public static func == (lhs: JSONNull, rhs: JSONNull) -> Bool {
         return true

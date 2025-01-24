@@ -43,10 +43,10 @@ struct NewMembershipEditor: View {
             .focusable()
             .focused(focusedField, equals: pickerFocusField)
             .onKeyPress(phases: .down) { keyPress in
-                return navigateToNewMembershipWithArrows(keyPress)
+                navigateToNewMembershipWithArrows(keyPress)
             }
             .onKeyPress(characters: .alphanumerics) { keyPress in
-                return navigateToNewMembershipWithPrefix(keyPress)
+                navigateToNewMembershipWithPrefix(keyPress)
             }
 
             Button(
@@ -102,9 +102,9 @@ struct NewMembershipEditor: View {
                 .disableAutocorrection(false)
         }
     }
-    
+
     // MARK: - new membership navigation
-    
+
     private func navigateToNewMembership(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(NewMembershipCase.casesFor(hub: selectedPage.hub), newMembership, direction)
         if change {

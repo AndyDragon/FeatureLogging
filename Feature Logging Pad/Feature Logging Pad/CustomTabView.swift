@@ -18,20 +18,19 @@ public extension Color {
 }
 
 public struct CustomTabView: View {
-    
     public enum TabBarPosition { // Where the tab bar will be located within the view
         case top
         case bottom
     }
-    
+
     private let tabBarPosition: TabBarPosition
     private let tabText: [String]
     private let tabIconNames: [String]
     private let tabIconColors: [(Color, Color)]
     private let tabViews: [AnyView]
-    
+
     @State private var selection = 0
-    
+
     public init(
         tabBarPosition: TabBarPosition,
         content: [(
@@ -41,18 +40,18 @@ public struct CustomTabView: View {
             view: AnyView)]
     ) {
         self.tabBarPosition = tabBarPosition
-        self.tabText = content.map { $0.tabText }
-        self.tabIconNames = content.map { $0.tabIconName }
-        self.tabIconColors = content.map { $0.tabIconColors }
-        self.tabViews = content.map { $0.view }
+        tabText = content.map { $0.tabText }
+        tabIconNames = content.map { $0.tabIconName }
+        tabIconColors = content.map { $0.tabIconColors }
+        tabViews = content.map { $0.view }
     }
-    
+
     public var tabBar: some View {
         VStack {
             Spacer()
                 .frame(height: 5.0)
             HStack {
-                ForEach(Array(tabText.enumerated()), id: \.offset) { index, item in
+                ForEach(Array(tabText.enumerated()), id: \.offset) { index, _ in
                     HStack(alignment: .center) {
                         Image(systemName: tabIconNames[index])
                             .font(.system(size: 24))
@@ -72,7 +71,6 @@ public struct CustomTabView: View {
                     .onTapGesture {
                         selection = index
                     }
-                    
                 }
                 Spacer()
             }
@@ -80,18 +78,18 @@ public struct CustomTabView: View {
             .padding(2)
         }
     }
-    
+
     public var body: some View {
         VStack(spacing: 0) {
-            if (tabBarPosition == .top) {
+            if tabBarPosition == .top {
                 tabBar
             }
-            
+
             tabViews[selection]
                 .padding(0)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            
-            if (tabBarPosition == .bottom) {
+
+            if tabBarPosition == .bottom {
                 tabBar
             }
         }

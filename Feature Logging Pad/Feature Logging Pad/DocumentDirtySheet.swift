@@ -40,7 +40,7 @@ struct DocumentDirtySheet: View {
                         isShowing.toggle()
                         saveAction()
                     })
-                .buttonStyle(.bordered)
+                    .buttonStyle(.bordered)
                 Spacer()
                     .frame(width: 8)
                 Button(
@@ -49,7 +49,7 @@ struct DocumentDirtySheet: View {
                         isShowing.toggle()
                         dismissAction()
                     })
-                .buttonStyle(.bordered)
+                    .buttonStyle(.bordered)
                 Spacer()
                     .frame(width: 8)
                 Button(
@@ -58,7 +58,7 @@ struct DocumentDirtySheet: View {
                         isShowing.toggle()
                         cancelAction()
                     })
-                .buttonStyle(.bordered)
+                    .buttonStyle(.bordered)
                 Spacer()
             }
         }

@@ -18,7 +18,7 @@ struct ScriptContentView: View {
     @ObservedObject private var originalPostScriptPlaceholders: PlaceholderList
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var navigateToNextFeature: (_ forward: Bool) -> Void
-    
+
     @State private var membershipValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var userNameValidation: (valid: Bool, reason: String?) = (true, nil)
     @State private var yourNameValidation: (valid: Bool, reason: String?) = (true, nil)
@@ -34,24 +34,26 @@ struct ScriptContentView: View {
     @State private var showingPlaceholderSheet = false
     @State private var scriptWithPlaceholdersInPlace = ""
     @State private var scriptWithPlaceholders = ""
-    
+
     private let languagePrefix = Locale.preferredLanguageCode
     private let logger = SwiftyBeaver.self
-    
+
     private var canCopyScripts: Bool {
         return membershipValidation.valid
-        && userNameValidation.valid
-        && yourNameValidation.valid
-        && yourFirstNameValidation.valid
-        && pageValidation.valid
+            && userNameValidation.valid
+            && yourNameValidation.valid
+            && yourFirstNameValidation.valid
+            && pageValidation.valid
     }
+
     private var canCopyNewMembershipScript: Bool {
         return newMembership != NewMembershipCase.none
-        && newMembershipValidation.valid
-        && userNameValidation.valid
+            && newMembershipValidation.valid
+            && userNameValidation.valid
     }
+
     private var accordionHeightRatio = 3.5
-    
+
     init(
         _ viewModel: ContentView.ViewModel,
         _ selectedPage: ObservablePage,
@@ -71,18 +73,18 @@ struct ScriptContentView: View {
         self.focusedField = focusedField
         self.navigateToNextFeature = navigateToNextFeature
     }
-    
+
     var body: some View {
         ZStack {
             Color.backgroundColor.edgesIgnoringSafeArea(.all)
-            
+
             VStack {
                 // Fields
                 FieldSummaryView()
-                
+
                 // Scripts
                 MainScriptEditorsView()
-                
+
                 // New membership
                 NewMembershipEditorView()
             }
@@ -91,10 +93,10 @@ struct ScriptContentView: View {
             .sheet(isPresented: $showingPlaceholderSheet) {
                 PlaceholderSheet(
                     placeholders: placeholderSheetCase == .featureScript
-                    ? featureScriptPlaceholders
-                    : placeholderSheetCase == .commentScript
-                    ? commentScriptPlaceholders
-                    : originalPostScriptPlaceholders,
+                        ? featureScriptPlaceholders
+                        : placeholderSheetCase == .commentScript
+                        ? commentScriptPlaceholders
+                        : originalPostScriptPlaceholders,
                     scriptWithPlaceholders: $scriptWithPlaceholders,
                     scriptWithPlaceholdersInPlace: $scriptWithPlaceholdersInPlace,
                     isPresenting: $showingPlaceholderSheet,
@@ -158,7 +160,7 @@ struct ScriptContentView: View {
                     .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
                     .disabled(viewModel.hasModalToasts)
                 }
-                
+
                 Button(action: {
                     viewModel.visibleView = .FeatureView
                 }) {
@@ -176,7 +178,7 @@ struct ScriptContentView: View {
                 }
                 .keyboardShortcut(languagePrefix == "en" ? "`" : "x", modifiers: languagePrefix == "en" ? .command : [.command, .option])
                 .disabled(viewModel.hasModalToasts)
-                
+
                 if viewModel.pickedFeatures.count >= 2 {
                     Button(action: {
                         navigateToNextFeature(true)
@@ -205,9 +207,9 @@ struct ScriptContentView: View {
             populateFromSharedFeature()
         }
     }
-    
+
     // MARK: - sub views
-    
+
     private func FieldSummaryView() -> some View {
         Group {
             // User / Options
@@ -238,12 +240,12 @@ struct ScriptContentView: View {
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
-                .overlay(VStack{
+                .overlay(VStack {
                     Rectangle()
                         .frame(height: 0.5)
                         .foregroundStyle(Color.gray.opacity(0.25))
                 }, alignment: .bottom)
-                
+
                 // User level
                 if !membershipValidation.valid {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -271,12 +273,12 @@ struct ScriptContentView: View {
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
-                .overlay(VStack{
+                .overlay(VStack {
                     Rectangle()
                         .frame(height: 0.5)
                         .foregroundStyle(Color.gray.opacity(0.25))
                 }, alignment: .bottom)
-                
+
                 // Options
                 HStack {
                     Text(selectedFeature.firstFeature ? "☑" : "☐")
@@ -291,7 +293,7 @@ struct ScriptContentView: View {
                         .frame(alignment: .leading)
                 }
                 .padding([.leading], 8)
-                
+
                 let tagSource = selectedFeature.feature.tagSource
                 if selectedPage.hub == "click" {
                     HStack {
@@ -307,7 +309,7 @@ struct ScriptContentView: View {
                             .frame(alignment: .leading)
                     }
                     .padding([.leading], 8)
-                    
+
                     HStack {
                         Text(tagSource == TagSourceCase.clickHubTag ? "☑" : "☐")
                             .font(.system(size: 22, design: .monospaced))
@@ -335,7 +337,7 @@ struct ScriptContentView: View {
                             .frame(alignment: .leading)
                     }
                     .padding([.leading], 8)
-                    
+
                     HStack {
                         Text((tagSource == TagSourceCase.snapCommunityTag || tagSource == TagSourceCase.snapRawCommunityTag) ? "☑" : "☐")
                             .font(.system(size: 22, design: .monospaced))
@@ -350,12 +352,12 @@ struct ScriptContentView: View {
                     }
                     .padding([.leading], 8)
                 }
-                
+
                 Spacer()
             }
         }
     }
-    
+
     private func MainScriptEditorsView() -> some View {
         Group {
             // Feature script output
@@ -373,8 +375,8 @@ struct ScriptContentView: View {
                         featureScriptPlaceholders,
                         [commentScriptPlaceholders, originalPostScriptPlaceholders],
                         force: force,
-                        withPlaceholders: withPlaceholders)
-                    {
+                        withPlaceholders: withPlaceholders
+                    ) {
                         logger.verbose("Copied the feature script", context: "system")
                         viewModel.showSuccessToast(
                             "Copied",
@@ -387,7 +389,7 @@ struct ScriptContentView: View {
                 focusedField: focusedField,
                 editorFocusField: .featureScript,
                 buttonFocusField: .copyFeatureScript)
-            
+
             // Comment script output
             ScriptEditor(
                 title: "Comment script:",
@@ -403,8 +405,8 @@ struct ScriptContentView: View {
                         commentScriptPlaceholders,
                         [featureScriptPlaceholders, originalPostScriptPlaceholders],
                         force: force,
-                        withPlaceholders: withPlaceholders)
-                    {
+                        withPlaceholders: withPlaceholders
+                    ) {
                         logger.verbose("Copied the comment script", context: "system")
                         viewModel.showSuccessToast(
                             "Copied",
@@ -417,7 +419,7 @@ struct ScriptContentView: View {
                 focusedField: focusedField,
                 editorFocusField: .commentScript,
                 buttonFocusField: .copyCommentScript)
-            
+
             // Original post script output
             ScriptEditor(
                 title: "Original post script:",
@@ -433,8 +435,8 @@ struct ScriptContentView: View {
                         originalPostScriptPlaceholders,
                         [featureScriptPlaceholders, commentScriptPlaceholders],
                         force: force,
-                        withPlaceholders: withPlaceholders)
-                    {
+                        withPlaceholders: withPlaceholders
+                    ) {
                         logger.verbose("Copied the original post script", context: "system")
                         viewModel.showSuccessToast(
                             "Copied",
@@ -449,7 +451,7 @@ struct ScriptContentView: View {
                 buttonFocusField: .copyOriginalPostScript)
         }
     }
-    
+
     private func NewMembershipEditorView() -> some View {
         Group {
             // New membership picker and script output
@@ -482,7 +484,7 @@ struct ScriptContentView: View {
 
 extension ScriptContentView {
     // MARK: - utilities
-    
+
     private func populateFromSharedFeature() {
         pageValidation = validatePage()
         yourNameValidation = validateYourName()
@@ -579,7 +581,7 @@ extension ScriptContentView {
     }
 
     // MARK: - script handlers
-    
+
     private func copyScript(
         _ script: String,
         _ placeholders: PlaceholderList,
@@ -652,13 +654,12 @@ extension ScriptContentView {
                 let placeholderEntry = placeholders.placeholderDict[placeholder]
                 if placeholderEntry == nil {
                     needEditor = true
-                    var value: String? = nil
+                    var value: String?
                     otherPlaceholders.forEach { sourcePlaceholders in
                         let sourcePlaceholderEntry = sourcePlaceholders.placeholderDict[placeholder]
                         if (value == nil || value!.isEmpty)
                             && sourcePlaceholderEntry != nil
-                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty
-                        {
+                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty {
                             value = sourcePlaceholderEntry?.value
                         }
                     }
@@ -676,13 +677,12 @@ extension ScriptContentView {
                 let placeholderEntry = placeholders.longPlaceholderDict[placeholder]
                 if placeholderEntry == nil {
                     needEditor = true
-                    var value: String? = nil
+                    var value: String?
                     otherPlaceholders.forEach { sourcePlaceholders in
                         let sourcePlaceholderEntry = sourcePlaceholders.longPlaceholderDict[placeholder]
                         if (value == nil || value!.isEmpty)
                             && sourcePlaceholderEntry != nil
-                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty
-                        {
+                            && !(sourcePlaceholderEntry?.value ?? "").isEmpty {
                             value = sourcePlaceholderEntry?.value
                         }
                     }
@@ -751,7 +751,8 @@ extension ScriptContentView {
                 firstFeature: viewModel.selectedFeature?.firstFeature ?? false,
                 rawTag: rawTag,
                 communityTag: communityTag,
-                hubTag: hubTag)
+                hubTag: hubTag
+            )
             .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
             .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
             .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
@@ -770,7 +771,8 @@ extension ScriptContentView {
                 firstFeature: viewModel.selectedFeature?.firstFeature ?? false,
                 rawTag: rawTag,
                 communityTag: communityTag,
-                hubTag: hubTag)
+                hubTag: hubTag
+            )
             .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
             .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
             .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
@@ -789,7 +791,8 @@ extension ScriptContentView {
                 firstFeature: viewModel.selectedFeature?.firstFeature ?? false,
                 rawTag: rawTag,
                 communityTag: communityTag,
-                hubTag: hubTag)
+                hubTag: hubTag
+            )
             .replacingOccurrences(of: "%%PAGENAME%%", with: scriptPageName)
             .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
             .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)

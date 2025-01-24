@@ -67,7 +67,7 @@ struct PostDownloaderImageView: View {
                 .frame(width: 400, height: 360)
                 .clipped()
 
-                Slider(value: $scale, in: 0.01...2)
+                Slider(value: $scale, in: 0.01 ... 2)
 
                 Text("Size: \(width)px x \(height)px")
                     .foregroundStyle(.black, .secondary)
@@ -176,7 +176,7 @@ struct PostDownloaderImageView: View {
 }
 
 #if os(iOS)
-enum ImageSaverError : Error {
+enum ImageSaverError: Error {
     case NotAuthorized
 }
 

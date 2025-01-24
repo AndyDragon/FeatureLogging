@@ -25,7 +25,7 @@ struct VersionCheckToast {
     var appVersion: String
     var currentVersion: String
     var linkToCurrentVersion: String
-    
+
     init(
         appVersion: String = "unknown",
         currentVersion: String = "unknown",
@@ -81,7 +81,7 @@ struct VersionCheckAppState {
         versionCheckResult.wrappedValue = .complete
     }
 
-    private func checkForUpdatesAsync(_ manualCheck: Bool = false) async throws -> Void {
+    private func checkForUpdatesAsync(_ manualCheck: Bool = false) async throws {
         do {
             // Check version from server manifest
             let versionManifestUrl = URL(string: versionLocation)!
@@ -104,14 +104,14 @@ struct VersionCheckAppState {
                 }
                 isCheckingForUpdates.wrappedValue = false
             } else {
-                self.logger.verbose("Using latest version", context: "Version")
+                logger.verbose("Using latest version", context: "Version")
                 versionCheckToast.wrappedValue = VersionCheckToast(
                     appVersion: Bundle.main.releaseVersionNumberPretty)
                 versionCheckResult.wrappedValue = manualCheck ? .manualCheckComplete : .complete
                 isCheckingForUpdates.wrappedValue = false
             }
         } catch {
-            self.logger.error("Version check failed: \(error.localizedDescription)", context: "Version")
+            logger.error("Version check failed: \(error.localizedDescription)", context: "Version")
             debugPrint(error)
             versionCheckToast.wrappedValue = VersionCheckToast(
                 appVersion: Bundle.main.releaseVersionNumberPretty)

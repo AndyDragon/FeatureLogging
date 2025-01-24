@@ -264,14 +264,14 @@ struct MainContentView: View {
     }
 
     // MARK: - sub views
-    
+
     private func PageSelectorView() -> some View {
         HStack(alignment: .center) {
             Text("Page:")
                 .frame(width: labelWidth - 5, alignment: .trailing)
             Picker(
                 "",
-                selection: $viewModel.selectedPage.onChange { value in
+                selection: $viewModel.selectedPage.onChange { _ in
                     navigateToPage(.same)
                 }
             ) {
@@ -285,10 +285,10 @@ struct MainContentView: View {
             .focusable(viewModel.features.isEmpty)
             .focused(focusedField, equals: .pagePicker)
             .onKeyPress(phases: .down) { keyPress in
-                return navigateToPageWithArrows(keyPress)
+                navigateToPageWithArrows(keyPress)
             }
             .onKeyPress(characters: .alphanumerics) { keyPress in
-                return navigateToPageWithPrefix(keyPress)
+                navigateToPageWithPrefix(keyPress)
             }
             .disabled(!viewModel.features.isEmpty)
 
@@ -300,7 +300,7 @@ struct MainContentView: View {
 
             Picker(
                 "",
-                selection: $viewModel.selectedPageStaffLevel.onChange { value in
+                selection: $viewModel.selectedPageStaffLevel.onChange { _ in
                     navigateToPageStaffLevel(.same)
                 }
             ) {
@@ -316,10 +316,10 @@ struct MainContentView: View {
             .focusable()
             .focused(focusedField, equals: .staffLevel)
             .onKeyPress(phases: .down) { keyPress in
-                return navigateToPageStaffLevelWithArrows(keyPress)
+                navigateToPageStaffLevelWithArrows(keyPress)
             }
             .onKeyPress(characters: .alphanumerics) { keyPress in
-                return navigateToPageStaffLevelWithPrefix(keyPress)
+                navigateToPageStaffLevelWithPrefix(keyPress)
             }
             .frame(maxWidth: 144)
 
@@ -340,28 +340,28 @@ struct MainContentView: View {
                 }
                 Button(action: {
                     copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage?.hub ?? "")_community")
-                    viewModel.showSuccessToast("Copied to clipboard",  "Copied the community tag to the clipboard")
+                    viewModel.showSuccessToast("Copied to clipboard", "Copied the community tag to the clipboard")
                 }) {
                     Text("Community tag")
                 }
                 if viewModel.selectedPage?.hub == "snap" {
                     Button(action: {
                         copyToClipboard("\(includeHash ? "#" : "")raw_community")
-                        viewModel.showSuccessToast("Copied to clipboard",  "Copied the RAW community tag to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the RAW community tag to the clipboard")
                     }) {
                         Text("RAW community tag")
                     }
                 }
                 Button(action: {
                     copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage?.hub ?? "")_hub")
-                    viewModel.showSuccessToast("Copied to clipboard",  "Copied the hub tag to the clipboard")
+                    viewModel.showSuccessToast("Copied to clipboard", "Copied the hub tag to the clipboard")
                 }) {
                     Text("Hub tag")
                 }
                 if viewModel.selectedPage?.hub == "snap" {
                     Button(action: {
                         copyToClipboard("\(includeHash ? "#" : "")raw_hub")
-                        viewModel.showSuccessToast("Copied to clipboard",  "Copied the RAW hub tag to the clipboard")
+                        viewModel.showSuccessToast("Copied to clipboard", "Copied the RAW hub tag to the clipboard")
                     }) {
                         Text("RAW hub tag")
                     }
@@ -415,7 +415,8 @@ struct MainContentView: View {
             // Your first name editor
             ValidationLabel(
                 "Your first name:",
-                validation: yourFirstNameValidation.valid)
+                validation: yourFirstNameValidation.valid
+            )
             .padding([.leading])
             TextField(
                 "Enter your first name (capitalized)",
@@ -537,7 +538,7 @@ struct MainContentView: View {
     }
 
     // MARK: - page navigation
-    
+
     private func navigateToPage(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(viewModel.loadedCatalogs.loadedPages, viewModel.selectedPage, direction)
         if change {
@@ -578,7 +579,7 @@ struct MainContentView: View {
     }
 
     // MARK: - page staff level navigation
-    
+
     private func navigateToPageStaffLevel(_ direction: Direction) {
         let (change, newValue) = navigateGeneric(StaffLevelCase.allCases, viewModel.selectedPageStaffLevel, direction)
         if change {

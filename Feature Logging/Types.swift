@@ -69,7 +69,7 @@ enum FocusField: Hashable {
 
 enum MembershipCase: String, CaseIterable, Identifiable, Codable {
     case none = "None"
-    
+
     case commonArtist = "Artist"
     case commonMember = "Member"
     case commonPlatinumMember = "Platinum Member"
@@ -87,7 +87,7 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
     case clickGoldMember = "Gold Member"
 
     var id: Self { self }
-    
+
     static func allCasesSorted() -> [MembershipCase] {
         return [
             .none,
@@ -104,7 +104,7 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
             .snapDiamondMember,
         ]
     }
-    
+
     static func casesFor(hub: String?) -> [MembershipCase] {
         if hub == "snap" {
             return [
@@ -135,15 +135,15 @@ enum MembershipCase: String, CaseIterable, Identifiable, Codable {
             .commonArtist,
         ]
     }
-    
+
     static func caseValidFor(hub: String?, _ value: MembershipCase) -> Bool {
         return casesFor(hub: hub).contains(value)
     }
 
     func scriptMembershipStringForHub(hub: String?) -> String {
-        (hub == "snap" && self != .commonArtist && self != .none) ? "Snap \(self.rawValue)"
-        : (hub == "click" && self != .commonArtist && self != .none) ? "Click \(self.rawValue)"
-        : self.rawValue
+        (hub == "snap" && self != .commonArtist && self != .none) ? "Snap \(rawValue)"
+            : (hub == "click" && self != .commonArtist && self != .none) ? "Click \(rawValue)"
+            : rawValue
     }
 }
 
@@ -165,7 +165,7 @@ extension MembershipCase {
 
 enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
     case commonPageTag = "Page tag"
-    
+
     // snap
     case snapRawPageTag = "RAW page tag"
     case snapCommunityTag = "Snap community tag"
@@ -175,9 +175,9 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
     // click
     case clickCommunityTag = "Click community tag"
     case clickHubTag = "Click hub tag"
-    
+
     var id: Self { self }
-    
+
     static func casesFor(hub: String?) -> [TagSourceCase] {
         if hub == "snap" {
             return [
@@ -196,10 +196,10 @@ enum TagSourceCase: String, CaseIterable, Identifiable, Codable {
             ]
         }
         return [
-            .commonPageTag
+            .commonPageTag,
         ]
     }
-    
+
     static func caseValidFor(hub: String?, _ value: TagSourceCase) -> Bool {
         return casesFor(hub: hub).contains(value)
     }
@@ -209,7 +209,7 @@ enum StaffLevelCase: String, CaseIterable, Identifiable, Codable {
     case mod = "Mod"
     case coadmin = "Co-Admin"
     case admin = "Admin"
-    
+
     // snap
     case snapGuestMod = "Guest moderator"
 
@@ -288,10 +288,10 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
             ]
         }
         return [
-            .none
+            .none,
         ]
     }
-    
+
     static func scriptFor(hub: String?, _ value: NewMembershipCase) -> String {
         if hub == "snap" {
             switch value {
@@ -317,9 +317,9 @@ enum NewMembershipCase: String, CaseIterable, Identifiable, Codable {
     }
 
     func scriptNewMembershipStringForHub(hub: String?) -> String {
-        (hub == "snap" && self != .none) ? "Snap \(self.rawValue)"
-        : (hub == "click" && self != .none) ? "Click \(self.rawValue)"
-        : self.rawValue
+        (hub == "snap" && self != .none) ? "Snap \(rawValue)"
+            : (hub == "click" && self != .none) ? "Click \(rawValue)"
+            : rawValue
     }
 }
 
@@ -332,8 +332,8 @@ enum TinEyeResults: String, CaseIterable, Identifiable, Codable {
 }
 
 enum AiCheckResults: String, CaseIterable, Identifiable, Codable {
-    case human = "human"
-    case ai = "ai"
+    case human
+    case ai
 
     var id: Self { self }
 }
@@ -343,7 +343,7 @@ struct ScriptsCatalog: Codable {
 }
 
 struct Page: Codable {
-    var id: String { self.name }
+    var id: String { name }
     let name: String
     let pageName: String?
     let title: String?
@@ -365,7 +365,7 @@ struct TemplateCatalog: Codable {
 }
 
 struct TemplatePage: Codable, Identifiable {
-    var id: String { self.name }
+    var id: String { name }
     let name: String
     let templates: [Template]
 }
@@ -375,13 +375,13 @@ struct HubCatalog: Codable {
 }
 
 struct Hub: Codable, Identifiable {
-    var id: String { self.name }
+    var id: String { name }
     let name: String
     let templates: [Template]
 }
 
 struct Template: Codable, Identifiable {
-    var id: String { self.name }
+    var id: String { name }
     let name: String
     let template: String
 }

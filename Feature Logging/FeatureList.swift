@@ -34,10 +34,10 @@ struct FeatureList: View {
                 )
                 .background(
                     viewModel.selectedFeature?.feature == feature
-                    ? Color(nsColor: .selectedTextBackgroundColor)
-                    : hoveredFeature == feature.id
-                    ? Color(nsColor: .selectedTextBackgroundColor).opacity(0.33)
-                    : Color.controlBackground
+                        ? Color(nsColor: .selectedTextBackgroundColor)
+                        : hoveredFeature == feature.id
+                        ? Color(nsColor: .selectedTextBackgroundColor).opacity(0.33)
+                        : Color.controlBackground
                 )
                 .cornerRadius(4)
                 .onHover(perform: { hovering in

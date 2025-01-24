@@ -39,11 +39,11 @@ struct FeatureEditor: View {
         self.markDocumentDirty = markDocumentDirty
         self.updateList = updateList
     }
-    
+
     fileprivate func IsPackedView() -> some View {
         HStack(alignment: .center) {
             Toggle(
-                isOn: $selectedFeature.feature.isPicked.onChange { value in
+                isOn: $selectedFeature.feature.isPicked.onChange { _ in
                     updateList()
                     markDocumentDirty()
                 }
@@ -60,7 +60,7 @@ struct FeatureEditor: View {
         }
         .padding(.vertical, 2)
     }
-    
+
     fileprivate func PostLinkView() -> some View {
         HStack(alignment: .center) {
             ValidationLabel(
@@ -68,7 +68,7 @@ struct FeatureEditor: View {
             )
             TextField(
                 "enter the post link",
-                text: $selectedFeature.feature.postLink.onChange { value in
+                text: $selectedFeature.feature.postLink.onChange { _ in
                     markDocumentDirty()
                 }
             )
@@ -98,16 +98,16 @@ struct FeatureEditor: View {
         }
         .padding(.vertical, 2)
     }
-    
+
     fileprivate func UserAliasView() -> some View {
         HStack(alignment: .center) {
             ValidationLabel(
                 validation: !(selectedFeature.feature.userAlias.isEmpty || selectedFeature.feature.userAlias.starts(with: "@")
-                              || selectedFeature.feature.userAlias.count <= 1) && !selectedFeature.feature.userAlias.contains(where: \.isNewline)
+                    || selectedFeature.feature.userAlias.count <= 1) && !selectedFeature.feature.userAlias.contains(where: \.isNewline)
             )
             TextField(
                 "enter the user alias without '@'",
-                text: $selectedFeature.feature.userAlias.onChange { value in
+                text: $selectedFeature.feature.userAlias.onChange { _ in
                     markDocumentDirty()
                 }
             )
@@ -124,7 +124,7 @@ struct FeatureEditor: View {
         }
         .padding(.vertical, 2)
     }
-    
+
     fileprivate func UserNameView() -> some View {
         HStack(alignment: .center) {
             ValidationLabel(
@@ -132,7 +132,7 @@ struct FeatureEditor: View {
             )
             TextField(
                 "enter the user name",
-                text: $selectedFeature.feature.userName.onChange { value in
+                text: $selectedFeature.feature.userName.onChange { _ in
                     updateList()
                     markDocumentDirty()
                 }
@@ -150,7 +150,7 @@ struct FeatureEditor: View {
         }
         .padding(.vertical, 2)
     }
-    
+
     fileprivate func MembershipView() -> some View {
         HStack(alignment: .center) {
             ValidationLabel(
@@ -160,7 +160,7 @@ struct FeatureEditor: View {
                 .frame(alignment: .trailing)
             Picker(
                 "",
-                selection: $selectedFeature.feature.userLevel.onChange { value in
+                selection: $selectedFeature.feature.userLevel.onChange { _ in
                     markDocumentDirty()
                 }
             ) {
@@ -176,9 +176,9 @@ struct FeatureEditor: View {
 
             Text("|")
                 .padding([.leading, .trailing])
-            
+
             Toggle(
-                isOn: $selectedFeature.feature.userIsTeammate.onChange { value in
+                isOn: $selectedFeature.feature.userIsTeammate.onChange { _ in
                     markDocumentDirty()
                 }
             ) {
@@ -189,17 +189,17 @@ struct FeatureEditor: View {
             .tint(Color.accentColor)
             .accentColor(Color.accentColor)
             .frame(maxWidth: 240)
-            
+
             Spacer()
         }
         .padding(.vertical, 2)
     }
-    
+
     fileprivate func TagSourceView() -> some View {
         HStack(alignment: .center) {
             Picker(
                 "",
-                selection: $selectedFeature.feature.tagSource.onChange { value in
+                selection: $selectedFeature.feature.tagSource.onChange { _ in
                     markDocumentDirty()
                 }
             ) {
@@ -213,11 +213,11 @@ struct FeatureEditor: View {
         }
         .padding(.vertical, 2)
     }
-    
+
     fileprivate func PhotoFeaturedOnPageView() -> some View {
         HStack(alignment: .center) {
             Toggle(
-                isOn: $selectedFeature.feature.photoFeaturedOnPage.onChange { value in
+                isOn: $selectedFeature.feature.photoFeaturedOnPage.onChange { _ in
                     updateList()
                     markDocumentDirty()
                 }
@@ -229,16 +229,16 @@ struct FeatureEditor: View {
             .tint(Color.accentColor)
             .accentColor(Color.accentColor)
             .frame(minWidth: 280, maxWidth: 280)
-            
+
             Spacer()
         }
         .padding(.vertical, 2)
     }
-    
+
     fileprivate func PhotoFeaturedOnHubView() -> some View {
         HStack(alignment: .center) {
             Toggle(
-                isOn: $selectedFeature.feature.photoFeaturedOnHub.onChange { value in
+                isOn: $selectedFeature.feature.photoFeaturedOnHub.onChange { _ in
                     updateList()
                     markDocumentDirty()
                 }
@@ -251,18 +251,18 @@ struct FeatureEditor: View {
             .accentColor(Color.accentColor)
             .frame(minWidth: 280, maxWidth: 280)
             .padding(.trailing, 8)
-            
+
             if selectedFeature.feature.photoFeaturedOnHub {
                 Text("|")
                     .padding([.leading, .trailing])
-                
+
                 ValidationLabel(
                     validation: !(selectedFeature.feature.photoLastFeaturedOnHub.isEmpty || selectedFeature.feature.photoLastFeaturedPage.isEmpty),
                     isWarning: true
                 )
                 TextField(
                     "last date features",
-                    text: $selectedFeature.feature.photoLastFeaturedOnHub.onChange { value in
+                    text: $selectedFeature.feature.photoLastFeaturedOnHub.onChange { _ in
                         markDocumentDirty()
                     }
                 )
@@ -276,7 +276,7 @@ struct FeatureEditor: View {
 
                 TextField(
                     "on page",
-                    text: $selectedFeature.feature.photoLastFeaturedPage.onChange { value in
+                    text: $selectedFeature.feature.photoLastFeaturedPage.onChange { _ in
                         markDocumentDirty()
                     }
                 )
@@ -293,7 +293,7 @@ struct FeatureEditor: View {
         }
         .padding(.vertical, 2)
     }
-    
+
     fileprivate func FeatureDescriptionView() -> some View {
         HStack(alignment: .center) {
             ValidationLabel(
@@ -302,7 +302,7 @@ struct FeatureEditor: View {
             )
             TextField(
                 "enter the description of the feature (not used in scripts)",
-                text: $selectedFeature.feature.featureDescription.onChange { value in
+                text: $selectedFeature.feature.featureDescription.onChange { _ in
                     markDocumentDirty()
                 }
             )
@@ -316,12 +316,12 @@ struct FeatureEditor: View {
         }
         .padding(.vertical, 2)
     }
-    
+
     fileprivate func ClickUserFeaturedOnPageView() -> some View {
         VStack {
             HStack(alignment: .center) {
                 Toggle(
-                    isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { value in
+                    isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { _ in
                         markDocumentDirty()
                     }
                 ) {
@@ -338,14 +338,14 @@ struct FeatureEditor: View {
                 if selectedFeature.feature.userHasFeaturesOnPage {
                     Text("|")
                         .padding([.leading, .trailing])
-                    
+
                     ValidationLabel(
                         validation: !selectedFeature.feature.lastFeaturedOnPage.isEmpty,
                         isWarning: true
                     )
                     TextField(
                         "last date featured",
-                        text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in
+                        text: $selectedFeature.feature.lastFeaturedOnPage.onChange { _ in
                             markDocumentDirty()
                         }
                     )
@@ -367,12 +367,12 @@ struct FeatureEditor: View {
                     Text("Feature count:")
                     Picker(
                         "",
-                        selection: $selectedFeature.feature.featureCountOnPage.onChange { value in
+                        selection: $selectedFeature.feature.featureCountOnPage.onChange { _ in
                             markDocumentDirty()
                         }
                     ) {
                         Text("many").tag("many")
-                        ForEach(0..<76) { value in
+                        ForEach(0 ..< 76) { value in
                             Text("\(value)").tag("\(value)")
                         }
                     }
@@ -385,11 +385,11 @@ struct FeatureEditor: View {
                 }
                 .padding(.vertical, 2)
             }
-            
+
             // Copy tag
             HStack(alignment: .center) {
                 Spacer()
-                
+
                 Button(action: {
                     copyToClipboard("\(includeHash ? "#" : "")click_\(selectedPage.name)_\(selectedFeature.feature.userAlias)")
                     viewModel.showSuccessToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
@@ -405,12 +405,12 @@ struct FeatureEditor: View {
             .padding(.vertical, 2)
         }
     }
-    
+
     fileprivate func ClickUserFeaturedOnHubView() -> some View {
         VStack {
             HStack(alignment: .center) {
                 Toggle(
-                    isOn: $selectedFeature.feature.userHasFeaturesOnHub.onChange { value in
+                    isOn: $selectedFeature.feature.userHasFeaturesOnHub.onChange { _ in
                         markDocumentDirty()
                     }
                 ) {
@@ -422,19 +422,19 @@ struct FeatureEditor: View {
                 .accentColor(Color.accentColor)
                 .frame(minWidth: 240, maxWidth: 240)
                 .padding(.trailing, 8)
-                
+
                 // User featured on hub
                 if selectedFeature.feature.userHasFeaturesOnHub {
                     Text("|")
                         .padding([.leading, .trailing])
-                    
+
                     ValidationLabel(
                         validation: !(selectedFeature.feature.lastFeaturedOnHub.isEmpty || selectedFeature.feature.lastFeaturedPage.isEmpty),
                         isWarning: true
                     )
                     TextField(
                         "last date featured",
-                        text: $selectedFeature.feature.lastFeaturedOnHub.onChange { value in
+                        text: $selectedFeature.feature.lastFeaturedOnHub.onChange { _ in
                             markDocumentDirty()
                         }
                     )
@@ -448,7 +448,7 @@ struct FeatureEditor: View {
 
                     TextField(
                         "on page",
-                        text: $selectedFeature.feature.lastFeaturedPage.onChange { value in
+                        text: $selectedFeature.feature.lastFeaturedPage.onChange { _ in
                             markDocumentDirty()
                         }
                     )
@@ -460,7 +460,7 @@ struct FeatureEditor: View {
                     .autocapitalization(.none)
                     .autocorrectionDisabled()
                 }
-                
+
                 Spacer()
             }
             .padding(.vertical, 2)
@@ -471,12 +471,12 @@ struct FeatureEditor: View {
                     Text("Feature count:")
                     Picker(
                         "",
-                        selection: $selectedFeature.feature.featureCountOnHub.onChange { value in
+                        selection: $selectedFeature.feature.featureCountOnHub.onChange { _ in
                             markDocumentDirty()
                         }
                     ) {
                         Text("many").tag("many")
-                        ForEach(0..<76) { value in
+                        ForEach(0 ..< 76) { value in
                             Text("\(value)").tag("\(value)")
                         }
                     }
@@ -489,11 +489,11 @@ struct FeatureEditor: View {
                 }
                 .padding(.vertical, 2)
             }
-            
+
             // Copy tag
             HStack(alignment: .center) {
                 Spacer()
-                
+
                 Button(action: {
                     copyToClipboard("\(includeHash ? "#" : "")click_featured_\(selectedFeature.feature.userAlias)")
                     viewModel.showSuccessToast("Copied to clipboard", "Copied the hub feature tag for the user to the clipboard")
@@ -509,7 +509,7 @@ struct FeatureEditor: View {
             .padding(.vertical, 2)
         }
     }
-    
+
     fileprivate func ClickUserFeaturedView() -> some View {
         VStack {
             // User featured on page
@@ -519,12 +519,12 @@ struct FeatureEditor: View {
             ClickUserFeaturedOnHubView()
         }
     }
-    
+
     fileprivate func SnapUserFeaturedOnPageView() -> some View {
         VStack {
             HStack(alignment: .center) {
                 Toggle(
-                    isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { value in
+                    isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { _ in
                         markDocumentDirty()
                     }
                 ) {
@@ -535,19 +535,19 @@ struct FeatureEditor: View {
                 .tint(Color.accentColor)
                 .accentColor(Color.accentColor)
                 .frame(minWidth: 290, maxWidth: 290)
-                
+
                 // User featured on page
                 if selectedFeature.feature.userHasFeaturesOnPage {
                     Text("|")
                         .padding([.leading, .trailing])
-                    
+
                     ValidationLabel(
                         validation: !selectedFeature.feature.lastFeaturedOnPage.isEmpty,
                         isWarning: true
                     )
                     TextField(
                         "last date featured",
-                        text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in
+                        text: $selectedFeature.feature.lastFeaturedOnPage.onChange { _ in
                             markDocumentDirty()
                         }
                     )
@@ -559,7 +559,7 @@ struct FeatureEditor: View {
                     .autocapitalization(.none)
                     .autocorrectionDisabled()
                 }
-                
+
                 Spacer()
             }
             .padding(.vertical, 2)
@@ -570,12 +570,12 @@ struct FeatureEditor: View {
                     Text("Feature count:")
                     Picker(
                         "",
-                        selection: $selectedFeature.feature.featureCountOnPage.onChange { value in
+                        selection: $selectedFeature.feature.featureCountOnPage.onChange { _ in
                             markDocumentDirty()
                         }
                     ) {
                         Text("many").tag("many")
-                        ForEach(0..<21) { value in
+                        ForEach(0 ..< 21) { value in
                             Text("\(value)").tag("\(value)")
                         }
                     }
@@ -585,16 +585,16 @@ struct FeatureEditor: View {
 
                     Text("|")
                         .padding([.leading, .trailing])
-                    
+
                     Text("RAW feature count:")
                     Picker(
                         "",
-                        selection: $selectedFeature.feature.featureCountOnRawPage.onChange { value in
+                        selection: $selectedFeature.feature.featureCountOnRawPage.onChange { _ in
                             markDocumentDirty()
                         }
                     ) {
                         Text("many").tag("many")
-                        ForEach(0..<21) { value in
+                        ForEach(0 ..< 21) { value in
                             Text("\(value)").tag("\(value)")
                         }
                     }
@@ -610,7 +610,7 @@ struct FeatureEditor: View {
             // Copy Tags
             HStack(alignment: .center) {
                 Spacer()
-                
+
                 Button(action: {
                     copyToClipboard(
                         "\(includeHash ? "#" : "")snap_\(selectedPage.pageName ?? selectedPage.name)_\(selectedFeature.feature.userAlias)"
@@ -641,12 +641,12 @@ struct FeatureEditor: View {
             }
         }
     }
-    
+
     fileprivate func SnapUserFeaturedOnHubView() -> some View {
         VStack {
             HStack(alignment: .center) {
                 Toggle(
-                    isOn: $selectedFeature.feature.userHasFeaturesOnHub.onChange { value in
+                    isOn: $selectedFeature.feature.userHasFeaturesOnHub.onChange { _ in
                         markDocumentDirty()
                     }
                 ) {
@@ -662,14 +662,14 @@ struct FeatureEditor: View {
                 if selectedFeature.feature.userHasFeaturesOnHub {
                     Text("|")
                         .padding([.leading, .trailing])
-                    
+
                     ValidationLabel(
                         validation: !(selectedFeature.feature.lastFeaturedOnHub.isEmpty || selectedFeature.feature.lastFeaturedPage.isEmpty),
                         isWarning: true
                     )
                     TextField(
                         "last date featured",
-                        text: $selectedFeature.feature.lastFeaturedOnHub.onChange { value in
+                        text: $selectedFeature.feature.lastFeaturedOnHub.onChange { _ in
                             markDocumentDirty()
                         }
                     )
@@ -683,7 +683,7 @@ struct FeatureEditor: View {
 
                     TextField(
                         "on page",
-                        text: $selectedFeature.feature.lastFeaturedPage.onChange { value in
+                        text: $selectedFeature.feature.lastFeaturedPage.onChange { _ in
                             markDocumentDirty()
                         }
                     )
@@ -695,23 +695,23 @@ struct FeatureEditor: View {
                     .autocapitalization(.none)
                     .autocorrectionDisabled()
                 }
-                    
+
                 Spacer()
             }
             .padding(.vertical, 2)
-                
+
             // User featured on hub
             if selectedFeature.feature.userHasFeaturesOnHub {
                 HStack(alignment: .center) {
                     Text("Feature count:")
                     Picker(
                         "",
-                        selection: $selectedFeature.feature.featureCountOnHub.onChange { value in
+                        selection: $selectedFeature.feature.featureCountOnHub.onChange { _ in
                             markDocumentDirty()
                         }
                     ) {
                         Text("many").tag("many")
-                        ForEach(0..<21) { value in
+                        ForEach(0 ..< 21) { value in
                             Text("\(value)").tag("\(value)")
                         }
                     }
@@ -721,16 +721,16 @@ struct FeatureEditor: View {
 
                     Text("|")
                         .padding([.leading, .trailing])
-                    
+
                     Text("RAW feature count:")
                     Picker(
                         "",
-                        selection: $selectedFeature.feature.featureCountOnRawHub.onChange { value in
+                        selection: $selectedFeature.feature.featureCountOnRawHub.onChange { _ in
                             markDocumentDirty()
                         }
                     ) {
                         Text("many").tag("many")
-                        ForEach(0..<21) { value in
+                        ForEach(0 ..< 21) { value in
                             Text("\(value)").tag("\(value)")
                         }
                     }
@@ -742,10 +742,10 @@ struct FeatureEditor: View {
                 }
                 .padding(.vertical, 2)
             }
-            
+
             HStack(alignment: .center) {
                 Spacer()
-                
+
                 Button(action: {
                     copyToClipboard("\(includeHash ? "#" : "")snap_featured_\(selectedFeature.feature.userAlias)")
                     viewModel.showSuccessToast("Copied to clipboard", "Copied the Snap hub feature tag for the user to the clipboard")
@@ -772,7 +772,7 @@ struct FeatureEditor: View {
             }
         }
     }
-    
+
     fileprivate func SnapUserFeaturedView() -> some View {
         VStack {
             // User featured on page
@@ -782,12 +782,12 @@ struct FeatureEditor: View {
             SnapUserFeaturedOnHubView()
         }
     }
-    
+
     fileprivate func OtherUserFeaturedOnPageView() -> some View {
         VStack {
             HStack(alignment: .center) {
                 Toggle(
-                    isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { value in
+                    isOn: $selectedFeature.feature.userHasFeaturesOnPage.onChange { _ in
                         markDocumentDirty()
                     }
                 ) {
@@ -808,7 +808,7 @@ struct FeatureEditor: View {
                     )
                     TextField(
                         "last date featured",
-                        text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in
+                        text: $selectedFeature.feature.lastFeaturedOnPage.onChange { _ in
                             markDocumentDirty()
                         }
                     )
@@ -830,12 +830,12 @@ struct FeatureEditor: View {
                     Text("Feature count:")
                     Picker(
                         "",
-                        selection: $selectedFeature.feature.featureCountOnPage.onChange { value in
+                        selection: $selectedFeature.feature.featureCountOnPage.onChange { _ in
                             markDocumentDirty()
                         }
                     ) {
                         Text("many").tag("many")
-                        ForEach(0..<51) { value in
+                        ForEach(0 ..< 51) { value in
                             Text("\(value)").tag("\(value)")
                         }
                     }
@@ -848,11 +848,11 @@ struct FeatureEditor: View {
                 }
                 .padding(.vertical, 2)
             }
-            
+
             // Copy tag
             HStack(alignment: .center) {
                 Spacer()
-                
+
                 Button(action: {
                     copyToClipboard("\(includeHash ? "#" : "")\(selectedPage.name)_\(selectedFeature.feature.userAlias)")
                     viewModel.showSuccessToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
@@ -868,19 +868,19 @@ struct FeatureEditor: View {
             .padding(.vertical, 2)
         }
     }
-    
+
     fileprivate func OtherUserFeaturedView() -> some View {
         VStack {
             // User featured on page
             OtherUserFeaturedOnPageView()
         }
     }
-    
+
     fileprivate func ValidationResultsView() -> some View {
         VStack {
             HStack(alignment: .center) {
                 Toggle(
-                    isOn: $selectedFeature.feature.tooSoonToFeatureUser.onChange { value in
+                    isOn: $selectedFeature.feature.tooSoonToFeatureUser.onChange { _ in
                         updateList()
                         markDocumentDirty()
                     }
@@ -892,16 +892,16 @@ struct FeatureEditor: View {
                 .tint(Color.accentColor)
                 .accentColor(Color.accentColor)
                 .frame(minWidth: 320, maxWidth: 320)
-                
+
                 Spacer()
             }
             .padding(.vertical, 2)
-            
+
             HStack(alignment: .center) {
                 Text("TinEye:")
                 Picker(
                     "",
-                    selection: $selectedFeature.feature.tinEyeResults.onChange { value in
+                    selection: $selectedFeature.feature.tinEyeResults.onChange { _ in
                         updateList()
                         markDocumentDirty()
                     }
@@ -918,11 +918,11 @@ struct FeatureEditor: View {
 
                 Text("|")
                     .padding([.leading, .trailing])
-                
+
                 Text("AI Check:")
                 Picker(
                     "",
-                    selection: $selectedFeature.feature.aiCheckResults.onChange { value in
+                    selection: $selectedFeature.feature.aiCheckResults.onChange { _ in
                         updateList()
                         markDocumentDirty()
                     }
@@ -936,35 +936,35 @@ struct FeatureEditor: View {
                 .tint(Color.accentColor)
                 .accentColor(Color.accentColor)
                 .foregroundStyle(Color.accentColor, Color(UIColor.label))
-                
+
                 Spacer()
             }
         }
     }
-    
+
     var body: some View {
         VStack {
             // Is picked
             IsPackedView()
-            
+
             // Post link
             PostLinkView()
-            
+
             // User alias
             UserAliasView()
-            
+
             // User name
             UserNameView()
-            
+
             // Member level and team mate
             MembershipView()
-            
+
             // Tag source
             TagSourceView()
-            
+
             // Photo featured on page
             PhotoFeaturedOnPageView()
-            
+
             // Photo featured on hub
             if selectedPage.hub == "click" || selectedPage.hub == "snap" {
                 PhotoFeaturedOnHubView()

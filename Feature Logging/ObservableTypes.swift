@@ -43,7 +43,7 @@ class ObservableFeature: Identifiable, Hashable {
     var isPickedAndAllowed: Bool {
         isPicked && !tooSoonToFeatureUser && !photoFeaturedOnPage && tinEyeResults != .matchFound && aiCheckResults != .ai
     }
-    
+
     init() {}
 
     var validationResult: ValidationResult {
@@ -73,7 +73,7 @@ class ObservableFeature: Identifiable, Hashable {
         }
         return .Success
     }
-    
+
     static func == (lhs: ObservableFeature, rhs: ObservableFeature) -> Bool {
         return lhs.id == rhs.id
     }
@@ -93,35 +93,35 @@ class ObservableFeatureWrapper: Identifiable, Hashable {
 
     init(using page: ObservablePage, from feature: ObservableFeature) {
         self.feature = feature
-        self.userLevel = feature.userLevel
-        self.firstFeature = !feature.userHasFeaturesOnPage
-        self.newLevel = NewMembershipCase.none
+        userLevel = feature.userLevel
+        firstFeature = !feature.userHasFeaturesOnPage
+        newLevel = NewMembershipCase.none
         if page.hub == "click" {
             let totalFeatures = calculateFeatureCount(feature.featureCountOnHub)
             if totalFeatures + 1 == 5 {
-                self.newLevel = NewMembershipCase.clickMember
-                self.userLevel = MembershipCase.commonMember
+                newLevel = NewMembershipCase.clickMember
+                userLevel = MembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
-                self.newLevel = NewMembershipCase.clickBronzeMember
-                self.userLevel = MembershipCase.clickBronzeMember
+                newLevel = NewMembershipCase.clickBronzeMember
+                userLevel = MembershipCase.clickBronzeMember
             } else if totalFeatures + 1 == 30 {
-                self.newLevel = NewMembershipCase.clickSilverMember
-                self.userLevel = MembershipCase.clickSilverMember
+                newLevel = NewMembershipCase.clickSilverMember
+                userLevel = MembershipCase.clickSilverMember
             } else if totalFeatures + 1 == 50 {
-                self.newLevel = NewMembershipCase.clickGoldMember
-                self.userLevel = MembershipCase.clickGoldMember
+                newLevel = NewMembershipCase.clickGoldMember
+                userLevel = MembershipCase.clickGoldMember
             } else if totalFeatures + 1 == 75 {
-                self.newLevel = NewMembershipCase.clickPlatinumMember
-                self.userLevel = MembershipCase.commonPlatinumMember
+                newLevel = NewMembershipCase.clickPlatinumMember
+                userLevel = MembershipCase.commonPlatinumMember
             }
         } else if page.hub == "snap" {
             let totalFeatures = calculateFeatureCount(feature.featureCountOnHub) + calculateFeatureCount(feature.featureCountOnRawHub)
             if totalFeatures + 1 == 5 {
-                self.newLevel = NewMembershipCase.snapMemberFeature
-                self.userLevel = MembershipCase.commonMember
+                newLevel = NewMembershipCase.snapMemberFeature
+                userLevel = MembershipCase.commonMember
             } else if totalFeatures + 1 == 15 {
-                self.newLevel = NewMembershipCase.snapVipMemberFeature
-                self.userLevel = MembershipCase.snapVipMember
+                newLevel = NewMembershipCase.snapVipMemberFeature
+                userLevel = MembershipCase.snapVipMember
             }
         }
     }
@@ -145,11 +145,12 @@ class ObservableFeatureWrapper: Identifiable, Hashable {
 @Observable
 class ObservablePage: Identifiable, Hashable {
     var id: String {
-        if self.hub.isEmpty {
-            return self.name
+        if hub.isEmpty {
+            return name
         }
-        return "\(self.hub):\(self.name)"
+        return "\(hub):\(name)"
     }
+
     var hub: String
     var name: String
     var pageName: String?
@@ -161,9 +162,11 @@ class ObservablePage: Identifiable, Hashable {
         }
         return "\(hub)_\(name)"
     }
+
     var displayTitle: String {
         return title ?? "\(hub) \(name)"
     }
+
     var hashTags: [String] {
         if hub == "snap" {
             if let basePageName = pageName {
@@ -181,10 +184,10 @@ class ObservablePage: Identifiable, Hashable {
 
     init(hub: String, page: Page) {
         self.hub = hub
-        self.name = page.name
-        self.pageName = page.pageName
-        self.title = page.title
-        self.hashTag = page.hashTag
+        name = page.name
+        pageName = page.pageName
+        title = page.title
+        hashTag = page.hashTag
     }
 
     private init() {

@@ -11,9 +11,9 @@ import SwiftyBeaver
 struct FeatureListRow: View {
     private var viewModel: ContentView.ViewModel
     @Bindable private var feature: ObservableFeature
-    
+
     @State var showingMessageEditor = false
-    
+
     @AppStorage(
         "preference_personalMessage",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -22,9 +22,9 @@ struct FeatureListRow: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-    
+
     private let logger = SwiftyBeaver.self
-    
+
     init(
         _ viewModel: ContentView.ViewModel,
         _ feature: ObservableFeature
@@ -32,7 +32,7 @@ struct FeatureListRow: View {
         self.viewModel = viewModel
         self.feature = feature
     }
-    
+
     var body: some View {
         HStack(alignment: .center) {
             if feature.photoFeaturedOnPage {
@@ -72,7 +72,7 @@ struct FeatureListRow: View {
                     .frame(width: 32, height: 32)
                     .opacity(0.0000001)
             }
-            
+
             VStack {
                 HStack {
                     Text("Feature: ")
@@ -89,9 +89,9 @@ struct FeatureListRow: View {
                             .italic()
                             .font(.system(size: 13))
                     }
-                    
+
                     Text(" | ")
-                    
+
                     if !feature.userAlias.isEmpty {
                         Text("@\(feature.userAlias)")
                             .lineLimit(1)
@@ -103,9 +103,9 @@ struct FeatureListRow: View {
                             .italic()
                             .font(.system(size: 13))
                     }
-                    
+
                     Text(" | ")
-                    
+
                     if !feature.featureDescription.isEmpty {
                         Text(feature.featureDescription)
                             .lineLimit(1)
@@ -117,9 +117,9 @@ struct FeatureListRow: View {
                             .italic()
                             .font(.system(size: 13))
                     }
-                    
+
                     Text(" | ")
-                    
+
                     Image(systemName: "tag.square")
                         .foregroundStyle(
                             feature.photoFeaturedOnHub ? Color.accentColor : Color(UIColor.secondaryLabel).opacity(0.5),
@@ -154,7 +154,7 @@ struct FeatureListRow: View {
                         .font(.system(size: 13))
                         .frame(width: 16, height: 16)
                         .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
-                    
+
                     let validationResult = feature.validationResult
                     if validationResult != .Success {
                         Text(" | ")
@@ -166,10 +166,10 @@ struct FeatureListRow: View {
                 }
                 HStack {
                     if !feature.postLink.isEmpty {
-                    Text(feature.postLink)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .font(.system(size: 12))
+                        Text(feature.postLink)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .font(.system(size: 12))
                     } else {
                         Text("post link")
                             .foregroundStyle(.gray, .secondary)
@@ -276,7 +276,7 @@ struct FeatureListRow: View {
                             Text("Personal message (from your account): ")
                             TextField(
                                 "",
-                                text: $feature.personalMessage.onChange { value in
+                                text: $feature.personalMessage.onChange { _ in
                                     viewModel.markDocumentDirty()
                                 }
                             )
@@ -329,12 +329,12 @@ struct FeatureListRow: View {
         let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
         let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat
         let fullPersonalMessage =
-        personalMessageTemplate
-            .replacingOccurrences(of: "%%PAGENAME%%", with: viewModel.selectedPage!.displayName)
-            .replacingOccurrences(of: "%%HUBNAME%%", with: viewModel.selectedPage!.hub == "other" ? "" : viewModel.selectedPage!.hub)
-            .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
-            .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
-            .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
+            personalMessageTemplate
+                .replacingOccurrences(of: "%%PAGENAME%%", with: viewModel.selectedPage!.displayName)
+                .replacingOccurrences(of: "%%HUBNAME%%", with: viewModel.selectedPage!.hub == "other" ? "" : viewModel.selectedPage!.hub)
+                .replacingOccurrences(of: "%%USERNAME%%", with: feature.userName)
+                .replacingOccurrences(of: "%%USERALIAS%%", with: feature.userAlias)
+                .replacingOccurrences(of: "%%PERSONALMESSAGE%%", with: personalMessage)
         copyToClipboard(fullPersonalMessage)
         showingMessageEditor.toggle()
         viewModel.showSuccessToast("Copied to clipboard", "The personal message was copied to the clipboard")

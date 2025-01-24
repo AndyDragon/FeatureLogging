@@ -36,31 +36,31 @@ struct LogFeature: Codable {
     var personalMessage: String
 
     init(feature: ObservableFeature) {
-        self.isPicked = feature.isPicked
-        self.postLink = feature.postLink
-        self.userName = feature.userName
-        self.userAlias = feature.userAlias
-        self.userLevel = feature.userLevel
-        self.userIsTeammate = feature.userIsTeammate
-        self.tagSource = feature.tagSource
-        self.photoFeaturedOnPage = feature.photoFeaturedOnPage
-        self.photoFeaturedOnHub = feature.photoFeaturedOnHub
-        self.photoLastFeaturedOnHub = feature.photoLastFeaturedOnHub
-        self.photoLastFeaturedPage = feature.photoLastFeaturedPage
-        self.featureDescription = feature.featureDescription
-        self.userHasFeaturesOnPage = feature.userHasFeaturesOnPage
-        self.lastFeaturedOnPage = feature.lastFeaturedOnPage
-        self.featureCountOnPage = feature.featureCountOnPage
-        self.featureCountOnRawPage = feature.featureCountOnRawPage
-        self.userHasFeaturesOnHub = feature.userHasFeaturesOnHub
-        self.lastFeaturedOnHub = feature.lastFeaturedOnHub
-        self.lastFeaturedPage = feature.lastFeaturedPage
-        self.featureCountOnHub = feature.featureCountOnHub
-        self.featureCountOnRawHub = feature.featureCountOnRawHub
-        self.tooSoonToFeatureUser = feature.tooSoonToFeatureUser
-        self.tinEyeResults = feature.tinEyeResults
-        self.aiCheckResults = feature.aiCheckResults
-        self.personalMessage = feature.personalMessage
+        isPicked = feature.isPicked
+        postLink = feature.postLink
+        userName = feature.userName
+        userAlias = feature.userAlias
+        userLevel = feature.userLevel
+        userIsTeammate = feature.userIsTeammate
+        tagSource = feature.tagSource
+        photoFeaturedOnPage = feature.photoFeaturedOnPage
+        photoFeaturedOnHub = feature.photoFeaturedOnHub
+        photoLastFeaturedOnHub = feature.photoLastFeaturedOnHub
+        photoLastFeaturedPage = feature.photoLastFeaturedPage
+        featureDescription = feature.featureDescription
+        userHasFeaturesOnPage = feature.userHasFeaturesOnPage
+        lastFeaturedOnPage = feature.lastFeaturedOnPage
+        featureCountOnPage = feature.featureCountOnPage
+        featureCountOnRawPage = feature.featureCountOnRawPage
+        userHasFeaturesOnHub = feature.userHasFeaturesOnHub
+        lastFeaturedOnHub = feature.lastFeaturedOnHub
+        lastFeaturedPage = feature.lastFeaturedPage
+        featureCountOnHub = feature.featureCountOnHub
+        featureCountOnRawHub = feature.featureCountOnRawHub
+        tooSoonToFeatureUser = feature.tooSoonToFeatureUser
+        tinEyeResults = feature.tinEyeResults
+        aiCheckResults = feature.aiCheckResults
+        personalMessage = feature.personalMessage
     }
 
     enum CodingKeys: CodingKey {
@@ -93,31 +93,31 @@ struct LogFeature: Codable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.isPicked = try container.decode(Bool.self, forKey: .isPicked)
-        self.postLink = try container.decode(String.self, forKey: .postLink)
-        self.userName = try container.decode(String.self, forKey: .userName)
-        self.userAlias = try container.decode(String.self, forKey: .userAlias)
-        self.userLevel = try container.decode(MembershipCase.self, forKey: .userLevel)
-        self.userIsTeammate = try container.decode(Bool.self, forKey: .userIsTeammate)
-        self.tagSource = try container.decode(TagSourceCase.self, forKey: .tagSource)
-        self.photoFeaturedOnPage = try container.decode(Bool.self, forKey: .photoFeaturedOnPage)
-        self.photoFeaturedOnHub = try container.decodeIfPresent(Bool.self, forKey: .photoFeaturedOnHub) ?? false
-        self.photoLastFeaturedOnHub = try container.decodeIfPresent(String.self, forKey: .photoLastFeaturedOnHub) ?? ""
-        self.photoLastFeaturedPage = try container.decodeIfPresent(String.self, forKey: .photoLastFeaturedPage) ?? ""
-        self.featureDescription = try container.decode(String.self, forKey: .featureDescription)
-        self.userHasFeaturesOnPage = try container.decode(Bool.self, forKey: .userHasFeaturesOnPage)
-        self.lastFeaturedOnPage = try container.decode(String.self, forKey: .lastFeaturedOnPage)
-        self.featureCountOnPage = try container.decode(String.self, forKey: .featureCountOnPage)
-        self.featureCountOnRawPage = try container.decode(String.self, forKey: .featureCountOnRawPage)
-        self.userHasFeaturesOnHub = try container.decode(Bool.self, forKey: .userHasFeaturesOnHub)
-        self.lastFeaturedOnHub = try container.decode(String.self, forKey: .lastFeaturedOnHub)
-        self.lastFeaturedPage = try container.decode(String.self, forKey: .lastFeaturedPage)
-        self.featureCountOnHub = try container.decode(String.self, forKey: .featureCountOnHub)
-        self.featureCountOnRawHub = try container.decode(String.self, forKey: .featureCountOnRawHub)
-        self.tooSoonToFeatureUser = try container.decode(Bool.self, forKey: .tooSoonToFeatureUser)
-        self.tinEyeResults = try container.decode(TinEyeResults.self, forKey: .tinEyeResults)
-        self.aiCheckResults = try container.decode(AiCheckResults.self, forKey: .aiCheckResults)
-        self.personalMessage = try container.decodeIfPresent(String.self, forKey: .personalMessage) ?? ""
+        isPicked = try container.decode(Bool.self, forKey: .isPicked)
+        postLink = try container.decode(String.self, forKey: .postLink)
+        userName = try container.decode(String.self, forKey: .userName)
+        userAlias = try container.decode(String.self, forKey: .userAlias)
+        userLevel = try container.decode(MembershipCase.self, forKey: .userLevel)
+        userIsTeammate = try container.decode(Bool.self, forKey: .userIsTeammate)
+        tagSource = try container.decode(TagSourceCase.self, forKey: .tagSource)
+        photoFeaturedOnPage = try container.decode(Bool.self, forKey: .photoFeaturedOnPage)
+        photoFeaturedOnHub = try container.decodeIfPresent(Bool.self, forKey: .photoFeaturedOnHub) ?? false
+        photoLastFeaturedOnHub = try container.decodeIfPresent(String.self, forKey: .photoLastFeaturedOnHub) ?? ""
+        photoLastFeaturedPage = try container.decodeIfPresent(String.self, forKey: .photoLastFeaturedPage) ?? ""
+        featureDescription = try container.decode(String.self, forKey: .featureDescription)
+        userHasFeaturesOnPage = try container.decode(Bool.self, forKey: .userHasFeaturesOnPage)
+        lastFeaturedOnPage = try container.decode(String.self, forKey: .lastFeaturedOnPage)
+        featureCountOnPage = try container.decode(String.self, forKey: .featureCountOnPage)
+        featureCountOnRawPage = try container.decode(String.self, forKey: .featureCountOnRawPage)
+        userHasFeaturesOnHub = try container.decode(Bool.self, forKey: .userHasFeaturesOnHub)
+        lastFeaturedOnHub = try container.decode(String.self, forKey: .lastFeaturedOnHub)
+        lastFeaturedPage = try container.decode(String.self, forKey: .lastFeaturedPage)
+        featureCountOnHub = try container.decode(String.self, forKey: .featureCountOnHub)
+        featureCountOnRawHub = try container.decode(String.self, forKey: .featureCountOnRawHub)
+        tooSoonToFeatureUser = try container.decode(Bool.self, forKey: .tooSoonToFeatureUser)
+        tinEyeResults = try container.decode(TinEyeResults.self, forKey: .tinEyeResults)
+        aiCheckResults = try container.decode(AiCheckResults.self, forKey: .aiCheckResults)
+        personalMessage = try container.decodeIfPresent(String.self, forKey: .personalMessage) ?? ""
     }
 
     func encode(to encoder: Encoder) throws {
@@ -173,8 +173,8 @@ struct Log: Codable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.page = try container.decode(String.self, forKey: .page)
-        self.features = try container.decode([LogFeature].self, forKey: .features)
+        page = try container.decode(String.self, forKey: .page)
+        features = try container.decode([LogFeature].self, forKey: .features)
     }
 
     func encode(to encoder: Encoder) throws {

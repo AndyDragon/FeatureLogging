@@ -19,15 +19,15 @@ struct ContentView: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-    
+
     // THEME
     @EnvironmentObject var commandModel: AppCommandModel
-    
+
     @Environment(\.openURL) private var openURL
-    
+
     @State private var viewModel = ViewModel()
     @FocusState private var focusedField: FocusField?
-    
+
     @ObservedObject var featureScriptPlaceholders = PlaceholderList()
     @ObservedObject var commentScriptPlaceholders = PlaceholderList()
     @ObservedObject var originalPostScriptPlaceholders = PlaceholderList()
@@ -41,7 +41,7 @@ struct ContentView: View {
     @State private var showReportFileExporter = false
     @State private var reportDocument = ReportDocument()
     @State private var shouldScrollFeatureListToSelection = false
-    
+
     private let logger = SwiftyBeaver.self
     private var descriptionSuffix: String {
         if let description = viewModel.selectedFeature?.feature.featureDescription {
@@ -51,15 +51,17 @@ struct ContentView: View {
         }
         return ""
     }
+
     private var titleSuffix: String {
         viewModel.visibleView == .ScriptView
-        ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - scripts" : " - scripts for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
-        : (viewModel.visibleView == .PostDownloadView
-           ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - post viewer" : " - post viewer for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
-           : (viewModel.visibleView == .StatisticsView
-              ? " - statistics"
-              : ""))
+            ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - scripts" : " - scripts for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
+            : (viewModel.visibleView == .PostDownloadView
+                ? ((viewModel.selectedFeature?.feature.userName ?? "").isEmpty ? " - post viewer" : " - post viewer for \(viewModel.selectedFeature?.feature.userName ?? "")\(descriptionSuffix)")
+                : (viewModel.visibleView == .StatisticsView
+                    ? " - statistics"
+                    : ""))
     }
+
     private var fileNameDateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -77,7 +79,7 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             Color.backgroundColor.edgesIgnoringSafeArea(.all)
-            
+
             VStack {
                 if viewModel.visibleView == .ScriptView {
                     ScriptContentView(
@@ -129,7 +131,7 @@ struct ContentView: View {
                         saveLog
                     )
                 }
-                
+
                 // Log importer
                 HStack { }
                     .frame(width: 0, height: 0)
@@ -138,10 +140,10 @@ struct ContentView: View {
                         allowedContentTypes: [.json]
                     ) { result in
                         switch result {
-                        case .success(let file):
+                        case let .success(file):
                             loadLog(from: file)
                             viewModel.clearDocumentDirty()
-                        case .failure(let error):
+                        case let .failure(error):
                             debugPrint(error.localizedDescription)
                         }
                     }
@@ -157,14 +159,14 @@ struct ContentView: View {
                         defaultFilename: "\(viewModel.selectedPage?.hub ?? "hub")_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).json"
                     ) { result in
                         switch result {
-                        case .success(let url):
+                        case let .success(url):
                             logger.verbose("Saved the feature log", context: "System")
                             logURL = url
                             viewModel.clearDocumentDirty()
                             documentDirtyAfterSaveAction()
                             documentDirtyAfterSaveAction = {}
                             documentDirtyAfterDismissAction = {}
-                        case .failure(let error):
+                        case let .failure(error):
                             debugPrint(error.localizedDescription)
                         }
                     }
@@ -179,13 +181,13 @@ struct ContentView: View {
                         document: reportDocument,
                         contentType: UTType.features,
                         defaultFilename: logURL != nil
-                        ? "\(logURL!.deletingPathExtension().lastPathComponent).features"
-                        : "\(viewModel.selectedPage?.hub ?? "hub")_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).features"
+                            ? "\(logURL!.deletingPathExtension().lastPathComponent).features"
+                            : "\(viewModel.selectedPage?.hub ?? "hub")_\(viewModel.selectedPage?.pageName ?? viewModel.selectedPage?.name ?? "page") - \(fileNameDateFormatter.string(from: Date.now)).features"
                     ) { result in
                         switch result {
                         case .success:
                             logger.verbose("Saved the feature report", context: "System")
-                        case .failure(let error):
+                        case let .failure(error):
                             debugPrint(error)
                         }
                     }
@@ -320,7 +322,7 @@ struct ContentView: View {
 
 extension ContentView {
     // MARK: - utilities
-    
+
     private func delayAndTerminate() {
         viewModel.clearDocumentDirty()
         DispatchQueue.main.asyncAfter(
@@ -329,7 +331,7 @@ extension ContentView {
 #if os(macOS)
                 NSApplication.shared.terminate(nil)
 #else
-                // TODO andydragon
+                // TODO: andydragon
 #endif
             })
     }
@@ -369,7 +371,7 @@ extension ContentView {
             let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
             let pagesCatalog = try await URLSession.shared.decode(ScriptsCatalog.self, from: pagesUrl)
             var pages = [ObservablePage]()
-            for hubPair in (pagesCatalog.hubs) {
+            for hubPair in pagesCatalog.hubs {
                 for hubPage in hubPair.value {
                     pages.append(ObservablePage(hub: hubPair.key, page: hubPage))
                 }
@@ -399,7 +401,7 @@ extension ContentView {
             logger.verbose("Loaded page catalog from server with \(viewModel.loadedCatalogs.loadedPages.count) pages", context: "System")
 
             // Delay the start of the templates download so the window can be ready faster
-            try await Task.sleep(nanoseconds: 200_000_000)
+            try await Task.sleep(nanoseconds: 200000000)
 
             logger.verbose("Loading template catalog from server", context: "System")
 
@@ -411,7 +413,7 @@ extension ContentView {
 
             do {
                 // Delay the start of the disallowed list download so the window can be ready faster
-                try await Task.sleep(nanoseconds: 1_000_000_000)
+                try await Task.sleep(nanoseconds: 1000000000)
 
                 logger.verbose("Loading disallow list from server", context: "System")
 
@@ -429,7 +431,7 @@ extension ContentView {
 #if STANDALONE
             do {
                 // Delay the start of the disallowed list download so the window can be ready faster
-                try await Task.sleep(nanoseconds: 100_000_000)
+                try await Task.sleep(nanoseconds: 100000000)
 
                 appState.checkForUpdates()
             } catch {
@@ -444,7 +446,7 @@ extension ContentView {
                 .fatal,
                 "Failed to load pages",
                 "The application requires the catalog to perform its operations: \(error.localizedDescription)\n\n" +
-                "Click here to try again immediately or wait 15 seconds to automatically try again.",
+                    "Click here to try again immediately or wait 15 seconds to automatically try again.",
                 duration: 15,
                 width: 720,
                 buttonTitle: "Retry",
@@ -554,7 +556,7 @@ extension ContentView {
 
 extension ContentView: DocumentManagerDelegate {
     // MARK: - document management
-    
+
     func onCanTerminate() -> Bool {
         if viewModel.isDirty {
             documentDirtyAfterDismissAction = {
