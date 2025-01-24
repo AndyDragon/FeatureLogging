@@ -2,10 +2,16 @@
 
 namespace FeatureLogging.ViewModels
 {
-    public class MainViewModel
+    public class MainViewModel : NotifyPropertyChanged
     {
         readonly ObservableCollection<Feature> features = [];
         public ObservableCollection<Feature> Features => features;
+
+        private Feature? selectedFeature = null;
+        public Feature? SelectedFeature {
+            get => selectedFeature;
+            set => Set(ref selectedFeature, value);
+        }
 
         public Command AddFeatureCommand => new(() =>
         {
@@ -20,12 +26,14 @@ namespace FeatureLogging.ViewModels
                         UserAlias = text["https://vero.co/".Length..].Split("/").FirstOrDefault() ?? "",
                     };
                     features.Add(feature);
+                    SelectedFeature = feature;
                     SemanticScreenReader.Announce($"Added feature for {feature.UserAlias}");
                 }
                 else
                 {
                     var feature = new Feature();
                     features.Add(feature);
+                    SelectedFeature = feature;
                     SemanticScreenReader.Announce($"Added blank feature");
                 }
             }
@@ -33,6 +41,7 @@ namespace FeatureLogging.ViewModels
             {
                 var feature = new Feature();
                 features.Add(feature);
+                SelectedFeature = feature;
                 SemanticScreenReader.Announce($"Added blank feature");
             }
         });
