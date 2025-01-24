@@ -218,6 +218,7 @@ struct ImageValidationView: View {
                 Spacer()
             }
         }
+        //.frame(maxWidth: .infinity, minHeight: 640, maxHeight: .infinity)
     }
 
     private func HiveAiResultsView() -> some View {

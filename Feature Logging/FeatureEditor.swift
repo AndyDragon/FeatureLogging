@@ -138,7 +138,8 @@ struct FeatureEditor: View {
         HStack(alignment: .center) {
             ValidationLabel(
                 "Post link:", labelWidth: labelWidth,
-                validation: !selectedFeature.feature.postLink.isEmpty && !selectedFeature.feature.postLink.contains(where: \.isNewline))
+                validation: !selectedFeature.feature.postLink.isEmpty && !selectedFeature.feature.postLink.contains(where: \.isNewline)
+            )
             TextField(
                 "enter the post link",
                 text: $selectedFeature.feature.postLink.onChange { value in
@@ -202,9 +203,9 @@ struct FeatureEditor: View {
         HStack(alignment: .center) {
             ValidationLabel(
                 "User alias:", labelWidth: labelWidth,
-                validation:
-                    !(selectedFeature.feature.userAlias.isEmpty || selectedFeature.feature.userAlias.starts(with: "@")
-                      || selectedFeature.feature.userAlias.count <= 1) && !selectedFeature.feature.userAlias.contains(where: \.isNewline))
+                validation: !(selectedFeature.feature.userAlias.isEmpty || selectedFeature.feature.userAlias.starts(with: "@")
+                              || selectedFeature.feature.userAlias.count <= 1) && !selectedFeature.feature.userAlias.contains(where: \.isNewline)
+            )
             TextField(
                 "enter the user alias",
                 text: $selectedFeature.feature.userAlias.onChange { value in
@@ -240,7 +241,8 @@ struct FeatureEditor: View {
         HStack(alignment: .center) {
             ValidationLabel(
                 "User name:", labelWidth: labelWidth,
-                validation: !selectedFeature.feature.userName.isEmpty && !selectedFeature.feature.userName.contains(where: \.isNewline))
+                validation: !selectedFeature.feature.userName.isEmpty && !selectedFeature.feature.userName.contains(where: \.isNewline)
+            )
             TextField(
                 "enter the user name",
                 text: $selectedFeature.feature.userName.onChange { value in
@@ -277,7 +279,11 @@ struct FeatureEditor: View {
     
     fileprivate func UserLevelView() -> some View {
         HStack(alignment: .center) {
-            ValidationLabel("User level:", labelWidth: labelWidth, validation: selectedFeature.feature.userLevel != MembershipCase.none)
+            ValidationLabel(
+                "User level:",
+                labelWidth: labelWidth,
+                validation: selectedFeature.feature.userLevel != MembershipCase.none
+            )
             Picker(
                 "",
                 selection: $selectedFeature.feature.userLevel.onChange { value in
@@ -412,7 +418,8 @@ struct FeatureEditor: View {
                 
                 ValidationLabel(
                     "Last date featured:",
-                    validation: !(selectedFeature.feature.photoLastFeaturedOnHub.isEmpty || selectedFeature.feature.photoLastFeaturedPage.isEmpty)
+                    validation: !(selectedFeature.feature.photoLastFeaturedOnHub.isEmpty || selectedFeature.feature.photoLastFeaturedPage.isEmpty),
+                    isWarning: true
                 )
                 TextField(
                     "",
@@ -449,7 +456,12 @@ struct FeatureEditor: View {
     
     fileprivate func FeatureDescriptionView() -> some View {
         HStack(alignment: .center) {
-            ValidationLabel("Description:", labelWidth: labelWidth, validation: !selectedFeature.feature.featureDescription.isEmpty)
+            ValidationLabel(
+                "Description:",
+                labelWidth: labelWidth,
+                validation: !selectedFeature.feature.featureDescription.isEmpty,
+                isWarning: true
+            )
             TextField(
                 "enter the description of the feature (not used in scripts)",
                 text: $selectedFeature.feature.featureDescription.onChange { value in
@@ -497,7 +509,9 @@ struct FeatureEditor: View {
             if selectedFeature.feature.userHasFeaturesOnPage {
                 ValidationLabel(
                     "Last featured:",
-                    validation: !selectedFeature.feature.lastFeaturedOnPage.isEmpty)
+                    validation: !selectedFeature.feature.lastFeaturedOnPage.isEmpty,
+                    isWarning: true
+                )
                 TextField(
                     "last date featured",
                     text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in
@@ -593,7 +607,9 @@ struct FeatureEditor: View {
             if selectedFeature.feature.userHasFeaturesOnHub {
                 ValidationLabel(
                     "Last featured:",
-                    validation: !(selectedFeature.feature.lastFeaturedOnHub.isEmpty || selectedFeature.feature.lastFeaturedPage.isEmpty))
+                    validation: !(selectedFeature.feature.lastFeaturedOnHub.isEmpty || selectedFeature.feature.lastFeaturedPage.isEmpty),
+                    isWarning: true
+                )
                 TextField(
                     "last date featured",
                     text: $selectedFeature.feature.lastFeaturedOnHub.onChange { value in
@@ -713,7 +729,9 @@ struct FeatureEditor: View {
             if selectedFeature.feature.userHasFeaturesOnPage {
                 ValidationLabel(
                     "Last featured:",
-                    validation: !selectedFeature.feature.lastFeaturedOnPage.isEmpty)
+                    validation: !selectedFeature.feature.lastFeaturedOnPage.isEmpty,
+                    isWarning: true
+                )
                 TextField(
                     "last date featured",
                     text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in
@@ -860,7 +878,9 @@ struct FeatureEditor: View {
             if selectedFeature.feature.userHasFeaturesOnHub {
                 ValidationLabel(
                     "Last featured:",
-                    validation: !(selectedFeature.feature.lastFeaturedOnHub.isEmpty || selectedFeature.feature.lastFeaturedPage.isEmpty))
+                    validation: !(selectedFeature.feature.lastFeaturedOnHub.isEmpty || selectedFeature.feature.lastFeaturedPage.isEmpty),
+                    isWarning: true
+                )
                 TextField(
                     "last date featured",
                     text: $selectedFeature.feature.lastFeaturedOnHub.onChange { value in
@@ -1023,7 +1043,9 @@ struct FeatureEditor: View {
             if selectedFeature.feature.userHasFeaturesOnPage {
                 ValidationLabel(
                     "Last featured:",
-                    validation: !selectedFeature.feature.lastFeaturedOnPage.isEmpty)
+                    validation: !selectedFeature.feature.lastFeaturedOnPage.isEmpty,
+                    isWarning: true
+                )
                 TextField(
                     "last date featured",
                     text: $selectedFeature.feature.lastFeaturedOnPage.onChange { value in

@@ -75,44 +75,50 @@ struct ContentView: View {
                     saveLog
                 )
             } else if (viewModel.visibleView == .FeatureEditorView) {
-                FeatureEditorView(
-                    viewModel,
-                    $logURL,
-                    $logDocument,
-                    $showFileImporter,
-                    $showFileExporter,
-                    $reportDocument,
-                    $showReportFileExporter,
-                    $documentDirtyAlertConfirmation,
-                    $documentDirtyAfterSaveAction,
-                    $documentDirtyAfterDismissAction,
-                    $shouldScrollFeatureListToSelection,
-                    updateStaffLevelForPage,
-                    storeStaffLevelForPage,
-                    saveLog
-                )
+                ScrollView(.vertical) {
+                    FeatureEditorView(
+                        viewModel,
+                        $logURL,
+                        $logDocument,
+                        $showFileImporter,
+                        $showFileExporter,
+                        $reportDocument,
+                        $showReportFileExporter,
+                        $documentDirtyAlertConfirmation,
+                        $documentDirtyAfterSaveAction,
+                        $documentDirtyAfterDismissAction,
+                        $shouldScrollFeatureListToSelection,
+                        updateStaffLevelForPage,
+                        storeStaffLevelForPage,
+                        saveLog
+                    )
+                }
             } else if (viewModel.visibleView == .PostDownloadView) {
-                PostDownloaderView(
-                    viewModel,
-                    viewModel.selectedPage!,
-                    viewModel.selectedFeature!,
-                    { shouldScrollFeatureListToSelection.toggle() }
-                )
+                ScrollView(.vertical) {
+                    PostDownloaderView(
+                        viewModel,
+                        viewModel.selectedPage!,
+                        viewModel.selectedFeature!,
+                        { shouldScrollFeatureListToSelection.toggle() }
+                    )
+                }
             } else if (viewModel.visibleView == .ImageValidationView) {
                 ImageValidationView(
                     viewModel,
                     { shouldScrollFeatureListToSelection.toggle() }
                 )
             } else if (viewModel.visibleView == .ScriptView) {
-                ScriptContentView(
-                    viewModel,
-                    viewModel.selectedPage!,
-                    viewModel.selectedFeature!,
-                    featureScriptPlaceholders,
-                    commentScriptPlaceholders,
-                    originalPostScriptPlaceholders,
-                    navigateToNextFeature
-                )
+                ScrollView(.vertical) {
+                    ScriptContentView(
+                        viewModel,
+                        viewModel.selectedPage!,
+                        viewModel.selectedFeature!,
+                        featureScriptPlaceholders,
+                        commentScriptPlaceholders,
+                        originalPostScriptPlaceholders,
+                        navigateToNextFeature
+                    )
+                }
             }
             
             VStack {

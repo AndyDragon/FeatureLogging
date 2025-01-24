@@ -367,7 +367,9 @@ struct PostDownloaderView: View {
                     
                     ValidationLabel(
                         "User alias:", labelWidth: labelWidth,
-                        validation: !selectedFeature.feature.userAlias.isEmpty && !selectedFeature.feature.userAlias.contains(where: \.isNewline))
+                        validation: !(selectedFeature.feature.userAlias.isEmpty || selectedFeature.feature.userAlias.starts(with: "@")
+                                      || selectedFeature.feature.userAlias.count <= 1) && !selectedFeature.feature.userAlias.contains(where: \.isNewline)
+                        )
                     HStack(alignment: .center) {
                         TextField(
                             "enter the user alias",
@@ -408,14 +410,15 @@ struct PostDownloaderView: View {
                 .frame(height: 20)
                 
                 HStack(alignment: .center) {
-                    ValidationLabel("User name: ", labelWidth: -mainLabelWidth, validation: !userName.isEmpty, validColor: .green)
+                    ValidationLabel("User name: ", labelWidth: mainLabelWidth, validation: !userName.isEmpty, validColor: .green)
                     ValidationLabel(userName, validation: true, validColor: .accentColor)
                     
                     Spacer()
                     
                     ValidationLabel(
                         "User name:", labelWidth: labelWidth,
-                        validation: !selectedFeature.feature.userName.isEmpty && !selectedFeature.feature.userName.contains(where: \.isNewline))
+                        validation: !selectedFeature.feature.userName.isEmpty && !selectedFeature.feature.userName.contains(where: \.isNewline)
+                    )
                     HStack(alignment: .center) {
                         TextField(
                             "enter the user name",
@@ -563,7 +566,7 @@ struct PostDownloaderView: View {
                     
                     Spacer()
                     
-                    ValidationLabel("Description:", labelWidth: labelWidth, validation: !selectedFeature.feature.featureDescription.isEmpty)
+                    ValidationLabel("Description:", labelWidth: labelWidth, validation: !selectedFeature.feature.featureDescription.isEmpty, isWarning: true)
                     TextField(
                         "enter the description",
                         text: $selectedFeature.feature.featureDescription.onChange { value in

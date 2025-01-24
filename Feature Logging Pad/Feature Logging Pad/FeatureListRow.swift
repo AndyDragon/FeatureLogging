@@ -11,9 +11,9 @@ import SwiftyBeaver
 struct FeatureListRow: View {
     private var viewModel: ContentView.ViewModel
     @Bindable private var feature: ObservableFeature
-
+    
     @State var showingMessageEditor = false
-
+    
     @AppStorage(
         "preference_personalMessage",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
@@ -22,9 +22,9 @@ struct FeatureListRow: View {
         "preference_personalMessageFirst",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessageFirstFormat = "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-
+    
     private let logger = SwiftyBeaver.self
-
+    
     init(
         _ viewModel: ContentView.ViewModel,
         _ feature: ObservableFeature
@@ -72,7 +72,7 @@ struct FeatureListRow: View {
                     .frame(width: 32, height: 32)
                     .opacity(0.0000001)
             }
-
+            
             VStack {
                 HStack {
                     Text("Feature: ")
@@ -89,9 +89,9 @@ struct FeatureListRow: View {
                             .italic()
                             .font(.system(size: 13))
                     }
-
+                    
                     Text(" | ")
-
+                    
                     if !feature.userAlias.isEmpty {
                         Text("@\(feature.userAlias)")
                             .lineLimit(1)
@@ -103,9 +103,9 @@ struct FeatureListRow: View {
                             .italic()
                             .font(.system(size: 13))
                     }
-
+                    
                     Text(" | ")
-
+                    
                     if !feature.featureDescription.isEmpty {
                         Text(feature.featureDescription)
                             .lineLimit(1)
@@ -117,9 +117,9 @@ struct FeatureListRow: View {
                             .italic()
                             .font(.system(size: 13))
                     }
-
+                    
                     Text(" | ")
-
+                    
                     Image(systemName: "tag.square")
                         .foregroundStyle(
                             feature.photoFeaturedOnHub ? Color.accentColor : Color(UIColor.secondaryLabel).opacity(0.5),
@@ -154,6 +154,13 @@ struct FeatureListRow: View {
                         .font(.system(size: 13))
                         .frame(width: 16, height: 16)
                         .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
+                    
+                    let validationResult = feature.validationResult
+                    if validationResult != .Success {
+                        Text(" | ")
+                        validationResult.getImage()
+                            .help(validationResult == .Warning ? "Feature has some warnings" : "Feature has some errors")
+                    }
 
                     Spacer()
                 }

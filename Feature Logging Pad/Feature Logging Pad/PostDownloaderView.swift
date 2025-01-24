@@ -64,83 +64,23 @@ struct PostDownloaderView: View {
         ZStack {
             Color.backgroundColor.edgesIgnoringSafeArea(.all)
 
-            ScrollView(.vertical) {
-                VStack {
-                    HStack(alignment: .top) {
-                        VStack(alignment: .center) {
-                            // Page scope
-                            PageScopeView()
-                                .padding(12)
-                                .frame(maxWidth: .infinity)
-                                .background {
-                                    Rectangle()
-                                        .foregroundStyle(Color.secondaryBackgroundColor)
-                                        .cornerRadius(8)
-                                        .opacity(0.5)
-                                }
-
-                            if profileLoaded {
-                                // User alias, name and bio
-                                ProfileView()
-                                    .padding(12)
-                                    .frame(maxWidth: .infinity)
-                                    .background {
-                                        Rectangle()
-                                            .foregroundStyle(Color.secondaryBackgroundColor)
-                                            .cornerRadius(8)
-                                            .opacity(0.5)
-                                    }
+            VStack {
+                HStack(alignment: .top) {
+                    VStack(alignment: .center) {
+                        // Page scope
+                        PageScopeView()
+                            .padding(12)
+                            .frame(maxWidth: .infinity)
+                            .background {
+                                Rectangle()
+                                    .foregroundStyle(Color.secondaryBackgroundColor)
+                                    .cornerRadius(8)
+                                    .opacity(0.5)
                             }
 
-                            if postLoaded {
-                                // Tag check and description
-                                TagCheckAndDescriptionView()
-                                    .padding(12)
-                                    .frame(maxWidth: .infinity)
-                                    .background {
-                                        Rectangle()
-                                            .foregroundStyle(Color.secondaryBackgroundColor)
-                                            .cornerRadius(8)
-                                            .opacity(0.5)
-                                    }
-
-                                // Page and hub comments
-                                if !pageComments.isEmpty || !hubComments.isEmpty {
-                                    PageAndHubCommentsView()
-                                        .padding(12)
-                                        .frame(maxWidth: .infinity)
-                                        .background {
-                                            Rectangle()
-                                                .foregroundStyle(Color.secondaryBackgroundColor)
-                                                .cornerRadius(8)
-                                                .opacity(0.5)
-                                        }
-                                } else if moreComments {
-                                    MoreCommentsView()
-                                        .padding(12)
-                                        .frame(maxWidth: .infinity)
-                                        .background {
-                                            Rectangle()
-                                                .foregroundStyle(Color.secondaryBackgroundColor)
-                                                .cornerRadius(8)
-                                                .opacity(0.5)
-                                        }
-                                }
-
-                                // Images
-                                ImagesView()
-                                    .padding(12)
-                                    .frame(maxWidth: .infinity)
-                                    .background {
-                                        Rectangle()
-                                            .foregroundStyle(Color.secondaryBackgroundColor)
-                                            .cornerRadius(8)
-                                            .opacity(0.5)
-                                    }
-                            }
-
-                            // Logging
-                            LoggingView()
+                        if profileLoaded {
+                            // User alias, name and bio
+                            ProfileView()
                                 .padding(12)
                                 .frame(maxWidth: .infinity)
                                 .background {
@@ -150,12 +90,70 @@ struct PostDownloaderView: View {
                                         .opacity(0.5)
                                 }
                         }
-                        .padding(10)
+
+                        if postLoaded {
+                            // Tag check and description
+                            TagCheckAndDescriptionView()
+                                .padding(12)
+                                .frame(maxWidth: .infinity)
+                                .background {
+                                    Rectangle()
+                                        .foregroundStyle(Color.secondaryBackgroundColor)
+                                        .cornerRadius(8)
+                                        .opacity(0.5)
+                                }
+
+                            // Page and hub comments
+                            if !pageComments.isEmpty || !hubComments.isEmpty {
+                                PageAndHubCommentsView()
+                                    .padding(12)
+                                    .frame(maxWidth: .infinity)
+                                    .background {
+                                        Rectangle()
+                                            .foregroundStyle(Color.secondaryBackgroundColor)
+                                            .cornerRadius(8)
+                                            .opacity(0.5)
+                                    }
+                            } else if moreComments {
+                                MoreCommentsView()
+                                    .padding(12)
+                                    .frame(maxWidth: .infinity)
+                                    .background {
+                                        Rectangle()
+                                            .foregroundStyle(Color.secondaryBackgroundColor)
+                                            .cornerRadius(8)
+                                            .opacity(0.5)
+                                    }
+                            }
+
+                            // Images
+                            ImagesView()
+                                .padding(12)
+                                .frame(maxWidth: .infinity)
+                                .background {
+                                    Rectangle()
+                                        .foregroundStyle(Color.secondaryBackgroundColor)
+                                        .cornerRadius(8)
+                                        .opacity(0.5)
+                                }
+                        }
+
+                        // Logging
+                        LoggingView()
+                            .padding(12)
+                            .frame(maxWidth: .infinity)
+                            .background {
+                                Rectangle()
+                                    .foregroundStyle(Color.secondaryBackgroundColor)
+                                    .cornerRadius(8)
+                                    .opacity(0.5)
+                            }
                     }
-                    Spacer()
+                    .padding(10)
                 }
-                .padding()
+                Spacer()
             }
+            .padding()
             .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
             .toolbar {
                 ToolbarItemGroup(placement: .bottomBar) {
@@ -388,7 +386,9 @@ struct PostDownloaderView: View {
                     .frame(width: 12)
 
                 ValidationLabel(
-                    validation: !selectedFeature.feature.userAlias.isEmpty && !selectedFeature.feature.userAlias.contains(where: \.isNewline))
+                    validation: !(selectedFeature.feature.userAlias.isEmpty || selectedFeature.feature.userAlias.starts(with: "@")
+                                  || selectedFeature.feature.userAlias.count <= 1) && !selectedFeature.feature.userAlias.contains(where: \.isNewline)
+                )
                 HStack(alignment: .center) {
                     TextField(
                         "enter the user alias",
@@ -434,7 +434,8 @@ struct PostDownloaderView: View {
                     .frame(width: 12)
 
                 ValidationLabel(
-                    validation: !selectedFeature.feature.userName.isEmpty && !selectedFeature.feature.userName.contains(where: \.isNewline))
+                    validation: !selectedFeature.feature.userName.isEmpty && !selectedFeature.feature.userName.contains(where: \.isNewline)
+                )
                 HStack(alignment: .center) {
                     TextField(
                         "enter the user name",
@@ -552,7 +553,7 @@ struct PostDownloaderView: View {
             .frame(height: 20)
 
             // Description
-            ValidationLabel("Post description:", validation: !description.isEmpty, validColor: .green)
+            ValidationLabel("Post description:", validation: !description.isEmpty, isWarning: true, validColor: .green)
                 .font(.system(size: 14))
             ScrollView {
                 HStack {
@@ -573,7 +574,10 @@ struct PostDownloaderView: View {
 
             // Description actions
             HStack(alignment: .center) {
-                ValidationLabel(validation: !selectedFeature.feature.featureDescription.isEmpty)
+                ValidationLabel(
+                    validation: !selectedFeature.feature.featureDescription.isEmpty,
+                    isWarning: true
+                )
                 TextField(
                     "enter the description",
                     text: $selectedFeature.feature.featureDescription.onChange { value in
@@ -690,7 +694,8 @@ struct PostDownloaderView: View {
                             .padding([.leading, .trailing], 8)
 
                         ValidationLabel(
-                            validation: !(selectedFeature.feature.photoLastFeaturedOnHub.isEmpty || selectedFeature.feature.photoLastFeaturedPage.isEmpty)
+                            validation: !(selectedFeature.feature.photoLastFeaturedOnHub.isEmpty || selectedFeature.feature.photoLastFeaturedPage.isEmpty),
+                            isWarning: true
                         )
                         TextField(
                             "last date featured",

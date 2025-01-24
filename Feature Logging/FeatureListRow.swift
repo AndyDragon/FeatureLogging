@@ -134,6 +134,13 @@ struct FeatureListRow: View {
                         .frame(width: 16, height: 16)
                         .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
                     
+                    let validationResult = feature.validationResult
+                    if validationResult != .Success {
+                        Text(" | ")
+                        validationResult.getImage()
+                            .help(validationResult == .Warning ? "Feature has some warnings" : "Feature has some errors")
+                    }
+
                     Spacer()
                     
                     if feature.isPickedAndAllowed {

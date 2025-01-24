@@ -43,9 +43,37 @@ class ObservableFeature: Identifiable, Hashable {
     var isPickedAndAllowed: Bool {
         isPicked && !tooSoonToFeatureUser && !photoFeaturedOnPage && tinEyeResults != .matchFound && aiCheckResults != .ai
     }
-
+    
     init() {}
 
+    var validationResult: ValidationResult {
+        if postLink.isEmpty || postLink.contains(where: \.isNewline) {
+            return .Failure
+        }
+        if userAlias.isEmpty || userAlias.starts(with: "@") || userAlias.count <= 1 || userAlias.contains(where: \.isNewline) {
+            return .Failure
+        }
+        if userName.isEmpty || userName.contains(where: \.isNewline) {
+            return .Failure
+        }
+        if userLevel == MembershipCase.none {
+            return .Failure
+        }
+        if photoFeaturedOnHub && (photoLastFeaturedOnHub.isEmpty || photoLastFeaturedPage.isEmpty) {
+            return .Warning
+        }
+        if featureDescription.isEmpty {
+            return .Warning
+        }
+        if userHasFeaturesOnPage && lastFeaturedOnPage.isEmpty {
+            return .Warning
+        }
+        if userHasFeaturesOnHub && (lastFeaturedOnHub.isEmpty || lastFeaturedPage.isEmpty) {
+            return .Warning
+        }
+        return .Success
+    }
+    
     static func == (lhs: ObservableFeature, rhs: ObservableFeature) -> Bool {
         return lhs.id == rhs.id
     }

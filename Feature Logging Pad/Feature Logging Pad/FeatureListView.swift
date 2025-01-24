@@ -108,7 +108,7 @@ struct FeatureListView: View {
                     FeatureList(
                         viewModel
                     )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(maxWidth: .infinity, minHeight: 400, maxHeight: .infinity)
                     .presentationBackground(.clear)
                     .onChange(
                         of: shouldScrollFeatureListToSelection.wrappedValue,
@@ -386,7 +386,8 @@ struct FeatureListView: View {
         HStack(alignment: .center) {
             // Your name editor
             ValidationLabel(
-                validation: yourNameValidation.valid)
+                validation: yourNameValidation.valid
+            )
             TextField(
                 "enter your user alias without '@'",
                 text: $viewModel.yourName.onChange { value in
@@ -412,7 +413,8 @@ struct FeatureListView: View {
 
             // Your first name editor
             ValidationLabel(
-                validation: yourFirstNameValidation.valid)
+                validation: yourFirstNameValidation.valid
+            )
             .padding([.leading])
             TextField(
                 "enter your first name (capitalized)",
