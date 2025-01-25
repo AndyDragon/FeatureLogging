@@ -1,6 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              xmlns:local="clr-namespace:FeatureLogging"
              xmlns:localVM="clr-namespace:FeatureLogging.ViewModels"
              x:Class="FeatureLogging.MainPage"
@@ -9,15 +10,89 @@
     <ContentPage.BindingContext>
         <localVM:MainViewModel />
     </ContentPage.BindingContext>
-
+    <Shell.ToolbarItems>
+        <ToolbarItem
+            Text="New log"
+            Command="{Binding NewFeaturesCommand}"
+            Priority="1"
+            Order="Primary" />
+        <ToolbarItem
+            Text="Open log"
+            Command="{Binding OpenFeaturesCommand}"
+            Priority="1"
+            Order="Primary" />
+        <ToolbarItem
+            Text="Save log"
+            Command="{Binding SaveFeaturesCommand}"
+            Priority="1"
+            Order="Primary" />
+        <ToolbarItem
+            Text="Save report"
+            Command="{Binding SaveReportCommand}"
+            Priority="1"
+            Order="Primary" />
+        <ToolbarItem
+            Text="Settings"
+            Priority="1"
+            Order="Secondary"
+            Command="{Binding LaunchSettingsCommand}"/>
+        <ToolbarItem
+            Text="About"
+            Priority="2"
+            Order="Secondary"
+            Command="{Binding LaunchAboutCommand}"/>
+    </Shell.ToolbarItems>
     <ScrollView>
         <VerticalStackLayout
             Padding="30,0"
             Spacing="25">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <mi:MauiIcon
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Icon="{mi:Material Icon=Warning}"
+                    IconColor="Red"
+                    IsVisible="{Binding NoSelectedPage}" />
+                <Label
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    Text="Page:" />
+                <Picker
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    ItemsSource="{Binding LoadedPages}"
+                    ItemDisplayBinding="{Binding DisplayName}"
+                    SelectedItem="{Binding SelectedPage, Mode=TwoWay}"
+                    IsEnabled="{Binding CanChangePage}" />
+                <mi:MauiIcon
+                    Grid.Column="3"
+                    VerticalOptions="Center"
+                    Icon="{mi:Material Icon=Warning}"
+                    IconColor="Red"
+                    IsVisible="{Binding NoSelectedStaffLevel}" />
+                <Label
+                    Grid.Column="4"
+                    VerticalOptions="Center"
+                    Text="Page staff level:" />
+                <Picker
+                    Grid.Column="5"
+                    VerticalOptions="Center"
+                    ItemsSource="{Binding StaffLevels}"
+                    SelectedItem="{Binding StaffLevel, Mode=TwoWay}" />
+            </Grid>
             <HorizontalStackLayout HorizontalOptions="End">
                 <Button
                     Text="Add feature"
-                    Command="{Binding AddFeatureCommand}"/>
+                    Command="{Binding AddFeatureCommand}" />
             </HorizontalStackLayout>
             <ListView
                 ItemsSource="{Binding Features}"

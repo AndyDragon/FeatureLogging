@@ -1,52 +1,51 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace FeatureLogging.ViewModels
+namespace FeatureLogging.ViewModels;
+
+public abstract class NotifyPropertyChanged : INotifyPropertyChanged
 {
-    public abstract class NotifyPropertyChanged : INotifyPropertyChanged
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    public bool Set<T>(ref T storage, T value, string[]? associatedPropertyNames = null, [CallerMemberName()] string? propertyName = null)
+    {
+        if (!object.Equals(storage, value))
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public bool Set<T>(ref T storage, T value, string[]? associatedPropertyNames = null, [CallerMemberName()] string? propertyName = null)
-        {
-            if (!object.Equals(storage, value))
+            storage = value;
+            OnPropertyChanged(propertyName);
+            if (associatedPropertyNames != null)
             {
-                storage = value;
-                OnPropertyChanged(propertyName);
-                if (associatedPropertyNames != null)
+                foreach (var associatedProperty in associatedPropertyNames)
                 {
-                    foreach (var associatedProperty in associatedPropertyNames)
-                    {
-                        OnPropertyChanged(associatedProperty);
-                    }
+                    OnPropertyChanged(associatedProperty);
                 }
-                return true;
             }
-            return false;
+            return true;
         }
+        return false;
+    }
 
-        public bool SetWithDirtyCallback<T>(ref T storage, T value, Action setDirty, string[]? associatedPropertyNames = null, [CallerMemberName()] string? propertyName = null)
+    public bool SetWithDirtyCallback<T>(ref T storage, T value, Action setDirty, string[]? associatedPropertyNames = null, [CallerMemberName()] string? propertyName = null)
+    {
+        if (!object.Equals(storage, value))
         {
-            if (!object.Equals(storage, value))
+            storage = value;
+            OnPropertyChanged(propertyName);
+            if (associatedPropertyNames != null)
             {
-                storage = value;
-                OnPropertyChanged(propertyName);
-                if (associatedPropertyNames != null)
+                foreach (var associatedProperty in associatedPropertyNames)
                 {
-                    foreach (var associatedProperty in associatedPropertyNames)
-                    {
-                        OnPropertyChanged(associatedProperty);
-                    }
+                    OnPropertyChanged(associatedProperty);
                 }
-                setDirty();
-                return true;
             }
-            return false;
+            setDirty();
+            return true;
         }
+        return false;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using FeatureLogging.ViewModels;
 using FeatureLogging.Views;
+using MauiIcons.Core;
 
 namespace FeatureLogging
 {
@@ -8,6 +9,8 @@ namespace FeatureLogging
         public MainPage()
         {
             InitializeComponent();
+        // Temporary Workaround for url styled namespace in xaml
+        _ = new MauiIcon();
         }
 
         private async void OnFeatureListItemSelected(object sender, SelectedItemChangedEventArgs e)
