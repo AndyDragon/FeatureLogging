@@ -1,14 +1,19 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading.Tasks;
+using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
+using FeatureLogging.Views;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace FeatureLogging.ViewModels;
 
 public class MainViewModel : NotifyPropertyChanged
 {
     private readonly HttpClient httpClient = new();
+    private string lastFilename = string.Empty;
 
     public MainViewModel()
     {
@@ -21,7 +26,6 @@ public class MainViewModel : NotifyPropertyChanged
 
     public static string GetDataLocationPath(bool shared = false)
     {
-        // var user = WindowsIdentity.GetCurrent();
         var dataLocationPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "AndyDragonSoftware",
@@ -38,8 +42,6 @@ public class MainViewModel : NotifyPropertyChanged
         var dataLocationPath = GetDataLocationPath(shared);
         return Path.Combine(dataLocationPath, "settings.json");
     }
-
-    // public static Settings Settings => new();
 
     #endregion
 
@@ -75,26 +77,18 @@ public class MainViewModel : NotifyPropertyChanged
                 {
                     LoadedPages.Add(page);
                 }
-                // notificationManager.Show(
-                //     "Pages loaded",
-                //     "Loaded " + LoadedPages.Count.ToString() + " pages from the server",
-                //     type: NotificationType.Information,
-                //     areaName: "WindowArea",
-                //     expirationTime: TimeSpan.FromSeconds(3));
+                _ = Toast.Make($"Loaded {LoadedPages.Count} pages from the server", ToastDuration.Short).Show();
             }
             SelectedPage = LoadedPages.FirstOrDefault(page => page.Id == Page);
-            _ = LoadTemplates();
-            _ = LoadDisallowList();
-            // IsDirty = false;
+            WaitingForPages = false;
+            await LoadTemplates();
+            await LoadDisallowList();
+            IsDirty = false;
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error occurred: {0}", ex.Message);
-            // ShowErrorToast(
-            //     "Failed to load the page catalog",
-            //     "The application requires the catalog to perform its operations: " + ex.Message + "\n\nClick here to retry",
-            //     NotificationType.Error,
-            //     () => { _ = LoadPages(); });
+            Console.WriteLine("Error occurred loading page catalog (will retry): {0}", ex.Message);
+            _ = Toast.Make($"Failed to load the page catalog: {ex.Message}", ToastDuration.Long).Show().ContinueWith(_ => LoadPages());
         }
     }
 
@@ -113,16 +107,11 @@ public class MainViewModel : NotifyPropertyChanged
             {
                 scriptViewModel.TemplatesCatalog = JsonConvert.DeserializeObject<TemplatesCatalog>(content) ?? new TemplatesCatalog();
             }
-            WaitingForPages = false;
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error occurred: {0}", ex.Message);
-            // ShowErrorToast(
-            //     "Failed to load the page templates",
-            //     "The application requires the templtes to perform its operations: " + ex.Message + "\n\nClick here to retry",
-            //     NotificationType.Error,
-            //     () => { _ = LoadTemplates(); });
+            Console.WriteLine("Error occurred loading the template catalog (will retry): {0}", ex.Message);
+            _ = Toast.Make($"Failed to load the page templates: {ex.Message}", ToastDuration.Long).Show().ContinueWith(_ => LoadTemplates());
         }
     }
 
@@ -145,9 +134,332 @@ public class MainViewModel : NotifyPropertyChanged
         catch (Exception ex)
         {
             // Do nothing, not vital
-            Console.WriteLine("Error occurred: {0}", ex.Message);
+            Console.WriteLine("Error occurred loading the disallow lists (ignoring): {0}", ex.Message);
         }
     }
+
+    #endregion
+
+    #region Commands
+
+    public CommandWithParameter NewFeaturesCommand => new(async (ignoreDirty) =>
+    {
+        if (IsDirty && ignoreDirty == null)
+        {
+            await HandleDirtyActionAsync("creating a new log", (completed) =>
+            {
+                NewFeaturesCommand?.Execute(true);
+            });
+            return;
+        }
+
+        lastFilename = string.Empty;
+        SelectedFeature = null;
+        Features.Clear();
+        OnPropertyChanged(nameof(HasFeatures));
+        OnPropertyChanged(nameof(FeatureNavigationVisibility));
+        OnPropertyChanged(nameof(CanChangePage));
+    }, (_) => !WaitingForPages);
+
+    public CommandWithParameter OpenFeaturesCommand => new(async (ignoreDirty) =>
+    {
+        if (IsDirty && ignoreDirty == null)
+        {
+            await HandleDirtyActionAsync("opening a different log", (completed) =>
+            {
+                OpenFeaturesCommand?.Execute(true);
+            });
+            return;
+        }
+
+        var customFileType = new FilePickerFileType(
+            new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                { DevicePlatform.iOS, new[] { "public.json" } }, // UTType values
+                { DevicePlatform.Android, new[] { "application/json" } }, // MIME type
+                { DevicePlatform.WinUI, new[] { ".json" } }, // file extension
+                { DevicePlatform.Tizen, new[] { "*/*" } },
+                { DevicePlatform.macOS, new[] { "public.json" } }, // UTType values
+            });
+
+        PickOptions options = new()
+        {
+            PickerTitle = "Please select a comic file",
+            FileTypes = customFileType,
+        };
+
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(options);
+            if (result != null)
+            {
+                lastFilename = string.Empty;
+                SelectedFeature = null;
+                Dictionary<string, dynamic>? file = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(File.ReadAllText(result.FileName));
+                if (file != null)
+                {
+                    var pageId = file["page"];
+                    var foundPage = LoadedPages.FirstOrDefault(page => page.Id == pageId);
+                    if (foundPage != null)
+                    {
+                        // Force the page to update.
+                        selectedPage = null;
+                        SelectedPage = foundPage;
+                        Features.Clear();
+                        foreach (var feature in file["features"])
+                        {
+                            var loadedFeature = new Feature
+                            {
+                                IsPicked = (bool)feature["isPicked"],
+                                PostLink = (string)feature["postLink"],
+                                UserName = (string)feature["userName"],
+                                UserAlias = (string)feature["userAlias"],
+                                UserLevel = MapMembershipLevelFromFile((string)feature["userLevel"]),
+                                UserIsTeammate = (bool)feature["userIsTeammate"],
+                                TagSource = new List<string>(TagSources).Contains((string)feature["tagSource"]) ? (string)feature["tagSource"] : TagSources[0],
+                                PhotoFeaturedOnPage = (bool)feature["photoFeaturedOnPage"],
+                                PhotoFeaturedOnHub = feature.ContainsKey("photoFeaturedOnHub") ? (bool)feature["photoFeaturedOnHub"] : false,
+                                PhotoLastFeaturedOnHub = feature.ContainsKey("photoLastFeaturedOnHub") ? (string)feature["photoLastFeaturedOnHub"] : "",
+                                PhotoLastFeaturedPage = feature.ContainsKey("photoLastFeaturedPage") ? (string)feature["photoLastFeaturedPage"] : "",
+                                FeatureDescription = (string)feature["featureDescription"],
+                                UserHasFeaturesOnPage = (bool)feature["userHasFeaturesOnPage"],
+                                LastFeaturedOnPage = (string)feature["lastFeaturedOnPage"],
+                                FeatureCountOnPage = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnPage"]) ? (string)feature["featureCountOnPage"] : FeaturedCounts[0],
+                                FeatureCountOnRawPage = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnRawPage"]) ? (string)feature["featureCountOnRawPage"] : FeaturedCounts[0],
+                                UserHasFeaturesOnHub = (bool)feature["userHasFeaturesOnHub"],
+                                LastFeaturedOnHub = (string)feature["lastFeaturedOnHub"],
+                                LastFeaturedPage = (string)feature["lastFeaturedPage"],
+                                FeatureCountOnHub = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnHub"]) ? (string)feature["featureCountOnHub"] : FeaturedCounts[0],
+                                FeatureCountOnRawHub = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnRawHub"]) ? (string)feature["featureCountOnRawHub"] : FeaturedCounts[0],
+                                TooSoonToFeatureUser = (bool)feature["tooSoonToFeatureUser"],
+                                TinEyeResults = new List<string>(TinEyeResults).Contains((string)feature["tinEyeResults"]) ? (string)feature["tinEyeResults"] : TinEyeResults[0],
+                                AiCheckResults = new List<string>(AiCheckResults).Contains((string)feature["aiCheckResults"]) ? (string)feature["aiCheckResults"] : AiCheckResults[0],
+                                PersonalMessage = feature.ContainsKey("personalMessage") ? (string)feature["personalMessage"] : "",
+                            };
+                            Features.Add(loadedFeature);
+                        }
+                        base.OnPropertyChanged(nameof(HasFeatures));
+                        // base.OnPropertyChanged(nameof(FeatureNavigationVisibility));
+                        base.OnPropertyChanged(nameof(CanChangePage));
+                        SaveFeaturesCommand?.OnCanExecuteChanged();
+                        GenerateReportCommand?.OnCanExecuteChanged();
+                        SaveReportCommand?.OnCanExecuteChanged();
+                        lastFilename = result.FileName;
+                        // Navig
+                        IsDirty = false;
+                        foreach (var feature in Features)
+                        {
+                            feature.IsDirty = false;
+                            feature.OnSortKeyChange();
+                        }
+                        await Toast.Make($"Loaded {Features.Count} features for the {SelectedPage.DisplayName} page", ToastDuration.Short).Show();
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await Toast.Make($"Failed: {ex.Message}", ToastDuration.Long).Show();
+        }
+    }, (_) => !WaitingForPages);
+
+    public Command SaveFeaturesCommand => new(() =>
+    {
+        if (SelectedPage != null)
+        {
+            if (!string.IsNullOrEmpty(lastFilename))
+            {
+                SaveLog(lastFilename);
+            }
+            else
+            {
+                // TODO andydragon
+                // SaveFileDialog dialog = new()
+                // {
+                //     Filter = "Log files (*.json)|*.json|All files (*.*)|*.*",
+                //     Title = "Save the features to a log file",
+                //     OverwritePrompt = true,
+                //     FileName = $"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name} - {DateTime.Now:yyyy-MM-dd}",
+                // };
+                // if (dialog.ShowDialog() == true)
+                // {
+                //     SaveLog(dialog.FileName);
+                // }
+            }
+        }
+
+        void SaveLog(string fileName)
+        {
+            try
+            {
+                Dictionary<string, dynamic> file = new()
+                {
+                    ["features"] = Features,
+                    ["page"] = SelectedPage.Id,
+                };
+                var jsonSettings = new JsonSerializerSettings
+                {
+                    ContractResolver = new OrderedContractResolver(),
+                };
+                File.WriteAllText(fileName, JsonConvert.SerializeObject(file, Formatting.Indented, jsonSettings).Replace("\": ", "\" : "));
+                lastFilename = fileName;
+                IsDirty = false;
+                foreach (var feature in Features)
+                {
+                    feature.IsDirty = false;
+                }
+                Toast.Make($"Saved {Features.Count} features for the {SelectedPage.DisplayName} page", ToastDuration.Short).Show();
+            }
+            catch (Exception ex)
+            {
+                Toast.Make($"Failed to save the feature log: {ex.Message})", ToastDuration.Long).Show();
+            }
+        }
+    }, () => !WaitingForPages && HasFeatures);
+
+    public Command GenerateReportCommand => new(() =>
+    {
+        if (SelectedPage == null)
+        {
+            return;
+        }
+
+        _ = CopyTextToClipboardAsync(GenerateLogReport(), "Generated report", "Copied the report of features to the clipboard");
+    }, () => !WaitingForPages && HasFeatures);
+
+    public Command SaveReportCommand => new(() =>
+    {
+        if (SelectedPage == null)
+        {
+            return;
+        }
+
+        string initialFileName;
+        if (!string.IsNullOrEmpty(lastFilename))
+        {
+            initialFileName = Path.ChangeExtension(lastFilename, ".features");
+        }
+        else
+        {
+            initialFileName = $"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name} - {DateTime.Now:yyyy-MM-dd}";
+        }
+        // TODO andydragon
+        // SaveFileDialog dialog = new()
+        // {
+        //     Filter = "Feature report files (*.features)|*.features|All files (*.*)|*.*",
+        //     Title = "Save the features to a report file",
+        //     OverwritePrompt = true,
+        //     FileName = initialFileName,
+        // };
+        // if (dialog.ShowDialog() == true)
+        // {
+        //     File.WriteAllText(dialog.FileName, GenerateLogReport());
+        // }
+    }, () => !WaitingForPages && HasFeatures);
+
+    public Command LaunchSettingsCommand => new(() =>
+    {
+        // TODO andydragon
+        // var panel = new SettingsDialog
+        // {
+        //     DataContext = Settings,
+        //     Owner = Application.Current.MainWindow,
+        //     WindowStartupLocation = WindowStartupLocation.CenterOwner
+        // };
+        // panel.ShowDialog();
+    });
+
+    public Command AddFeatureCommand => new(() =>
+    {
+        if (Clipboard.HasText)
+        {
+            var text = Clipboard.GetTextAsync().Result ?? "";
+            if (text.StartsWith("https://vero.co/"))
+            {
+                var feature = new Feature
+                {
+                    PostLink = text,
+                    UserAlias = text["https://vero.co/".Length..].Split("/").FirstOrDefault() ?? "",
+                };
+                Features.Add(feature);
+                OnPropertyChanged(nameof(CanChangePage));
+                SelectedFeature = feature;
+                SemanticScreenReader.Announce($"Added feature for {feature.UserAlias}");
+            }
+            else
+            {
+                var feature = new Feature();
+                Features.Add(feature);
+                OnPropertyChanged(nameof(CanChangePage));
+                SelectedFeature = feature;
+                SemanticScreenReader.Announce($"Added blank feature");
+            }
+        }
+        else
+        {
+            var feature = new Feature();
+            Features.Add(feature);
+            OnPropertyChanged(nameof(CanChangePage));
+            SelectedFeature = feature;
+            SemanticScreenReader.Announce($"Added blank feature");
+        }
+    });
+
+    public Command RemoveFeatureCommand => new(() =>
+    {
+        if (SelectedFeature is Feature feature)
+        {
+            SelectedFeature = null;
+            Features.Remove(feature);
+            OnPropertyChanged(nameof(HasFeatures));
+            OnPropertyChanged(nameof(FeatureNavigationVisibility));
+            OnPropertyChanged(nameof(CanChangePage));
+            SaveFeaturesCommand?.OnCanExecuteChanged();
+            GenerateReportCommand?.OnCanExecuteChanged();
+            SaveReportCommand?.OnCanExecuteChanged();
+        }
+    }, () => SelectedFeature != null);
+
+    public Command PastePostLinkCommand => new(() =>
+    {
+        if (SelectedFeature is Feature feature)
+        {
+            feature.PostLink = Clipboard.GetTextAsync().Result ?? string.Empty;
+            if (feature.PostLink.StartsWith("https://vero.co/"))
+            {
+                feature.UserAlias = feature.PostLink["https://vero.co/".Length..].Split("/").FirstOrDefault() ?? string.Empty;
+            }
+        }
+    }, () => SelectedFeature != null && Clipboard.HasText);
+
+    public Command LoadPostCommand => new(() =>
+    {
+        if (SelectedFeature is Feature feature)
+        {
+            if (feature.PostLink != null && feature.PostLink.StartsWith("https://vero.co/"))
+            {
+                LoadedPost = new DownloadedPostViewModel(this);
+                // MainWindow?.Navigation.PushAsync(new DownloadedPostView(this));
+            }
+        }
+    },
+    () => SelectedFeature != null && SelectedFeature.PostLink != null && SelectedFeature.PostLink.StartsWith("https://vero.co/"));
+
+    public Command PasteUserAliasCommand => new(() =>
+    {
+        if (SelectedFeature is Feature feature)
+        {
+            feature.UserAlias = Clipboard.GetTextAsync().Result ?? string.Empty;
+        }
+    }, () => SelectedFeature != null && Clipboard.HasText);
+
+    public Command PasteUserNameCommand => new(() =>
+    {
+        if (SelectedFeature is Feature feature)
+        {
+            feature.UserName = Clipboard.GetTextAsync().Result ?? string.Empty;
+        }
+    }, () => SelectedFeature != null && Clipboard.HasText);
 
     #endregion
 
@@ -159,19 +471,49 @@ public class MainViewModel : NotifyPropertyChanged
         get => waitingForPages;
         set
         {
-            if (Set(ref waitingForPages, value))
+            if (Set(ref waitingForPages, value, [nameof(CanChangePage)]))
             {
-                // NewFeaturesCommand.OnCanExecuteChanged();
-                // OpenFeaturesCommand.OnCanExecuteChanged();
-                // SaveFeaturesCommand.OnCanExecuteChanged();
-                // GenerateReportCommand.OnCanExecuteChanged();
-                // SaveReportCommand.OnCanExecuteChanged();
-                // AddFeatureCommand.OnCanExecuteChanged();
+                NewFeaturesCommand.OnCanExecuteChanged();
+                OpenFeaturesCommand.OnCanExecuteChanged();
+                SaveFeaturesCommand.OnCanExecuteChanged();
+                GenerateReportCommand.OnCanExecuteChanged();
+                SaveReportCommand.OnCanExecuteChanged();
+                AddFeatureCommand.OnCanExecuteChanged();
             }
         }
     }
 
     #endregion
+
+    #region Dirty state
+
+    private bool isDirty = false;
+    public bool IsDirty
+    {
+        get => isDirty;
+        set => Set(ref isDirty, value);
+    }
+
+    public async Task HandleDirtyActionAsync(string action, Action<bool> onConfirmAction)
+    {
+        if (await MainWindow!.DisplayAlert(
+            "Log not saved",
+            $"The current log document has been edited. Would you like to save the log before {action}?",
+            "Yes", "No"))
+        {
+            SaveFeaturesCommand.Execute(null);
+            if (!IsDirty)
+            {
+                onConfirmAction(true);
+            }
+        } else {
+            onConfirmAction(false);
+        }
+    }
+
+    #endregion
+
+    #region Pages
 
     public ObservableCollection<LoadedPage> LoadedPages { get; } = [];
 
@@ -220,7 +562,7 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }
 
-    public bool CanChangePage => Features.Count == 0;
+    public bool CanChangePage => !WaitingForPages && Features.Count == 0;
 
     public Visibility ClickHubVisibility => SelectedPage?.HubName == "click" ? Visibility.Visible : Visibility.Collapsed;
 
@@ -230,51 +572,6 @@ public class MainViewModel : NotifyPropertyChanged
 
     public bool HasSelectedPage => SelectedPage != null;
     public bool NoSelectedPage => SelectedPage == null;
-
-    readonly ObservableCollection<Feature> features = [];
-    public ObservableCollection<Feature> Features => features;
-
-    private Feature? selectedFeature = null;
-    public Feature? SelectedFeature
-    {
-        get => selectedFeature;
-        set => Set(ref selectedFeature, value);
-    }
-
-    public Command AddFeatureCommand => new(() =>
-    {
-        if (Clipboard.HasText)
-        {
-            var text = Clipboard.GetTextAsync().Result ?? "";
-            if (text.StartsWith("https://vero.co/"))
-            {
-                var feature = new Feature
-                {
-                    PostLink = text,
-                    UserAlias = text["https://vero.co/".Length..].Split("/").FirstOrDefault() ?? "",
-                };
-                features.Add(feature);
-                SelectedFeature = feature;
-                SemanticScreenReader.Announce($"Added feature for {feature.UserAlias}");
-            }
-            else
-            {
-                var feature = new Feature();
-                features.Add(feature);
-                SelectedFeature = feature;
-                SemanticScreenReader.Announce($"Added blank feature");
-            }
-        }
-        else
-        {
-            var feature = new Feature();
-            features.Add(feature);
-            SelectedFeature = feature;
-            SemanticScreenReader.Announce($"Added blank feature");
-        }
-    });
-
-    #region Page
 
     private static ValidationResult CalculatePageValidation(string page)
     {
@@ -302,7 +599,7 @@ public class MainViewModel : NotifyPropertyChanged
             {
                 UserSettings.Store(nameof(Page), Page);
                 PageValidation = CalculatePageValidation(Page);
-                // IsDirty = true;
+                IsDirty = true;
             }
         }
     }
@@ -312,12 +609,76 @@ public class MainViewModel : NotifyPropertyChanged
     public ValidationResult PageValidation
     {
         get => pageValidation;
-        private set
+        private set => Set(ref pageValidation, value);
+    }
+
+    #endregion
+
+    #region Features
+
+    public ObservableCollection<Feature> Features { get; } = [];
+
+    private Feature? selectedFeature = null;
+    public Feature? SelectedFeature
+    {
+        get => selectedFeature;
+        set
         {
-            if (Set(ref pageValidation, value))
+            var oldSelectedFeature = selectedFeature;
+            if (Set(ref selectedFeature, value))
             {
+                Feature = SelectedFeature?.Id ?? string.Empty;
+                OnPropertyChanged(nameof(HasSelectedFeature));
+                RemoveFeatureCommand.OnCanExecuteChanged();
+                LoadPostCommand.OnCanExecuteChanged();
+                if (oldSelectedFeature != null)
+                {
+                    oldSelectedFeature.PropertyChanged -= OnSelectedFeaturePropertyChanged;
+                }
+                if (selectedFeature != null)
+                {
+                    selectedFeature.PropertyChanged += OnSelectedFeaturePropertyChanged;
+                }
+
+                // Handle the navigation
+                if (selectedFeature != null)
+                {
+                    Console.WriteLine("Pushing into feature");
+                    _ = MainWindow!.Navigation.PushAsync(new FeatureEditor
+                    {
+                        BindingContext = selectedFeature,
+                    });
+                }
+                else
+                {
+                    Console.WriteLine("Pulling out of feature");
+                    _ = MainWindow!.Navigation.PopToRootAsync();
+                }
             }
         }
+    }
+
+    private void OnSelectedFeaturePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case "SortKey":
+                MainWindow?.ResortList();
+                break;
+        }
+    }
+
+    public Visibility FeatureNavigationVisibility => Features.Where(feature => feature.IsPickedAndAllowed).Count() > 1 ? Visibility.Visible : Visibility.Collapsed;
+
+    public bool HasSelectedFeature => SelectedFeature != null;
+
+    public bool HasFeatures => Features.Count != 0;
+
+    private string feature = string.Empty;
+    public string Feature
+    {
+        get => feature;
+        set => Set(ref feature, value);
     }
 
     #endregion
@@ -368,6 +729,12 @@ public class MainViewModel : NotifyPropertyChanged
             }
         }
     }
+
+    public bool CanChangeStaffLevel => !WaitingForPages;
+
+    #endregion
+
+    #region Excluded tags
 
     private string excludedTags = "";
     public string ExcludedTags
@@ -464,7 +831,8 @@ public class MainViewModel : NotifyPropertyChanged
             { "Silver Member", "Click Silver Member" },
             { "Gold Member", "Click Gold Member" },
             { "Platinum Member", "Click Platinum Member" },
-        } :
+        }
+        :
         SelectedPage?.HubName == "snap" ? new Dictionary<string, string>
         {
             { "Member", "Snap Member" },
@@ -474,8 +842,22 @@ public class MainViewModel : NotifyPropertyChanged
             { "Elite Member", "Snap Elite Member" },
             { "Hall of Fame Member", "Snap Hall of Fame Member" },
             { "Diamond Member", "Snap Diamond Member" },
-        } :
+        }
+        :
         [];
+
+    private string MapMembershipLevelFromFile(string userLevelFromFile)
+    {
+        if (Memberships.Contains(userLevelFromFile))
+        {
+            return userLevelFromFile;
+        }
+        if (OldMembershipMap.TryGetValue(userLevelFromFile, out string? value))
+        {
+            return value;
+        }
+        return Memberships[0];
+    }
 
     #endregion
 
@@ -642,20 +1024,16 @@ public class MainViewModel : NotifyPropertyChanged
 
                 if (isPicked)
                 {
-                    // var personalMessageTemplate = feature.UserHasFeaturesOnPage
-                    //     ? (string.IsNullOrEmpty(Settings.PersonalMessage)
-                    //         ? "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-                    //         : Settings.PersonalMessage)
-                    //     : (string.IsNullOrEmpty(Settings.PersonalMessageFirst)
-                    //         ? "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-                    //         : Settings.PersonalMessageFirst);
-                    // var fullMessage = personalMessageTemplate
-                    //     .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
-                    //     .Replace("%%HUBNAME%%", SelectedPage.HubName)
-                    //     .Replace("%%USERNAME%%", feature.UserName)
-                    //     .Replace("%%USERALIAS%%", feature.UserAlias)
-                    //     .Replace("%%PERSONALMESSAGE%%", string.IsNullOrEmpty(feature.PersonalMessage) ? "[PERSONAL MESSAGE]" : feature.PersonalMessage);
-                    // personalMessagesBuilder.AppendLine(fullMessage);
+                    var personalMessageTemplate = feature.UserHasFeaturesOnPage
+                        ? UserSettings.Get("PersonalMessage", "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉")
+                        : UserSettings.Get("PersonalMessageFirst", "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉");
+                    var fullMessage = personalMessageTemplate
+                        .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
+                        .Replace("%%HUBNAME%%", SelectedPage.HubName)
+                        .Replace("%%USERNAME%%", feature.UserName)
+                        .Replace("%%USERALIAS%%", feature.UserAlias)
+                        .Replace("%%PERSONALMESSAGE%%", string.IsNullOrEmpty(feature.PersonalMessage) ? "[PERSONAL MESSAGE]" : feature.PersonalMessage);
+                    personalMessagesBuilder.AppendLine(fullMessage);
                 }
             }
         }
@@ -753,20 +1131,16 @@ public class MainViewModel : NotifyPropertyChanged
 
                 if (isPicked)
                 {
-                    // var personalMessageTemplate = feature.UserHasFeaturesOnPage
-                    //     ? (string.IsNullOrEmpty(Settings.PersonalMessage)
-                    //         ? "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-                    //         : Settings.PersonalMessage)
-                    //     : (string.IsNullOrEmpty(Settings.PersonalMessageFirst)
-                    //         ? "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-                    //         : Settings.PersonalMessageFirst);
-                    // var fullMessage = personalMessageTemplate
-                    //     .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
-                    //     .Replace("%%HUBNAME%%", SelectedPage.HubName)
-                    //     .Replace("%%USERNAME%%", feature.UserName)
-                    //     .Replace("%%USERALIAS%%", feature.UserAlias)
-                    //     .Replace("%%PERSONALMESSAGE%%", string.IsNullOrEmpty(feature.PersonalMessage) ? "[PERSONAL MESSAGE]" : feature.PersonalMessage);
-                    // personalMessagesBuilder.AppendLine(fullMessage);
+                    var personalMessageTemplate = feature.UserHasFeaturesOnPage
+                        ? UserSettings.Get("PersonalMessage", "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉")
+                        : UserSettings.Get("PersonalMessageFirst", "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉");
+                    var fullMessage = personalMessageTemplate
+                        .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
+                        .Replace("%%HUBNAME%%", SelectedPage.HubName)
+                        .Replace("%%USERNAME%%", feature.UserName)
+                        .Replace("%%USERALIAS%%", feature.UserAlias)
+                        .Replace("%%PERSONALMESSAGE%%", string.IsNullOrEmpty(feature.PersonalMessage) ? "[PERSONAL MESSAGE]" : feature.PersonalMessage);
+                    personalMessagesBuilder.AppendLine(fullMessage);
                 }
             }
         }
@@ -838,20 +1212,16 @@ public class MainViewModel : NotifyPropertyChanged
 
                 if (isPicked)
                 {
-                    // var personalMessageTemplate = feature.UserHasFeaturesOnPage
-                    //     ? (string.IsNullOrEmpty(Settings.PersonalMessage)
-                    //         ? "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-                    //         : Settings.PersonalMessage)
-                    //     : (string.IsNullOrEmpty(Settings.PersonalMessageFirst)
-                    //         ? "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
-                    //         : Settings.PersonalMessageFirst);
-                    // var fullMessage = personalMessageTemplate
-                    //     .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
-                    //     .Replace("%%HUBNAME%%", "")
-                    //     .Replace("%%USERNAME%%", feature.UserName)
-                    //     .Replace("%%USERALIAS%%", feature.UserAlias)
-                    //     .Replace("%%PERSONALMESSAGE%%", string.IsNullOrEmpty(feature.PersonalMessage) ? "[PERSONAL MESSAGE]" : feature.PersonalMessage);
-                    // personalMessagesBuilder.AppendLine(fullMessage);
+                    var personalMessageTemplate = feature.UserHasFeaturesOnPage
+                        ? UserSettings.Get("PersonalMessage", "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉")
+                        : UserSettings.Get("PersonalMessageFirst", "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉");
+                    var fullMessage = personalMessageTemplate
+                        .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
+                        .Replace("%%HUBNAME%%", "")
+                        .Replace("%%USERNAME%%", feature.UserName)
+                        .Replace("%%USERALIAS%%", feature.UserAlias)
+                        .Replace("%%PERSONALMESSAGE%%", string.IsNullOrEmpty(feature.PersonalMessage) ? "[PERSONAL MESSAGE]" : feature.PersonalMessage);
+                    personalMessagesBuilder.AppendLine(fullMessage);
                 }
             }
         }
@@ -874,12 +1244,7 @@ public class MainViewModel : NotifyPropertyChanged
     public static async Task CopyTextToClipboardAsync(string text, string title, string successMessage)
     {
         await TrySetClipboardText(text);
-        // notificationManager.Show(
-        //     title,
-        //     successMessage,
-        //     type: NotificationType.Information,
-        //     areaName: "WindowArea",
-        //     expirationTime: TimeSpan.FromSeconds(3));
+        await Toast.Make($"{title}: {successMessage}", ToastDuration.Short).Show();
     }
 
     public static async Task TrySetClipboardText(string text)
@@ -911,8 +1276,27 @@ public class MainViewModel : NotifyPropertyChanged
 
     #endregion
 
+    #region Misc
+
+    public MainPage? MainWindow { get; internal set; }
+
     internal void TriggerTinEyeSource()
     {
         OnPropertyChanged(nameof(TinEyeSource));
+    }
+
+    #endregion
+}
+
+public class OrderedContractResolver : DefaultContractResolver
+{
+    protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
+    {
+        var @base = base.CreateProperties(type, memberSerialization);
+        var ordered = @base
+            .OrderBy(p => p.Order ?? int.MaxValue)
+            .ThenBy(p => p.PropertyName)
+            .ToList();
+        return ordered;
     }
 }

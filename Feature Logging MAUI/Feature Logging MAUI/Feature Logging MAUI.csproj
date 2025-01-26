@@ -66,6 +66,7 @@
 	<ItemGroup>
 		<PackageReference Include="AathifMahir.Maui.MauiIcons.Core" Version="4.0.0" />
 		<PackageReference Include="AathifMahir.Maui.MauiIcons.Material" Version="4.0.0" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

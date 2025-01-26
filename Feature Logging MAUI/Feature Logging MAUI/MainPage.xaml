@@ -6,7 +6,9 @@
              xmlns:localVM="clr-namespace:FeatureLogging.ViewModels"
              x:Class="FeatureLogging.MainPage"
              x:DataType="localVM:MainViewModel"
-             NavigatedTo="OnContentPageNavigatedTo">
+             BindingContextChanged="OnBindingContextChanged"
+             NavigatedTo="OnContentPageNavigatedTo"
+             NavigatedFrom="OnContentPageNavigatedFrom">
     <ContentPage.BindingContext>
         <localVM:MainViewModel />
     </ContentPage.BindingContext>
@@ -50,8 +52,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="3*" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -69,25 +70,21 @@
                 <Picker
                     Grid.Column="2"
                     VerticalOptions="Center"
+                    Margin="0,0,10,0"
                     ItemsSource="{Binding LoadedPages}"
                     ItemDisplayBinding="{Binding DisplayName}"
                     SelectedItem="{Binding SelectedPage, Mode=TwoWay}"
                     IsEnabled="{Binding CanChangePage}" />
-                <mi:MauiIcon
-                    Grid.Column="3"
-                    VerticalOptions="Center"
-                    Icon="{mi:Material Icon=Warning}"
-                    IconColor="Red"
-                    IsVisible="{Binding NoSelectedStaffLevel}" />
                 <Label
-                    Grid.Column="4"
+                    Grid.Column="3"
                     VerticalOptions="Center"
                     Text="Page staff level:" />
                 <Picker
-                    Grid.Column="5"
+                    Grid.Column="4"
                     VerticalOptions="Center"
                     ItemsSource="{Binding StaffLevels}"
-                    SelectedItem="{Binding StaffLevel, Mode=TwoWay}" />
+                    SelectedItem="{Binding StaffLevel, Mode=TwoWay}"
+                    IsEnabled="{Binding CanChangeStaffLevel}" />
             </Grid>
             <HorizontalStackLayout HorizontalOptions="End">
                 <Button
@@ -96,8 +93,7 @@
             </HorizontalStackLayout>
             <ListView
                 ItemsSource="{Binding Features}"
-                SelectedItem="{Binding SelectedFeature, Mode=TwoWay}"
-                ItemSelected="OnFeatureListItemSelected">
+                SelectedItem="{Binding SelectedFeature, Mode=TwoWay}">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="localVM:Feature">
                         <ViewCell Height="64">

@@ -2,34 +2,50 @@
 using FeatureLogging.Views;
 using MauiIcons.Core;
 
-namespace FeatureLogging
+namespace FeatureLogging;
+
+public partial class MainPage : ContentPage
 {
-    public partial class MainPage : ContentPage
+    public MainPage()
     {
-        public MainPage()
-        {
-            InitializeComponent();
+        InitializeComponent();
         // Temporary Workaround for url styled namespace in xaml
         _ = new MauiIcon();
-        }
+    }
 
-        private async void OnFeatureListItemSelected(object sender, SelectedItemChangedEventArgs e)
+    private void OnBindingContextChanged(object sender, EventArgs e)
+    {
+        if (BindingContext is MainViewModel vm)
         {
-            if (e.SelectedItem != null)
-            {
-                await Navigation.PushAsync(new FeatureEditor
-                {
-                    BindingContext = e.SelectedItem as Feature,
-                });
-            }
+            vm.MainWindow = this;
         }
+    }
 
-        private void OnContentPageNavigatedTo(object sender, NavigatedToEventArgs e)
+    private void OnContentPageNavigatedTo(object sender, NavigatedToEventArgs e)
+    {
+        if (BindingContext is MainViewModel vm)
         {
-            if (BindingContext is MainViewModel vm)
-            {
-                vm.SelectedFeature = null;
-            }
+            // vm.WindowActive = true;
+            vm.SelectedFeature = null;
         }
+    }
+
+    private void OnContentPageNavigatedFrom(object sender, NavigatedFromEventArgs e)
+    {
+        if (BindingContext is MainViewModel vm)
+        {
+            // vm.WindowActive = false;
+        }
+    }
+
+    internal void ResortList()
+    {
+        // this.FeaturesListBox.Items.SortDescriptions.Clear();
+        // var sortDescription = new SortDescription()
+        // {
+        //     Direction = ListSortDirection.Ascending,
+        //     PropertyName = "SortKey",
+        // };
+        // this.FeaturesListBox.Items.SortDescriptions.Add(sortDescription);
     }
 }

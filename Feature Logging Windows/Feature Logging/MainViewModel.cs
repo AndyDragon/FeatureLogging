@@ -916,9 +916,9 @@ namespace FeatureLogging
                 }
             }
         }
-        
+
         #endregion
-        
+
         #region Dirty state
 
         private bool isDirty = false;
@@ -1164,12 +1164,7 @@ namespace FeatureLogging
         public ValidationResult PageValidation
         {
             get => pageValidation;
-            private set
-            {
-                if (Set(ref pageValidation, value))
-                {
-                }
-            }
+            private set => Set(ref pageValidation, value);
         }
 
         #endregion
@@ -1389,7 +1384,7 @@ namespace FeatureLogging
                 { "Elite Member", "Snap Elite Member" },
                 { "Hall of Fame Member", "Snap Hall of Fame Member" },
                 { "Diamond Member", "Snap Diamond Member" },
-            } : 
+            } :
             [];
 
         #endregion
@@ -2069,7 +2064,7 @@ namespace FeatureLogging
                 }
                 return featureCountOnHub + featureCountOnRawHub;
             }
-            else 
+            else
             {
                 if (feature.UserHasFeaturesOnHub && feature.FeatureCountOnHub == "many")
                 {
@@ -2122,7 +2117,7 @@ namespace FeatureLogging
                     DataLabels = true
                 });
             }
-            
+
             return seriesCollection;
         }
 
@@ -2987,7 +2982,7 @@ namespace FeatureLogging
 
         internal void OnSortKeyChange()
         {
-            OnPropertyChanged(SortKey);
+            OnPropertyChanged(nameof(SortKey));
         }
     }
 

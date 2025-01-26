@@ -5,7 +5,16 @@
              xmlns:local="clr-namespace:FeatureLogging"
              xmlns:localVM="clr-namespace:FeatureLogging.ViewModels"
              Title="Feature"
-             x:DataType="localVM:Feature">
+             x:DataType="localVM:MainViewModel">
+
+    <Shell.ToolbarItems>
+        <ToolbarItem
+            Text="Remove feature"
+            Command="{Binding RemoveFeatureCommand}"
+            Priority="1"
+            Order="Primary" />
+    </Shell.ToolbarItems>
+
     <VerticalStackLayout Margin="20">
         <Grid>
             <Grid.ColumnDefinitions>
@@ -19,7 +28,7 @@
             <CheckBox
                 Grid.Column="1"
                 VerticalOptions="Center"
-                IsChecked="{Binding IsPicked, Mode=TwoWay}" />
+                IsChecked="{Binding SelectedFeature.IsPicked, Mode=TwoWay}" />
         </Grid>
         <Grid
             Margin="0,2">
@@ -32,7 +41,7 @@
                 Grid.Column="0"
                 VerticalOptions="Center"
                 Placeholder="enter the post link"
-                Text="{Binding PostLink, Mode=TwoWay}" />
+                Text="{Binding SelectedFeature.PostLink, Mode=TwoWay}" />
             <Button
                 Grid.Column="1"
                 VerticalOptions="Center"
@@ -43,7 +52,7 @@
                 Grid.Column="2"
                 VerticalOptions="Center"
                 Margin="2,0"
-                Command="{Binding LoadFeatureCommand}"
+                Command="{Binding LoadPostCommand}"
                 Text="Lost post" />
         </Grid>
         <Grid
@@ -56,7 +65,7 @@
                 Grid.Column="0"
                 VerticalOptions="Center"
                 Placeholder="enter the user's alias without '@'"
-                Text="{Binding UserAlias, Mode=TwoWay}" />
+                Text="{Binding SelectedFeature.UserAlias, Mode=TwoWay}" />
             <Button
                 Grid.Column="1"
                 VerticalOptions="Center"
@@ -74,7 +83,7 @@
                 Grid.Column="0"
                 VerticalOptions="Center"
                 Placeholder="enter the user's name"
-                Text="{Binding UserName, Mode=TwoWay}" />
+                Text="{Binding SelectedFeature.UserName, Mode=TwoWay}" />
             <Button
                 Grid.Column="1"
                 VerticalOptions="Center"

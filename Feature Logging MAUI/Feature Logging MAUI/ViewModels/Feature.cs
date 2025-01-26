@@ -295,6 +295,11 @@ public class Feature : NotifyPropertyChanged
         }
     }
 
+    public void OnSortKeyChange()
+    {
+        OnPropertyChanged(nameof(SortKey));
+    }
+
     [JsonIgnore]
     public Brush IconColor
     {
@@ -407,33 +412,6 @@ public class Feature : NotifyPropertyChanged
             validationErrors.Add(validation + ": " + (result.Message ?? result.Error ?? "unknown validation error"));
         }
     }
-
-    public Command PastePostLinkCommand => new(PastePostLink, CanPastePostLink);
-    private void PastePostLink()
-    {
-        PostLink = Clipboard.GetTextAsync().Result ?? string.Empty;
-        if (PostLink.StartsWith("https://vero.co/"))
-        {
-            UserAlias = PostLink["https://vero.co/".Length..].Split("/").FirstOrDefault() ?? string.Empty;
-        }
-    }
-    private bool CanPastePostLink() => Clipboard.HasText;
-
-    // TODO : need to handle load post...
-
-    public Command PasteUserAliasCommand => new(PasteUserAlias, CanPasteUserAlias);
-    private void PasteUserAlias()
-    {
-        UserAlias = Clipboard.GetTextAsync().Result ?? string.Empty;
-    }
-    private bool CanPasteUserAlias() => Clipboard.HasText;
-
-    public Command PasteUserNameCommand => new(PasteUserName, CanPasteUserName);
-    private void PasteUserName()
-    {
-        UserName = Clipboard.GetTextAsync().Result ?? string.Empty;
-    }
-    private bool CanPasteUserName() => Clipboard.HasText;
 }
 
 public class FeatureComparer : IComparer<Feature>
