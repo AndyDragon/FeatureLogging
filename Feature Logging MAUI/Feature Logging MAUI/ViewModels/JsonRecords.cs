@@ -7,7 +7,7 @@ public class ScriptsCatalog
         Hubs = new Dictionary<string, IList<PageEntry>>();
     }
 
-    public IDictionary<string, IList<PageEntry>> Hubs { get; set; }
+    public IDictionary<string, IList<PageEntry>>? Hubs { get; set; }
 }
 
 public class PageEntry
@@ -36,11 +36,11 @@ public class LoadedPage(string hubName, PageEntry page)
             return $"{HubName}:{Name}";
         }
     }
-    public string HubName { get; private set; } = hubName;
-    public string Name { get; private set; } = page.Name;
-    public string? PageName { get; private set; } = page.PageName;
+    public string HubName { get; } = hubName;
+    public string Name { get; } = page.Name;
+    public string? PageName { get; } = page.PageName;
     public string? Title { get; private set; } = page.Title;
-    public string? HashTag { get; private set; } = page.HashTag;
+    public string? HashTag { get; } = page.HashTag;
     public string DisplayName
     {
         get
@@ -130,6 +130,7 @@ internal class LoadedPageComparer : IComparer<LoadedPage>
         }
         if (x.HubName == "other" && y.HubName == "other")
         {
+            // ReSharper disable once StringCompareIsCultureSpecific.3
             return string.Compare(x.Id, y.Id, true);
         }
         if (x.HubName == "other")
@@ -140,6 +141,7 @@ internal class LoadedPageComparer : IComparer<LoadedPage>
         {
             return -1;
         }
+        // ReSharper disable once StringCompareIsCultureSpecific.3
         return string.Compare(x.DisplayName, y.DisplayName, true);
     }
 

@@ -1,46 +1,21 @@
-﻿
-using MauiIcons.Material;
+﻿using MauiIcons.Material;
 using Newtonsoft.Json;
 
 namespace FeatureLogging.ViewModels;
 
 public class Feature : NotifyPropertyChanged
 {
-    public Feature()
-    {
-        // EditPersonalMessageCommand = new CommandWithParameter((parameter) =>
-        // {
-        //     if (parameter is MainViewModel vm && vm.SelectedPage != null)
-        //     {
-        //         vm.SelectedFeature = this;
-        //         PersonalMessageDialog dialog = new()
-        //         {
-        //             DataContext = vm,
-        //             Owner = Application.Current.MainWindow,
-        //             WindowStartupLocation = WindowStartupLocation.CenterOwner,
-        //         };
-        //         dialog.ShowDialog();
-        //     }
-        // });
-    }
-
     [JsonIgnore]
     public readonly string Id = Guid.NewGuid().ToString();
 
     [JsonIgnore]
-    public bool IsPickedAndAllowed
-    {
-        get => IsPicked && !TooSoonToFeatureUser && !PhotoFeaturedOnPage && TinEyeResults != "matches found" && AiCheckResults != "ai";
-    }
+    public bool IsPickedAndAllowed => IsPicked && !TooSoonToFeatureUser && !PhotoFeaturedOnPage && TinEyeResults != "matches found" && AiCheckResults != "ai";
 
     [JsonIgnore]
-    public string SortKey
-    {
-        get => FeatureComparer.CreateSortingKey(this);
-    }
+    public string SortKey => FeatureComparer.CreateSortingKey(this);
 
     [JsonIgnore]
-    private bool isDirty = false;
+    private bool isDirty;
     [JsonIgnore]
     public bool IsDirty
     {
@@ -48,7 +23,7 @@ public class Feature : NotifyPropertyChanged
         set => Set(ref isDirty, value);
     }
 
-    private bool isPicked = false;
+    private bool isPicked;
     [JsonProperty(PropertyName = "isPicked")]
     public bool IsPicked
     {
@@ -96,7 +71,7 @@ public class Feature : NotifyPropertyChanged
     [JsonIgnore]
     public ValidationResult UserLevelValidation => Validation.ValidateValueNotDefault(userLevel, "None");
 
-    private bool userIsTeammate = false;
+    private bool userIsTeammate;
     [JsonProperty(PropertyName = "userIsTeammate")]
     public bool UserIsTeammate
     {
@@ -112,7 +87,7 @@ public class Feature : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref tagSource, value, () => IsDirty = true);
     }
 
-    private bool photoFeaturedOnPage = false;
+    private bool photoFeaturedOnPage;
     [JsonProperty(PropertyName = "photoFeaturedOnPage")]
     public bool PhotoFeaturedOnPage
     {
@@ -120,7 +95,7 @@ public class Feature : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref photoFeaturedOnPage, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey)]);
     }
 
-    private bool photoFeaturedOnHub = false;
+    private bool photoFeaturedOnHub;
     [JsonProperty(PropertyName = "photoFeaturedOnHub")]
     public bool PhotoFeaturedOnHub
     {
@@ -156,7 +131,7 @@ public class Feature : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref featureDescription, value, () => IsDirty = true);
     }
 
-    private bool userHasFeaturesOnPage = false;
+    private bool userHasFeaturesOnPage;
     [JsonProperty(PropertyName = "userHasFeaturesOnPage")]
     public bool UserHasFeaturesOnPage
     {
@@ -190,7 +165,7 @@ public class Feature : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref featureCountOnRawPage, value, () => IsDirty = true);
     }
 
-    private bool userHasFeaturesOnHub = false;
+    private bool userHasFeaturesOnHub;
     [JsonProperty(PropertyName = "userHasFeaturesOnHub")]
     public bool UserHasFeaturesOnHub
     {
@@ -234,7 +209,7 @@ public class Feature : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref featureCountOnRawHub, value, () => IsDirty = true);
     }
 
-    private bool tooSoonToFeatureUser = false;
+    private bool tooSoonToFeatureUser;
     [JsonProperty(PropertyName = "tooSoonToFeatureUser")]
     public bool TooSoonToFeatureUser
     {
@@ -359,22 +334,17 @@ public class Feature : NotifyPropertyChanged
     }
 
     [JsonIgnore]
-
-    public bool HasValidationErrors
-    {
-        get =>
-            !PostLinkValidation.Valid ||
-            !UserNameValidation.Valid ||
-            !UserAliasValidation.Valid ||
-            !UserLevelValidation.Valid ||
-            (PhotoFeaturedOnPage && !PhotoLastFeaturedPageValidation.Valid) ||
-            (PhotoFeaturedOnHub && !PhotoLastFeaturedOnHubValidation.Valid) ||
-            (UserHasFeaturesOnPage && !LastFeaturedOnPageValidation.Valid) ||
-            (UserHasFeaturesOnHub && (!LastFeaturedOnHubValidation.Valid || !LastFeaturedPageValidation.Valid));
-    }
+    public bool HasValidationErrors =>
+        !PostLinkValidation.Valid ||
+        !UserNameValidation.Valid ||
+        !UserAliasValidation.Valid ||
+        !UserLevelValidation.Valid ||
+        (PhotoFeaturedOnPage && !PhotoLastFeaturedPageValidation.Valid) ||
+        (PhotoFeaturedOnHub && !PhotoLastFeaturedOnHubValidation.Valid) ||
+        (UserHasFeaturesOnPage && !LastFeaturedOnPageValidation.Valid) ||
+        (UserHasFeaturesOnHub && (!LastFeaturedOnHubValidation.Valid || !LastFeaturedPageValidation.Valid));
 
     [JsonIgnore]
-
     public string ValidationErrorSummary
     {
         get
@@ -404,6 +374,22 @@ public class Feature : NotifyPropertyChanged
             return string.Join(",", validationErrors);
         }
     }
+    
+    [JsonIgnore]
+    public CommandWithParameter EditPersonalMessageCommand => new(parameter =>
+    {
+        if (parameter is MainViewModel vm && vm.SelectedPage != null)
+        {
+            vm.SelectedFeature = this;
+            // PersonalMessageDialog dialog = new()
+            // {
+            //     DataContext = vm,
+            //     Owner = Application.Current.MainWindow,
+            //     WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            // };
+            // dialog.ShowDialog();
+        }
+    });
 
     private static void AddValidationError(List<string> validationErrors, ValidationResult result, string validation)
     {
@@ -433,19 +419,16 @@ public class FeatureComparer : IComparer<Feature>
         }
 
         // Use pre-calculated sort key.
+        // ReSharper disable once StringCompareIsCultureSpecific.1
         return string.Compare(x.SortKey, y.SortKey);
     }
 
-    public readonly static FeatureComparer Default = new();
+    public static readonly FeatureComparer Default = new();
 
     public static string CreateSortingKey(Feature feature)
     {
         var key = "";
 
-        if (feature == null)
-        {
-            return key;
-        }
         if (string.IsNullOrEmpty(feature.UserName))
         {
             return "ZZZ|" + feature.UserAlias;

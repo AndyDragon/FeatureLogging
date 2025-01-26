@@ -31,7 +31,7 @@ public class CommandWithParameter(Action<object?> execute, Func<object?, bool>? 
     public event EventHandler? CanExecuteChanged;
 
     private readonly Action<object?> execute = execute ?? throw new ArgumentNullException("execute");
-    private readonly Func<object?, bool> canExecute = canExecute ?? ((parameter) => true);
+    private readonly Func<object?, bool> canExecute = canExecute ?? ((_) => true);
 
     public void OnCanExecuteChanged()
     {

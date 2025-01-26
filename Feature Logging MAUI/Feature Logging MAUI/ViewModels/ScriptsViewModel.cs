@@ -1,10 +1,11 @@
 ﻿using Newtonsoft.Json;
 // using Notification.Wpf;
 using System.Collections.ObjectModel;
-using System.IO;
+// using System.IO;
 using System.Text.RegularExpressions;
-using System.Windows;
+// using System.Windows;
 using System.Windows.Input;
+using CommunityToolkit.Maui.Alerts;
 
 namespace FeatureLogging.ViewModels
 {
@@ -15,98 +16,14 @@ namespace FeatureLogging.ViewModels
         OriginalPost,
     }
 
-    public partial class ScriptsViewModel : NotifyPropertyChanged
+    public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPropertyChanged
     {
-        // #region Field validation
-
-        // public static ValidationResult ValidateUser(string hubName, string userName)
-        // {
-        //     var userNameValidationResult = ValidateUserName(userName);
-        //     if (!userNameValidationResult.Valid)
-        //     {
-        //         return userNameValidationResult;
-        //     }
-        //     if (Validation.DisallowList.TryGetValue(hubName, out List<string>? value) &&
-        //         value.FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
-        //     {
-        //         return new ValidationResult(false, "User is on the disallow list");
-        //     }
-        //     return new ValidationResult(true);
-        // }
-
-        // public static ValidationResult ValidateValueNotEmpty(string value)
-        // {
-        //     if (string.IsNullOrEmpty(value))
-        //     {
-        //         return new ValidationResult(false, "Required value");
-        //     }
-        //     return new ValidationResult(true);
-        // }
-
-        // public static ValidationResult ValidateValueNotDefault(string value, string defaultValue)
-        // {
-        //     if (string.IsNullOrEmpty(value) || string.Equals(value, defaultValue, StringComparison.OrdinalIgnoreCase))
-        //     {
-        //         return new ValidationResult(false, "Required value");
-        //     }
-        //     return new ValidationResult(true);
-        // }
-
-        // public static ValidationResult ValidateUserName(string userName)
-        // {
-        //     if (string.IsNullOrEmpty(userName))
-        //     {
-        //         return new ValidationResult(false, "Required value");
-        //     }
-        //     if (userName.StartsWith('@'))
-        //     {
-        //         return new ValidationResult(false, "Don't include the '@' in user names");
-        //     }
-        //     return new ValidationResult(true);
-        // }
-
-        // #endregion
-
-        // private readonly NotificationManager notificationManager = new();
         private readonly Dictionary<Script, string> scriptNames = new()
         {
             { Script.Feature, "feature" },
             { Script.Comment, "comment" },
             { Script.OriginalPost, "original post" },
         };
-
-        private readonly MainViewModel mainViewModel;
-
-        public ScriptsViewModel(MainViewModel mainViewModel)
-        {
-            this.mainViewModel = mainViewModel;
-            TemplatesCatalog = new TemplatesCatalog();
-            Scripts = new Dictionary<Script, string>
-            {
-                { Script.Feature, "" },
-                { Script.Comment, "" },
-                { Script.OriginalPost, "" }
-            };
-            PlaceholdersMap = new Dictionary<Script, ObservableCollection<Placeholder>>
-            {
-                { Script.Feature, new ObservableCollection<Placeholder>() },
-                { Script.Comment, new ObservableCollection<Placeholder>() },
-                { Script.OriginalPost, new ObservableCollection<Placeholder>() }
-            };
-            LongPlaceholdersMap = new Dictionary<Script, ObservableCollection<Placeholder>>
-            {
-                { Script.Feature, new ObservableCollection<Placeholder>() },
-                { Script.Comment, new ObservableCollection<Placeholder>() },
-                { Script.OriginalPost, new ObservableCollection<Placeholder>() }
-            };
-            CopyFeatureScriptCommand = new Command(() => CopyScript(Script.Feature, force: true));
-            CopyFeatureScriptWithPlaceholdersCommand = new Command(() => CopyScript(Script.Feature, force: true, withPlaceholders: true));
-            CopyCommentScriptCommand = new Command(() => CopyScript(Script.Comment, force: true));
-            CopyCommentScriptWithPlaceholdersCommand = new Command(() => CopyScript(Script.Comment, force: true, withPlaceholders: true));
-            CopyOriginalPostScriptCommand = new Command(() => CopyScript(Script.OriginalPost, force: true));
-            CopyOriginalPostScriptWithPlaceholdersCommand = new Command(() => CopyScript(Script.OriginalPost, force: true, withPlaceholders: true));
-            CopyNewMembershipScriptCommand = new Command(CopyNewMembershipScript);
-        }
 
         #region Feature loading
 
@@ -123,22 +40,21 @@ namespace FeatureLogging.ViewModels
                     var feature = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(File.ReadAllText(featureFile)) ?? [];
                     File.Delete(featureFile);
 
-                    var page = mainViewModel.LoadedPages.FirstOrDefault(page => page.Id == (string)feature["page"]);
-                    if (page != null)
+                    var featurePage = mainViewModel.LoadedPages.FirstOrDefault(loadedPage => loadedPage.Id == (string)feature["page"]);
+                    if (featurePage != null)
                     {
-                        Page = page.Id;
+                        Page = featurePage.Id;
                         CanChangePage = false;
                         StaffLevel = (string)feature["staffLevel"];
                         CanChangeStaffLevel = false;
                         UserName = (string)feature["userAlias"];
                         Membership = HubMemberships.Contains((string)feature["userLevel"]) ? (string)feature["userLevel"] : HubMemberships[0];
                         FirstForPage = feature["firstFeature"];
-                        if (page.HubName == "click")
+                        if (featurePage.HubName == "click")
                         {
                             RawTag = false;
                             switch ((string)feature["tagSource"])
                             {
-                                case "Page tag":
                                 default:
                                     CommunityTag = false;
                                     HubTag = false;
@@ -153,12 +69,11 @@ namespace FeatureLogging.ViewModels
                                     break;
                             }
                         }
-                        else if (page.HubName == "snap")
+                        else if (featurePage.HubName == "snap")
                         {
                             HubTag = false;
                             switch ((string)feature["tagSource"])
                             {
-                                case "Page tag":
                                 default:
                                     RawTag = false;
                                     CommunityTag = false;
@@ -209,23 +124,23 @@ namespace FeatureLogging.ViewModels
 
         #region Commands
 
-        public ICommand CopyFeatureScriptCommand { get; }
+        public Command CopyFeatureScriptCommand => new Command(() => CopyScript(Script.Feature, force: true));
 
-        public ICommand CopyFeatureScriptWithPlaceholdersCommand { get; }
+        public ICommand CopyFeatureScriptWithPlaceholdersCommand => new Command(() => CopyScript(Script.Feature, force: true, withPlaceholders: true));
 
-        public ICommand CopyCommentScriptCommand { get; }
+        public ICommand CopyCommentScriptCommand => new Command(() => CopyScript(Script.Comment, force: true));
 
-        public ICommand CopyCommentScriptWithPlaceholdersCommand { get; }
+        public ICommand CopyCommentScriptWithPlaceholdersCommand => new Command(() => CopyScript(Script.Comment, force: true, withPlaceholders: true));
 
-        public ICommand CopyOriginalPostScriptCommand { get; }
+        public ICommand CopyOriginalPostScriptCommand => new Command(() => CopyScript(Script.OriginalPost, force: true));
 
-        public ICommand CopyOriginalPostScriptWithPlaceholdersCommand { get; }
+        public ICommand CopyOriginalPostScriptWithPlaceholdersCommand => new Command(() => CopyScript(Script.OriginalPost, force: true, withPlaceholders: true));
 
-        public ICommand CopyNewMembershipScriptCommand { get; }
+        public ICommand CopyNewMembershipScriptCommand => new Command(CopyNewMembershipScript);
 
         #endregion
 
-        public TemplatesCatalog TemplatesCatalog { get; set; }
+        public TemplatesCatalog TemplatesCatalog { get; set; } = new();
 
         #region User name
 
@@ -404,7 +319,7 @@ namespace FeatureLogging.ViewModels
 
         #region Pages
 
-        private LoadedPage? selectedPage = null;
+        private LoadedPage? selectedPage;
 
         public LoadedPage? SelectedPage
         {
@@ -547,7 +462,7 @@ namespace FeatureLogging.ViewModels
 
         #region First for page
 
-        private bool firstForPage = false;
+        private bool firstForPage;
 
         public bool FirstForPage
         {
@@ -566,7 +481,7 @@ namespace FeatureLogging.ViewModels
 
         #region RAW tag
 
-        private bool rawTag = false;
+        private bool rawTag;
 
         public bool RawTag
         {
@@ -585,7 +500,7 @@ namespace FeatureLogging.ViewModels
 
         #region Community tag
 
-        private bool communityTag = false;
+        private bool communityTag;
 
         public bool CommunityTag
         {
@@ -604,7 +519,7 @@ namespace FeatureLogging.ViewModels
 
         #region Hub tag
 
-        private bool hubTag = false;
+        private bool hubTag;
 
         public bool HubTag
         {
@@ -623,7 +538,12 @@ namespace FeatureLogging.ViewModels
 
         #region Feature script
 
-        public Dictionary<Script, string> Scripts { get; private set; }
+        public Dictionary<Script, string> Scripts { get; } = new()
+        {
+            { Script.Feature, "" },
+            { Script.Comment, "" },
+            { Script.OriginalPost, "" }
+        };
 
         public string FeatureScript
         {
@@ -633,7 +553,7 @@ namespace FeatureLogging.ViewModels
                 if (Scripts[Script.Feature] != value)
                 {
                     Scripts[Script.Feature] = value;
-                    OnPropertyChanged(nameof(FeatureScript));
+                    OnPropertyChanged();
                     OnPropertyChanged(nameof(FeatureScriptPlaceholderVisibility));
                 }
             }
@@ -653,7 +573,7 @@ namespace FeatureLogging.ViewModels
                 if (Scripts[Script.Comment] != value)
                 {
                     Scripts[Script.Comment] = value;
-                    OnPropertyChanged(nameof(CommentScript));
+                    OnPropertyChanged();
                     OnPropertyChanged(nameof(CommentScriptPlaceholderVisibility));
                 }
             }
@@ -673,7 +593,7 @@ namespace FeatureLogging.ViewModels
                 if (Scripts[Script.OriginalPost] != value)
                 {
                     Scripts[Script.OriginalPost] = value;
-                    OnPropertyChanged(nameof(OriginalPostScript));
+                    OnPropertyChanged();
                     OnPropertyChanged(nameof(OriginalPostScriptPlaceholderVisibility));
                 }
             }
@@ -738,8 +658,19 @@ namespace FeatureLogging.ViewModels
 
         #region Placeholder management
 
-        public Dictionary<Script, ObservableCollection<Placeholder>> PlaceholdersMap { get; private set; }
-        public Dictionary<Script, ObservableCollection<Placeholder>> LongPlaceholdersMap { get; private set; }
+        public Dictionary<Script, ObservableCollection<Placeholder>> PlaceholdersMap { get; private set; } = new()
+        {
+            { Script.Feature, new ObservableCollection<Placeholder>() },
+            { Script.Comment, new ObservableCollection<Placeholder>() },
+            { Script.OriginalPost, new ObservableCollection<Placeholder>() }
+        };
+
+        public Dictionary<Script, ObservableCollection<Placeholder>> LongPlaceholdersMap { get; private set; } = new()
+        {
+            { Script.Feature, new ObservableCollection<Placeholder>() },
+            { Script.Comment, new ObservableCollection<Placeholder>() },
+            { Script.OriginalPost, new ObservableCollection<Placeholder>() }
+        };
 
         private void ClearAllPlaceholders()
         {
@@ -901,7 +832,7 @@ namespace FeatureLogging.ViewModels
             var scriptPageHash = pageName;
             var scriptPageTitle = pageName;
             var oldHubName = selectedPage?.HubName;
-            var sourcePage = mainViewModel.LoadedPages.FirstOrDefault(page => page.Id == Page);
+            var sourcePage = mainViewModel.LoadedPages.FirstOrDefault(loadedPage => loadedPage.Id == Page);
             if (sourcePage != null)
             {
                 pageId = sourcePage.Id;
@@ -950,9 +881,9 @@ namespace FeatureLogging.ViewModels
             }
             else
             {
-                var featureScriptTemplate = GetTemplate("feature", pageId, FirstForPage, RawTag, CommunityTag);
-                var commentScriptTemplate = GetTemplate("comment", pageId, FirstForPage, RawTag, CommunityTag);
-                var originalPostScriptTemplate = GetTemplate("original post", pageId, FirstForPage, RawTag, CommunityTag);
+                var featureScriptTemplate = GetTemplate("feature", pageId);
+                var commentScriptTemplate = GetTemplate("comment", pageId);
+                var originalPostScriptTemplate = GetTemplate("original post", pageId);
                 FeatureScript = featureScriptTemplate
                     .Replace("%%PAGENAME%%", scriptPageName)
                     .Replace("%%FULLPAGENAME%%", pageName)
@@ -994,58 +925,55 @@ namespace FeatureLogging.ViewModels
 
         private string GetTemplate(
             string templateName,
-            string pageName,
-            bool firstForPage,
-            bool rawTag,
-            bool communityTag)
+            string pageName)
         {
             TemplateEntry? template = null;
-            var templatePage = TemplatesCatalog.Pages.FirstOrDefault(page => page.Name == pageName);
+            var templatePage = TemplatesCatalog.Pages.FirstOrDefault(templatePageEntry => templatePageEntry.Name == pageName);
 
             // Check first feature and raw and community
             if (selectedPage?.HubName == "snap" && firstForPage && rawTag && communityTag)
             {
-                template = templatePage?.Templates.FirstOrDefault(template => template.Name == "first raw community " + templateName);
+                template = templatePage?.Templates.FirstOrDefault(templateEntry => templateEntry.Name == "first raw community " + templateName);
             }
 
             // Next check first feature and raw
             if (selectedPage?.HubName == "snap" && firstForPage && rawTag)
             {
-                template ??= templatePage?.Templates.FirstOrDefault(template => template.Name == "first raw " + templateName);
+                template ??= templatePage?.Templates.FirstOrDefault(templateEntry => templateEntry.Name == "first raw " + templateName);
             }
 
             // Next check first feature and community
             if (selectedPage?.HubName == "snap" && firstForPage && communityTag)
             {
-                template ??= templatePage?.Templates.FirstOrDefault(template => template.Name == "first community " + templateName);
+                template ??= templatePage?.Templates.FirstOrDefault(templateEntry => templateEntry.Name == "first community " + templateName);
             }
 
             // Next check first feature
             if (firstForPage)
             {
-                template ??= templatePage?.Templates.FirstOrDefault(template => template.Name == "first " + templateName);
+                template ??= templatePage?.Templates.FirstOrDefault(templateEntry => templateEntry.Name == "first " + templateName);
             }
 
             // Next check raw and community
             if (selectedPage?.HubName == "snap" && rawTag && communityTag)
             {
-                template ??= templatePage?.Templates.FirstOrDefault(template => template.Name == "raw community " + templateName);
+                template ??= templatePage?.Templates.FirstOrDefault(templateEntry => templateEntry.Name == "raw community " + templateName);
             }
 
             // Next check raw
             if (selectedPage?.HubName == "snap" && rawTag)
             {
-                template ??= templatePage?.Templates.FirstOrDefault(template => template.Name == "raw " + templateName);
+                template ??= templatePage?.Templates.FirstOrDefault(templateEntry => templateEntry.Name == "raw " + templateName);
             }
 
             // Next check community
             if (selectedPage?.HubName == "snap" && communityTag)
             {
-                template ??= templatePage?.Templates.FirstOrDefault(template => template.Name == "community " + templateName);
+                template ??= templatePage?.Templates.FirstOrDefault(templateEntry => templateEntry.Name == "community " + templateName);
             }
 
             // Last check standard
-            template ??= templatePage?.Templates.FirstOrDefault(template => template.Name == templateName);
+            template ??= templatePage?.Templates.FirstOrDefault(templateEntry => templateEntry.Name == templateName);
 
             return template?.Template ?? "";
         }
@@ -1102,14 +1030,12 @@ namespace FeatureLogging.ViewModels
             {
                 var hubName = SelectedPage?.HubName;
                 var pageName = Page;
-                var pageId = pageName;
                 var scriptPageName = pageName;
                 var scriptPageHash = pageName;
                 var scriptPageTitle = pageName;
-                var sourcePage = mainViewModel.LoadedPages.FirstOrDefault(page => page.Id == Page);
+                var sourcePage = mainViewModel.LoadedPages.FirstOrDefault(loadedPage => loadedPage.Id == Page);
                 if (sourcePage != null)
                 {
-                    pageId = sourcePage.Id;
                     pageName = sourcePage.Name;
                     scriptPageName = pageName;
                     scriptPageHash = pageName;
@@ -1183,15 +1109,10 @@ namespace FeatureLogging.ViewModels
         private static async Task CopyTextToClipboardAsync(string text, string successMessage)
         {
             await MainViewModel.TrySetClipboardText(text);
-            // notificationManager.Show(
-            //     "Copied script",
-            //     successMessage,
-            //     type: NotificationType.Success,
-            //     areaName: "WindowArea",
-            //     expirationTime: TimeSpan.FromSeconds(3));
+            await Toast.Make(successMessage).Show();
         }
 
-        public void CopyScript(Script script, bool force = false, bool withPlaceholders = false)
+        private void CopyScript(Script script, bool force = false, bool withPlaceholders = false)
         {
             if (withPlaceholders)
             {

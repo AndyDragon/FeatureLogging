@@ -1,92 +1,34 @@
 ﻿using System.Collections.ObjectModel;
-using System.IO;
+// using System.IO;
 using System.Net.Http.Headers;
-using System.Net.Http;
+// using System.Net.Http;
 using System.Text;
 // using System.Windows.Media;
-using System.Xml;
+// using System.Xml;
 using Newtonsoft.Json;
 // using Sgml;
-using System.Diagnostics;
+// using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
+using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
 // using System.Windows.Media.Imaging;
 // using Notification.Wpf;
-using Newtonsoft.Json.Linq;
+// using Newtonsoft.Json.Linq;
 
 namespace FeatureLogging.ViewModels;
 
 public class DownloadedPostViewModel : NotifyPropertyChanged
 {
-    static readonly Color? defaultLogColor = null;// Colors.Blue;
+    private static readonly Color? DefaultLogColor = null;
     private readonly HttpClient httpClient = new();
-    // private readonly NotificationManager notificationManager = new();
     private readonly MainViewModel vm;
 
     public DownloadedPostViewModel(MainViewModel vm)
     {
         this.vm = vm;
 
-        #region Commands
-
-        copyPostUrlCommand = new Command(() =>
-        {
-            if (!string.IsNullOrEmpty(vm.SelectedFeature?.PostLink))
-            {
-                CopyTextToClipboard(vm.SelectedFeature.PostLink, "Copied the post URL to the clipboard"/*, notificationManager*/);
-            }
-        }, () => !string.IsNullOrEmpty(vm.SelectedFeature?.PostLink));
-
-        launchPostUrlCommand = new Command(() =>
-        {
-            if (!string.IsNullOrEmpty(vm.SelectedFeature?.PostLink))
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = vm.SelectedFeature.PostLink,
-                    UseShellExecute = true
-                });
-            }
-        }, () => !string.IsNullOrEmpty(vm.SelectedFeature?.PostLink));
-
-        copyUserProfileUrlCommand = new Command(() =>
-        {
-            if (!string.IsNullOrEmpty(UserProfileUrl))
-            {
-                CopyTextToClipboard(UserProfileUrl, "Copied the user profile URL to the clipboard"/*, notificationManager*/);
-            }
-        }, () => !string.IsNullOrEmpty(UserProfileUrl));
-
-        launchUserProfileUrlCommand = new Command(() =>
-        {
-            if (!string.IsNullOrEmpty(UserProfileUrl))
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = UserProfileUrl,
-                    UseShellExecute = true
-                });
-            }
-        }, () => !string.IsNullOrEmpty(UserProfileUrl));
-
-        transferUserAliasCommand = new Command(() =>
-        {
-            vm.SelectedFeature!.UserAlias = UserAlias!;
-        }, () => !string.IsNullOrEmpty(UserAlias));
-
-        transferUserNameCommand = new Command(() =>
-        {
-            vm.SelectedFeature!.UserName = UserName!;
-        }, () => !string.IsNullOrEmpty(UserName));
-
-        copyLogCommand = new Command(() =>
-        {
-            CopyTextToClipboard(string.Join("\n", LogEntries.Select(entry => entry.Messsage)), "Copied the log messages to the clipboard"/*, notificationManager*/);
-        });
-
-        #endregion
-
-        // Load the post asyncly.
+        // Load the post async-ly.
         _ = LoadPost();
     }
 
@@ -94,11 +36,6 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
     {
         var postUrl = vm.SelectedFeature!.PostLink!;
         var selectedPage = vm.SelectedPage!;
-        // using var progress = notificationManager.ShowProgressBar(
-        //     "Loading the post",
-        //     ShowCancelButton: false,
-        //     areaName: "WindowArea");
-        // await Task.Delay(TimeSpan.FromSeconds(0.5), progress.Cancel);
         try
         {
             // Disable client-side caching.
@@ -110,7 +47,6 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var postUri = new Uri(postUrl);
-            // progress.Report((20, "Waiting for server", null, null));
             var content = await httpClient.GetStringAsync(postUri);
             if (!string.IsNullOrEmpty(content))
             {
@@ -291,7 +227,6 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
             // Do nothing, not vital
             Console.WriteLine("Error occurred: {0}", ex.Message);
         }
-        // progress.Report((100, null, null, null));
     }
 
     private void LogProgress(string? value, string label)
@@ -302,7 +237,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
         }
         else
         {
-            LogEntries.Add(new LogEntry($"{label}: {value}", defaultLogColor));
+            LogEntries.Add(new LogEntry($"{label}: {value}", DefaultLogColor));
         }
     }
 
@@ -355,8 +290,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
 
     #region Logging
 
-    private readonly ObservableCollection<LogEntry> logEntries = [];
-    public ObservableCollection<LogEntry> LogEntries { get => logEntries; }
+    public ObservableCollection<LogEntry> LogEntries { get; } = [];
 
     #endregion
 
@@ -531,8 +465,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
 
     #region Images
 
-    private readonly ObservableCollection<ImageEntry> imageUrls = [];
-    public ObservableCollection<ImageEntry> ImageUrls { get => imageUrls; }
+    public ObservableCollection<ImageEntry> ImageUrls { get; } = [];
 
     private bool showImages = false;
     public bool ShowImages
@@ -562,38 +495,69 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
 
     #region Commands
 
-    private readonly Command copyPostUrlCommand;
-    public Command CopyPostUrlCommand { get => copyPostUrlCommand; }
+    public Command CopyPostUrlCommand => new(() =>
+    {
+        if (!string.IsNullOrEmpty(vm.SelectedFeature?.PostLink))
+        {
+            _ = CopyTextToClipboard(vm.SelectedFeature.PostLink, "Copied the post URL to the clipboard");
+        }
+    }, () => !string.IsNullOrEmpty(vm.SelectedFeature?.PostLink));
 
-    private readonly Command launchPostUrlCommand;
-    public Command LaunchPostUrlCommand { get => launchPostUrlCommand; }
+    public Command LaunchPostUrlCommand => new(() =>
+    {
+        if (!string.IsNullOrEmpty(vm.SelectedFeature?.PostLink))
+        {
+            // TODO andydragon
+            // Process.Start(new ProcessStartInfo
+            // {
+            //     FileName = vm.SelectedFeature.PostLink,
+            //     UseShellExecute = true
+            // });
+        }
+    }, () => !string.IsNullOrEmpty(vm.SelectedFeature?.PostLink));
 
-    private readonly Command copyUserProfileUrlCommand;
-    public Command CopyUserProfileUrlCommand { get => copyUserProfileUrlCommand; }
+    public Command CopyUserProfileUrlCommand => new(() =>
+    {
+        if (!string.IsNullOrEmpty(UserProfileUrl))
+        {
+            _ = CopyTextToClipboard(UserProfileUrl, "Copied the user profile URL to the clipboard");
+        }
+    }, () => !string.IsNullOrEmpty(UserProfileUrl));
 
-    private readonly Command launchUserProfileUrlCommand;
-    public Command LaunchUserProfileUrlCommand { get => launchUserProfileUrlCommand; }
+    public Command LaunchUserProfileUrlCommand => new(() =>
+    {
+        if (!string.IsNullOrEmpty(UserProfileUrl))
+        {
+            // TODO andydragon
+            // Process.Start(new ProcessStartInfo
+            // {
+            //     FileName = UserProfileUrl,
+            //     UseShellExecute = true
+            // });
+        }
+    }, () => !string.IsNullOrEmpty(UserProfileUrl));
 
-    private readonly Command transferUserAliasCommand;
-    public Command TransferUserAliasCommand { get => transferUserAliasCommand; }
+    public Command TransferUserAliasCommand => new(() =>
+    {
+        vm.SelectedFeature!.UserAlias = UserAlias!;
+    }, () => !string.IsNullOrEmpty(UserAlias));
 
-    private readonly Command transferUserNameCommand;
-    public Command TransferUserNameCommand { get => transferUserNameCommand; }
+    public Command TransferUserNameCommand => new(() =>
+    {
+        vm.SelectedFeature!.UserName = UserName!;
+    }, () => !string.IsNullOrEmpty(UserName));
 
-    private readonly Command copyLogCommand;
-    public Command CopyLogCommand { get => copyLogCommand; }
+    public Command CopyLogCommand => new(() =>
+    {
+        _ = CopyTextToClipboard(string.Join("\n", LogEntries.Select(entry => entry.Messsage)), "Copied the log messages to the clipboard");
+    });
 
     #endregion
 
-    private static void CopyTextToClipboard(string text, string successMessage/*, NotificationManager notificationManager*/)
+    private static async Task CopyTextToClipboard(string text, string successMessage)
     {
-        _ = MainViewModel.TrySetClipboardText(text);
-        // notificationManager.Show(
-        //     "Copied script",
-        //     successMessage,
-        //     type: NotificationType.Success,
-        //     areaName: "WindowArea",
-        //     expirationTime: TimeSpan.FromSeconds(3));
+        await MainViewModel.TrySetClipboardText(text);
+        await Toast.Make(successMessage, ToastDuration.Short).Show();
     }
 
     public void UpdateExcludedTags()
@@ -613,13 +577,13 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
             }
             if (ExcludedHashtagCheck.Valid)
             {
-                LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Message!, defaultLogColor));
+                LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Message!, DefaultLogColor));
             }
         }
         else
         {
             ExcludedHashtagCheck = new ValidationResult(ValidationLevel.Valid, message: "There are no excluded hashtags");
-            LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Error!, defaultLogColor));
+            LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Error!, DefaultLogColor));
         }
     }
 
@@ -708,10 +672,10 @@ public class ImageEntry : NotifyPropertyChanged
 {
     private readonly DownloadedPostViewModel postVm;
 
-    public ImageEntry(Uri source, string username, DownloadedPostViewModel postVm/*, NotificationManager notificationManager*/)
+    public ImageEntry(Uri source, string username, DownloadedPostViewModel postVm)
     {
         this.postVm = postVm;
-        this.source = source;
+        this.Source = source;
         // frame = BitmapFrame.Create(source);
         // if (!frame.IsFrozen && frame.IsDownloading)
         // {
@@ -770,19 +734,16 @@ public class ImageEntry : NotifyPropertyChanged
         });
         launchImageCommand = new Command(() =>
         {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = source.AbsoluteUri,
-                UseShellExecute = true
-            });
+            // TODO andydragon
+            // Process.Start(new ProcessStartInfo
+            // {
+            //     FileName = source.AbsoluteUri,
+            //     UseShellExecute = true
+            // });
         });
     }
 
-    private readonly Uri source;
-    public Uri Source
-    {
-        get => source;
-    }
+    public Uri Source { get; }
 
     // private readonly BitmapFrame frame;
 
@@ -811,15 +772,10 @@ public class ImageEntry : NotifyPropertyChanged
     private readonly ICommand launchImageCommand;
     public ICommand LaunchImageCommand { get => launchImageCommand; }
 
-    private static void CopyTextToClipboard(string text, string successMessage/*, NotificationManager notificationManager*/)
+    private static async Task CopyTextToClipboard(string text, string successMessage/*, NotificationManager notificationManager*/)
     {
-        _ = MainViewModel.TrySetClipboardText(text);
-        // notificationManager.Show(
-        //     "Copied script",
-        //     successMessage,
-        //     type: NotificationType.Success,
-        //     areaName: "WindowArea",
-        //     expirationTime: TimeSpan.FromSeconds(3));
+        await MainViewModel.TrySetClipboardText(text);
+        await Toast.Make(successMessage).Show();
     }
 }
 
@@ -827,26 +783,22 @@ public class CommentEntry : NotifyPropertyChanged
 {
     public CommentEntry(string page, DateTime? timestamp, string comment, Action<string, string> markFeature)
     {
-        this.page = page;
-        this.timestamp = timestamp?.FormatTimestamp() ?? "?";
-        this.comment = comment;
-        markFeatureCommand = new Command(() =>
+        this.Page = page;
+        this.Timestamp = timestamp?.FormatTimestamp() ?? "?";
+        this.Comment = comment;
+        MarkFeatureCommand = new Command(() =>
         {
-            markFeature(page, this.timestamp);
+            markFeature(page, this.Timestamp);
         });
     }
 
-    private readonly string page;
-    public string Page { get => page; }
+    public string Page { get; }
 
-    private readonly string timestamp;
-    public string Timestamp { get => timestamp; }
+    private string Timestamp { get; }
 
-    private readonly string comment;
-    public string Comment { get => comment; }
+    public string Comment { get; }
 
-    private readonly Command markFeatureCommand;
-    public Command MarkFeatureCommand { get => markFeatureCommand; }
+    public Command MarkFeatureCommand { get; }
 }
 
 #region Post JSON

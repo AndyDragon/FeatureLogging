@@ -1,21 +1,18 @@
-﻿// using MahApps.Metro.IconPacks;
-// using System.Windows.Media;
+﻿using MauiIcons.Material;
 
 namespace FeatureLogging.ViewModels;
 
-public struct VerdictResult(string message, Color color/*, PackIconJamIconsKind icon*/)
+public struct VerdictResult(string message, Color color, MaterialIcons icon) : IEquatable<VerdictResult>
 {
-    public string Message { get; private set; } = message;
+    public string Message { get; } = message;
 
     public Brush Color { get; private set; } = new SolidColorBrush(color);
 
-    // public PackIconJamIconsKind Icon { get; private set; } = icon;
+    public MaterialIcons Icon { get; private set; } = icon;
 
     public static bool operator ==(VerdictResult x, VerdictResult y)
     {
-        var xPrime = x;
-        var yPrime = y;
-        return xPrime.Message.Equals(yPrime.Message);
+        return x.Message.Equals(y.Message);
     }
 
     public static bool operator !=(VerdictResult x, VerdictResult y)
@@ -23,7 +20,7 @@ public struct VerdictResult(string message, Color color/*, PackIconJamIconsKind 
         return !(x == y);
     }
 
-    public override readonly bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
     {
         if (obj is VerdictResult)
         {
@@ -33,8 +30,13 @@ public struct VerdictResult(string message, Color color/*, PackIconJamIconsKind 
         return false;
     }
 
-    public override readonly int GetHashCode()
+    public readonly override int GetHashCode()
     {
         return Message.GetHashCode();
+    }
+
+    public bool Equals(VerdictResult other)
+    {
+        return Message == other.Message;
     }
 }

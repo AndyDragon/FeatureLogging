@@ -73,13 +73,13 @@ public class MainViewModel : NotifyPropertyChanged
                     }
                 }
                 LoadedPages.Clear();
-                foreach (var page in loadedPages.OrderBy(page => page, LoadedPageComparer.Default))
+                foreach (var loadedPage in loadedPages.OrderBy(loadedPage => loadedPage, LoadedPageComparer.Default))
                 {
-                    LoadedPages.Add(page);
+                    LoadedPages.Add(loadedPage);
                 }
-                _ = Toast.Make($"Loaded {LoadedPages.Count} pages from the server", ToastDuration.Short).Show();
+                _ = Toast.Make($"Loaded {LoadedPages.Count} pages from the server").Show();
             }
-            SelectedPage = LoadedPages.FirstOrDefault(page => page.Id == Page);
+            SelectedPage = LoadedPages.FirstOrDefault(loadedPage => loadedPage.Id == Page);
             WaitingForPages = false;
             await LoadTemplates();
             await LoadDisallowList();
@@ -142,7 +142,7 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Commands
 
-    public CommandWithParameter NewFeaturesCommand => new(async (ignoreDirty) =>
+    public CommandWithParameter NewFeaturesCommand => new(async void (ignoreDirty) =>
     {
         if (IsDirty && ignoreDirty == null)
         {
@@ -161,7 +161,7 @@ public class MainViewModel : NotifyPropertyChanged
         OnPropertyChanged(nameof(CanChangePage));
     }, (_) => !WaitingForPages);
 
-    public CommandWithParameter OpenFeaturesCommand => new(async (ignoreDirty) =>
+    public CommandWithParameter OpenFeaturesCommand => new(async void (ignoreDirty) =>
     {
         if (IsDirty && ignoreDirty == null)
         {

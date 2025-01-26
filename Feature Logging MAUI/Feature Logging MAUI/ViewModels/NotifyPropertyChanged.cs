@@ -14,7 +14,7 @@ public abstract class NotifyPropertyChanged : INotifyPropertyChanged
 
     public bool Set<T>(ref T storage, T value, string[]? associatedPropertyNames = null, [CallerMemberName()] string? propertyName = null)
     {
-        if (!object.Equals(storage, value))
+        if (!Equals(storage, value))
         {
             storage = value;
             OnPropertyChanged(propertyName);
@@ -32,7 +32,7 @@ public abstract class NotifyPropertyChanged : INotifyPropertyChanged
 
     public bool SetWithDirtyCallback<T>(ref T storage, T value, Action setDirty, string[]? associatedPropertyNames = null, [CallerMemberName()] string? propertyName = null)
     {
-        if (!object.Equals(storage, value))
+        if (!Equals(storage, value))
         {
             storage = value;
             OnPropertyChanged(propertyName);
