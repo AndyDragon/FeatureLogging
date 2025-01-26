@@ -7,9 +7,9 @@ import androidx.lifecycle.ViewModel
 class FeaturesViewModel : ViewModel() {
 
     private val _texts = MutableLiveData<List<String>>().apply {
-//        value = (1..16).mapIndexed { _, i ->
-//            "This is item # $i"
-//        }
+        value = (1..16).mapIndexed { _, i ->
+            "This is item # $i"
+        }
     }
 
     val texts: LiveData<List<String>> = _texts

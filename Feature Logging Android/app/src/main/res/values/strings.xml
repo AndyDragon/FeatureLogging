@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Feature Logging</string>
+    <string name="app_name">Feature Logging Kotlin</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Feature Logging</string>
@@ -7,9 +7,10 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
 
-    <string name="menu_transform">Features</string>
+    <string name="menu_features">Features</string>
+    <string name="menu_features2">Features 2</string>
     <string name="menu_settings">Settings</string>
 
-    <string name="fab_content_description">What goes here?</string>
-    <string name="image_view_item_transform_content_description">What goes here?</string>
+    <string name="fab_content_description">Add feature</string>
+    <string name="image_view_item_transform_content_description">Add feature</string>
 </resources>
