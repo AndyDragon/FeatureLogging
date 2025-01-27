@@ -179,7 +179,7 @@ struct MainContentView: View {
                     }
                     .padding(4)
                 }
-                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil || viewModel.features.isEmpty)
 
                 // Open log
                 Button(action: {
@@ -233,7 +233,7 @@ struct MainContentView: View {
                     }
                     .padding(4)
                 }
-                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil || viewModel.features.isEmpty)
 
                 // Save report
                 Button(action: {
@@ -253,7 +253,7 @@ struct MainContentView: View {
                     }
                     .padding(4)
                 }
-                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+                .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil || viewModel.features.isEmpty)
             }
             .padding([.leading, .top, .trailing])
         }
@@ -460,7 +460,7 @@ struct MainContentView: View {
                 }
                 .padding(2)
             }
-            .disabled(viewModel.loadedCatalogs.waitingForPages)
+            .disabled(viewModel.loadedCatalogs.waitingForPages || viewModel.selectedPage == nil)
             .keyboardShortcut("+", modifiers: .command)
             .focusable()
             .focused(focusedField, equals: .addFeature)
@@ -525,7 +525,7 @@ struct MainContentView: View {
                 }
                 .padding(2)
             }
-            .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+            .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil || viewModel.features.isEmpty)
             .keyboardShortcut("G", modifiers: [.command, .shift])
             .focusable()
             .focused(focusedField, equals: .generateReport)

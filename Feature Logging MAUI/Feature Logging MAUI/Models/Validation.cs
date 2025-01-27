@@ -1,14 +1,8 @@
-namespace FeatureLogging.ViewModels;
+namespace FeatureLogging.Models;
 
 public static class Validation
 {
-    private static Dictionary<string, List<string>> disallowList = [];
-
-    public static Dictionary<string, List<string>> DisallowList
-    {
-        get => disallowList;
-        set => disallowList = value;
-    }
+    public static Dictionary<string, List<string>> DisallowList { get; set; } = [];
 
     #region Field validation
 

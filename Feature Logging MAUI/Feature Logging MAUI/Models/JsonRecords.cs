@@ -1,4 +1,4 @@
-﻿namespace FeatureLogging.ViewModels;
+﻿namespace FeatureLogging.Models;
 
 public class ScriptsCatalog
 {

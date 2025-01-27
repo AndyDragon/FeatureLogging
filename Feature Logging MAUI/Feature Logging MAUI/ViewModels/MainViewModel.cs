@@ -1,9 +1,12 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
+using FeatureLogging.Base;
+using FeatureLogging.Models;
 using FeatureLogging.Views;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -24,7 +27,7 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region User settings
 
-    public static string GetDataLocationPath(bool shared = false)
+    public static string GetDataLocationPath()
     {
         var dataLocationPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -37,9 +40,9 @@ public class MainViewModel : NotifyPropertyChanged
         return dataLocationPath;
     }
 
-    public static string GetUserSettingsPath(bool shared = false)
+    public static string GetUserSettingsPath()
     {
-        var dataLocationPath = GetDataLocationPath(shared);
+        var dataLocationPath = GetDataLocationPath();
         return Path.Combine(dataLocationPath, "settings.json");
     }
 
@@ -142,13 +145,13 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Commands
 
-    public CommandWithParameter NewFeaturesCommand => new(async void (ignoreDirty) =>
+    public SimpleCommandWithParameter NewFeaturesCommand => new(async void (ignoreDirty) =>
     {
         if (IsDirty && ignoreDirty == null)
         {
-            await HandleDirtyActionAsync("creating a new log", (completed) =>
+            await HandleDirtyActionAsync("creating a new log", _ =>
             {
-                NewFeaturesCommand?.Execute(true);
+                NewFeaturesCommand.Execute(true);
             });
             return;
         }
@@ -161,13 +164,13 @@ public class MainViewModel : NotifyPropertyChanged
         OnPropertyChanged(nameof(CanChangePage));
     }, (_) => !WaitingForPages);
 
-    public CommandWithParameter OpenFeaturesCommand => new(async void (ignoreDirty) =>
+    public SimpleCommandWithParameter OpenFeaturesCommand => new(async void (ignoreDirty) =>
     {
         if (IsDirty && ignoreDirty == null)
         {
-            await HandleDirtyActionAsync("opening a different log", (completed) =>
+            await HandleDirtyActionAsync("opening a different log", _ =>
             {
-                OpenFeaturesCommand?.Execute(true);
+                OpenFeaturesCommand.Execute(true);
             });
             return;
         }
@@ -175,11 +178,11 @@ public class MainViewModel : NotifyPropertyChanged
         var customFileType = new FilePickerFileType(
             new Dictionary<DevicePlatform, IEnumerable<string>>
             {
-                { DevicePlatform.iOS, new[] { "public.json" } }, // UTType values
-                { DevicePlatform.Android, new[] { "application/json" } }, // MIME type
-                { DevicePlatform.WinUI, new[] { ".json" } }, // file extension
-                { DevicePlatform.Tizen, new[] { "*/*" } },
-                { DevicePlatform.macOS, new[] { "public.json" } }, // UTType values
+                { DevicePlatform.iOS, ["public.json"] }, // UTType values
+                { DevicePlatform.Android, ["application/json"] }, // MIME type
+                { DevicePlatform.WinUI, [".json"] }, // file extension
+                { DevicePlatform.Tizen, ["*/*"] },
+                { DevicePlatform.macOS, ["public.json"] }, // UTType values
             });
 
         PickOptions options = new()
@@ -195,64 +198,66 @@ public class MainViewModel : NotifyPropertyChanged
             {
                 lastFilename = string.Empty;
                 SelectedFeature = null;
-                Dictionary<string, dynamic>? file = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(File.ReadAllText(result.FileName));
+                var file = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(File.ReadAllText(result.FileName));
                 if (file != null)
                 {
                     var pageId = file["page"];
-                    var foundPage = LoadedPages.FirstOrDefault(page => page.Id == pageId);
+                    var foundPage = LoadedPages.FirstOrDefault(loadedPage => loadedPage.Id == pageId);
                     if (foundPage != null)
                     {
                         // Force the page to update.
                         selectedPage = null;
                         SelectedPage = foundPage;
                         Features.Clear();
-                        foreach (var feature in file["features"])
+                        foreach (var fileFeature in file["features"])
                         {
                             var loadedFeature = new Feature
                             {
-                                IsPicked = (bool)feature["isPicked"],
-                                PostLink = (string)feature["postLink"],
-                                UserName = (string)feature["userName"],
-                                UserAlias = (string)feature["userAlias"],
-                                UserLevel = MapMembershipLevelFromFile((string)feature["userLevel"]),
-                                UserIsTeammate = (bool)feature["userIsTeammate"],
-                                TagSource = new List<string>(TagSources).Contains((string)feature["tagSource"]) ? (string)feature["tagSource"] : TagSources[0],
-                                PhotoFeaturedOnPage = (bool)feature["photoFeaturedOnPage"],
-                                PhotoFeaturedOnHub = feature.ContainsKey("photoFeaturedOnHub") ? (bool)feature["photoFeaturedOnHub"] : false,
-                                PhotoLastFeaturedOnHub = feature.ContainsKey("photoLastFeaturedOnHub") ? (string)feature["photoLastFeaturedOnHub"] : "",
-                                PhotoLastFeaturedPage = feature.ContainsKey("photoLastFeaturedPage") ? (string)feature["photoLastFeaturedPage"] : "",
-                                FeatureDescription = (string)feature["featureDescription"],
-                                UserHasFeaturesOnPage = (bool)feature["userHasFeaturesOnPage"],
-                                LastFeaturedOnPage = (string)feature["lastFeaturedOnPage"],
-                                FeatureCountOnPage = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnPage"]) ? (string)feature["featureCountOnPage"] : FeaturedCounts[0],
-                                FeatureCountOnRawPage = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnRawPage"]) ? (string)feature["featureCountOnRawPage"] : FeaturedCounts[0],
-                                UserHasFeaturesOnHub = (bool)feature["userHasFeaturesOnHub"],
-                                LastFeaturedOnHub = (string)feature["lastFeaturedOnHub"],
-                                LastFeaturedPage = (string)feature["lastFeaturedPage"],
-                                FeatureCountOnHub = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnHub"]) ? (string)feature["featureCountOnHub"] : FeaturedCounts[0],
-                                FeatureCountOnRawHub = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnRawHub"]) ? (string)feature["featureCountOnRawHub"] : FeaturedCounts[0],
-                                TooSoonToFeatureUser = (bool)feature["tooSoonToFeatureUser"],
-                                TinEyeResults = new List<string>(TinEyeResults).Contains((string)feature["tinEyeResults"]) ? (string)feature["tinEyeResults"] : TinEyeResults[0],
-                                AiCheckResults = new List<string>(AiCheckResults).Contains((string)feature["aiCheckResults"]) ? (string)feature["aiCheckResults"] : AiCheckResults[0],
-                                PersonalMessage = feature.ContainsKey("personalMessage") ? (string)feature["personalMessage"] : "",
+                                IsPicked = (bool)fileFeature["isPicked"],
+                                PostLink = (string)fileFeature["postLink"],
+                                UserName = (string)fileFeature["userName"],
+                                UserAlias = (string)fileFeature["userAlias"],
+                                UserLevel = MapMembershipLevelFromFile((string)fileFeature["userLevel"]),
+                                UserIsTeammate = (bool)fileFeature["userIsTeammate"],
+                                TagSource = new List<string>(TagSources).Contains((string)fileFeature["tagSource"]) ? (string)fileFeature["tagSource"] : TagSources[0],
+                                PhotoFeaturedOnPage = (bool)fileFeature["photoFeaturedOnPage"],
+                                PhotoFeaturedOnHub = fileFeature.ContainsKey("photoFeaturedOnHub") && (bool)fileFeature["photoFeaturedOnHub"],
+                                PhotoLastFeaturedOnHub = fileFeature.ContainsKey("photoLastFeaturedOnHub") ? (string)fileFeature["photoLastFeaturedOnHub"] : "",
+                                PhotoLastFeaturedPage = fileFeature.ContainsKey("photoLastFeaturedPage") ? (string)fileFeature["photoLastFeaturedPage"] : "",
+                                FeatureDescription = (string)fileFeature["featureDescription"],
+                                UserHasFeaturesOnPage = (bool)fileFeature["userHasFeaturesOnPage"],
+                                LastFeaturedOnPage = (string)fileFeature["lastFeaturedOnPage"],
+                                FeatureCountOnPage = new List<string>(FeaturedCounts).Contains((string)fileFeature["featureCountOnPage"]) ? (string)fileFeature["featureCountOnPage"] : FeaturedCounts[0],
+                                FeatureCountOnRawPage = new List<string>(FeaturedCounts).Contains((string)fileFeature["featureCountOnRawPage"]) ? (string)fileFeature["featureCountOnRawPage"] : FeaturedCounts[0],
+                                UserHasFeaturesOnHub = (bool)fileFeature["userHasFeaturesOnHub"],
+                                LastFeaturedOnHub = (string)fileFeature["lastFeaturedOnHub"],
+                                LastFeaturedPage = (string)fileFeature["lastFeaturedPage"],
+                                FeatureCountOnHub = new List<string>(FeaturedCounts).Contains((string)fileFeature["featureCountOnHub"]) ? (string)fileFeature["featureCountOnHub"] : FeaturedCounts[0],
+                                FeatureCountOnRawHub = new List<string>(FeaturedCounts).Contains((string)fileFeature["featureCountOnRawHub"]) ? (string)fileFeature["featureCountOnRawHub"] : FeaturedCounts[0],
+                                TooSoonToFeatureUser = (bool)fileFeature["tooSoonToFeatureUser"],
+                                TinEyeResults = new List<string>(TinEyeResults).Contains((string)fileFeature["tinEyeResults"]) ? (string)fileFeature["tinEyeResults"] : TinEyeResults[0],
+                                AiCheckResults = new List<string>(AiCheckResults).Contains((string)fileFeature["aiCheckResults"]) ? (string)fileFeature["aiCheckResults"] : AiCheckResults[0],
+                                PersonalMessage = fileFeature.ContainsKey("personalMessage") ? (string)fileFeature["personalMessage"] : "",
                             };
                             Features.Add(loadedFeature);
                         }
                         base.OnPropertyChanged(nameof(HasFeatures));
-                        // base.OnPropertyChanged(nameof(FeatureNavigationVisibility));
+                        base.OnPropertyChanged(nameof(FeatureNavigationVisibility));
                         base.OnPropertyChanged(nameof(CanChangePage));
-                        SaveFeaturesCommand?.OnCanExecuteChanged();
-                        GenerateReportCommand?.OnCanExecuteChanged();
-                        SaveReportCommand?.OnCanExecuteChanged();
+                        base.OnPropertyChanged(nameof(SaveFeaturesCommand));   
+                        base.OnPropertyChanged(nameof(GenerateReportCommand));   
+                        base.OnPropertyChanged(nameof(SaveReportCommand));   
+                        // SaveFeaturesCommand.OnCanExecuteChanged();
+                        // GenerateReportCommand.OnCanExecuteChanged();
+                        // SaveReportCommand.OnCanExecuteChanged();
                         lastFilename = result.FileName;
-                        // Navig
                         IsDirty = false;
                         foreach (var feature in Features)
                         {
                             feature.IsDirty = false;
                             feature.OnSortKeyChange();
                         }
-                        await Toast.Make($"Loaded {Features.Count} features for the {SelectedPage.DisplayName} page", ToastDuration.Short).Show();
+                        await Toast.Make($"Loaded {Features.Count} features for the {SelectedPage.DisplayName} page").Show();
                     }
                 }
             }
@@ -263,7 +268,7 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }, (_) => !WaitingForPages);
 
-    public Command SaveFeaturesCommand => new(() =>
+    public SimpleCommand SaveFeaturesCommand => new(() =>
     {
         if (SelectedPage != null)
         {
@@ -308,7 +313,7 @@ public class MainViewModel : NotifyPropertyChanged
                 {
                     feature.IsDirty = false;
                 }
-                Toast.Make($"Saved {Features.Count} features for the {SelectedPage.DisplayName} page", ToastDuration.Short).Show();
+                Toast.Make($"Saved {Features.Count} features for the {SelectedPage.DisplayName} page").Show();
             }
             catch (Exception ex)
             {
@@ -317,7 +322,7 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }, () => !WaitingForPages && HasFeatures);
 
-    public Command GenerateReportCommand => new(() =>
+    public SimpleCommand GenerateReportCommand => new(() =>
     {
         if (SelectedPage == null)
         {
@@ -327,7 +332,7 @@ public class MainViewModel : NotifyPropertyChanged
         _ = CopyTextToClipboardAsync(GenerateLogReport(), "Generated report", "Copied the report of features to the clipboard");
     }, () => !WaitingForPages && HasFeatures);
 
-    public Command SaveReportCommand => new(() =>
+    public SimpleCommand SaveReportCommand => new(() =>
     {
         if (SelectedPage == null)
         {
@@ -335,14 +340,9 @@ public class MainViewModel : NotifyPropertyChanged
         }
 
         string initialFileName;
-        if (!string.IsNullOrEmpty(lastFilename))
-        {
-            initialFileName = Path.ChangeExtension(lastFilename, ".features");
-        }
-        else
-        {
-            initialFileName = $"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name} - {DateTime.Now:yyyy-MM-dd}";
-        }
+        initialFileName = !string.IsNullOrEmpty(lastFilename) 
+            ? Path.ChangeExtension(lastFilename, ".features") 
+            : $"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name} - {DateTime.Now:yyyy-MM-dd}";
         // TODO andydragon
         // SaveFileDialog dialog = new()
         // {
@@ -357,19 +357,23 @@ public class MainViewModel : NotifyPropertyChanged
         // }
     }, () => !WaitingForPages && HasFeatures);
 
-    public Command LaunchSettingsCommand => new(() =>
+    public SimpleCommand LaunchSettingsCommand => new(() =>
     {
-        // TODO andydragon
-        // var panel = new SettingsDialog
-        // {
-        //     DataContext = Settings,
-        //     Owner = Application.Current.MainWindow,
-        //     WindowStartupLocation = WindowStartupLocation.CenterOwner
-        // };
-        // panel.ShowDialog();
+        MainWindow!.Navigation.PushAsync(new Settings()
+        {
+            BindingContext = new SettingsViewModel()
+        });
     });
 
-    public Command AddFeatureCommand => new(() =>
+    public SimpleCommand LaunchAboutCommand => new(() =>
+    {
+        MainWindow!.Navigation.PushAsync(new About()
+        {
+            BindingContext = new AboutViewModel()
+        });
+    });
+    
+    public SimpleCommand AddFeatureCommand => new(() =>
     {
         if (Clipboard.HasText)
         {
@@ -403,9 +407,13 @@ public class MainViewModel : NotifyPropertyChanged
             SelectedFeature = feature;
             SemanticScreenReader.Announce($"Added blank feature");
         }
+    }, () =>
+    {
+        Debugger.Log(0, "DEBUG", $"Can add feature: waiting for pages: {WaitingForPages}, has selected page: {SelectedPage != null}");
+        return !WaitingForPages && SelectedPage != null;
     });
 
-    public Command RemoveFeatureCommand => new(() =>
+    public SimpleCommand RemoveFeatureCommand => new(() =>
     {
         if (SelectedFeature is Feature feature)
         {
@@ -414,13 +422,16 @@ public class MainViewModel : NotifyPropertyChanged
             OnPropertyChanged(nameof(HasFeatures));
             OnPropertyChanged(nameof(FeatureNavigationVisibility));
             OnPropertyChanged(nameof(CanChangePage));
-            SaveFeaturesCommand?.OnCanExecuteChanged();
-            GenerateReportCommand?.OnCanExecuteChanged();
-            SaveReportCommand?.OnCanExecuteChanged();
+            OnPropertyChanged(nameof(SaveFeaturesCommand));
+            OnPropertyChanged(nameof(GenerateReportCommand));
+            OnPropertyChanged(nameof(SaveReportCommand));
+            // SaveFeaturesCommand.OnCanExecuteChanged();
+            // GenerateReportCommand.OnCanExecuteChanged();
+            // SaveReportCommand.OnCanExecuteChanged();
         }
     }, () => SelectedFeature != null);
 
-    public Command PastePostLinkCommand => new(() =>
+    public SimpleCommand PastePostLinkCommand => new(() =>
     {
         if (SelectedFeature is Feature feature)
         {
@@ -432,20 +443,23 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }, () => SelectedFeature != null && Clipboard.HasText);
 
-    public Command LoadPostCommand => new(() =>
+    public SimpleCommand LoadPostCommand => new(() =>
     {
         if (SelectedFeature is Feature feature)
         {
-            if (feature.PostLink != null && feature.PostLink.StartsWith("https://vero.co/"))
+            if (feature.PostLink.StartsWith("https://vero.co/"))
             {
-                LoadedPost = new DownloadedPostViewModel(this);
-                // MainWindow?.Navigation.PushAsync(new DownloadedPostView(this));
+                LoadedPost = new LoadedPostViewModel(this);
+                MainWindow?.Navigation.PushAsync(new LoadedPost
+                {
+                    BindingContext = LoadedPost
+                });
             }
         }
     },
-    () => SelectedFeature != null && SelectedFeature.PostLink != null && SelectedFeature.PostLink.StartsWith("https://vero.co/"));
+    () => SelectedFeature != null && SelectedFeature.PostLink.StartsWith("https://vero.co/"));
 
-    public Command PasteUserAliasCommand => new(() =>
+    public SimpleCommand PasteUserAliasCommand => new(() =>
     {
         if (SelectedFeature is Feature feature)
         {
@@ -453,7 +467,7 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }, () => SelectedFeature != null && Clipboard.HasText);
 
-    public Command PasteUserNameCommand => new(() =>
+    public SimpleCommand PasteUserNameCommand => new(() =>
     {
         if (SelectedFeature is Feature feature)
         {
@@ -471,14 +485,23 @@ public class MainViewModel : NotifyPropertyChanged
         get => waitingForPages;
         set
         {
-            if (Set(ref waitingForPages, value, [nameof(CanChangePage)]))
+            if (Set(ref waitingForPages, value, [
+                    nameof(CanChangePage), 
+                    nameof(CanChangeStaffLevel), 
+                    nameof(NewFeaturesCommand), 
+                    nameof(OpenFeaturesCommand), 
+                    nameof(SaveFeaturesCommand), 
+                    nameof(GenerateReportCommand), 
+                    nameof(SaveReportCommand), 
+                    nameof(AddFeatureCommand)
+                ]))
             {
-                NewFeaturesCommand.OnCanExecuteChanged();
-                OpenFeaturesCommand.OnCanExecuteChanged();
-                SaveFeaturesCommand.OnCanExecuteChanged();
-                GenerateReportCommand.OnCanExecuteChanged();
-                SaveReportCommand.OnCanExecuteChanged();
-                AddFeatureCommand.OnCanExecuteChanged();
+                // NewFeaturesCommand.OnCanExecuteChanged();
+                // OpenFeaturesCommand.OnCanExecuteChanged();
+                // SaveFeaturesCommand.OnCanExecuteChanged();
+                // GenerateReportCommand.OnCanExecuteChanged();
+                // SaveReportCommand.OnCanExecuteChanged();
+                // AddFeatureCommand.OnCanExecuteChanged();
             }
         }
     }
@@ -487,7 +510,7 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Dirty state
 
-    private bool isDirty = false;
+    private bool isDirty;
     public bool IsDirty
     {
         get => isDirty;
@@ -517,17 +540,18 @@ public class MainViewModel : NotifyPropertyChanged
 
     public ObservableCollection<LoadedPage> LoadedPages { get; } = [];
 
-    private LoadedPage? selectedPage = null;
+    private LoadedPage? selectedPage;
 
     public LoadedPage? SelectedPage
     {
         get => selectedPage;
         set
         {
-            if (Set(ref selectedPage, value))
+            if (Set(ref selectedPage, value, [nameof(AddFeatureCommand)]))
             {
                 Page = SelectedPage?.Id ?? string.Empty;
                 SelectedFeature = null;
+                // AddFeatureCommand.OnCanExecuteChanged();
                 OnPropertyChanged(nameof(Memberships));
                 OnPropertyChanged(nameof(TagSources));
                 OnPropertyChanged(nameof(ClickHubVisibility));
@@ -537,23 +561,13 @@ public class MainViewModel : NotifyPropertyChanged
                 OnPropertyChanged(nameof(NoSelectedPage));
                 OnPropertyChanged(nameof(PageTags));
                 OnPropertyChanged(nameof(FeaturedCounts));
-                if (SelectedPage != null)
-                {
-                    excludedTags = UserSettings.Get(nameof(ExcludedTags) + ":" + SelectedPage.Id, "");
-                }
-                else
-                {
-                    excludedTags = "";
-                }
+                excludedTags = SelectedPage != null 
+                    ? UserSettings.Get(nameof(ExcludedTags) + ":" + SelectedPage.Id, "") 
+                    : "";
                 OnPropertyChanged(nameof(ExcludedTags));
-                if (SelectedPage != null)
-                {
-                    StaffLevel = UserSettings.Get<string>(nameof(StaffLevel) + ":" + SelectedPage.Id, StaffLevels[0]);
-                }
-                else
-                {
-                    StaffLevel = UserSettings.Get<string>(nameof(StaffLevel), StaffLevels[0]);
-                }
+                StaffLevel = SelectedPage != null 
+                    ? UserSettings.Get(nameof(StaffLevel) + ":" + SelectedPage.Id, StaffLevels[0]) 
+                    : UserSettings.Get(nameof(StaffLevel), StaffLevels[0]);
                 if (!StaffLevels.Contains(StaffLevel))
                 {
                     StaffLevel = StaffLevels[0];
@@ -618,7 +632,7 @@ public class MainViewModel : NotifyPropertyChanged
 
     public ObservableCollection<Feature> Features { get; } = [];
 
-    private Feature? selectedFeature = null;
+    private Feature? selectedFeature;
     public Feature? SelectedFeature
     {
         get => selectedFeature;
@@ -629,8 +643,10 @@ public class MainViewModel : NotifyPropertyChanged
             {
                 Feature = SelectedFeature?.Id ?? string.Empty;
                 OnPropertyChanged(nameof(HasSelectedFeature));
-                RemoveFeatureCommand.OnCanExecuteChanged();
-                LoadPostCommand.OnCanExecuteChanged();
+                OnPropertyChanged(nameof(RemoveFeatureCommand));
+                OnPropertyChanged(nameof(LoadPostCommand));
+                // RemoveFeatureCommand.OnCanExecuteChanged();
+                // LoadPostCommand.OnCanExecuteChanged();
                 if (oldSelectedFeature != null)
                 {
                     oldSelectedFeature.PropertyChanged -= OnSelectedFeaturePropertyChanged;
@@ -646,7 +662,7 @@ public class MainViewModel : NotifyPropertyChanged
                     Console.WriteLine("Pushing into feature");
                     _ = MainWindow!.Navigation.PushAsync(new FeatureEditor
                     {
-                        BindingContext = selectedFeature,
+                        BindingContext = this,
                     });
                 }
                 else
@@ -668,7 +684,7 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }
 
-    public Visibility FeatureNavigationVisibility => Features.Where(feature => feature.IsPickedAndAllowed).Count() > 1 ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility FeatureNavigationVisibility => Features.Count(feature => feature.IsPickedAndAllowed) > 1 ? Visibility.Visible : Visibility.Collapsed;
 
     public bool HasSelectedFeature => SelectedFeature != null;
 
@@ -906,7 +922,7 @@ public class MainViewModel : NotifyPropertyChanged
     public string[] FeaturedCounts =>
         SelectedPage?.HubName == "click" ? CountArray(0, 75) :
         SelectedPage?.HubName == "snap" ? CountArray(0, 20) :
-        CountArray(0, 20);
+        CountArray(0, 25);
 
     #endregion
 
@@ -1244,7 +1260,7 @@ public class MainViewModel : NotifyPropertyChanged
     public static async Task CopyTextToClipboardAsync(string text, string title, string successMessage)
     {
         await TrySetClipboardText(text);
-        await Toast.Make($"{title}: {successMessage}", ToastDuration.Short).Show();
+        await Toast.Make($"{title}: {successMessage}").Show();
     }
 
     public static async Task TrySetClipboardText(string text)
@@ -1264,21 +1280,21 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Loaded post
 
-    private DownloadedPostViewModel? loadedPost;
+    private LoadedPostViewModel? loadedPost;
 
-    public DownloadedPostViewModel? LoadedPost
+    public LoadedPostViewModel? LoadedPost
     {
         get => loadedPost;
         private set => Set(ref loadedPost, value, [nameof(TinEyeSource)]);
     }
 
-    public string TinEyeSource { get => LoadedPost?.ImageValidation?.TinEyeUri ?? "about:blank"; }
+    public string TinEyeSource => LoadedPost?.ImageValidation?.TinEyeUri ?? "about:blank";
 
     #endregion
 
     #region Misc
 
-    public MainPage? MainWindow { get; internal set; }
+    public FeatureList? MainWindow { get; internal set; }
 
     internal void TriggerTinEyeSource()
     {

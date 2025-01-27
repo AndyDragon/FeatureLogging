@@ -1,12 +1,11 @@
 ﻿using FeatureLogging.ViewModels;
-using FeatureLogging.Views;
 using MauiIcons.Core;
 
-namespace FeatureLogging;
+namespace FeatureLogging.Views;
 
-public partial class MainPage : ContentPage
+public partial class FeatureList : ContentPage
 {
-    public MainPage()
+    public FeatureList()
     {
         InitializeComponent();
         // Temporary Workaround for url styled namespace in xaml

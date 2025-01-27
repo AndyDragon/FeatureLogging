@@ -168,7 +168,7 @@ struct FeatureListView: View {
                         }
                         .padding(4)
                     }
-                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil || viewModel.features.isEmpty)
 
                     // Open log
                     Button(action: {
@@ -213,7 +213,7 @@ struct FeatureListView: View {
                         }
                         .padding(4)
                     }
-                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil || viewModel.features.isEmpty)
 
                     // Save report
                     Button(action: {
@@ -228,7 +228,7 @@ struct FeatureListView: View {
                         }
                         .padding(4)
                     }
-                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+                    .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil || viewModel.features.isEmpty)
 
                     // Settings
                     Button(action: {
@@ -455,7 +455,7 @@ struct FeatureListView: View {
                     Text("Add feature")
                 }
             }
-            .disabled(viewModel.loadedCatalogs.waitingForPages)
+            .disabled(viewModel.loadedCatalogs.waitingForPages || viewModel.selectedPage == nil)
             .buttonStyle(.bordered)
 
             // Copy report
@@ -469,7 +469,7 @@ struct FeatureListView: View {
                     Text("Copy report")
                 }
             }
-            .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil)
+            .disabled(viewModel.hasModalToasts || viewModel.selectedPage == nil || viewModel.features.isEmpty)
             .buttonStyle(.bordered)
         }
     }

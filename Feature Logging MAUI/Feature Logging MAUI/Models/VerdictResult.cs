@@ -1,6 +1,6 @@
 ﻿using MauiIcons.Material;
 
-namespace FeatureLogging.ViewModels;
+namespace FeatureLogging.Models;
 
 public struct VerdictResult(string message, Color color, MaterialIcons icon) : IEquatable<VerdictResult>
 {

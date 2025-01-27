@@ -1,4 +1,4 @@
-﻿namespace FeatureLogging.ViewModels;
+﻿namespace FeatureLogging.Models;
 
 public enum ValidationLevel
 {
@@ -37,7 +37,7 @@ public struct ValidationResult(ValidationLevel level = ValidationLevel.Valid, st
         return !(x == y);
     }
 
-    public override readonly bool Equals(object? obj)
+    public readonly override bool Equals(object? obj)
     {
         if (obj is ValidationResult)
         {
@@ -47,7 +47,7 @@ public struct ValidationResult(ValidationLevel level = ValidationLevel.Valid, st
         return false;
     }
 
-    public override readonly int GetHashCode()
+    public readonly override int GetHashCode()
     {
         return Level.GetHashCode() + (Error ?? "").GetHashCode() + (Message ?? "").GetHashCode();
     }

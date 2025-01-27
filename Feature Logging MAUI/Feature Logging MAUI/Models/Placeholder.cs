@@ -1,4 +1,6 @@
-﻿namespace FeatureLogging.ViewModels;
+﻿using FeatureLogging.Base;
+
+namespace FeatureLogging.Models;
 
 public class Placeholder : NotifyPropertyChanged
 {

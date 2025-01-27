@@ -171,9 +171,10 @@ struct FeatureListRow: View {
                             .truncationMode(.tail)
                             .font(.system(size: 12))
                     } else {
-                        Text("post link")
+                        Text("link to post")
                             .foregroundStyle(.gray, .secondary)
                             .italic()
+                            .font(.system(size: 12))
                     }
 
                     Spacer()

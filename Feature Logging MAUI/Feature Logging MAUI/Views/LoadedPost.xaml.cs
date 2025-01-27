@@ -1,8 +1,8 @@
 namespace FeatureLogging.Views;
 
-public partial class FeatureEditor
+public partial class LoadedPost : ContentPage
 {
-	public FeatureEditor()
+	public LoadedPost()
 	{
 		InitializeComponent();
 	}

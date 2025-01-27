@@ -5,10 +5,13 @@ using System.Collections.ObjectModel;
 using System.Net.Http.Headers;
 // using System.Windows;
 using CommunityToolkit.Maui.Alerts;
+using FeatureLogging.Base;
+using FeatureLogging.Models;
 using MauiIcons.Material;
 // using System.Windows.Media;
 // using MahApps.Metro.IconPacks;
 using Newtonsoft.Json;
+
 // using Notification.Wpf;
 
 namespace FeatureLogging.ViewModels;
@@ -161,7 +164,7 @@ public class ImageValidationViewModel : NotifyPropertyChanged
 
     #region Commands
 
-    public Command CopyLogCommand => new(() =>
+    public SimpleCommand CopyLogCommand => new(() =>
     {
         _ = CopyTextToClipboard(string.Join("\n", LogEntries.Select(entry => entry.Messsage)), "Copied the log messages to the clipboard");
     });

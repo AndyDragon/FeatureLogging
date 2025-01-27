@@ -1,17 +1,20 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
-             xmlns:local="clr-namespace:FeatureLogging"
-             xmlns:localVM="clr-namespace:FeatureLogging.ViewModels"
-             x:Class="FeatureLogging.MainPage"
-             x:DataType="localVM:MainViewModel"
-             BindingContextChanged="OnBindingContextChanged"
-             NavigatedTo="OnContentPageNavigatedTo"
-             NavigatedFrom="OnContentPageNavigatedFrom">
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+    xmlns:localConverters="clr-namespace:FeatureLogging.Converters"
+    xmlns:localModels="clr-namespace:FeatureLogging.Models"
+    xmlns:localViewModels="clr-namespace:FeatureLogging.ViewModels"
+    x:Class="FeatureLogging.Views.FeatureList"
+    x:DataType="localViewModels:MainViewModel"
+    BindingContextChanged="OnBindingContextChanged"
+    NavigatedTo="OnContentPageNavigatedTo"
+    NavigatedFrom="OnContentPageNavigatedFrom">
+    
     <ContentPage.BindingContext>
-        <localVM:MainViewModel />
+        <localViewModels:MainViewModel />
     </ContentPage.BindingContext>
+    
     <Shell.ToolbarItems>
         <ToolbarItem
             Text="New log"
@@ -44,6 +47,11 @@
             Order="Secondary"
             Command="{Binding LaunchAboutCommand}"/>
     </Shell.ToolbarItems>
+    
+    <ContentPage.Resources>
+        <localConverters:ValueVisibilityConverter x:Key="ValueVisibilityConverter" />
+    </ContentPage.Resources>
+    
     <ScrollView>
         <VerticalStackLayout
             Padding="30,0"
@@ -89,23 +97,34 @@
             <HorizontalStackLayout HorizontalOptions="End">
                 <Button
                     Text="Add feature"
+                    Margin="2,0"
                     Command="{Binding AddFeatureCommand}" />
+                <Button
+                    Text="Copy report"
+                    Margin="2,0"
+                    Command="{Binding GenerateReportCommand}" />
             </HorizontalStackLayout>
             <ListView
                 ItemsSource="{Binding Features}"
                 SelectedItem="{Binding SelectedFeature, Mode=TwoWay}">
                 <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="localVM:Feature">
+                    <DataTemplate x:DataType="localModels:Feature">
                         <ViewCell Height="64">
                             <ViewCell.View>
                                 <StackLayout Padding="8">
                                     <HorizontalStackLayout>
-                                        <Label Text="User:" Margin="0,0,8,0" />
-                                        <Label Text="{Binding UserAlias}" />
+                                        <Label Text="Feature:" Margin="0,0,8,0" />
+                                        <Label Text="{Binding UserName}" IsVisible="{Binding UserName, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
+                                        <Label Text="user name" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding UserName, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
                                         <Label Text="|" Margin="8,0" />
-                                        <Label Text="{Binding UserName}" />
+                                        <Label Text="{Binding UserAlias}" IsVisible="{Binding UserAlias, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
+                                        <Label Text="user alias" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding UserAlias, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
+                                        <Label Text="|" Margin="8,0" />
+                                        <Label Text="{Binding FeatureDescription}" IsVisible="{Binding FeatureDescription, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
+                                        <Label Text="description" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding FeatureDescription, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
                                     </HorizontalStackLayout>
-                                    <Label Text="{Binding PostLink}" FontSize="Caption" FontAttributes="Italic" TextColor="DarkGrey" />
+                                    <Label Text="{Binding PostLink}" FontSize="Caption" IsVisible="{Binding PostLink, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
+                                    <Label Text="link to post" FontSize="Caption" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding PostLink, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
                                 </StackLayout>
                             </ViewCell.View>
                         </ViewCell>

@@ -1,7 +1,9 @@
 ﻿using MauiIcons.Material;
 using Newtonsoft.Json;
+using FeatureLogging.Base;
+using FeatureLogging.ViewModels;
 
-namespace FeatureLogging.ViewModels;
+namespace FeatureLogging.Models;
 
 public class Feature : NotifyPropertyChanged
 {
@@ -376,7 +378,7 @@ public class Feature : NotifyPropertyChanged
     }
     
     [JsonIgnore]
-    public CommandWithParameter EditPersonalMessageCommand => new(parameter =>
+    public SimpleCommandWithParameter EditPersonalMessageCommand => new(parameter =>
     {
         if (parameter is MainViewModel vm && vm.SelectedPage != null)
         {

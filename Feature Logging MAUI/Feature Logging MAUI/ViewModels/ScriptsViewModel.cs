@@ -6,6 +6,8 @@ using System.Text.RegularExpressions;
 // using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Maui.Alerts;
+using FeatureLogging.Base;
+using FeatureLogging.Models;
 
 namespace FeatureLogging.ViewModels
 {
@@ -32,7 +34,7 @@ namespace FeatureLogging.ViewModels
             // Try populate from Feature Logging
             try
             {
-                var sharedSettingsPath = MainViewModel.GetDataLocationPath(true);
+                var sharedSettingsPath = MainViewModel.GetDataLocationPath();
                 var featureFile = Path.Combine(sharedSettingsPath, "feature.json");
                 if (File.Exists(featureFile))
                 {
@@ -124,19 +126,19 @@ namespace FeatureLogging.ViewModels
 
         #region Commands
 
-        public Command CopyFeatureScriptCommand => new Command(() => CopyScript(Script.Feature, force: true));
+        public SimpleCommand CopyFeatureScriptCommand => new(() => CopyScript(Script.Feature, force: true));
 
-        public ICommand CopyFeatureScriptWithPlaceholdersCommand => new Command(() => CopyScript(Script.Feature, force: true, withPlaceholders: true));
+        public SimpleCommand CopyFeatureScriptWithPlaceholdersCommand => new(() => CopyScript(Script.Feature, force: true, withPlaceholders: true));
 
-        public ICommand CopyCommentScriptCommand => new Command(() => CopyScript(Script.Comment, force: true));
+        public SimpleCommand CopyCommentScriptCommand => new(() => CopyScript(Script.Comment, force: true));
 
-        public ICommand CopyCommentScriptWithPlaceholdersCommand => new Command(() => CopyScript(Script.Comment, force: true, withPlaceholders: true));
+        public SimpleCommand CopyCommentScriptWithPlaceholdersCommand => new(() => CopyScript(Script.Comment, force: true, withPlaceholders: true));
 
-        public ICommand CopyOriginalPostScriptCommand => new Command(() => CopyScript(Script.OriginalPost, force: true));
+        public SimpleCommand CopyOriginalPostScriptCommand => new(() => CopyScript(Script.OriginalPost, force: true));
 
-        public ICommand CopyOriginalPostScriptWithPlaceholdersCommand => new Command(() => CopyScript(Script.OriginalPost, force: true, withPlaceholders: true));
+        public SimpleCommand CopyOriginalPostScriptWithPlaceholdersCommand => new(() => CopyScript(Script.OriginalPost, force: true, withPlaceholders: true));
 
-        public ICommand CopyNewMembershipScriptCommand => new Command(CopyNewMembershipScript);
+        public SimpleCommand CopyNewMembershipScriptCommand => new(() => _ = CopyTextToClipboardAsync(NewMembershipScript, "Copied the new membership script to the clipboard"));
 
         #endregion
 
@@ -1134,11 +1136,6 @@ namespace FeatureLogging.ViewModels
                 TransferPlaceholders(script);
                 _ = CopyTextToClipboardAsync(processedScript, "Copied the " + scriptNames[script] + " script to the clipboard");
             }
-        }
-
-        public void CopyNewMembershipScript()
-        {
-            _ = CopyTextToClipboardAsync(NewMembershipScript, "Copied the new membership script to the clipboard");
         }
 
         public void CopyScriptFromPlaceholders(Script script, bool withPlaceholders = false)

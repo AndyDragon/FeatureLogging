@@ -5,26 +5,29 @@ using System.Net.Http.Headers;
 using System.Text;
 // using System.Windows.Media;
 // using System.Xml;
-using Newtonsoft.Json;
+// using Newtonsoft.Json;
 // using Sgml;
 // using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.Windows.Input;
+// using System.Windows.Input;
 using CommunityToolkit.Maui.Alerts;
-using CommunityToolkit.Maui.Core;
+using FeatureLogging.Base;
+using FeatureLogging.Models;
+
+// using CommunityToolkit.Maui.Core;
 // using System.Windows.Media.Imaging;
 // using Notification.Wpf;
 // using Newtonsoft.Json.Linq;
 
 namespace FeatureLogging.ViewModels;
 
-public class DownloadedPostViewModel : NotifyPropertyChanged
+public class LoadedPostViewModel : NotifyPropertyChanged
 {
     private static readonly Color? DefaultLogColor = null;
     private readonly HttpClient httpClient = new();
     private readonly MainViewModel vm;
 
-    public DownloadedPostViewModel(MainViewModel vm)
+    public LoadedPostViewModel(MainViewModel vm)
     {
         this.vm = vm;
 
@@ -34,7 +37,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
 
     private async Task LoadPost()
     {
-        var postUrl = vm.SelectedFeature!.PostLink!;
+        var postUrl = vm.SelectedFeature!.PostLink;
         var selectedPage = vm.SelectedPage!;
         try
         {
@@ -231,14 +234,9 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
 
     private void LogProgress(string? value, string label)
     {
-        if (string.IsNullOrEmpty(UserAlias))
-        {
-            LogEntries.Add(new LogEntry($"{label.ToLower()} not find", Colors.Red));
-        }
-        else
-        {
-            LogEntries.Add(new LogEntry($"{label}: {value}", DefaultLogColor));
-        }
+        LogEntries.Add(string.IsNullOrEmpty(UserAlias)
+            ? new LogEntry($"{label.ToLower()} not find", Colors.Red)
+            : new LogEntry($"{label}: {value}", DefaultLogColor));
     }
 
     private static string JoinSegments(Segment[]? segments, List<string>? hashTags = null)
@@ -272,14 +270,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
                     break;
 
                 case "url":
-                    if (segment.Label != null)
-                    {
-                        builder.Append(segment.Label);
-                    }
-                    else
-                    {
-                        builder.Append(segment.Value);
-                    }
+                    builder.Append(segment.Label ?? segment.Value);
                     break;
             }
         }
@@ -305,7 +296,8 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
             if (Set(ref userAlias, value))
             {
                 UserAliasValidation = Validation.ValidateUserName(userAlias ?? "");
-                TransferUserAliasCommand.OnCanExecuteChanged();
+                OnPropertyChanged(nameof(TransferUserAliasCommand));
+                // TransferUserAliasCommand.OnCanExecuteChanged();
             }
         }
     }
@@ -330,7 +322,8 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
             if (Set(ref userName, value))
             {
                 UserNameValidation = Validation.ValidateUserName(userName ?? "");
-                TransferUserNameCommand.OnCanExecuteChanged();
+                OnPropertyChanged(nameof(TransferUserNameCommand));
+                // TransferUserNameCommand.OnCanExecuteChanged();
             }
         }
     }
@@ -355,8 +348,10 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
             if (Set(ref userProfileUrl, value))
             {
                 UserProfileUrlValidation = Validation.ValidateUserProfileUrl(userProfileUrl ?? "");
-                CopyUserProfileUrlCommand.OnCanExecuteChanged();
-                LaunchUserProfileUrlCommand.OnCanExecuteChanged();
+                OnPropertyChanged(nameof(CopyUserProfileUrlCommand));
+                OnPropertyChanged(nameof(LaunchUserProfileUrlCommand));
+                // CopyUserProfileUrlCommand.OnCanExecuteChanged();
+                // LaunchUserProfileUrlCommand.OnCanExecuteChanged();
             }
         }
     }
@@ -383,7 +378,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
 
     #region Description
 
-    private bool showDescription = false;
+    private bool showDescription;
     public bool ShowDescription
     {
         get => showDescription;
@@ -419,7 +414,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
 
     #region Comments
 
-    private bool showComments = false;
+    private bool showComments;
     public bool ShowComments
     {
         get => showComments;
@@ -454,7 +449,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
         set => Set(ref hubCommentsValidation, value);
     }
 
-    private bool moreComments = false;
+    private bool moreComments;
     public bool MoreComments
     {
         get => moreComments;
@@ -467,7 +462,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
 
     public ObservableCollection<ImageEntry> ImageUrls { get; } = [];
 
-    private bool showImages = false;
+    private bool showImages;
     public bool ShowImages
     {
         get => showImages;
@@ -495,7 +490,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
 
     #region Commands
 
-    public Command CopyPostUrlCommand => new(() =>
+    public SimpleCommand CopyPostUrlCommand => new(() =>
     {
         if (!string.IsNullOrEmpty(vm.SelectedFeature?.PostLink))
         {
@@ -503,7 +498,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
         }
     }, () => !string.IsNullOrEmpty(vm.SelectedFeature?.PostLink));
 
-    public Command LaunchPostUrlCommand => new(() =>
+    public SimpleCommand LaunchPostUrlCommand => new(() =>
     {
         if (!string.IsNullOrEmpty(vm.SelectedFeature?.PostLink))
         {
@@ -516,7 +511,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
         }
     }, () => !string.IsNullOrEmpty(vm.SelectedFeature?.PostLink));
 
-    public Command CopyUserProfileUrlCommand => new(() =>
+    public SimpleCommand CopyUserProfileUrlCommand => new(() =>
     {
         if (!string.IsNullOrEmpty(UserProfileUrl))
         {
@@ -524,7 +519,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
         }
     }, () => !string.IsNullOrEmpty(UserProfileUrl));
 
-    public Command LaunchUserProfileUrlCommand => new(() =>
+    public SimpleCommand LaunchUserProfileUrlCommand => new(() =>
     {
         if (!string.IsNullOrEmpty(UserProfileUrl))
         {
@@ -537,17 +532,17 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
         }
     }, () => !string.IsNullOrEmpty(UserProfileUrl));
 
-    public Command TransferUserAliasCommand => new(() =>
+    public SimpleCommand TransferUserAliasCommand => new(() =>
     {
         vm.SelectedFeature!.UserAlias = UserAlias!;
     }, () => !string.IsNullOrEmpty(UserAlias));
 
-    public Command TransferUserNameCommand => new(() =>
+    public SimpleCommand TransferUserNameCommand => new(() =>
     {
         vm.SelectedFeature!.UserName = UserName!;
     }, () => !string.IsNullOrEmpty(UserName));
 
-    public Command CopyLogCommand => new(() =>
+    public SimpleCommand CopyLogCommand => new(() =>
     {
         _ = CopyTextToClipboard(string.Join("\n", LogEntries.Select(entry => entry.Messsage)), "Copied the log messages to the clipboard");
     });
@@ -557,7 +552,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
     private static async Task CopyTextToClipboard(string text, string successMessage)
     {
         await MainViewModel.TrySetClipboardText(text);
-        await Toast.Make(successMessage, ToastDuration.Short).Show();
+        await Toast.Make(successMessage).Show();
     }
 
     public void UpdateExcludedTags()
@@ -565,7 +560,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
         var excludedHashtags = vm.ExcludedTags.Split(",", StringSplitOptions.RemoveEmptyEntries);
         if (excludedHashtags.Length != 0)
         {
-            ExcludedHashtagCheck = new ValidationResult(ValidationLevel.Valid, message: "Post does not contain any excluded hashtags");
+            ExcludedHashtagCheck = new ValidationResult(message: "Post does not contain any excluded hashtags");
             foreach (var excludedHashtag in excludedHashtags)
             {
                 if (pageHashTags.IndexOf(excludedHashtag) != -1)
@@ -582,7 +577,7 @@ public class DownloadedPostViewModel : NotifyPropertyChanged
         }
         else
         {
-            ExcludedHashtagCheck = new ValidationResult(ValidationLevel.Valid, message: "There are no excluded hashtags");
+            ExcludedHashtagCheck = new ValidationResult(message: "There are no excluded hashtags");
             LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Error!, DefaultLogColor));
         }
     }
@@ -609,7 +604,7 @@ public static partial class StringExtensions
     private static partial Regex WhitespaceRegex();
 }
 
-public static partial class DateTimeExtensions
+public static class DateTimeExtensions
 {
     public static string FormatTimestamp(this DateTime source)
     {
@@ -670,12 +665,12 @@ public class LogEntry(string message, Color? color = null, bool skipBullet = fal
 
 public class ImageEntry : NotifyPropertyChanged
 {
-    private readonly DownloadedPostViewModel postVm;
+    private readonly LoadedPostViewModel postVm;
 
-    public ImageEntry(Uri source, string username, DownloadedPostViewModel postVm)
+    public ImageEntry(Uri source, string username, LoadedPostViewModel postVm)
     {
         this.postVm = postVm;
-        this.Source = source;
+        Source = source;
         // frame = BitmapFrame.Create(source);
         // if (!frame.IsFrozen && frame.IsDownloading)
         // {
@@ -690,87 +685,79 @@ public class ImageEntry : NotifyPropertyChanged
         //     Width = frame.PixelWidth;
         //     Height = frame.PixelHeight;
         // }
-
-        ValidateImageCommand = new Command(() =>
-        {
-            // this.postVm.ValidateImage(this);
-        });
-        saveImageCommand = new Command(() =>
-        {
-            // PngBitmapEncoder png = new();
-            // png.Frames.Add(frame);
-            // var veroSnapshotsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "VERO");
-            // if (!Directory.Exists(veroSnapshotsFolder))
-            // {
-            //     try
-            //     {
-            //         Directory.CreateDirectory(veroSnapshotsFolder);
-            //     }
-            //     catch (Exception ex)
-            //     {
-            //         notificationManager.Show(ex);
-            //         return;
-            //     }
-            // }
-            // try
-            // {
-            //     using var stream = File.Create(Path.Combine(veroSnapshotsFolder, $"{username}.png"));
-            //     png.Save(stream);
-            //     notificationManager.Show(
-            //         "Saved image",
-            //         $"Saved the image to the {veroSnapshotsFolder} folder",
-            //         type: NotificationType.Success,
-            //         areaName: "WindowArea",
-            //         expirationTime: TimeSpan.FromSeconds(3));
-            // }
-            // catch (Exception ex)
-            // {
-            //     notificationManager.Show(ex);
-            // }
-        });
-        copyImageUrlCommand = new Command(() =>
-        {
-            CopyTextToClipboard(source.AbsoluteUri, "Copied image URL to clipboard"/*, notificationManager*/);
-        });
-        launchImageCommand = new Command(() =>
-        {
-            // TODO andydragon
-            // Process.Start(new ProcessStartInfo
-            // {
-            //     FileName = source.AbsoluteUri,
-            //     UseShellExecute = true
-            // });
-        });
     }
 
     public Uri Source { get; }
 
     // private readonly BitmapFrame frame;
 
-    private int width = 0;
+    private int width;
     public int Width
     {
         get => width;
         private set => Set(ref width, value);
     }
 
-    private int height = 0;
+    private int height;
     public int Height
     {
         get => height;
         private set => Set(ref height, value);
     }
 
-    public ICommand ValidateImageCommand { get; }
+    public SimpleCommand ValidateImageCommand => new(() =>
+    {
+        postVm.ValidateImage(this);
+    });
 
-    private readonly ICommand saveImageCommand;
-    public ICommand SaveImageCommand { get => saveImageCommand; }
+    public SimpleCommand SaveImageCommand => new(() =>
+    {
+        // PngBitmapEncoder png = new();
+        // png.Frames.Add(frame);
+        // var veroSnapshotsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "VERO");
+        // if (!Directory.Exists(veroSnapshotsFolder))
+        // {
+        //     try
+        //     {
+        //         Directory.CreateDirectory(veroSnapshotsFolder);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         notificationManager.Show(ex);
+        //         return;
+        //     }
+        // }
+        // try
+        // {
+        //     using var stream = File.Create(Path.Combine(veroSnapshotsFolder, $"{username}.png"));
+        //     png.Save(stream);
+        //     notificationManager.Show(
+        //         "Saved image",
+        //         $"Saved the image to the {veroSnapshotsFolder} folder",
+        //         type: NotificationType.Success,
+        //         areaName: "WindowArea",
+        //         expirationTime: TimeSpan.FromSeconds(3));
+        // }
+        // catch (Exception ex)
+        // {
+        //     notificationManager.Show(ex);
+        // }
+    });
 
-    private readonly ICommand copyImageUrlCommand;
-    public ICommand CopyImageUrlCommand { get => copyImageUrlCommand; }
+    public SimpleCommand CopyImageUrlCommand => new(() =>
+    {
+        _ = CopyTextToClipboard(Source.AbsoluteUri, "Copied image URL to clipboard");
+    });
 
-    private readonly ICommand launchImageCommand;
-    public ICommand LaunchImageCommand { get => launchImageCommand; }
+    public SimpleCommand LaunchImageCommand => new(() =>
+    {
+        // TODO andydragon
+        // Process.Start(new ProcessStartInfo
+        // {
+        //     FileName = Source.AbsoluteUri,
+        //     UseShellExecute = true
+        // });
+    });
 
     private static async Task CopyTextToClipboard(string text, string successMessage/*, NotificationManager notificationManager*/)
     {
@@ -781,15 +768,14 @@ public class ImageEntry : NotifyPropertyChanged
 
 public class CommentEntry : NotifyPropertyChanged
 {
+    private readonly Action<string, string> markFeature;
+
     public CommentEntry(string page, DateTime? timestamp, string comment, Action<string, string> markFeature)
     {
-        this.Page = page;
-        this.Timestamp = timestamp?.FormatTimestamp() ?? "?";
-        this.Comment = comment;
-        MarkFeatureCommand = new Command(() =>
-        {
-            markFeature(page, this.Timestamp);
-        });
+        Page = page;
+        Timestamp = timestamp?.FormatTimestamp() ?? "?";
+        Comment = comment;
+        this.markFeature = markFeature;
     }
 
     public string Page { get; }
@@ -798,188 +784,8 @@ public class CommentEntry : NotifyPropertyChanged
 
     public string Comment { get; }
 
-    public Command MarkFeatureCommand { get; }
-}
-
-#region Post JSON
-
-public partial class PostData
-{
-    public static PostData? FromJson(string json) => JsonConvert.DeserializeObject<PostData>(json);
-}
-
-public partial class PostData
-{
-    [JsonProperty("loaderData", NullValueHandling = NullValueHandling.Ignore)]
-    public LoaderData? LoaderData { get; set; }
-}
-
-public partial class LoaderData
-{
-    [JsonProperty("0-1", NullValueHandling = NullValueHandling.Ignore)]
-    public PostEntry? Entry1 { get; set; }
-
-    [JsonProperty("0-2", NullValueHandling = NullValueHandling.Ignore)]
-    public PostEntry? Entry2 { get; set; }
-
-    [JsonProperty("0-3", NullValueHandling = NullValueHandling.Ignore)]
-    public PostEntry? Entry3 { get; set; }
-
-    [JsonProperty("0-4", NullValueHandling = NullValueHandling.Ignore)]
-    public PostEntry? Entry4 { get; set; }
-
-    [JsonProperty("0-5", NullValueHandling = NullValueHandling.Ignore)]
-    public PostEntry? Entry5 { get; set; }
-
-    public PostEntry? Entry
+    public SimpleCommand MarkFeatureCommand => new(() =>
     {
-        get => Entry1 ?? Entry2 ?? Entry3 ?? Entry4 ?? Entry5;
-    }
+        markFeature(Page, this.Timestamp);
+    });
 }
-
-public partial class PostEntry
-{
-    [JsonProperty("profile", NullValueHandling = NullValueHandling.Ignore)]
-    public EntryProfile? Profile { get; set; }
-
-    [JsonProperty("post", NullValueHandling = NullValueHandling.Ignore)]
-    public EntryPost? Post { get; set; }
-}
-
-public partial class EntryProfile
-{
-    [JsonProperty("profile", NullValueHandling = NullValueHandling.Ignore)]
-    public Profile? Profile { get; set; }
-}
-
-public partial class Profile
-{
-    [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Id { get; set; }
-
-    [JsonProperty("firstname", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Name { get; set; }
-
-    [JsonProperty("picture", NullValueHandling = NullValueHandling.Ignore)]
-    public Picture? Picture { get; set; }
-
-    [JsonProperty("username", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Username { get; set; }
-
-    [JsonProperty("bio", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Bio { get; set; }
-
-    [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-    public Uri? Url { get; set; }
-}
-
-public partial class Picture
-{
-    [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-    public Uri? Url { get; set; }
-}
-
-public partial class EntryPost
-{
-    [JsonProperty("post", NullValueHandling = NullValueHandling.Ignore)]
-    public Post? Post { get; set; }
-
-    [JsonProperty("comments", NullValueHandling = NullValueHandling.Ignore)]
-    public Comment[]? Comments { get; set; }
-}
-
-public partial class Post
-{
-    [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Id { get; set; }
-
-    [JsonProperty("author", NullValueHandling = NullValueHandling.Ignore)]
-    public Author? Author { get; set; }
-
-    [JsonProperty("title", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Title { get; set; }
-
-    [JsonProperty("caption", NullValueHandling = NullValueHandling.Ignore)]
-    public Segment[]? Caption { get; set; }
-
-    [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-    public Uri? Url { get; set; }
-
-    [JsonProperty("images", NullValueHandling = NullValueHandling.Ignore)]
-    public PostImage[]? Images { get; set; }
-
-    [JsonProperty("likes", NullValueHandling = NullValueHandling.Ignore)]
-    public int? Likes { get; set; }
-
-    [JsonProperty("comments", NullValueHandling = NullValueHandling.Ignore)]
-    public int? Comments { get; set; }
-
-    [JsonProperty("views", NullValueHandling = NullValueHandling.Ignore)]
-    public int? Views { get; set; }
-
-    [JsonProperty("timestamp", NullValueHandling = NullValueHandling.Ignore)]
-    public DateTime? Timestamp { get; set; }
-}
-
-public partial class Comment
-{
-    [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Id { get; set; }
-
-    [JsonProperty("text", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Text { get; set; }
-
-    [JsonProperty("timestamp", NullValueHandling = NullValueHandling.Ignore)]
-    public DateTime? Timestamp { get; set; }
-
-    [JsonProperty("author", NullValueHandling = NullValueHandling.Ignore)]
-    public Author? Author { get; set; }
-
-    [JsonProperty("content", NullValueHandling = NullValueHandling.Ignore)]
-    public Segment[]? Content { get; set; }
-}
-
-public partial class Author
-{
-    [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Id { get; set; }
-
-    [JsonProperty("firstname", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Name { get; set; }
-
-    [JsonProperty("username", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Username { get; set; }
-
-    [JsonProperty("picture", NullValueHandling = NullValueHandling.Ignore)]
-    public Picture? Picture { get; set; }
-
-    [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-    public Uri? Url { get; set; }
-}
-
-public partial class Segment
-{
-    // "text", "tag", "person", "url"
-    [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Type { get; set; }
-
-    [JsonProperty("value", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Value { get; set; }
-
-    [JsonProperty("label", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Label { get; set; }
-
-    [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-    public string? Id { get; set; }
-
-    [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-    public Uri? Url { get; set; }
-}
-
-public partial class PostImage
-{
-    [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-    public Uri? Url { get; set; }
-}
-
-#endregion

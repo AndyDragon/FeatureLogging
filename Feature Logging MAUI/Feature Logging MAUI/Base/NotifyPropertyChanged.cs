@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace FeatureLogging.ViewModels;
+namespace FeatureLogging.Base;
 
 public abstract class NotifyPropertyChanged : INotifyPropertyChanged
 {

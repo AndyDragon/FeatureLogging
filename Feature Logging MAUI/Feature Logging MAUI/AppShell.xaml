@@ -3,13 +3,13 @@
     x:Class="FeatureLogging.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:FeatureLogging"
-    Shell.FlyoutBehavior="Flyout"
+    xmlns:localViews="clr-namespace:FeatureLogging.Views"
+    FlyoutBehavior="Disabled"
     Title="Feature Logging">
 
     <ShellContent
-        Title="Feature List"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Title="Features"
+        ContentTemplate="{DataTemplate localViews:FeatureList}"
+        Route="FeatureList" />
 
 </Shell>

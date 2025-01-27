@@ -1,4 +1,4 @@
-﻿<mah:MetroWindow 
+﻿<mah:MetroWindow
     x:Class="FeatureLogging.SettingsDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -46,7 +46,7 @@
                     <TextBox Grid.Column="1" Text="{Binding PersonalMessageFirst, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" />
                 </Grid>
                 <TextBlock Margin="20,0,0,0">For personal message templates, use these placeholders:</TextBlock>
-                <TextBlock Margin="80,0,0,0">%%PAGENAME%% - populated with the page name, ie clickk_machines or snap_longexposure</TextBlock>
+                <TextBlock Margin="80,0,0,0">%%PAGENAME%% - populated with the page name, ie click_machines or snap_longexposure</TextBlock>
                 <TextBlock Margin="80,0,0,0">%%HUBNAME%% - populated with the hub name, ie click or snap</TextBlock>
                 <TextBlock Margin="80,0,0,0">%%USERNAME%% - populated with the user's full name</TextBlock>
                 <TextBlock Margin="80,0,0,0">%%USERALIAS%% - populated with the user's alias (username)</TextBlock>

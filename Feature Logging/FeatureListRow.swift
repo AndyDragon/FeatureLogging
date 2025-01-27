@@ -187,8 +187,15 @@ struct FeatureListRow: View {
                     }
                 }
                 HStack {
-                    Text(feature.postLink)
-                        .font(.footnote)
+                    if !feature.postLink.isEmpty {
+                        Text(feature.postLink)
+                            .font(.footnote)
+                    } else {
+                        Text("link to post")
+                            .font(.footnote)
+                            .foregroundStyle(.gray, .secondary)
+                            .italic()
+                    }
 
                     Spacer()
                 }
