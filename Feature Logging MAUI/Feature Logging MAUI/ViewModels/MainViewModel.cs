@@ -21,6 +21,7 @@ public class MainViewModel : NotifyPropertyChanged
     public MainViewModel()
     {
         scriptViewModel = new ScriptsViewModel(this);
+        settingsViewModel = new SettingsViewModel();
 
         _ = LoadPages();
     }
@@ -247,9 +248,6 @@ public class MainViewModel : NotifyPropertyChanged
                         base.OnPropertyChanged(nameof(SaveFeaturesCommand));   
                         base.OnPropertyChanged(nameof(GenerateReportCommand));   
                         base.OnPropertyChanged(nameof(SaveReportCommand));   
-                        // SaveFeaturesCommand.OnCanExecuteChanged();
-                        // GenerateReportCommand.OnCanExecuteChanged();
-                        // SaveReportCommand.OnCanExecuteChanged();
                         lastFilename = result.FileName;
                         IsDirty = false;
                         foreach (var feature in Features)
@@ -361,7 +359,7 @@ public class MainViewModel : NotifyPropertyChanged
     {
         MainWindow!.Navigation.PushAsync(new Settings()
         {
-            BindingContext = new SettingsViewModel()
+            BindingContext = SettingsViewModel
         });
     });
 
@@ -407,6 +405,9 @@ public class MainViewModel : NotifyPropertyChanged
             SelectedFeature = feature;
             SemanticScreenReader.Announce($"Added blank feature");
         }
+        OnPropertyChanged(nameof(SaveFeaturesCommand));
+        OnPropertyChanged(nameof(SaveReportCommand));
+        OnPropertyChanged(nameof(GenerateReportCommand));
     }, () =>
     {
         Debugger.Log(0, "DEBUG", $"Can add feature: waiting for pages: {WaitingForPages}, has selected page: {SelectedPage != null}");
@@ -425,23 +426,8 @@ public class MainViewModel : NotifyPropertyChanged
             OnPropertyChanged(nameof(SaveFeaturesCommand));
             OnPropertyChanged(nameof(GenerateReportCommand));
             OnPropertyChanged(nameof(SaveReportCommand));
-            // SaveFeaturesCommand.OnCanExecuteChanged();
-            // GenerateReportCommand.OnCanExecuteChanged();
-            // SaveReportCommand.OnCanExecuteChanged();
         }
     }, () => SelectedFeature != null);
-
-    public SimpleCommand PastePostLinkCommand => new(() =>
-    {
-        if (SelectedFeature is Feature feature)
-        {
-            feature.PostLink = Clipboard.GetTextAsync().Result ?? string.Empty;
-            if (feature.PostLink.StartsWith("https://vero.co/"))
-            {
-                feature.UserAlias = feature.PostLink["https://vero.co/".Length..].Split("/").FirstOrDefault() ?? string.Empty;
-            }
-        }
-    }, () => SelectedFeature != null && Clipboard.HasText);
 
     public SimpleCommand LoadPostCommand => new(() =>
     {
@@ -459,21 +445,51 @@ public class MainViewModel : NotifyPropertyChanged
     },
     () => SelectedFeature != null && SelectedFeature.PostLink.StartsWith("https://vero.co/"));
 
-    public SimpleCommand PasteUserAliasCommand => new(() =>
+    public SimpleCommand CopyPageFeatureTagCommand => new(() =>
     {
-        if (SelectedFeature is Feature feature)
-        {
-            feature.UserAlias = Clipboard.GetTextAsync().Result ?? string.Empty;
-        }
-    }, () => SelectedFeature != null && Clipboard.HasText);
+        var prefix = SettingsViewModel.IncludeHash ? "#" : "";
+        _ = CopyTextToClipboardAsync(SelectedPage.HubName == "other" 
+            ? $"{prefix}{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}" 
+            : $"{prefix}{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}", 
+            "Page feature tag", 
+            "Copied the page feature tag to the clipboard");
+    }, () => SelectedPage != null && SelectedFeature != null && !string.IsNullOrEmpty(SelectedFeature.UserAlias));
 
-    public SimpleCommand PasteUserNameCommand => new(() =>
+    public SimpleCommand CopyRawPageFeatureTagCommand => new(() =>
     {
-        if (SelectedFeature is Feature feature)
+        var prefix = SettingsViewModel.IncludeHash ? "#" : "";
+        if (SelectedPage.HubName == "snap")
         {
-            feature.UserName = Clipboard.GetTextAsync().Result ?? string.Empty;
+            _ = CopyTextToClipboardAsync(
+                $"{prefix}raw_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}",
+                "RAW page feature tag", 
+                "Copied the RAW page feature tag to the clipboard");
         }
-    }, () => SelectedFeature != null && Clipboard.HasText);
+    }, () => SelectedPage != null && SelectedFeature != null && !string.IsNullOrEmpty(SelectedFeature.UserAlias));
+
+    public SimpleCommand CopyHubFeatureTagCommand => new(() =>
+    {
+        var prefix = SettingsViewModel.IncludeHash ? "#" : "";
+        if (SelectedPage.HubName != "other")
+        {
+            _ = CopyTextToClipboardAsync(
+                $"{prefix}{SelectedPage.HubName}_featured_{SelectedFeature.UserAlias}",
+                "Hub feature tag", 
+                "Copied the hub feature tag to the clipboard");
+        }
+    }, () => SelectedPage != null && SelectedFeature != null && !string.IsNullOrEmpty(SelectedFeature.UserAlias));
+
+    public SimpleCommand CopyRawHubFeatureTagCommand => new(() =>
+    {
+        var prefix = SettingsViewModel.IncludeHash ? "#" : "";
+        if (SelectedPage.HubName == "snap")
+        {
+            _ = CopyTextToClipboardAsync(
+                $"{prefix}raw_featured_{SelectedFeature.UserAlias}", 
+                "RAW hub feature tag",
+                "Copied the RAW hub feature tag to the clipboard");
+        }
+    }, () => SelectedPage != null && SelectedFeature != null && !string.IsNullOrEmpty(SelectedFeature.UserAlias));
 
     #endregion
 
@@ -483,27 +499,16 @@ public class MainViewModel : NotifyPropertyChanged
     public bool WaitingForPages
     {
         get => waitingForPages;
-        set
-        {
-            if (Set(ref waitingForPages, value, [
-                    nameof(CanChangePage), 
-                    nameof(CanChangeStaffLevel), 
-                    nameof(NewFeaturesCommand), 
-                    nameof(OpenFeaturesCommand), 
-                    nameof(SaveFeaturesCommand), 
-                    nameof(GenerateReportCommand), 
-                    nameof(SaveReportCommand), 
-                    nameof(AddFeatureCommand)
-                ]))
-            {
-                // NewFeaturesCommand.OnCanExecuteChanged();
-                // OpenFeaturesCommand.OnCanExecuteChanged();
-                // SaveFeaturesCommand.OnCanExecuteChanged();
-                // GenerateReportCommand.OnCanExecuteChanged();
-                // SaveReportCommand.OnCanExecuteChanged();
-                // AddFeatureCommand.OnCanExecuteChanged();
-            }
-        }
+        set => Set(ref waitingForPages, value, [
+            nameof(CanChangePage),
+            nameof(CanChangeStaffLevel),
+            nameof(NewFeaturesCommand),
+            nameof(OpenFeaturesCommand),
+            nameof(SaveFeaturesCommand),
+            nameof(GenerateReportCommand),
+            nameof(SaveReportCommand),
+            nameof(AddFeatureCommand)
+        ]);
     }
 
     #endregion
@@ -551,7 +556,6 @@ public class MainViewModel : NotifyPropertyChanged
             {
                 Page = SelectedPage?.Id ?? string.Empty;
                 SelectedFeature = null;
-                // AddFeatureCommand.OnCanExecuteChanged();
                 OnPropertyChanged(nameof(Memberships));
                 OnPropertyChanged(nameof(TagSources));
                 OnPropertyChanged(nameof(ClickHubVisibility));
@@ -578,11 +582,11 @@ public class MainViewModel : NotifyPropertyChanged
 
     public bool CanChangePage => !WaitingForPages && Features.Count == 0;
 
-    public Visibility ClickHubVisibility => SelectedPage?.HubName == "click" ? Visibility.Visible : Visibility.Collapsed;
+    public bool ClickHubVisibility => SelectedPage?.HubName == "click";
 
-    public Visibility SnapHubVisibility => SelectedPage?.HubName == "snap" ? Visibility.Visible : Visibility.Collapsed;
+    public bool SnapHubVisibility => SelectedPage?.HubName == "snap";
 
-    public Visibility SnapOrClickHubVisibility => SelectedPage?.HubName == "snap" || SelectedPage?.HubName == "click" ? Visibility.Visible : Visibility.Collapsed;
+    public bool SnapOrClickHubVisibility => SelectedPage?.HubName == "snap" || SelectedPage?.HubName == "click";
 
     public bool HasSelectedPage => SelectedPage != null;
     public bool NoSelectedPage => SelectedPage == null;
@@ -645,8 +649,6 @@ public class MainViewModel : NotifyPropertyChanged
                 OnPropertyChanged(nameof(HasSelectedFeature));
                 OnPropertyChanged(nameof(RemoveFeatureCommand));
                 OnPropertyChanged(nameof(LoadPostCommand));
-                // RemoveFeatureCommand.OnCanExecuteChanged();
-                // LoadPostCommand.OnCanExecuteChanged();
                 if (oldSelectedFeature != null)
                 {
                     oldSelectedFeature.PropertyChanged -= OnSelectedFeaturePropertyChanged;
@@ -680,6 +682,17 @@ public class MainViewModel : NotifyPropertyChanged
         {
             case "SortKey":
                 MainWindow?.ResortList();
+                break;
+            
+            case "PostLink":
+                OnPropertyChanged(nameof(LoadPostCommand));
+                break;
+            
+            case "UserAlias":
+                OnPropertyChanged(nameof(CopyPageFeatureTagCommand));
+                OnPropertyChanged(nameof(CopyRawPageFeatureTagCommand));
+                OnPropertyChanged(nameof(CopyHubFeatureTagCommand));
+                OnPropertyChanged(nameof(CopyRawHubFeatureTagCommand));
                 break;
         }
     }
@@ -928,13 +941,13 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region TinEye results
 
-    public static string[] TinEyeResults => ["0 matches", "no matches", "matches found"];
+    public string[] TinEyeResults => ["0 matches", "no matches", "matches found"];
 
     #endregion
 
     #region AI check results
 
-    public static string[] AiCheckResults => ["human", "ai"];
+    public string[] AiCheckResults => ["human", "ai"];
 
     #endregion
 
@@ -1273,8 +1286,14 @@ public class MainViewModel : NotifyPropertyChanged
     #region Script view model
 
     private readonly ScriptsViewModel scriptViewModel;
-
     public ScriptsViewModel ScriptViewModel => scriptViewModel;
+
+    #endregion
+
+    #region Settings view model
+
+    private readonly SettingsViewModel settingsViewModel;
+    public SettingsViewModel SettingsViewModel => settingsViewModel;
 
     #endregion
 

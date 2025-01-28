@@ -4,28 +4,28 @@ using System.Diagnostics;
 
 namespace FeatureLogging;
 
-internal class UserSettings
+internal static class UserSettings
 {
-    private static dynamic? cachedStore = null;
+    private static dynamic? _cachedStore;
 
     private static void LoadStore()
     {
-        if (cachedStore == null)
+        if (_cachedStore == null)
         {
             var userSettingsPath = MainViewModel.GetUserSettingsPath();
             if (File.Exists(userSettingsPath))
             {
                 var json = File.ReadAllText(userSettingsPath);
-                cachedStore = JsonConvert.DeserializeObject(json);
+                _cachedStore = JsonConvert.DeserializeObject(json);
             }
         }
-        cachedStore ??= new Dictionary<string, object>();
+        _cachedStore ??= new Dictionary<string, object>();
     }
 
     private static void SaveStore()
     {
         var userSettingsPath = MainViewModel.GetUserSettingsPath();
-        var json = JsonConvert.SerializeObject(cachedStore);
+        var json = JsonConvert.SerializeObject(_cachedStore);
         File.WriteAllText(userSettingsPath, json);
     }
 
@@ -34,9 +34,9 @@ internal class UserSettings
         try
         {
             LoadStore();
-            if (cachedStore?.ContainsKey(key))
+            if (_cachedStore?.ContainsKey(key))
             {
-                return cachedStore?[key];
+                return _cachedStore?[key];
             }
         }
         catch (Exception ex)
@@ -51,9 +51,9 @@ internal class UserSettings
         try
         {
             LoadStore();
-            if (cachedStore?.ContainsKey(key))
+            if (_cachedStore?.ContainsKey(key))
             {
-                return cachedStore?[key] ?? defaultValue;
+                return _cachedStore?[key] ?? defaultValue;
             }
         }
         catch (Exception ex)
@@ -68,9 +68,9 @@ internal class UserSettings
         try
         {
             LoadStore();
-            if (cachedStore != null)
+            if (_cachedStore != null)
             {
-                cachedStore[key] = value;
+                _cachedStore[key] = value;
             }
             SaveStore();
         }

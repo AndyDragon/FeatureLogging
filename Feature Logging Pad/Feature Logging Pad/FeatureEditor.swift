@@ -261,7 +261,7 @@ struct FeatureEditor: View {
                     isWarning: true
                 )
                 TextField(
-                    "last date features",
+                    "last date featured",
                     text: $selectedFeature.feature.photoLastFeaturedOnHub.onChange { _ in
                         markDocumentDirty()
                     }
@@ -315,6 +315,12 @@ struct FeatureEditor: View {
             .autocorrectionDisabled()
         }
         .padding(.vertical, 2)
+        .padding(.bottom, 6)
+        .overlay(VStack {
+            Rectangle()
+                .frame(height: 0.5)
+                .foregroundStyle(Color.gray.opacity(0.25))
+        }, alignment: .bottom)
     }
 
     fileprivate func ClickUserFeaturedOnPageView() -> some View {
@@ -514,9 +520,21 @@ struct FeatureEditor: View {
         VStack {
             // User featured on page
             ClickUserFeaturedOnPageView()
+                .padding(.bottom, 6)
+                .overlay(VStack {
+                    Rectangle()
+                        .frame(height: 0.5)
+                        .foregroundStyle(Color.gray.opacity(0.25))
+                }, alignment: .bottom)
 
             // User featured on hub
             ClickUserFeaturedOnHubView()
+                .padding(.bottom, 6)
+                .overlay(VStack {
+                    Rectangle()
+                        .frame(height: 0.5)
+                        .foregroundStyle(Color.gray.opacity(0.25))
+                }, alignment: .bottom)
         }
     }
 
@@ -777,9 +795,21 @@ struct FeatureEditor: View {
         VStack {
             // User featured on page
             SnapUserFeaturedOnPageView()
+                .padding(.bottom, 6)
+                .overlay(VStack {
+                    Rectangle()
+                        .frame(height: 0.5)
+                        .foregroundStyle(Color.gray.opacity(0.25))
+                }, alignment: .bottom)
 
             // User featured on hub
             SnapUserFeaturedOnHubView()
+                .padding(.bottom, 6)
+                .overlay(VStack {
+                    Rectangle()
+                        .frame(height: 0.5)
+                        .foregroundStyle(Color.gray.opacity(0.25))
+                }, alignment: .bottom)
         }
     }
 
@@ -873,6 +903,12 @@ struct FeatureEditor: View {
         VStack {
             // User featured on page
             OtherUserFeaturedOnPageView()
+                .padding(.bottom, 6)
+                .overlay(VStack {
+                    Rectangle()
+                        .frame(height: 0.5)
+                        .foregroundStyle(Color.gray.opacity(0.25))
+                }, alignment: .bottom)
         }
     }
 

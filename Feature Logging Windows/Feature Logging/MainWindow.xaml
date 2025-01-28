@@ -1,4 +1,4 @@
-﻿<mah:MetroWindow 
+﻿<mah:MetroWindow
     x:Class="FeatureLogging.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,7 +9,7 @@
     xmlns:notifications="clr-namespace:Notification.Wpf.Controls;assembly=Notification.Wpf"
     xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:controlzEx="urn:controlzex"
-    xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf" 
+    xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf"
     xmlns:system="clr-namespace:System;assembly=netstandard"
     xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
     xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
@@ -18,9 +18,9 @@
     Icon="pack://application:,,,/Feature Logging;component/App.ico"
     Height="800" Width="1200" MinHeight="720" MinWidth="1200"
     GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
-    ResizeMode="CanResizeWithGrip" 
+    ResizeMode="CanResizeWithGrip"
     SourceInitialized="OnSourceInitialized"
-    Activated="OnActivatedChanged" 
+    Activated="OnActivatedChanged"
     Deactivated="OnActivatedChanged"
     Closing="OnClosing"
     DataContextChanged="OnDataContextChanged">
@@ -80,15 +80,15 @@
 
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands>
-            <Button 
+            <Button
                 Visibility="{Binding LogViewVisibility}"
-                Command="{Binding NewFeaturesCommand}" 
-                Content="New log" 
+                Command="{Binding NewFeaturesCommand}"
+                Content="New log"
                 ToolTip="Creates a new feature log (Ctrl+N)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconCodicons 
+                            <iconPacks:PackIconCodicons
                                 Width="20"
                                 Height="20"
                                 VerticalAlignment="Center"
@@ -100,15 +100,15 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <Button 
+            <Button
                 Visibility="{Binding LogViewVisibility}"
-                Command="{Binding OpenFeaturesCommand}" 
-                Content="Open log..." 
+                Command="{Binding OpenFeaturesCommand}"
+                Content="Open log..."
                 ToolTip="Opens a saved log (Ctrl+O)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconCodicons 
+                            <iconPacks:PackIconCodicons
                                 Width="20"
                                 Height="20"
                                 VerticalAlignment="Center"
@@ -120,15 +120,15 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <Button 
+            <Button
                 Visibility="{Binding LogViewVisibility}"
-                Command="{Binding SaveFeaturesCommand}" 
-                Content="Save log..." 
+                Command="{Binding SaveFeaturesCommand}"
+                Content="Save log..."
                 ToolTip="Opens a saved log (Ctrl+S)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconCodicons 
+                            <iconPacks:PackIconCodicons
                                 Width="20"
                                 Height="20"
                                 VerticalAlignment="Center"
@@ -140,15 +140,15 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <Button 
+            <Button
                 Visibility="{Binding LogViewVisibility}"
-                Command="{Binding SaveReportCommand}" 
-                Content="Save report..." 
+                Command="{Binding SaveReportCommand}"
+                Content="Save report..."
                 ToolTip="Saves a report of the features to a file (Ctrl+R)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconEntypo 
+                            <iconPacks:PackIconEntypo
                                 Width="20"
                                 Height="20"
                                 Kind="Book" />
@@ -159,14 +159,14 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <Button 
+            <Button
                 Visibility="{Binding LogViewVisibility}"
-                Command="{Binding LaunchSettingsCommand}" 
+                Command="{Binding LaunchSettingsCommand}"
                 Content="Settings" ToolTip="Opens the application settings (Ctrl+comma)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconCodicons 
+                            <iconPacks:PackIconCodicons
                                 Width="20"
                                 Height="20"
                                 Kind="Settings" />
@@ -177,14 +177,14 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <Button 
+            <Button
                 Visibility="{Binding FeatureNavigationVisibility}"
-                Command="{Binding NavigateToPreviousFeatureCommand}" 
+                Command="{Binding NavigateToPreviousFeatureCommand}"
                 Content="Previous" ToolTip="Previous feature (Ctrl+left)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconCodicons 
+                            <iconPacks:PackIconCodicons
                                 Width="20"
                                 Height="20"
                                 Kind="TriangleLeft" />
@@ -195,14 +195,14 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <Button 
+            <Button
                 Visibility="{Binding ScriptViewVisibility}"
-                Command="{Binding CloseCurrentViewCommand}" 
+                Command="{Binding CloseCurrentViewCommand}"
                 Content="Close" ToolTip="Closes the script editor (Ctrl+tilda)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconJamIcons 
+                            <iconPacks:PackIconJamIcons
                                 Width="20"
                                 Height="20"
                                 Kind="CloseCircle" />
@@ -213,14 +213,14 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <Button 
+            <Button
                 Visibility="{Binding StatisticsViewVisibility}"
-                Command="{Binding CloseCurrentViewCommand}" 
+                Command="{Binding CloseCurrentViewCommand}"
                 Content="Close" ToolTip="Closes the statistics (Ctrl+tilda)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconJamIcons 
+                            <iconPacks:PackIconJamIcons
                                 Width="20"
                                 Height="20"
                                 Kind="CloseCircle" />
@@ -231,14 +231,14 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <Button 
+            <Button
                 Visibility="{Binding PostDownloaderViewVisibility}"
-                Command="{Binding CloseCurrentViewCommand}" 
+                Command="{Binding CloseCurrentViewCommand}"
                 Content="Close" ToolTip="Closes the post viewer (Ctrl+tilda)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconJamIcons 
+                            <iconPacks:PackIconJamIcons
                                 Width="20"
                                 Height="20"
                                 Kind="CloseCircle" />
@@ -249,14 +249,14 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <Button 
+            <Button
                 Visibility="{Binding ImageValidationViewVisibility}"
-                Command="{Binding CloseCurrentViewCommand}" 
+                Command="{Binding CloseCurrentViewCommand}"
                 Content="Close" ToolTip="Closes the image validator (Ctrl+tilda)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconJamIcons 
+                            <iconPacks:PackIconJamIcons
                                 Width="20"
                                 Height="20"
                                 Kind="CloseCircle" />
@@ -267,14 +267,14 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <Button 
+            <Button
                 Visibility="{Binding FeatureNavigationVisibility}"
-                Command="{Binding NavigateToNextFeatureCommand}" 
+                Command="{Binding NavigateToNextFeatureCommand}"
                 Content="Next" ToolTip="Next feature (Ctrl+right)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <iconPacks:PackIconCodicons 
+                            <iconPacks:PackIconCodicons
                                 Width="20"
                                 Height="20"
                                 Kind="TriangleRight" />
@@ -319,11 +319,11 @@
                 <MenuItem Header="Show statistics" Command="{Binding ShowStatisticsViewCommand}" InputGestureText="Ctrl+Shift+T" />
             </MenuItem>
         </Menu>
-        
+
         <!-- LOG VIEW -->
-        <Grid 
+        <Grid
             Visibility="{Binding LogViewVisibility}"
-            Grid.Row="1" 
+            Grid.Row="1"
             Margin="16,8,16,8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />                 <!-- Page -->
@@ -334,8 +334,8 @@
             </Grid.RowDefinitions>
 
             <!-- Page -->
-            <Grid 
-                Grid.Row="0" 
+            <Grid
+                Grid.Row="0"
                 Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -346,23 +346,23 @@
                 </Grid.ColumnDefinitions>
                 <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                     <StackPanel Orientation="Horizontal" ToolTip="{Binding PageValidation.Error}">
-                        <iconPacks:PackIconModern 
+                        <iconPacks:PackIconModern
                             VerticalAlignment="Center"
                             Kind="Warning"
                             Margin="0,0,6,0"
                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                             Visibility="{Binding PageValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                        <TextBlock 
-                            Text="Page:" 
-                            FontWeight="Bold" 
+                        <TextBlock
+                            Text="Page:"
+                            FontWeight="Bold"
                             VerticalAlignment="Center"
                             Foreground="{Binding PageValidation, Converter={StaticResource validationResultColorConverter}}" />
                     </StackPanel>
                 </Label>
-                <ComboBox 
-                    Grid.Column="1" 
-                    ItemsSource="{Binding LoadedPages}" 
-                    SelectedItem="{Binding SelectedPage, Mode=TwoWay}" 
+                <ComboBox
+                    Grid.Column="1"
+                    ItemsSource="{Binding LoadedPages}"
+                    SelectedItem="{Binding SelectedPage, Mode=TwoWay}"
                     IsEnabled="{Binding CanChangePage}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate DataType="local:LoadedPage">
@@ -370,19 +370,19 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <Label 
+                <Label
                     Grid.Column="2"
-                    VerticalAlignment="Center" 
-                    FontSize="11" 
+                    VerticalAlignment="Center"
+                    FontSize="11"
                     Margin="10,0,4,0">
-                    <TextBlock 
-                        Text="Page staff level:" 
-                        FontWeight="Bold" 
+                    <TextBlock
+                        Text="Page staff level:"
+                        FontWeight="Bold"
                         VerticalAlignment="Center" />
                 </Label>
-                <ComboBox 
-                    Grid.Column="3" 
-                    ItemsSource="{Binding StaffLevels}" 
+                <ComboBox
+                    Grid.Column="3"
+                    ItemsSource="{Binding StaffLevels}"
                     SelectedItem="{Binding StaffLevel, Mode=TwoWay}" />
                 <mah:DropDownButton
                     Grid.Column="4"
@@ -404,8 +404,8 @@
             </Grid>
 
             <!-- You / Your first name -->
-            <Grid 
-                Grid.Row="1" 
+            <Grid
+                Grid.Row="1"
                 Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -415,15 +415,15 @@
                 </Grid.ColumnDefinitions>
                 <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                     <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.YourNameValidation.Error}">
-                        <iconPacks:PackIconModern 
+                        <iconPacks:PackIconModern
                             VerticalAlignment="Center"
                             Kind="Warning"
                             Margin="0,0,6,0"
                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                             Visibility="{Binding ScriptViewModel.YourNameValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                        <TextBlock 
-                            Text="You:" 
-                            FontWeight="Bold" 
+                        <TextBlock
+                            Text="You:"
+                            FontWeight="Bold"
                             VerticalAlignment="Center"
                             Foreground="{Binding ScriptViewModel.YourNameValidation, Converter={StaticResource validationResultColorConverter}}" />
                     </StackPanel>
@@ -431,15 +431,15 @@
                 <TextBox Text="{Binding ScriptViewModel.YourName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Height="20" />
                 <Label Grid.Column="2" VerticalAlignment="Center" FontSize="11" Margin="10, 0, 4, 0">
                     <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.YourFirstNameValidation.Error}">
-                        <iconPacks:PackIconModern 
+                        <iconPacks:PackIconModern
                             VerticalAlignment="Center"
                             Kind="Warning"
                             Margin="0,0,6,0"
                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                             Visibility="{Binding ScriptViewModel.YourFirstNameValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                        <TextBlock 
-                            Text="Your first name:" 
-                            FontWeight="Bold" 
+                        <TextBlock
+                            Text="Your first name:"
+                            FontWeight="Bold"
                             VerticalAlignment="Center"
                             Foreground="{Binding ScriptViewModel.YourFirstNameValidation, Converter={StaticResource validationResultColorConverter}}" />
                     </StackPanel>
@@ -449,7 +449,7 @@
 
             <!-- Feature -->
             <Border
-                Grid.Row="2" 
+                Grid.Row="2"
                 Margin="0,0,0,8"
                 Padding="10,2"
                 BorderBrush="{DynamicResource MahApps.Brushes.Control.Border}"
@@ -457,7 +457,7 @@
                 Background="Transparent"
                 CornerRadius="4"
                 >
-                <Grid 
+                <Grid
                     Margin="0,0,0,4"
                     Visibility="{Binding SelectedFeatureVisibility}"
                     VerticalAlignment="Top">
@@ -474,12 +474,12 @@
 
                     <!-- Is Picked -->
                     <Grid Grid.Row="0">
-                        <mah:ToggleSwitch 
-                            IsOn="{Binding SelectedFeature.IsPicked, Mode=TwoWay}" 
+                        <mah:ToggleSwitch
+                            IsOn="{Binding SelectedFeature.IsPicked, Mode=TwoWay}"
                             MinWidth="0"
                             FontSize="12"
                             FontWeight="Bold">
-                            <TextBlock 
+                            <TextBlock
                                 Text="Is picked as feature"
                                 Padding="0,0,0,2"
                                 VerticalAlignment="Center" />
@@ -496,15 +496,15 @@
                         </Grid.ColumnDefinitions>
                         <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.PostLinkValidation.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                     Visibility="{Binding SelectedFeature.PostLinkValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                    Text="Link to post:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="Link to post:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding SelectedFeature.PostLinkValidation, Converter={StaticResource validationResultColorConverter}}" />
                             </StackPanel>
@@ -512,10 +512,10 @@
                         <TextBox Grid.Column="1" Text="{Binding SelectedFeature.PostLink, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" />
                         <Button Grid.Column="2" Command="{Binding PastePostLinkCommand}" Margin="8,0,0,0" VerticalAlignment="Center" Height="26">
                             <StackPanel Orientation="Horizontal" Margin="8,0">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="ClipboardPaste"
-                                    Margin="0,0,2,0" 
+                                    Margin="0,0,2,0"
                                     Height="11"
                                     Foreground="{DynamicResource MahApps.Brushes.Accent}" />
                                 <TextBlock VerticalAlignment="Center">Paste</TextBlock>
@@ -523,10 +523,10 @@
                         </Button>
                         <Button Grid.Column="3" Command="{Binding LoadPostCommand}" Margin="8,0,0,0" VerticalAlignment="Center" Height="26">
                             <StackPanel Orientation="Horizontal" Margin="8,0">
-                                <iconPacks:PackIconCoolicons 
+                                <iconPacks:PackIconCoolicons
                                     VerticalAlignment="Center"
                                     Kind="FileDownload"
-                                    Margin="0,0,2,0" 
+                                    Margin="0,0,2,0"
                                     Height="11"
                                     Foreground="{DynamicResource MahApps.Brushes.Accent}" />
                                 <TextBlock VerticalAlignment="Center">Load post</TextBlock>
@@ -547,15 +547,15 @@
                         </Grid.ColumnDefinitions>
                         <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.UserAliasValidation.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                     Visibility="{Binding SelectedFeature.UserAliasValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                    Text="User alias:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="User alias:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding SelectedFeature.UserAliasValidation, Converter={StaticResource validationResultColorConverter}}" />
                             </StackPanel>
@@ -563,15 +563,15 @@
                         <TextBox Grid.Column="1" Text="{Binding SelectedFeature.UserAlias, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" />
                         <Label Grid.Column="2" VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.UserNameValidation.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                     Visibility="{Binding SelectedFeature.UserNameValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                    Text="User name:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="User name:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding SelectedFeature.UserNameValidation, Converter={StaticResource validationResultColorConverter}}" />
                             </StackPanel>
@@ -579,29 +579,29 @@
                         <TextBox Grid.Column="3" Text="{Binding SelectedFeature.UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" />
                         <Label Grid.Column="4" VerticalAlignment="Center" FontSize="11" Margin="10, 0, 4, 0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.UserLevelValidation.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                     Visibility="{Binding SelectedFeature.UserLevelValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                    Text="User level:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="User level:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding SelectedFeature.UserLevelValidation, Converter={StaticResource validationResultColorConverter}}" />
                             </StackPanel>
                         </Label>
                         <ComboBox Grid.Column="5" ItemsSource="{Binding Memberships}" SelectedItem="{Binding SelectedFeature.UserLevel, Mode=TwoWay}" VerticalAlignment="Center" />
-                        <mah:ToggleSwitch 
-                            Grid.Column="6" 
-                            Margin="16,0,0,0" 
-                            IsOn="{Binding SelectedFeature.UserIsTeammate, Mode=TwoWay}" 
+                        <mah:ToggleSwitch
+                            Grid.Column="6"
+                            Margin="16,0,0,0"
+                            IsOn="{Binding SelectedFeature.UserIsTeammate, Mode=TwoWay}"
                             VerticalAlignment="Center"
                             MinWidth="0"
                             FontSize="12"
                             FontWeight="Bold">
-                            <TextBlock 
+                            <TextBlock
                                 Text="Teammate"
                                 Padding="0,0,0,2"
                                 VerticalAlignment="Center" />
@@ -623,89 +623,89 @@
                         </Grid.ColumnDefinitions>
                         <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0, 0, 4, 0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock 
-                                    Text="Found using:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="Found using:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center" />
                             </StackPanel>
                         </Label>
                         <ComboBox Grid.Column="1" ItemsSource="{Binding TagSources}" SelectedItem="{Binding SelectedFeature.TagSource, Mode=TwoWay}" VerticalAlignment="Center" />
-                        <mah:ToggleSwitch 
-                            Grid.Column="2" 
-                            Margin="16,0,0,0" 
-                            IsOn="{Binding SelectedFeature.PhotoFeaturedOnPage, Mode=TwoWay}" 
+                        <mah:ToggleSwitch
+                            Grid.Column="2"
+                            Margin="16,0,0,0"
+                            IsOn="{Binding SelectedFeature.PhotoFeaturedOnPage, Mode=TwoWay}"
                             MinWidth="0"
                             FontSize="12"
                             FontWeight="Bold"
                             VerticalAlignment="Center">
-                            <TextBlock 
+                            <TextBlock
                                 Text="Photo featured on page"
                                 Padding="0,0,0,2"
                                 VerticalAlignment="Center" />
                         </mah:ToggleSwitch>
-                        <mah:ToggleSwitch 
-                            Grid.Column="3" 
-                            Margin="16,0,0,0" 
-                            IsOn="{Binding SelectedFeature.PhotoFeaturedOnHub, Mode=TwoWay}" 
+                        <mah:ToggleSwitch
+                            Grid.Column="3"
+                            Margin="16,0,0,0"
+                            IsOn="{Binding SelectedFeature.PhotoFeaturedOnHub, Mode=TwoWay}"
                             MinWidth="0"
                             FontSize="12"
                             FontWeight="Bold"
                             VerticalAlignment="Center">
-                            <TextBlock 
+                            <TextBlock
                                 Text="Photo featured on hub"
                                 Padding="0,0,0,2"
                                 VerticalAlignment="Center" />
                         </mah:ToggleSwitch>
-                        <Label 
-                            Grid.Column="4" 
-                            VerticalAlignment="Center" 
-                            FontSize="11" 
+                        <Label
+                            Grid.Column="4"
+                            VerticalAlignment="Center"
+                            FontSize="11"
                             Margin="10,0,4,0"
                             Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.PhotoLastFeaturedOnHubValidation.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                         VerticalAlignment="Center"
                                         Kind="Warning"
                                         Margin="0,0,6,0"
                                         Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                         Visibility="{Binding SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                        Text="Last date featured:" 
-                                        FontWeight="Bold" 
+                                <TextBlock
+                                        Text="Last date featured:"
+                                        FontWeight="Bold"
                                         VerticalAlignment="Center"
                                         Foreground="{Binding SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource validationResultColorConverter}}" />
                             </StackPanel>
                         </Label>
-                        <TextBox 
-                            Grid.Column="5" 
-                            Text="{Binding SelectedFeature.PhotoLastFeaturedOnHub, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        <TextBox
+                            Grid.Column="5"
+                            Text="{Binding SelectedFeature.PhotoLastFeaturedOnHub, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            VerticalAlignment="Center" 
+                            VerticalAlignment="Center"
                             Height="20" />
-                        <Label 
-                            Grid.Column="6" 
-                            VerticalAlignment="Center" 
-                            FontSize="11" Margin="10,0,4,0" 
+                        <Label
+                            Grid.Column="6"
+                            VerticalAlignment="Center"
+                            FontSize="11" Margin="10,0,4,0"
                             Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.PhotoLastFeaturedPageValidation.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                         VerticalAlignment="Center"
                                         Kind="Warning"
                                         Margin="0,0,6,0"
                                         Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                         Visibility="{Binding SelectedFeature.PhotoLastFeaturedPageValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                        Text="on page:" 
-                                        FontWeight="Bold" 
+                                <TextBlock
+                                        Text="on page:"
+                                        FontWeight="Bold"
                                         VerticalAlignment="Center"
                                         Foreground="{Binding SelectedFeature.PhotoLastFeaturedPageValidation, Converter={StaticResource validationResultColorConverter}}" />
                             </StackPanel>
                         </Label>
-                        <TextBox 
-                            Grid.Column="7" 
-                            Text="{Binding SelectedFeature.PhotoLastFeaturedPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        <TextBox
+                            Grid.Column="7"
+                            Text="{Binding SelectedFeature.PhotoLastFeaturedPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            VerticalAlignment="Center" 
+                            VerticalAlignment="Center"
                             Height="20" />
                     </Grid>
 
@@ -717,9 +717,9 @@
                         </Grid.ColumnDefinitions>
                         <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock 
-                                    Text="Description:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="Description:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center" />
                             </StackPanel>
                         </Label>
@@ -733,14 +733,14 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <mah:ToggleSwitch 
-                            Grid.Column="0" 
-                            IsOn="{Binding SelectedFeature.UserHasFeaturesOnPage}" 
+                        <mah:ToggleSwitch
+                            Grid.Column="0"
+                            IsOn="{Binding SelectedFeature.UserHasFeaturesOnPage}"
                             MinWidth="0"
                             FontSize="12"
                             FontWeight="Bold"
                             VerticalAlignment="Center">
-                            <TextBlock 
+                            <TextBlock
                                 Text="User featured on page"
                                 Padding="0,0,0,2"
                                 VerticalAlignment="Center" />
@@ -760,34 +760,34 @@
                             </Grid.ColumnDefinitions>
                             <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                                 <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.LastFeaturedOnPageValidation.Error}">
-                                    <iconPacks:PackIconModern 
-                                    VerticalAlignment="Center"
-                                    Kind="Warning"
-                                    Margin="0,0,6,0"
-                                    Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
-                                    Visibility="{Binding SelectedFeature.LastFeaturedOnPageValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                    <TextBlock 
-                                    Text="Last date featured:" 
-                                    FontWeight="Bold" 
-                                    VerticalAlignment="Center"
-                                    Foreground="{Binding SelectedFeature.LastFeaturedOnPageValidation, Converter={StaticResource validationResultColorConverter}}" />
+                                    <iconPacks:PackIconModern
+                                        VerticalAlignment="Center"
+                                        Kind="Warning"
+                                        Margin="0,0,6,0"
+                                        Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
+                                        Visibility="{Binding SelectedFeature.LastFeaturedOnPageValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
+                                    <TextBlock
+                                        Text="Last date featured:"
+                                        FontWeight="Bold"
+                                        VerticalAlignment="Center"
+                                        Foreground="{Binding SelectedFeature.LastFeaturedOnPageValidation, Converter={StaticResource validationResultColorConverter}}" />
                                 </StackPanel>
                             </Label>
                             <TextBox Grid.Column="1" Text="{Binding SelectedFeature.LastFeaturedOnPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" />
                             <Label Grid.Column="2" VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock 
-                                    Text="Features on page:" 
-                                    FontWeight="Bold" 
+                                    <TextBlock
+                                    Text="Features on page:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center" />
                                 </StackPanel>
                             </Label>
                             <ComboBox Grid.Column="3" ItemsSource="{Binding FeaturedCounts}" SelectedItem="{Binding SelectedFeature.FeatureCountOnPage, Mode=TwoWay}" VerticalAlignment="Center" />
                             <Label Grid.Column="4" VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0" Visibility="{Binding SnapHubVisibility}">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock 
-                                    Text="Features on RAW page:" 
-                                    FontWeight="Bold" 
+                                    <TextBlock
+                                    Text="Features on RAW page:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center" />
                                 </StackPanel>
                             </Label>
@@ -832,14 +832,14 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <mah:ToggleSwitch 
-                            Grid.Column="0" 
-                            IsOn="{Binding SelectedFeature.UserHasFeaturesOnHub}" 
+                        <mah:ToggleSwitch
+                            Grid.Column="0"
+                            IsOn="{Binding SelectedFeature.UserHasFeaturesOnHub}"
                             MinWidth="0"
                             FontSize="12"
                             FontWeight="Bold"
                             VerticalAlignment="Center">
-                            <TextBlock 
+                            <TextBlock
                                 Text="User featured on hub"
                                 Padding="0,0,0,2"
                                 VerticalAlignment="Center" />
@@ -861,15 +861,15 @@
                             </Grid.ColumnDefinitions>
                             <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                                 <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.LastFeaturedOnHubValidation.Error}">
-                                    <iconPacks:PackIconModern 
+                                    <iconPacks:PackIconModern
                                         VerticalAlignment="Center"
                                         Kind="Warning"
                                         Margin="0,0,6,0"
                                         Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                         Visibility="{Binding SelectedFeature.LastFeaturedOnHubValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                    <TextBlock 
-                                        Text="Last date featured:" 
-                                        FontWeight="Bold" 
+                                    <TextBlock
+                                        Text="Last date featured:"
+                                        FontWeight="Bold"
                                         VerticalAlignment="Center"
                                         Foreground="{Binding SelectedFeature.LastFeaturedOnHubValidation, Converter={StaticResource validationResultColorConverter}}" />
                                 </StackPanel>
@@ -877,15 +877,15 @@
                             <TextBox Grid.Column="1" Text="{Binding SelectedFeature.LastFeaturedOnHub, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" />
                             <Label Grid.Column="2" VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0">
                                 <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.LastFeaturedPageValidation.Error}">
-                                    <iconPacks:PackIconModern 
+                                    <iconPacks:PackIconModern
                                         VerticalAlignment="Center"
                                         Kind="Warning"
                                         Margin="0,0,6,0"
                                         Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                         Visibility="{Binding SelectedFeature.LastFeaturedPageValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                    <TextBlock 
-                                        Text="on page:" 
-                                        FontWeight="Bold" 
+                                    <TextBlock
+                                        Text="on page:"
+                                        FontWeight="Bold"
                                         VerticalAlignment="Center"
                                         Foreground="{Binding SelectedFeature.LastFeaturedPageValidation, Converter={StaticResource validationResultColorConverter}}" />
                                 </StackPanel>
@@ -893,18 +893,18 @@
                             <TextBox Grid.Column="3" Text="{Binding SelectedFeature.LastFeaturedPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Height="20" />
                             <Label Grid.Column="4" VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock 
-                                    Text="Features on hub:" 
-                                    FontWeight="Bold" 
+                                    <TextBlock
+                                    Text="Features on hub:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center" />
                                 </StackPanel>
                             </Label>
                             <ComboBox Grid.Column="5" ItemsSource="{Binding FeaturedCounts}" SelectedItem="{Binding SelectedFeature.FeatureCountOnHub, Mode=TwoWay}" VerticalAlignment="Center" />
                             <Label Grid.Column="6" VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0" Visibility="{Binding SnapHubVisibility}">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock 
-                                    Text="Features on RAW hub:" 
-                                    FontWeight="Bold" 
+                                    <TextBlock
+                                    Text="Features on RAW hub:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center" />
                                 </StackPanel>
                             </Label>
@@ -952,62 +952,62 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" MaxWidth="200" />
                         </Grid.ColumnDefinitions>
-                        <Label 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
-                            FontSize="11" 
+                        <Label
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            FontSize="11"
                             Margin="0, 0, 4, 0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock 
-                                    Text="Validation:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="Validation:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center" />
                             </StackPanel>
                         </Label>
-                        <mah:ToggleSwitch 
-                            Grid.Column="1" 
-                            VerticalAlignment="Center" 
-                            IsOn="{Binding SelectedFeature.TooSoonToFeatureUser, Mode=TwoWay}" 
+                        <mah:ToggleSwitch
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            IsOn="{Binding SelectedFeature.TooSoonToFeatureUser, Mode=TwoWay}"
                             MinWidth="0"
                             FontSize="12"
                             FontWeight="Bold">
-                            <TextBlock 
+                            <TextBlock
                                 Text="Too soon to feature user"
                                 Padding="0,0,0,2"
                                 VerticalAlignment="Center" />
                         </mah:ToggleSwitch>
-                        <Label 
-                            Grid.Column="2" 
-                            VerticalAlignment="Center" 
-                            FontSize="11" 
+                        <Label
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            FontSize="11"
                             Margin="10, 0, 4, 0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock 
-                                    Text="TinEye:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="TinEye:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center" />
                             </StackPanel>
                         </Label>
-                        <ComboBox 
-                            Grid.Column="3" 
-                            ItemsSource="{Binding TinEyeResults}" SelectedItem="{Binding SelectedFeature.TinEyeResults, Mode=TwoWay}" 
+                        <ComboBox
+                            Grid.Column="3"
+                            ItemsSource="{Binding TinEyeResults}" SelectedItem="{Binding SelectedFeature.TinEyeResults, Mode=TwoWay}"
                             VerticalAlignment="Center" />
-                        <Label 
-                            Grid.Column="4" 
-                            VerticalAlignment="Center" 
-                            FontSize="11" 
+                        <Label
+                            Grid.Column="4"
+                            VerticalAlignment="Center"
+                            FontSize="11"
                             Margin="10, 0, 4, 0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock 
-                                    Text="AI check:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="AI check:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center" />
                             </StackPanel>
                         </Label>
-                        <ComboBox 
-                            Grid.Column="5" 
-                            ItemsSource="{Binding AiCheckResults}" 
-                            SelectedItem="{Binding SelectedFeature.AiCheckResults, Mode=TwoWay}" 
+                        <ComboBox
+                            Grid.Column="5"
+                            ItemsSource="{Binding AiCheckResults}"
+                            SelectedItem="{Binding SelectedFeature.AiCheckResults, Mode=TwoWay}"
                             VerticalAlignment="Center" />
                     </Grid>
                 </Grid>
@@ -1027,7 +1027,7 @@
                 <!-- Add feature -->
                 <Button Grid.Column="1" Command="{Binding AddFeatureCommand}" Margin="12,0,0,0">
                     <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconModern 
+                        <iconPacks:PackIconModern
                                 VerticalAlignment="Center"
                                 Kind="UserAdd"
                                 Margin="0,0,6,0"
@@ -1039,10 +1039,10 @@
                 <!-- Remove feature -->
                 <Button Grid.Column="2" Command="{Binding RemoveFeatureCommand}" IsEnabled="{Binding HasSelectedFeature}" Margin="12,0,0,0">
                     <StackPanel Orientation="Horizontal">
-                        <iconPacks:PackIconModern 
+                        <iconPacks:PackIconModern
                             VerticalAlignment="Center"
                             Kind="UserDelete"
-                            Margin="0,0,6,0" 
+                            Margin="0,0,6,0"
                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}" />
                         <TextBlock VerticalAlignment="Center">Remove feature</TextBlock>
                     </StackPanel>
@@ -1050,11 +1050,11 @@
             </Grid>
 
             <!-- Feature List -->
-            <Border 
-                Grid.Row="4" 
-                Margin="0,1,0,0" 
-                CornerRadius="4" 
-                BorderThickness="1" 
+            <Border
+                Grid.Row="4"
+                Margin="0,1,0,0"
+                CornerRadius="4"
+                BorderThickness="1"
                 BorderBrush="{DynamicResource MahApps.Brushes.Control.Border}">
                 <ListBox x:Name="FeaturesListBox" ItemsSource="{Binding Features}" SelectedItem="{Binding SelectedFeature}" Margin="3">
                     <ListBox.ItemTemplate>
@@ -1071,7 +1071,7 @@
                                     VerticalAlignment="Center"
                                     Kind="{Binding Icon}"
                                     Width="40"
-                                    Margin="0,0,6,0" 
+                                    Margin="0,0,6,0"
                                     Foreground="{Binding IconColor}" />
                                 <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Stretch" VerticalAlignment="Top">
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -1085,7 +1085,7 @@
                                         <TextBlock Text="{Binding FeatureDescription}" VerticalAlignment="Center" Visibility="{Binding FeatureDescription, Converter={StaticResource valueVisibilityConverter}, ConverterParameter=true}" />
                                         <TextBlock Text="description" FontStyle="Italic" VerticalAlignment="Center" Visibility="{Binding FeatureDescription, Converter={StaticResource valueVisibilityConverter}, ConverterParameter=false}" />
                                         <TextBlock Margin="8,0" VerticalAlignment="Center">|</TextBlock>
-                                        <iconPacks:PackIconUnicons 
+                                        <iconPacks:PackIconUnicons
                                             Width="14"
                                             Margin="0,0,6,0"
                                             Padding="0,2,0,0"
@@ -1093,7 +1093,7 @@
                                             ToolTip="Photo featured on hub"
                                             Foreground="{Binding PhotoFeaturedOnHub, Converter={StaticResource booleanToIndicatorColorConverter}}"
                                             Opacity="{Binding PhotoFeaturedOnHub, Converter={StaticResource booleanToIndicatorOpacityConverter}}" />
-                                        <iconPacks:PackIconMaterial 
+                                        <iconPacks:PackIconMaterial
                                             Width="14"
                                             Margin="0,0,6,0"
                                             Padding="0,2,0,0"
@@ -1101,7 +1101,7 @@
                                             ToolTip="User featured on page"
                                             Foreground="{Binding UserHasFeaturesOnPage, Converter={StaticResource booleanToIndicatorColorConverter}}"
                                             Opacity="{Binding UserHasFeaturesOnPage, Converter={StaticResource booleanToIndicatorOpacityConverter}}" />
-                                        <iconPacks:PackIconMaterial 
+                                        <iconPacks:PackIconMaterial
                                             Width="14"
                                             Margin="0,0,6,0"
                                             Padding="0,2,0,0"
@@ -1109,7 +1109,7 @@
                                             ToolTip="User featured on hub"
                                             Foreground="{Binding UserHasFeaturesOnHub, Converter={StaticResource booleanToIndicatorColorConverter}}"
                                             Opacity="{Binding UserHasFeaturesOnHub, Converter={StaticResource booleanToIndicatorOpacityConverter}}" />
-                                        <iconPacks:PackIconMaterial 
+                                        <iconPacks:PackIconMaterial
                                             Width="14"
                                             Margin="0,0,6,0"
                                             Padding="0,2,0,0"
@@ -1117,12 +1117,12 @@
                                             ToolTip="User is teammate"
                                             Foreground="{Binding UserIsTeammate, Converter={StaticResource booleanToIndicatorColorConverter}}"
                                             Opacity="{Binding UserIsTeammate, Converter={StaticResource booleanToIndicatorOpacityConverter}}" />
-                                        <TextBlock 
-                                            Margin="2,0,8,0" 
+                                        <TextBlock
+                                            Margin="2,0,8,0"
                                             Text="|"
                                             VerticalAlignment="Center"
                                             Visibility="{Binding HasValidationErrors, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                        <iconPacks:PackIconMaterial 
+                                        <iconPacks:PackIconMaterial
                                             Width="14"
                                             Margin="0,0,6,0"
                                             Padding="0,2,0,0"
@@ -1136,37 +1136,37 @@
                                         <TextBlock Text="link to post" FontStyle="Italic" FontSize="10" Visibility="{Binding PostLink, Converter={StaticResource valueVisibilityConverter}, ConverterParameter=false}" />
                                     </StackPanel>
                                 </StackPanel>
-                                <Button 
-                                    Grid.Column="2" 
-                                    HorizontalAlignment="Right" 
+                                <Button
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Right"
                                     Command="{Binding OpenFeatureInVeroScriptsCommand}"
                                     CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext}"
                                     Margin="0,0,12,0"
                                     Visibility="{Binding IsPickedAndAllowed, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <StackPanel Orientation="Horizontal" Margin="4,0">
-                                        <iconPacks:PackIconMaterial 
+                                        <iconPacks:PackIconMaterial
                                             VerticalAlignment="Center"
                                             Kind="BookEdit"
                                             Margin="0,0,6,0"
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                                        <TextBlock 
+                                        <TextBlock
                                             VerticalAlignment="Center"
                                             Margin="0,0,0,2">Edit scripts</TextBlock>
                                     </StackPanel>
                                 </Button>
-                                <Button 
-                                    Grid.Column="3" 
-                                    HorizontalAlignment="Right" 
+                                <Button
+                                    Grid.Column="3"
+                                    HorizontalAlignment="Right"
                                     Command="{Binding EditPersonalMessageCommand}"
                                     CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListBox}}, Path=DataContext}"
                                     Visibility="{Binding IsPickedAndAllowed, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <StackPanel Orientation="Horizontal" Margin="4,0">
-                                        <iconPacks:PackIconMaterial 
+                                        <iconPacks:PackIconMaterial
                                             VerticalAlignment="Center"
                                             Kind="CommentEdit"
                                             Margin="0,0,6,0"
                                             Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                                        <TextBlock 
+                                        <TextBlock
                                             VerticalAlignment="Center"
                                             Margin="0,0,0,2">Edit personal message</TextBlock>
                                     </StackPanel>
@@ -1179,9 +1179,9 @@
         </Grid>
 
         <!-- SCRIPT VIEW -->
-        <Grid 
+        <Grid
             Visibility="{Binding ScriptViewVisibility}"
-            Grid.Row="1" 
+            Grid.Row="1"
             Margin="16,8,16,8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />                 <!-- Page / Staff level -->
@@ -1198,8 +1198,8 @@
             </Grid.RowDefinitions>
 
             <!-- Page / Staff level -->
-            <Grid 
-                Grid.Row="0" 
+            <Grid
+                Grid.Row="0"
                 Visibility="{Binding ScriptViewModel.CanChangePage, Converter={StaticResource BooleanToVisibilityConverter}}"
                 Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
@@ -1210,15 +1210,15 @@
                 </Grid.ColumnDefinitions>
                 <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                     <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.PageValidation.Error}">
-                        <iconPacks:PackIconModern 
+                        <iconPacks:PackIconModern
                             VerticalAlignment="Center"
                             Kind="Warning"
                             Margin="0,0,6,0"
                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                             Visibility="{Binding ScriptViewModel.PageValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                        <TextBlock 
-                            Text="Page:" 
-                            FontWeight="Bold" 
+                        <TextBlock
+                            Text="Page:"
+                            FontWeight="Bold"
                             VerticalAlignment="Center"
                             Foreground="{Binding ScriptViewModel.PageValidation, Converter={StaticResource validationResultColorConverter}}" />
                     </StackPanel>
@@ -1237,8 +1237,8 @@
             </Grid>
 
             <!-- You / Your first name -->
-            <Grid 
-                Grid.Row="1" 
+            <Grid
+                Grid.Row="1"
                 Visibility="{Binding ScriptViewModel.CanChangePage, Converter={StaticResource BooleanToVisibilityConverter}}"
                 Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
@@ -1249,49 +1249,49 @@
                 </Grid.ColumnDefinitions>
                 <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                     <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.YourNameValidation.Error}">
-                        <iconPacks:PackIconModern 
+                        <iconPacks:PackIconModern
                             VerticalAlignment="Center"
                             Kind="Warning"
                             Margin="0,0,6,0"
                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                             Visibility="{Binding ScriptViewModel.YourNameValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                        <TextBlock 
-                            Text="You:" 
-                            FontWeight="Bold" 
+                        <TextBlock
+                            Text="You:"
+                            FontWeight="Bold"
                             VerticalAlignment="Center"
                             Foreground="{Binding ScriptViewModel.YourNameValidation, Converter={StaticResource validationResultColorConverter}}" />
                     </StackPanel>
                 </Label>
-                <TextBox 
-                    Text="{Binding ScriptViewModel.YourName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                    Grid.Column="1" 
-                    Height="20" 
+                <TextBox
+                    Text="{Binding ScriptViewModel.YourName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    Grid.Column="1"
+                    Height="20"
                     IsEnabled="{Binding ScriptViewModel.CanChangeStaffLevel}" />
                 <Label Grid.Column="2" VerticalAlignment="Center" FontSize="11" Margin="10, 0, 4, 0">
                     <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.YourFirstNameValidation.Error}">
-                        <iconPacks:PackIconModern 
+                        <iconPacks:PackIconModern
                             VerticalAlignment="Center"
                             Kind="Warning"
                             Margin="0,0,6,0"
                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                             Visibility="{Binding ScriptViewModel.YourFirstNameValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                        <TextBlock 
-                            Text="Your first name:" 
-                            FontWeight="Bold" 
+                        <TextBlock
+                            Text="Your first name:"
+                            FontWeight="Bold"
                             VerticalAlignment="Center"
                             Foreground="{Binding ScriptViewModel.YourFirstNameValidation, Converter={StaticResource validationResultColorConverter}}" />
                     </StackPanel>
                 </Label>
-                <TextBox 
-                    Text="{Binding ScriptViewModel.YourFirstName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                    Grid.Column="3" 
-                    Height="20" 
+                <TextBox
+                    Text="{Binding ScriptViewModel.YourFirstName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    Grid.Column="3"
+                    Height="20"
                     IsEnabled="{Binding ScriptViewModel.CanChangeStaffLevel}" />
             </Grid>
 
             <!-- User / Level / Options -->
-            <Grid 
-                Grid.Row="2" 
+            <Grid
+                Grid.Row="2"
                 Margin="0,0,0,8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -1304,80 +1304,80 @@
                 </Grid.ColumnDefinitions>
                 <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                     <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.UserNameValidation.Error}">
-                        <iconPacks:PackIconModern 
+                        <iconPacks:PackIconModern
                             VerticalAlignment="Center"
                             Kind="Warning"
                             Margin="0,0,6,0"
                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                             Visibility="{Binding ScriptViewModel.UserNameValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                        <TextBlock 
-                            Text="User:" 
-                            FontWeight="Bold" 
+                        <TextBlock
+                            Text="User:"
+                            FontWeight="Bold"
                             VerticalAlignment="Center"
                             Foreground="{Binding ScriptViewModel.UserNameValidation, Converter={StaticResource validationResultColorConverter}}" />
                     </StackPanel>
                 </Label>
-                <TextBox 
-                    Text="{Binding ScriptViewModel.UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                    Grid.Column="1" 
-                    VerticalAlignment="Center" 
+                <TextBox
+                    Text="{Binding ScriptViewModel.UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
                     Height="20"
                     IsEnabled="{Binding ScriptViewModel.CanChangePage}" />
                 <Label Grid.Column="2" VerticalAlignment="Center" FontSize="11" Margin="10, 0, 4, 0">
                     <StackPanel Orientation="Horizontal" ToolTip="{Binding ScriptViewModel.MembershipValidation.Error}">
-                        <iconPacks:PackIconModern 
+                        <iconPacks:PackIconModern
                             VerticalAlignment="Center"
                             Kind="Warning"
                             Margin="0,0,6,0"
                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                             Visibility="{Binding ScriptViewModel.MembershipValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                        <TextBlock 
-                            Text="Level:" 
-                            FontWeight="Bold" 
+                        <TextBlock
+                            Text="Level:"
+                            FontWeight="Bold"
                             VerticalAlignment="Center"
                             Foreground="{Binding ScriptViewModel.MembershipValidation, Converter={StaticResource validationResultColorConverter}}" />
                     </StackPanel>
                 </Label>
-                <ComboBox 
-                    ItemsSource="{Binding ScriptViewModel.HubMemberships}" 
-                    SelectedItem="{Binding ScriptViewModel.Membership, Mode=TwoWay}" 
-                    Grid.Column="3" 
-                    VerticalAlignment="Center" 
-                    IsEnabled="{Binding ScriptViewModel.CanChangePage}" />
-                <CheckBox 
-                    Grid.Column="4" 
-                    IsChecked="{Binding ScriptViewModel.FirstForPage}" 
-                    Content="First feature on page" 
-                    FontWeight="Bold" 
-                    FontSize="11" 
-                    Margin="16,0,0,0" 
+                <ComboBox
+                    ItemsSource="{Binding ScriptViewModel.HubMemberships}"
+                    SelectedItem="{Binding ScriptViewModel.Membership, Mode=TwoWay}"
+                    Grid.Column="3"
                     VerticalAlignment="Center"
                     IsEnabled="{Binding ScriptViewModel.CanChangePage}" />
-                <CheckBox 
-                    Grid.Column="5" 
-                    IsChecked="{Binding ScriptViewModel.RawTag}" 
-                    Content="From RAW tag" 
-                    FontWeight="Bold" 
-                    FontSize="11" 
-                    Margin="16,0,0,0" 
+                <CheckBox
+                    Grid.Column="4"
+                    IsChecked="{Binding ScriptViewModel.FirstForPage}"
+                    Content="First feature on page"
+                    FontWeight="Bold"
+                    FontSize="11"
+                    Margin="16,0,0,0"
+                    VerticalAlignment="Center"
+                    IsEnabled="{Binding ScriptViewModel.CanChangePage}" />
+                <CheckBox
+                    Grid.Column="5"
+                    IsChecked="{Binding ScriptViewModel.RawTag}"
+                    Content="From RAW tag"
+                    FontWeight="Bold"
+                    FontSize="11"
+                    Margin="16,0,0,0"
                     VerticalAlignment="Center"
                     Visibility="{Binding ScriptViewModel.SnapHubVisibility}"
                     IsEnabled="{Binding ScriptViewModel.CanChangePage}" />
-                <CheckBox 
-                    Grid.Column="6" 
-                    IsChecked="{Binding ScriptViewModel.CommunityTag}" 
-                    Content="From community tag" 
-                    FontWeight="Bold" 
-                    FontSize="11" 
-                    Margin="16,0,0,0" 
+                <CheckBox
+                    Grid.Column="6"
+                    IsChecked="{Binding ScriptViewModel.CommunityTag}"
+                    Content="From community tag"
+                    FontWeight="Bold"
+                    FontSize="11"
+                    Margin="16,0,0,0"
                     VerticalAlignment="Center"
                     Visibility="{Binding ScriptViewModel.SnapHubVisibility}"
                     IsEnabled="{Binding ScriptViewModel.CanChangePage}" />
             </Grid>
 
             <!-- Feature script header -->
-            <Grid 
-                Grid.Row="3" 
+            <Grid
+                Grid.Row="3"
                 Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -1386,35 +1386,35 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Label Content="Feature script:" Grid.Column="0" VerticalAlignment="Center" FontWeight="Bold" FontSize="11" />
-                <Button 
-                    Grid.Column="1" 
-                    Content="Copy" 
-                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
-                    VerticalAlignment="Center" 
-                    Margin="8,0,0,0" 
-                    Padding="12,2" 
+                <Button
+                    Grid.Column="1"
+                    Content="Copy"
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                    VerticalAlignment="Center"
+                    Margin="8,0,0,0"
+                    Padding="12,2"
                     Command="{Binding ScriptViewModel.CopyFeatureScriptCommand}" />
-                <Button 
-                    Grid.Column="2" 
-                    Content="Copy (with Placeholders)" 
-                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
-                    Visibility="{Binding ScriptViewModel.FeatureScriptPlaceholderVisibility}" 
-                    VerticalAlignment="Center" 
-                    Margin="8,0,0,0" 
-                    Padding="12,2" 
+                <Button
+                    Grid.Column="2"
+                    Content="Copy (with Placeholders)"
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                    Visibility="{Binding ScriptViewModel.FeatureScriptPlaceholderVisibility}"
+                    VerticalAlignment="Center"
+                    Margin="8,0,0,0"
+                    Padding="12,2"
                     Command="{Binding ScriptViewModel.CopyFeatureScriptWithPlaceholdersCommand}" />
             </Grid>
             <!-- Feature script -->
-            <emoji:RichTextBox 
-                Grid.Row="4" 
-                Text="{Binding ScriptViewModel.FeatureScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                Height="Auto" 
-                Margin="0,0,0,8" 
+            <emoji:RichTextBox
+                Grid.Row="4"
+                Text="{Binding ScriptViewModel.FeatureScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Height="Auto"
+                Margin="0,0,0,8"
                 Foreground="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource validationBooleanColorConverter}}" />
 
             <!-- Comment script header -->
-            <Grid 
-                Grid.Row="5" 
+            <Grid
+                Grid.Row="5"
                 Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -1422,41 +1422,41 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Label 
-                    Grid.Column="0" 
-                    Content="Comment script:" 
-                    VerticalAlignment="Center" 
-                    FontWeight="Bold" 
+                <Label
+                    Grid.Column="0"
+                    Content="Comment script:"
+                    VerticalAlignment="Center"
+                    FontWeight="Bold"
                     FontSize="11" />
-                <Button 
-                    Grid.Column="1" 
-                    Content="Copy" 
-                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
-                    VerticalAlignment="Center" 
-                    Margin="8,0,0,0" 
-                    Padding="12,2" 
+                <Button
+                    Grid.Column="1"
+                    Content="Copy"
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                    VerticalAlignment="Center"
+                    Margin="8,0,0,0"
+                    Padding="12,2"
                     Command="{Binding ScriptViewModel.CopyCommentScriptCommand}" />
-                <Button 
-                    Grid.Column="2" 
-                    Content="Copy (with Placeholders)" 
-                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
-                    Visibility="{Binding ScriptViewModel.CommentScriptPlaceholderVisibility}" 
-                    VerticalAlignment="Center" 
-                    Margin="8,0,0,0" 
-                    Padding="12,2" 
+                <Button
+                    Grid.Column="2"
+                    Content="Copy (with Placeholders)"
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                    Visibility="{Binding ScriptViewModel.CommentScriptPlaceholderVisibility}"
+                    VerticalAlignment="Center"
+                    Margin="8,0,0,0"
+                    Padding="12,2"
                     Command="{Binding ScriptViewModel.CopyCommentScriptWithPlaceholdersCommand}" />
             </Grid>
             <!-- Comment script -->
-            <emoji:RichTextBox 
-                Grid.Row="6" 
-                Text="{Binding ScriptViewModel.CommentScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                Height="Auto" 
-                Margin="0,0,0,8" 
+            <emoji:RichTextBox
+                Grid.Row="6"
+                Text="{Binding ScriptViewModel.CommentScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Height="Auto"
+                Margin="0,0,0,8"
                 Foreground="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource validationBooleanColorConverter}}" />
 
             <!-- Original post script header -->
-            <Grid 
-                Grid.Row="7" 
+            <Grid
+                Grid.Row="7"
                 Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -1464,41 +1464,41 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Label 
-                    Grid.Column="0" 
-                    Content="Original post script:" 
-                    VerticalAlignment="Center" 
-                    FontWeight="Bold" 
+                <Label
+                    Grid.Column="0"
+                    Content="Original post script:"
+                    VerticalAlignment="Center"
+                    FontWeight="Bold"
                     FontSize="11" />
-                <Button 
-                    Grid.Column="1" 
-                    Content="Copy" 
-                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
-                    VerticalAlignment="Center" 
-                    Margin="8,0,0,0" 
-                    Padding="12,2" 
+                <Button
+                    Grid.Column="1"
+                    Content="Copy"
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                    VerticalAlignment="Center"
+                    Margin="8,0,0,0"
+                    Padding="12,2"
                     Command="{Binding ScriptViewModel.CopyOriginalPostScriptCommand }" />
-                <Button 
-                    Grid.Column="2" 
-                    Content="Copy (with Placeholder)" 
-                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}" 
-                    Visibility="{Binding ScriptViewModel.OriginalPostScriptPlaceholderVisibility}" 
-                    VerticalAlignment="Center" 
-                    Margin="8,0,0,0" 
-                    Padding="12,2" 
+                <Button
+                    Grid.Column="2"
+                    Content="Copy (with Placeholder)"
+                    IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                    Visibility="{Binding ScriptViewModel.OriginalPostScriptPlaceholderVisibility}"
+                    VerticalAlignment="Center"
+                    Margin="8,0,0,0"
+                    Padding="12,2"
                     Command="{Binding ScriptViewModel.CopyOriginalPostScriptWithPlaceholdersCommand}" />
             </Grid>
             <!-- Original post script -->
-            <emoji:RichTextBox 
-                Grid.Row="8" 
-                Text="{Binding ScriptViewModel.OriginalPostScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                Height="Auto" 
-                Margin="0,0,0,8" 
+            <emoji:RichTextBox
+                Grid.Row="8"
+                Text="{Binding ScriptViewModel.OriginalPostScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Height="Auto"
+                Margin="0,0,0,8"
                 Foreground="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource validationBooleanColorConverter}}" />
 
             <!-- New membership script header -->
-            <Grid 
-                Grid.Row="9" 
+            <Grid
+                Grid.Row="9"
                 Margin="0,0,0,3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -1506,38 +1506,38 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Label 
-                    Grid.Column="0" 
-                    Content="New membership script:" 
-                    VerticalAlignment="Center" 
-                    FontWeight="Bold" 
+                <Label
+                    Grid.Column="0"
+                    Content="New membership script:"
+                    VerticalAlignment="Center"
+                    FontWeight="Bold"
                     FontSize="11" />
-                <ComboBox 
-                    Grid.Column="1" 
-                    ItemsSource="{Binding ScriptViewModel.HubNewMemberships}" 
-                    SelectedItem="{Binding ScriptViewModel.NewMembership, Mode=TwoWay}" 
+                <ComboBox
+                    Grid.Column="1"
+                    ItemsSource="{Binding ScriptViewModel.HubNewMemberships}"
+                    SelectedItem="{Binding ScriptViewModel.NewMembership, Mode=TwoWay}"
                     Width="230" />
-                <Button 
-                    Grid.Column="2" 
-                    Content="Copy" 
-                    IsEnabled="{Binding ScriptViewModel.CanCopyNewMembershipScript}" 
-                    VerticalAlignment="Center" 
-                    Margin="8,0,0,0" 
-                    Padding="12,2" 
+                <Button
+                    Grid.Column="2"
+                    Content="Copy"
+                    IsEnabled="{Binding ScriptViewModel.CanCopyNewMembershipScript}"
+                    VerticalAlignment="Center"
+                    Margin="8,0,0,0"
+                    Padding="12,2"
                     Command="{Binding ScriptViewModel.CopyNewMembershipScriptCommand}" />
             </Grid>
             <!-- New membership script -->
-            <emoji:RichTextBox 
-                Grid.Row="10" 
-                Text="{Binding ScriptViewModel.NewMembershipScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                Height="Auto" 
+            <emoji:RichTextBox
+                Grid.Row="10"
+                Text="{Binding ScriptViewModel.NewMembershipScript, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Height="Auto"
                 Foreground="{Binding ScriptViewModel.CanCopyNewMembershipScript, Converter={StaticResource validationBooleanColorConverter}}" />
         </Grid>
 
         <!-- STATISTICS VIEW -->
-        <Grid 
+        <Grid
             Visibility="{Binding StatisticsViewVisibility}"
-            Grid.Row="1" 
+            Grid.Row="1"
             Margin="16,8,16,8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -1559,11 +1559,11 @@
                 CornerRadius="8">
                 <StackPanel Orientation="Vertical">
                     <StackPanel Orientation="Horizontal">
-                        <Button 
+                        <Button
                             HorizontalAlignment="Left"
-                            Height="22" 
-                            Padding="4,0,4,0" 
-                            Command="{Binding PickStatisticsFolderCommand}" 
+                            Height="22"
+                            Padding="4,0,4,0"
+                            Command="{Binding PickStatisticsFolderCommand}"
                             MinHeight="22">
                             <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
                                 <iconPacks:PackIconJamIcons
@@ -1572,39 +1572,39 @@
                                     Margin="0,0,6,0"
                                     Height="13"
                                     Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                                <TextBlock 
+                                <TextBlock
                                     Text="Open folder containing your log files..."
-                                    Margin="0,0,0,1" 
-                                    FontSize="11" 
-                                    FontWeight="Bold" 
-                                    Padding="0" 
+                                    Margin="0,0,0,1"
+                                    FontSize="11"
+                                    FontWeight="Bold"
+                                    Padding="0"
                                     VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
-                        <TextBlock 
-                            Text="{Binding StatisticsFolder}" 
-                            FontSize="11" 
-                            FontWeight="Bold" 
-                            Padding="0" 
+                        <TextBlock
+                            Text="{Binding StatisticsFolder}"
+                            FontSize="11"
+                            FontWeight="Bold"
+                            Padding="0"
                             Margin="20,0"
                             VerticalAlignment="Center" />
                     </StackPanel>
-                    <StackPanel 
-                        Orientation="Horizontal" 
-                        Margin="0,8" 
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Margin="0,8"
                         Visibility="{Binding StatisticsPages.Count, Converter={StaticResource countToVisibilityConverter}}">
-                        <Label 
-                            VerticalAlignment="Center" 
-                            FontSize="11" 
+                        <Label
+                            VerticalAlignment="Center"
+                            FontSize="11"
                             Margin="0,0,4,0">
-                            <TextBlock 
-                                Text="Choose a page:" 
-                                FontWeight="Bold" 
+                            <TextBlock
+                                Text="Choose a page:"
+                                FontWeight="Bold"
                                 VerticalAlignment="Center" />
                         </Label>
-                        <ComboBox 
+                        <ComboBox
                             Width="240"
-                            ItemsSource="{Binding StatisticsPages}" 
+                            ItemsSource="{Binding StatisticsPages}"
                             SelectedItem="{Binding SelectedStatisticsPage, Mode=TwoWay}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate DataType="local:MainViewModel:StatisticsPage">
@@ -1637,29 +1637,29 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock
-                        Grid.Row="0" 
+                        Grid.Row="0"
                         HorizontalAlignment="Center"
                         FontSize="28"
                         Text="{Binding PickedFeatureChart.Title}" />
                     <TextBlock
-                        Grid.Row="1" 
+                        Grid.Row="1"
                         HorizontalAlignment="Center"
                         FontSize="14"
                         Text="{Binding PickedFeatureChart.SubTitle}" />
-                    <lvc:PieChart 
+                    <lvc:PieChart
                         Grid.Row="2"
                         Series="{Binding PickedFeatureChart.Data}"
                         StartingRotationAngle="0"
-                        LegendLocation="Right" 
+                        LegendLocation="Right"
                         Margin="12, 15">
                         <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend 
+                            <lvc:DefaultLegend
                                 BulletSize="12"
                                 Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
                                 FontSize="10" />
                         </lvc:PieChart.ChartLegend>
                         <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip 
+                            <lvc:DefaultTooltip
                                 BulletSize="12"
                                 Background="DarkGray"
                                 Foreground="White"
@@ -1682,29 +1682,29 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock
-                        Grid.Row="0" 
+                        Grid.Row="0"
                         HorizontalAlignment="Center"
                         FontSize="28"
                         Text="{Binding FirstFeatureChart.Title}" />
                     <TextBlock
-                        Grid.Row="1" 
+                        Grid.Row="1"
                         HorizontalAlignment="Center"
                         FontSize="14"
                         Text="{Binding FirstFeatureChart.SubTitle}" />
-                    <lvc:PieChart 
+                    <lvc:PieChart
                         Grid.Row="2"
                         Series="{Binding FirstFeatureChart.Data}"
                         StartingRotationAngle="0"
-                        LegendLocation="Right" 
+                        LegendLocation="Right"
                         Margin="12, 15">
                         <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend 
+                            <lvc:DefaultLegend
                                 BulletSize="12"
                                 Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
                                 FontSize="10" />
                         </lvc:PieChart.ChartLegend>
                         <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip 
+                            <lvc:DefaultTooltip
                                 BulletSize="12"
                                 Background="DarkGray"
                                 Foreground="White"
@@ -1727,36 +1727,36 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock
-                        Grid.Row="0" 
+                        Grid.Row="0"
                         HorizontalAlignment="Center"
                         FontSize="20"
                         Text="{Binding UserLevelChart.Title}" />
                     <TextBlock
-                        Grid.Row="1" 
+                        Grid.Row="1"
                         HorizontalAlignment="Center"
                         FontSize="11"
                         Text="{Binding UserLevelChart.SubTitle}" />
-                    <lvc:PieChart 
+                    <lvc:PieChart
                         Grid.Row="2"
                         Series="{Binding UserLevelChart.Data}"
                         StartingRotationAngle="0"
-                        LegendLocation="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}, Converter={StaticResource minHeightToLegendLocationConverter}}" 
+                        LegendLocation="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}, Converter={StaticResource minHeightToLegendLocationConverter}}"
                         Margin="12, 15">
                         <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend 
+                            <lvc:DefaultLegend
                                 BulletSize="12"
                                 Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
                                 FontSize="10" />
                         </lvc:PieChart.ChartLegend>
                         <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip 
+                            <lvc:DefaultTooltip
                                 BulletSize="12"
                                 Background="DarkGray"
                                 Foreground="White"
                                 FontSize="10" />
                         </lvc:PieChart.DataTooltip>
                     </lvc:PieChart>
-                </Grid>                
+                </Grid>
             </Border>
             <Border
                 Grid.Row="2"
@@ -1772,29 +1772,29 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock
-                        Grid.Row="0" 
+                        Grid.Row="0"
                         HorizontalAlignment="Center"
                         FontSize="28"
                         Text="{Binding PhotoFeaturedChart.Title}" />
                     <TextBlock
-                        Grid.Row="1" 
+                        Grid.Row="1"
                         HorizontalAlignment="Center"
                         FontSize="14"
                         Text="{Binding PhotoFeaturedChart.SubTitle}" />
-                    <lvc:PieChart 
+                    <lvc:PieChart
                         Grid.Row="2"
                         Series="{Binding PhotoFeaturedChart.Data}"
                         StartingRotationAngle="0"
-                        LegendLocation="Right" 
+                        LegendLocation="Right"
                         Margin="12, 15">
                         <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend 
+                            <lvc:DefaultLegend
                                 BulletSize="12"
                                 Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
                                 FontSize="10" />
                         </lvc:PieChart.ChartLegend>
                         <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip 
+                            <lvc:DefaultTooltip
                                 BulletSize="12"
                                 Background="DarkGray"
                                 Foreground="White"
@@ -1817,29 +1817,29 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock
-                        Grid.Row="0" 
+                        Grid.Row="0"
                         HorizontalAlignment="Center"
                         FontSize="28"
                         Text="{Binding PageFeatureCountChart.Title}" />
                     <TextBlock
-                        Grid.Row="1" 
+                        Grid.Row="1"
                         HorizontalAlignment="Center"
                         FontSize="14"
                         Text="{Binding PageFeatureCountChart.SubTitle}" />
-                    <lvc:PieChart 
+                    <lvc:PieChart
                         Grid.Row="2"
                         Series="{Binding PageFeatureCountChart.Data}"
                         StartingRotationAngle="0"
-                        LegendLocation="Right" 
+                        LegendLocation="Right"
                         Margin="12, 15">
                         <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend 
+                            <lvc:DefaultLegend
                                 BulletSize="12"
                                 Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
                                 FontSize="10" />
                         </lvc:PieChart.ChartLegend>
                         <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip 
+                            <lvc:DefaultTooltip
                                 BulletSize="12"
                                 Background="DarkGray"
                                 Foreground="White"
@@ -1862,29 +1862,29 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock
-                        Grid.Row="0" 
+                        Grid.Row="0"
                         HorizontalAlignment="Center"
                         FontSize="28"
                         Text="{Binding HubFeatureCountChart.Title}" />
                     <TextBlock
-                        Grid.Row="1" 
+                        Grid.Row="1"
                         HorizontalAlignment="Center"
                         FontSize="14"
                         Text="{Binding HubFeatureCountChart.SubTitle}" />
-                    <lvc:PieChart 
+                    <lvc:PieChart
                         Grid.Row="2"
                         Series="{Binding HubFeatureCountChart.Data}"
                         StartingRotationAngle="0"
-                        LegendLocation="Right" 
+                        LegendLocation="Right"
                         Margin="12, 15">
                         <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend 
+                            <lvc:DefaultLegend
                                 BulletSize="12"
                                 Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
                                 FontSize="10" />
                         </lvc:PieChart.ChartLegend>
                         <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip 
+                            <lvc:DefaultTooltip
                                 BulletSize="12"
                                 Background="DarkGray"
                                 Foreground="White"
@@ -1912,7 +1912,7 @@
                     <RowDefinition Height="Auto" />                 <!-- Logging -->
                 </Grid.RowDefinitions>
                 <!-- Page scope -->
-                <Border 
+                <Border
                     Grid.Row="0"
                     Margin="0,10"
                     Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
@@ -1931,133 +1931,133 @@
                             <ColumnDefinition Width="Auto" />       <!-- Buttons -->
                         </Grid.ColumnDefinitions>
                         <!-- Page name -->
-                        <Label 
-                            Grid.Row="0" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Right"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding PageValidation.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                     Visibility="{Binding PageValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                    Text="Page:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="Page:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding PageValidation, Converter={StaticResource greenValidationResultColorConverter}}" />
                             </StackPanel>
                         </Label>
-                        <Label 
-                            Grid.Row="0" 
+                        <Label
+                            Grid.Row="0"
                             Grid.Column="1"
-                            VerticalAlignment="Center" 
-                            FontSize="11" 
+                            VerticalAlignment="Center"
+                            FontSize="11"
                             Margin="0,0,4,0">
-                            <TextBlock 
-                                Text="{Binding SelectedPage.DisplayName}" 
-                                FontWeight="Bold" 
+                            <TextBlock
+                                Text="{Binding SelectedPage.DisplayName}"
+                                FontWeight="Bold"
                                 VerticalAlignment="Center" />
                         </Label>
                         <!-- Page tags -->
-                        <Label 
-                            Grid.Row="1" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Right"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock 
-                                    Text="Page tags:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="Page tags:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="Lime" />
                             </StackPanel>
                         </Label>
-                        <Label 
-                            Grid.Row="1" 
+                        <Label
+                            Grid.Row="1"
                             Grid.Column="1"
-                            VerticalAlignment="Center" 
-                            FontSize="11" 
+                            VerticalAlignment="Center"
+                            FontSize="11"
                             Margin="0,0,4,0">
-                            <TextBlock 
-                                    Text="{Binding SelectedPage.PageTags, Converter={StaticResource stringJoinConverter}}" 
-                                    FontWeight="Bold" 
+                            <TextBlock
+                                    Text="{Binding SelectedPage.PageTags, Converter={StaticResource stringJoinConverter}}"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center" />
                         </Label>
                         <!-- Excluded tags -->
-                        <Label 
-                            Grid.Row="2" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Right"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock 
-                                    Text="Excluded tags:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="Excluded tags:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="Lime" />
                             </StackPanel>
                         </Label>
-                        <TextBox 
+                        <TextBox
                             Grid.Row="2"
                             Grid.Column="1"
-                            Text="{Binding ExcludedTags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                            VerticalAlignment="Center" 
+                            Text="{Binding ExcludedTags, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            VerticalAlignment="Center"
                             HorizontalAlignment="Left"
                             FontSize="11"
                             FontWeight="Bold"
                             Width="480" />
                         <!-- Post URL -->
-                        <Label 
-                            Grid.Row="3" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="3"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Right"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.PostLinkValidation.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                     Visibility="{Binding SelectedFeature.PostLinkValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                    Text="Page:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="Page:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding SelectedFeature.PostLinkValidation, Converter={StaticResource greenValidationResultColorConverter}}" />
                             </StackPanel>
                         </Label>
-                        <Label 
-                            Grid.Row="3" 
+                        <Label
+                            Grid.Row="3"
                             Grid.Column="1"
-                            VerticalAlignment="Center" 
-                            FontSize="11" 
+                            VerticalAlignment="Center"
+                            FontSize="11"
                             Margin="0,0,4,0">
-                            <TextBlock 
-                                Text="{Binding SelectedFeature.PostLink}" 
-                                FontWeight="Bold" 
+                            <TextBlock
+                                Text="{Binding SelectedFeature.PostLink}"
+                                FontWeight="Bold"
                                 VerticalAlignment="Center" />
                         </Label>
-                        <StackPanel 
+                        <StackPanel
                             Grid.Row="3"
                             Grid.Column="2"
                             Orientation="Horizontal" HorizontalAlignment="Right"
                             Height="22"
                             Margin="0,0,12,0">
-                            <Button 
-                                Height="22" 
-                                Padding="4,0,4,0" 
-                                Command="{Binding LoadedPost.CopyPostUrlCommand}" 
+                            <Button
+                                Height="22"
+                                Padding="4,0,4,0"
+                                Command="{Binding LoadedPost.CopyPostUrlCommand}"
                                 MinHeight="22">
                                 <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
                                     <iconPacks:PackIconFeatherIcons
@@ -2069,11 +2069,11 @@
                                     <TextBlock Margin="0,0,0,1" FontSize="11" FontWeight="Bold" Padding="0" VerticalAlignment="Center">Copy URL</TextBlock>
                                 </StackPanel>
                             </Button>
-                            <Button 
-                                Height="22" 
-                                Padding="4,0,4,0" 
-                                Margin="10,0,0,0" 
-                                Command="{Binding LoadedPost.LaunchPostUrlCommand}" 
+                            <Button
+                                Height="22"
+                                Padding="4,0,4,0"
+                                Margin="10,0,0,0"
+                                Command="{Binding LoadedPost.LaunchPostUrlCommand}"
                                 MinHeight="22">
                                 <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
                                     <iconPacks:PackIconFeatherIcons
@@ -2087,48 +2087,48 @@
                             </Button>
                         </StackPanel>
                         <!-- User profile URL -->
-                        <Label 
-                            Grid.Row="4" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Right"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding LoadedPost.UserProfileUrlValidation.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                     Visibility="{Binding LoadedPost.UserProfileUrlValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                    Text="User profile URL:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="User profile URL:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding LoadedPost.UserProfileUrlValidation, Converter={StaticResource greenValidationResultColorConverter}}" />
                             </StackPanel>
                         </Label>
-                        <Label 
-                            Grid.Row="4" 
+                        <Label
+                            Grid.Row="4"
                             Grid.Column="1"
-                            VerticalAlignment="Center" 
-                            FontSize="11" 
+                            VerticalAlignment="Center"
+                            FontSize="11"
                             Margin="0,0,4,0">
-                            <TextBlock 
-                                Text="{Binding LoadedPost.UserProfileUrl}" 
-                                FontWeight="Bold" 
+                            <TextBlock
+                                Text="{Binding LoadedPost.UserProfileUrl}"
+                                FontWeight="Bold"
                                 VerticalAlignment="Center" />
                         </Label>
-                        <StackPanel 
+                        <StackPanel
                             Grid.Row="4"
                             Grid.Column="2"
                             Orientation="Horizontal" HorizontalAlignment="Right"
                             Height="22"
                             Margin="0,0,12,6">
-                            <Button 
-                                Height="22" 
-                                Padding="4,0,4,0" 
-                                Command="{Binding LoadedPost.CopyUserProfileUrlCommand}" 
+                            <Button
+                                Height="22"
+                                Padding="4,0,4,0"
+                                Command="{Binding LoadedPost.CopyUserProfileUrlCommand}"
                                 MinHeight="22">
                                 <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
                                     <iconPacks:PackIconFeatherIcons
@@ -2140,11 +2140,11 @@
                                     <TextBlock Margin="0,0,0,1" FontSize="11" FontWeight="Bold" Padding="0" VerticalAlignment="Center">Copy URL</TextBlock>
                                 </StackPanel>
                             </Button>
-                            <Button 
-                                Height="22" 
-                                Padding="4,0,4,0" 
-                                Margin="10,0,0,0" 
-                                Command="{Binding LoadedPost.LaunchUserProfileUrlCommand}" 
+                            <Button
+                                Height="22"
+                                Padding="4,0,4,0"
+                                Margin="10,0,0,0"
+                                Command="{Binding LoadedPost.LaunchUserProfileUrlCommand}"
                                 MinHeight="22">
                                 <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
                                     <iconPacks:PackIconFeatherIcons
@@ -2160,7 +2160,7 @@
                     </Grid>
                 </Border>
                 <!-- User name and bio -->
-                <Border 
+                <Border
                     Grid.Row="1"
                     Margin="0,10"
                     Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
@@ -2178,73 +2178,73 @@
                             <ColumnDefinition Width="Auto" />       <!-- Buttons -->
                         </Grid.ColumnDefinitions>
                         <!-- User alias -->
-                        <Label 
-                            Grid.Row="0" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Right"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding LoadedPost.UserAliasValidation.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                     Visibility="{Binding LoadedPost.UserAliasValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                    Text="User alias:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="User alias:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding LoadedPost.UserAliasValidation, Converter={StaticResource greenValidationResultColorConverter}}" />
                             </StackPanel>
                         </Label>
-                        <Label 
-                            Grid.Row="0" 
+                        <Label
+                            Grid.Row="0"
                             Grid.Column="1"
-                            VerticalAlignment="Center" 
-                            FontSize="11" 
+                            VerticalAlignment="Center"
+                            FontSize="11"
                             Margin="0,0,4,0">
-                            <TextBlock 
-                                Text="{Binding LoadedPost.UserAlias}" 
-                                FontWeight="Bold" 
+                            <TextBlock
+                                Text="{Binding LoadedPost.UserAlias}"
+                                FontWeight="Bold"
                                 VerticalAlignment="Center" />
                         </Label>
-                        <StackPanel 
+                        <StackPanel
                             Grid.Row="0"
                             Grid.RowSpan="1"
                             Grid.Column="2"
-                            Orientation="Horizontal" 
+                            Orientation="Horizontal"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
                             Height="26"
                             Margin="0,4,12,0">
                             <Label VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0" Height="26">
                                 <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.UserAliasValidation.Error}">
-                                    <iconPacks:PackIconModern 
+                                    <iconPacks:PackIconModern
                                         VerticalAlignment="Center"
                                         Kind="Warning"
                                         Margin="0,0,6,0"
                                         Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                         Visibility="{Binding SelectedFeature.UserAliasValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                    <TextBlock 
-                                        Text="User alias:" 
-                                        FontWeight="Bold" 
+                                    <TextBlock
+                                        Text="User alias:"
+                                        FontWeight="Bold"
                                         VerticalAlignment="Center"
                                         Foreground="{Binding SelectedFeature.UserAliasValidation, Converter={StaticResource validationResultColorConverter}}" />
                                 </StackPanel>
                             </Label>
-                            <TextBox 
-                                Text="{Binding SelectedFeature.UserAlias, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                VerticalAlignment="Center" 
+                            <TextBox
+                                Text="{Binding SelectedFeature.UserAlias, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                VerticalAlignment="Center"
                                 FontSize="11"
                                 FontWeight="Bold"
                                 Width="200" />
-                            <Button 
-                                Height="22" 
-                                Padding="4,0,4,0" 
-                                Margin="8,0,0,0" 
-                                Command="{Binding LoadedPost.TransferUserAliasCommand}" 
+                            <Button
+                                Height="22"
+                                Padding="4,0,4,0"
+                                Margin="8,0,0,0"
+                                Command="{Binding LoadedPost.TransferUserAliasCommand}"
                                 MinHeight="22">
                                 <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
                                     <iconPacks:PackIconFeatherIcons
@@ -2258,73 +2258,73 @@
                             </Button>
                         </StackPanel>
                         <!-- User name -->
-                        <Label 
-                            Grid.Row="1" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Right"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding LoadedPost.UserNameValidation.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                     Visibility="{Binding LoadedPost.UserNameValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                    Text="User name:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="User name:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding LoadedPost.UserNameValidation, Converter={StaticResource greenValidationResultColorConverter}}" />
                             </StackPanel>
                         </Label>
-                        <Label 
-                            Grid.Row="1" 
+                        <Label
+                            Grid.Row="1"
                             Grid.Column="1"
-                            VerticalAlignment="Center" 
-                            FontSize="11" 
+                            VerticalAlignment="Center"
+                            FontSize="11"
                             Margin="0,0,4,0">
-                            <TextBlock 
-                                Text="{Binding LoadedPost.UserName}" 
-                                FontWeight="Bold" 
+                            <TextBlock
+                                Text="{Binding LoadedPost.UserName}"
+                                FontWeight="Bold"
                                 VerticalAlignment="Center" />
                         </Label>
-                        <StackPanel 
+                        <StackPanel
                             Grid.Row="1"
                             Grid.RowSpan="1"
                             Grid.Column="2"
-                            Orientation="Horizontal" 
+                            Orientation="Horizontal"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
                             Height="26"
                             Margin="0,4,12,0">
                             <Label VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0" Height="26">
                                 <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.UserNameValidation.Error}">
-                                    <iconPacks:PackIconModern 
+                                    <iconPacks:PackIconModern
                                         VerticalAlignment="Center"
                                         Kind="Warning"
                                         Margin="0,0,6,0"
                                         Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                         Visibility="{Binding SelectedFeature.UserNameValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                    <TextBlock 
-                                        Text="User name:" 
-                                        FontWeight="Bold" 
+                                    <TextBlock
+                                        Text="User name:"
+                                        FontWeight="Bold"
                                         VerticalAlignment="Center"
                                         Foreground="{Binding SelectedFeature.UserNameValidation, Converter={StaticResource validationResultColorConverter}}" />
                                 </StackPanel>
                             </Label>
-                            <TextBox 
-                                Text="{Binding SelectedFeature.UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                VerticalAlignment="Center" 
+                            <TextBox
+                                Text="{Binding SelectedFeature.UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                VerticalAlignment="Center"
                                 FontSize="11"
                                 FontWeight="Bold"
                                 Width="200" />
-                            <Button 
-                                Height="22" 
-                                Padding="4,0,4,0" 
-                                Margin="8,0,0,0" 
-                                Command="{Binding LoadedPost.TransferUserNameCommand}" 
+                            <Button
+                                Height="22"
+                                Padding="4,0,4,0"
+                                Margin="8,0,0,0"
+                                Command="{Binding LoadedPost.TransferUserNameCommand}"
                                 MinHeight="22">
                                 <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
                                     <iconPacks:PackIconFeatherIcons
@@ -2338,63 +2338,63 @@
                             </Button>
                         </StackPanel>
                         <!-- User bio -->
-                        <Label 
-                            Grid.Row="2" 
-                            Grid.Column="0" 
+                        <Label
+                            Grid.Row="2"
+                            Grid.Column="0"
                             Grid.ColumnSpan="2"
-                            VerticalAlignment="Bottom" 
+                            VerticalAlignment="Bottom"
                             HorizontalContentAlignment="Left"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
-                            <TextBlock 
-                                Text="User BIO:" 
-                                FontWeight="Bold" 
+                            <TextBlock
+                                Text="User BIO:"
+                                FontWeight="Bold"
                                 VerticalAlignment="Top"
                                 Foreground="Lime" />
                         </Label>
-                        <StackPanel 
+                        <StackPanel
                             Grid.Row="2"
                             Grid.RowSpan="2"
                             Grid.Column="2"
-                            Orientation="Vertical" 
+                            Orientation="Vertical"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
                             Margin="0,4,12,0">
-                            <StackPanel 
+                            <StackPanel
                                 Orientation="Horizontal"
                                 Height="26">
                                 <Label VerticalAlignment="Center" FontSize="11" Margin="10, 0, 4, 0">
                                     <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.UserLevelValidation.Error}">
-                                        <iconPacks:PackIconModern 
+                                        <iconPacks:PackIconModern
                                             VerticalAlignment="Center"
                                             Kind="Warning"
                                             Margin="0,0,6,0"
                                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                             Visibility="{Binding SelectedFeature.UserLevelValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                        <TextBlock 
-                                            Text="User level:" 
-                                            FontWeight="Bold" 
+                                        <TextBlock
+                                            Text="User level:"
+                                            FontWeight="Bold"
                                             VerticalAlignment="Center"
                                             Foreground="{Binding SelectedFeature.UserLevelValidation, Converter={StaticResource validationResultColorConverter}}" />
                                     </StackPanel>
                                 </Label>
-                                <ComboBox 
-                                    ItemsSource="{Binding Memberships}" 
-                                    SelectedItem="{Binding SelectedFeature.UserLevel, Mode=TwoWay}" 
-                                    VerticalAlignment="Center" 
+                                <ComboBox
+                                    ItemsSource="{Binding Memberships}"
+                                    SelectedItem="{Binding SelectedFeature.UserLevel, Mode=TwoWay}"
+                                    VerticalAlignment="Center"
                                     FontSize="11"
                                     FontWeight="Bold"
                                     Width="160" />
                             </StackPanel>
-                            <mah:ToggleSwitch 
+                            <mah:ToggleSwitch
                                 HorizontalAlignment="Right"
-                                Margin="16,0,0,0" 
-                                IsOn="{Binding SelectedFeature.UserIsTeammate, Mode=TwoWay}" 
-                                VerticalAlignment="Center" 
+                                Margin="16,0,0,0"
+                                IsOn="{Binding SelectedFeature.UserIsTeammate, Mode=TwoWay}"
+                                VerticalAlignment="Center"
                                 MinWidth="0"
                                 FontSize="12"
                                 FontWeight="Bold">
-                                <TextBlock 
+                                <TextBlock
                                     Text="Teammate"
                                     Padding="0,0,0,2"
                                     VerticalAlignment="Center" />
@@ -2402,7 +2402,7 @@
                         </StackPanel>
                         <ScrollViewer
                             Grid.Row="3"
-                            Grid.Column="0" 
+                            Grid.Column="0"
                             Grid.ColumnSpan="2"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
@@ -2411,8 +2411,8 @@
                             Width="800"
                             MaxHeight="80"
                             Padding="0,0,0,10">
-                            <emoji:RichTextBox 
-                                Text="{Binding LoadedPost.UserBio, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                            <emoji:RichTextBox
+                                Text="{Binding LoadedPost.UserBio, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 HorizontalAlignment="Left"
                                 IsReadOnly="True"
                                 MaxWidth="580"
@@ -2426,7 +2426,7 @@
                     </Grid>
                 </Border>
                 <!-- Tag checks and description -->
-                <Border 
+                <Border
                     Grid.Row="2"
                     Margin="0,10"
                     Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
@@ -2444,78 +2444,78 @@
                             <ColumnDefinition Width="Auto" />       <!-- Buttons -->
                         </Grid.ColumnDefinitions>
                         <!-- Page tag check -->
-                        <Label 
-                            Grid.Row="0" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Left"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding LoadedPost.PageHashtagCheck.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                     Visibility="{Binding LoadedPost.PageHashtagCheck, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                    Text="{Binding LoadedPost.PageHashtagCheck.Message}" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="{Binding LoadedPost.PageHashtagCheck.Message}"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding LoadedPost.PageHashtagCheck, Converter={StaticResource greenValidationResultColorConverter}}" />
-                                <TextBlock 
-                                    Text="{Binding LoadedPost.PageHashtagCheck.Error}" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="{Binding LoadedPost.PageHashtagCheck.Error}"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding LoadedPost.PageHashtagCheck, Converter={StaticResource validationResultColorConverter}}" />
                             </StackPanel>
                         </Label>
                         <!-- Excluded tags check -->
-                        <Label 
-                            Grid.Row="1" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Left"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal" ToolTip="{Binding LoadedPost.ExcludedHashtagCheck.Error}">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                     Visibility="{Binding LoadedPost.ExcludedHashtagCheck, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                <TextBlock 
-                                    Text="{Binding LoadedPost.ExcludedHashtagCheck.Message}" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="{Binding LoadedPost.ExcludedHashtagCheck.Message}"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding LoadedPost.ExcludedHashtagCheck, Converter={StaticResource greenValidationResultColorConverter}}" />
-                                <TextBlock 
-                                    Text="{Binding LoadedPost.ExcludedHashtagCheck.Error}" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="{Binding LoadedPost.ExcludedHashtagCheck.Error}"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="{Binding LoadedPost.ExcludedHashtagCheck, Converter={StaticResource validationResultColorConverter}}" />
                             </StackPanel>
                         </Label>
                         <!-- Description -->
-                        <Label 
-                            Grid.Row="2" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Left"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock 
-                                    Text="Description:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="Description:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="Lime" />
                             </StackPanel>
                         </Label>
                         <ScrollViewer
-                            Grid.Row="3" 
-                            Grid.Column="0" 
+                            Grid.Row="3"
+                            Grid.Column="0"
                             Grid.ColumnSpan="2"
                             HorizontalAlignment="Left"
                             CanContentScroll="True"
@@ -2523,8 +2523,8 @@
                             Width="800"
                             MaxHeight="172"
                             Padding="0,0,0,10">
-                            <emoji:RichTextBox 
-                                Text="{Binding LoadedPost.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                            <emoji:RichTextBox
+                                Text="{Binding LoadedPost.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 IsReadOnly="True"
                                 MaxWidth="960"
                                 BorderBrush="Transparent"
@@ -2533,25 +2533,25 @@
                                 FontSize="14"
                                 Margin="12,0,0,8" />
                         </ScrollViewer>
-                        <StackPanel 
+                        <StackPanel
                             Grid.Row="2"
                             Grid.Column="1"
-                            Orientation="Horizontal" 
+                            Orientation="Horizontal"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
                             Height="26"
                             Margin="0,4,12,0">
                             <Label VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock 
-                                        Text="Description:" 
-                                        FontWeight="Bold" 
+                                    <TextBlock
+                                        Text="Description:"
+                                        FontWeight="Bold"
                                         VerticalAlignment="Center" />
                                 </StackPanel>
                             </Label>
-                            <TextBox 
-                                Text="{Binding SelectedFeature.FeatureDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                VerticalAlignment="Center" 
+                            <TextBox
+                                Text="{Binding SelectedFeature.FeatureDescription, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                VerticalAlignment="Center"
                                 FontSize="11"
                                 FontWeight="Bold"
                                 Width="280" />
@@ -2559,7 +2559,7 @@
                     </Grid>
                 </Border>
                 <!-- Page and hub comments -->
-                <Border 
+                <Border
                     Grid.Row="3"
                     Margin="0,10"
                     Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
@@ -2578,30 +2578,30 @@
                             <ColumnDefinition Width="Auto" />       <!-- Buttons -->
                         </Grid.ColumnDefinitions>
                         <!-- Page comments -->
-                        <Label 
-                            Grid.Row="0" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Top" 
+                        <Label
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            VerticalAlignment="Top"
                             HorizontalContentAlignment="Left"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0"
                             Visibility="{Binding LoadedPost.PageCommentsValidation, Converter={StaticResource validationResultVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="Red" />
-                                <TextBlock 
-                                    Text="{Binding LoadedPost.PageCommentsValidation.Error}" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="{Binding LoadedPost.PageCommentsValidation.Error}"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="Red" />
                             </StackPanel>
                         </Label>
                         <ScrollViewer
-                            Grid.Row="1" 
-                            Grid.Column="0" 
+                            Grid.Row="1"
+                            Grid.Column="0"
                             HorizontalAlignment="Left"
                             CanContentScroll="True"
                             VerticalScrollBarVisibility="Auto"
@@ -2625,12 +2625,12 @@
                                             <StackPanel Orientation="Vertical" VerticalAlignment="Top" Width="420">
                                                 <emoji:TextBlock Text="{Binding Path=Comment}" TextWrapping="Wrap" Height="Auto" />
                                             </StackPanel>
-                                            <Button 
-                                                VerticalAlignment="Top" 
-                                                Height="22" 
-                                                Padding="4,0,4,0" 
+                                            <Button
+                                                VerticalAlignment="Top"
+                                                Height="22"
+                                                Padding="4,0,4,0"
                                                 Margin="12,4,0,0"
-                                                Command="{Binding MarkFeatureCommand}" 
+                                                Command="{Binding MarkFeatureCommand}"
                                                 MinHeight="22">
                                                 <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
                                                     <iconPacks:PackIconFeatherIcons
@@ -2647,54 +2647,54 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </ScrollViewer>
-                        <StackPanel 
+                        <StackPanel
                             Grid.Row="0"
                             Grid.RowSpan="2"
                             Grid.Column="1"
-                            Orientation="Vertical" 
+                            Orientation="Vertical"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
                             Margin="0,4,12,0"
                             Visibility="{Binding LoadedPost.PageCommentsValidation, Converter={StaticResource validationResultVisibilityConverter}}">
-                            <mah:ToggleSwitch 
-                                Margin="16,0,0,0" 
-                                IsOn="{Binding SelectedFeature.PhotoFeaturedOnPage, Mode=TwoWay}" 
+                            <mah:ToggleSwitch
+                                Margin="16,0,0,0"
+                                IsOn="{Binding SelectedFeature.PhotoFeaturedOnPage, Mode=TwoWay}"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 MinWidth="0"
                                 FontSize="12"
                                 FontWeight="Bold">
-                                <TextBlock 
+                                <TextBlock
                                     Text="Photo featured on page"
                                     Padding="0,0,0,2"
                                     VerticalAlignment="Center" />
                             </mah:ToggleSwitch>
                         </StackPanel>
                         <!-- Hub comments -->
-                        <Label 
-                            Grid.Row="2" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Left"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0"
                             Visibility="{Binding LoadedPost.HubCommentsValidation, Converter={StaticResource validationResultVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="Orange" />
-                                <TextBlock 
-                                    Text="{Binding LoadedPost.HubCommentsValidation.Error}" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="{Binding LoadedPost.HubCommentsValidation.Error}"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="Orange" />
                             </StackPanel>
                         </Label>
                         <ScrollViewer
-                            Grid.Row="3" 
-                            Grid.Column="0" 
+                            Grid.Row="3"
+                            Grid.Column="0"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
                             CanContentScroll="True"
@@ -2719,12 +2719,12 @@
                                             <StackPanel Orientation="Vertical" VerticalAlignment="Top" Width="420">
                                                 <emoji:TextBlock Text="{Binding Path=Comment}" TextWrapping="Wrap" Height="Auto" />
                                             </StackPanel>
-                                            <Button 
-                                                VerticalAlignment="Top" 
-                                                Height="22" 
-                                                Padding="4,0,4,0" 
+                                            <Button
+                                                VerticalAlignment="Top"
+                                                Height="22"
+                                                Padding="4,0,4,0"
                                                 Margin="12,4,0,0"
-                                                Command="{Binding MarkFeatureCommand}" 
+                                                Command="{Binding MarkFeatureCommand}"
                                                 MinHeight="22">
                                                 <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
                                                     <iconPacks:PackIconFeatherIcons
@@ -2741,100 +2741,100 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </ScrollViewer>
-                        <StackPanel 
+                        <StackPanel
                             Grid.Row="2"
                             Grid.RowSpan="2"
                             Grid.Column="1"
-                            Orientation="Vertical" 
+                            Orientation="Vertical"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
                             Margin="0,4,12,0"
                             Visibility="{Binding LoadedPost.HubCommentsValidation, Converter={StaticResource validationResultVisibilityConverter}}">
-                            <mah:ToggleSwitch 
-                                Margin="16,0,0,0" 
-                                IsOn="{Binding SelectedFeature.PhotoFeaturedOnHub, Mode=TwoWay}" 
+                            <mah:ToggleSwitch
+                                Margin="16,0,0,0"
+                                IsOn="{Binding SelectedFeature.PhotoFeaturedOnHub, Mode=TwoWay}"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 MinWidth="0"
                                 FontSize="12"
                                 FontWeight="Bold">
-                                <TextBlock 
+                                <TextBlock
                                     Text="Photo featured on hub"
                                     Padding="0,0,0,2"
                                     VerticalAlignment="Center" />
                             </mah:ToggleSwitch>
-                            <StackPanel 
+                            <StackPanel
                                 Orientation="Horizontal"
                                 HorizontalAlignment="Right">
-                                <Label 
-                                    VerticalAlignment="Center" 
-                                    FontSize="11" 
+                                <Label
+                                    VerticalAlignment="Center"
+                                    FontSize="11"
                                     Margin="10,0,4,0"
                                     Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.PhotoLastFeaturedOnHubValidation.Error}">
-                                        <iconPacks:PackIconModern 
+                                        <iconPacks:PackIconModern
                                             VerticalAlignment="Center"
                                             Kind="Warning"
                                             Margin="0,0,6,0"
                                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                             Visibility="{Binding SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                        <TextBlock 
-                                            Text="Last date featured:" 
-                                            FontWeight="Bold" 
+                                        <TextBlock
+                                            Text="Last date featured:"
+                                            FontWeight="Bold"
                                             VerticalAlignment="Center"
                                             Foreground="{Binding SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource validationResultColorConverter}}" />
                                     </StackPanel>
                                 </Label>
-                                <TextBox 
-                                    Text="{Binding SelectedFeature.PhotoLastFeaturedOnHub, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                <TextBox
+                                    Text="{Binding SelectedFeature.PhotoLastFeaturedOnHub, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    VerticalAlignment="Center" 
+                                    VerticalAlignment="Center"
                                     Width="100"
                                     Height="20" />
-                                <Label 
-                                    VerticalAlignment="Center" 
-                                    FontSize="11" Margin="10,0,4,0" 
+                                <Label
+                                    VerticalAlignment="Center"
+                                    FontSize="11" Margin="10,0,4,0"
                                     Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.PhotoLastFeaturedPageValidation.Error}">
-                                        <iconPacks:PackIconModern 
+                                        <iconPacks:PackIconModern
                                             VerticalAlignment="Center"
                                             Kind="Warning"
                                             Margin="0,0,6,0"
                                             Foreground="{DynamicResource MahApps.Brushes.Control.Validation}"
                                             Visibility="{Binding SelectedFeature.PhotoLastFeaturedPageValidation, Converter={StaticResource validationResultVisibilityConverter}}" />
-                                        <TextBlock 
-                                            Text="on page:" 
-                                            FontWeight="Bold" 
+                                        <TextBlock
+                                            Text="on page:"
+                                            FontWeight="Bold"
                                             VerticalAlignment="Center"
                                             Foreground="{Binding SelectedFeature.PhotoLastFeaturedPageValidation, Converter={StaticResource validationResultColorConverter}}" />
                                     </StackPanel>
                                 </Label>
-                                <TextBox 
-                                    Text="{Binding SelectedFeature.PhotoLastFeaturedPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                <TextBox
+                                    Text="{Binding SelectedFeature.PhotoLastFeaturedPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     Visibility="{Binding SelectedFeature.PhotoFeaturedOnHub, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    VerticalAlignment="Center" 
+                                    VerticalAlignment="Center"
                                     Width="120"
                                     Height="20" />
                             </StackPanel>
                         </StackPanel>
                         <!-- More comments -->
-                        <Label 
-                            Grid.Row="4" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Center" 
+                        <Label
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
                             HorizontalContentAlignment="Left"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,8"
                             Visibility="{Binding LoadedPost.MoreComments, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal">
-                                <iconPacks:PackIconModern 
+                                <iconPacks:PackIconModern
                                     VerticalAlignment="Center"
                                     Kind="Warning"
                                     Margin="0,0,6,0"
                                     Foreground="Orange" />
-                                <TextBlock 
-                                    Text="Not all comments found in post, check VERO app to see all comments" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="Not all comments found in post, check VERO app to see all comments"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="Orange" />
                             </StackPanel>
@@ -2842,7 +2842,7 @@
                     </Grid>
                 </Border>
                 <!-- Images -->
-                <Border 
+                <Border
                     Grid.Row="4"
                     Margin="0,10"
                     Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
@@ -2853,26 +2853,26 @@
                             <RowDefinition Height="Auto" />         <!-- Images label -->
                             <RowDefinition Height="Auto" />         <!-- Images -->
                         </Grid.RowDefinitions>
-                        <Label 
-                            Grid.Row="0" 
-                            VerticalAlignment="Top" 
+                        <Label
+                            Grid.Row="0"
+                            VerticalAlignment="Top"
                             HorizontalContentAlignment="Left"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,2,4,0">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock 
-                                    Text="Found " 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="Found "
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="Lime" />
                                 <TextBlock
                                     Text="{Binding LoadedPost.ImageUrls.Count}"
-                                    FontWeight="Bold" 
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="Lime" />
-                                <TextBlock 
-                                    Text=" Image(s) in Post" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text=" Image(s) in Post"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="Lime" />
                             </StackPanel>
@@ -2914,7 +2914,7 @@
                                                     RenderOptions.BitmapScalingMode="HighQuality"
                                                     Source="{Binding Source}">
                                                 </Image>
-                                                <StackPanel 
+                                                <StackPanel
                                                     Grid.Row="1"
                                                     Orientation="Horizontal"
                                                     HorizontalAlignment="Center"
@@ -2926,7 +2926,7 @@
                                                     <TextBlock
                                                         Text="{Binding Height}" />
                                                 </StackPanel>
-                                                <StackPanel 
+                                                <StackPanel
                                                     Grid.Row="2"
                                                     Orientation="Horizontal"
                                                     HorizontalAlignment="Center">
@@ -2984,7 +2984,7 @@
                     </Grid>
                 </Border>
                 <!-- Logging -->
-                <Border 
+                <Border
                     Grid.Row="5"
                     Margin="0,10"
                     Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
@@ -2999,22 +2999,22 @@
                             <ColumnDefinition Width="Auto" />       <!-- Buttons -->
                         </Grid.ColumnDefinitions>
                         <!-- Logging label -->
-                        <Label 
-                            Grid.Row="0" 
-                            Grid.Column="0" 
-                            VerticalAlignment="Top" 
+                        <Label
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            VerticalAlignment="Top"
                             HorizontalContentAlignment="Left"
-                            FontSize="11" 
+                            FontSize="11"
                             Margin="0,0,4,0">
-                            <TextBlock 
-                                Text="LOGGING:" 
-                                FontWeight="Bold" 
+                            <TextBlock
+                                Text="LOGGING:"
+                                FontWeight="Bold"
                                 VerticalAlignment="Center"
                                 Foreground="Orange" />
                         </Label>
                         <ItemsControl
-                            Grid.Row="1" 
-                            Grid.Column="0" 
+                            Grid.Row="1"
+                            Grid.Column="0"
                             HorizontalAlignment="Left"
                             Width="800"
                             Padding="0,0,0,10"
@@ -3033,26 +3033,26 @@
                                             Text="{Binding Messsage}"
                                             Foreground="{Binding Color, Converter={StaticResource nullableColorToBrushConverter}}"
                                             Background="Transparent"
-                                            FontWeight="Bold" 
+                                            FontWeight="Bold"
                                             MaxWidth="780"
                                             TextWrapping="Wrap" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <StackPanel 
+                        <StackPanel
                             Grid.Row="0"
                             Grid.RowSpan="2"
                             Grid.Column="1"
-                            Orientation="Horizontal" 
+                            Orientation="Horizontal"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Top"
                             Height="22"
                             Margin="0,12,12,6">
-                            <Button 
-                                Height="22" 
-                                Padding="4,0,4,0" 
-                                Command="{Binding LoadedPost.CopyLogCommand}" 
+                            <Button
+                                Height="22"
+                                Padding="4,0,4,0"
+                                Command="{Binding LoadedPost.CopyLogCommand}"
                                 MinHeight="22">
                                 <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
                                     <iconPacks:PackIconFeatherIcons
@@ -3073,55 +3073,55 @@
         <!-- IMAGE VALIDATION VIEW -->
         <Grid
             Visibility="{Binding ImageValidationViewVisibility}"
-            Grid.Row="1" 
+            Grid.Row="1"
             Margin="16,8,16,8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />         <!-- Validation -->
                 <RowDefinition Height="*" />            <!-- TinEye / HIVE results tab -->
             </Grid.RowDefinitions>
             <!-- Validation -->
-            <Border 
+            <Border
                 Grid.Row="0"
                 Margin="0,10"
                 Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
                 CornerRadius="8">
                 <StackPanel Orientation="Horizontal" Margin="4,12">
-                    <Label 
-                        VerticalAlignment="Center" 
-                        FontSize="11" 
+                    <Label
+                        VerticalAlignment="Center"
+                        FontSize="11"
                         Margin="0, 0, 4, 0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock 
-                                Text="TinEye:" 
-                                FontWeight="Bold" 
+                            <TextBlock
+                                Text="TinEye:"
+                                FontWeight="Bold"
                                 VerticalAlignment="Center" />
                         </StackPanel>
                     </Label>
-                    <ComboBox 
+                    <ComboBox
                         ItemsSource="{Binding TinEyeResults}"
-                        SelectedItem="{Binding SelectedFeature.TinEyeResults, Mode=TwoWay}" 
+                        SelectedItem="{Binding SelectedFeature.TinEyeResults, Mode=TwoWay}"
                         Width="160"
                         VerticalAlignment="Center" />
                     <TextBlock Text="|" Margin="20,0,0,4" FontSize="18" VerticalAlignment="Center"  />
-                    <Label 
-                        VerticalAlignment="Center" 
-                        FontSize="11" 
+                    <Label
+                        VerticalAlignment="Center"
+                        FontSize="11"
                         Margin="10, 0, 4, 0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock 
-                                Text="AI check:" 
-                                FontWeight="Bold" 
+                            <TextBlock
+                                Text="AI check:"
+                                FontWeight="Bold"
                                 VerticalAlignment="Center" />
                         </StackPanel>
                     </Label>
-                    <ComboBox 
-                        ItemsSource="{Binding AiCheckResults}" 
-                        SelectedItem="{Binding SelectedFeature.AiCheckResults, Mode=TwoWay}" 
+                    <ComboBox
+                        ItemsSource="{Binding AiCheckResults}"
+                        SelectedItem="{Binding SelectedFeature.AiCheckResults, Mode=TwoWay}"
                         Width="160"
                         VerticalAlignment="Center" />
-                    <Label 
-                        VerticalAlignment="Center" 
-                        FontSize="14" 
+                    <Label
+                        VerticalAlignment="Center"
+                        FontSize="14"
                         Margin="10, 0, 4, 0"
                         Visibility="{Binding LoadedPost.ImageValidation.VerdictVisibility}">
                         <StackPanel Orientation="Horizontal">
@@ -3131,17 +3131,17 @@
                                 Margin="0,0,6,0"
                                 Width="28"
                                 Height="28"
-                                Foreground="{Binding LoadedPost.ImageValidation.Verdict.Color}" 
-                                VerticalAlignment="Center" />
-                            <TextBlock 
-                                Text="HIVE AI Verdict:" 
                                 Foreground="{Binding LoadedPost.ImageValidation.Verdict.Color}"
-                                FontWeight="Bold" 
                                 VerticalAlignment="Center" />
-                            <TextBlock 
-                                Text="{Binding LoadedPost.ImageValidation.Verdict.Message}" 
+                            <TextBlock
+                                Text="HIVE AI Verdict:"
+                                Foreground="{Binding LoadedPost.ImageValidation.Verdict.Color}"
+                                FontWeight="Bold"
+                                VerticalAlignment="Center" />
+                            <TextBlock
+                                Text="{Binding LoadedPost.ImageValidation.Verdict.Message}"
                                 Margin="8,0,0,0"
-                                FontWeight="Bold" 
+                                FontWeight="Bold"
                                 Foreground="{Binding LoadedPost.ImageValidation.Verdict.Color}"
                                 VerticalAlignment="Center" />
                         </StackPanel>
@@ -3149,12 +3149,12 @@
                 </StackPanel>
             </Border>
             <!-- TinEye / HIVE tabs -->
-            <Border 
+            <Border
                 Grid.Row="1"
                 Margin="0, 10"
                 Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
                 CornerRadius="8">
-                <mah:MetroAnimatedSingleRowTabControl 
+                <mah:MetroAnimatedSingleRowTabControl
                     Background="Transparent"
                     Margin="10">
                     <TabItem>
@@ -3163,7 +3163,7 @@
                                 Background="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToBorderColorConverter}}"
                                 CornerRadius="8"
                                 Margin="0,0,0,4">
-                                <StackPanel 
+                                <StackPanel
                                     Orientation="Horizontal"
                                     Height="28"
                                     Margin="10,4">
@@ -3174,7 +3174,7 @@
                                         Width="20"
                                         Height="20"
                                         Foreground="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToAccentColorConverter}}" />
-                                    <TextBlock 
+                                    <TextBlock
                                         Text="TinEye Results"
                                         VerticalAlignment="Center"
                                         Margin="0,0,0,2"
@@ -3184,10 +3184,10 @@
                                 </StackPanel>
                             </Border>
                         </TabItem.Header>
-                        <Border 
+                        <Border
                             Background="White"
                             CornerRadius="4">
-                            <wv2:WebView2 
+                            <wv2:WebView2
                                 Name="webView"
                                 Source="{Binding TinEyeSource}"
                                 DefaultBackgroundColor="White" />
@@ -3199,7 +3199,7 @@
                                 Background="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToBorderColorConverter}}"
                                 CornerRadius="8"
                                 Margin="0,0,0,4">
-                                <StackPanel 
+                                <StackPanel
                                     Orientation="Horizontal"
                                     Height="28"
                                     Margin="10,2">
@@ -3210,7 +3210,7 @@
                                         Width="20"
                                         Height="20"
                                         Foreground="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=TabItem}, Converter={StaticResource booleanToAccentColorConverter}}" />
-                                    <TextBlock 
+                                    <TextBlock
                                         Text="HIVE Results"
                                         VerticalAlignment="Center"
                                         Margin="0,0,0,2"
@@ -3230,22 +3230,22 @@
                                 <ColumnDefinition Width="Auto" />   <!-- Buttons -->
                             </Grid.ColumnDefinitions>
                             <!-- Logging label -->
-                            <Label 
-                                Grid.Row="0" 
-                                Grid.Column="0" 
-                                VerticalAlignment="Top" 
+                            <Label
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                VerticalAlignment="Top"
                                 HorizontalContentAlignment="Left"
-                                FontSize="11" 
+                                FontSize="11"
                                 Margin="0,0,4,0">
-                                <TextBlock 
-                                    Text="LOGGING:" 
-                                    FontWeight="Bold" 
+                                <TextBlock
+                                    Text="LOGGING:"
+                                    FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="Orange" />
                             </Label>
                             <ScrollViewer
-                                Grid.Row="1" 
-                                Grid.Column="0" 
+                                Grid.Row="1"
+                                Grid.Column="0"
                                 CanContentScroll="True"
                                 VerticalScrollBarVisibility="Auto">
                                 <ItemsControl
@@ -3268,7 +3268,7 @@
                                                     Text="{Binding Messsage}"
                                                     Foreground="{Binding Color, Converter={StaticResource nullableColorToBrushConverter}}"
                                                     Background="Transparent"
-                                                    FontWeight="Bold" 
+                                                    FontWeight="Bold"
                                                     MaxWidth="780"
                                                     TextWrapping="Wrap" />
                                             </StackPanel>
@@ -3276,19 +3276,19 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </ScrollViewer>
-                            <StackPanel 
+                            <StackPanel
                                 Grid.Row="0"
                                 Grid.RowSpan="2"
                                 Grid.Column="1"
-                                Orientation="Horizontal" 
+                                Orientation="Horizontal"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Top"
                                 Height="22"
                                 Margin="0,12,12,6">
-                                <Button 
-                                    Height="22" 
-                                    Padding="4,0,4,0" 
-                                    Command="{Binding LoadedPost.ImageValidation.CopyLogCommand}" 
+                                <Button
+                                    Height="22"
+                                    Padding="4,0,4,0"
+                                    Command="{Binding LoadedPost.ImageValidation.CopyLogCommand}"
                                     MinHeight="22">
                                     <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
                                         <iconPacks:PackIconFeatherIcons

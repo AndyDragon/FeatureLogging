@@ -30,6 +30,15 @@ public static class Validation
         return new ValidationResult();
     }
 
+    public static ValidationResult ValidateValuesNotEmpty(string[] values, ValidationLevel failLevel = ValidationLevel.Error)
+    {
+        if (values.Any(string.IsNullOrEmpty))
+        {
+            return new ValidationResult(failLevel, "Required values");
+        }
+        return new ValidationResult();
+    }
+
     public static ValidationResult ValidateValueNotDefault(string value, string defaultValue, ValidationLevel failLevel = ValidationLevel.Error)
     {
         if (string.IsNullOrEmpty(value) || string.Equals(value, defaultValue, StringComparison.OrdinalIgnoreCase))

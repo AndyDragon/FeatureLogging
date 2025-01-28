@@ -113,25 +113,24 @@ public class Feature : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref photoLastFeaturedOnHub, value, () => IsDirty = true, [nameof(PhotoLastFeaturedOnHubValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
     }
     [JsonIgnore]
-    public ValidationResult PhotoLastFeaturedOnHubValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedOnHub);
+    public ValidationResult PhotoLastFeaturedOnHubValidation => Validation.ValidateValuesNotEmpty([photoLastFeaturedOnHub, PhotoLastFeaturedPage], ValidationLevel.Warning);
 
     private string photoLastFeaturedPage = "";
     [JsonProperty(PropertyName = "photoLastFeaturedPage")]
     public string PhotoLastFeaturedPage
     {
         get => photoLastFeaturedPage;
-        set => SetWithDirtyCallback(ref photoLastFeaturedPage, value, () => IsDirty = true, [nameof(PhotoLastFeaturedPageValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
+        set => SetWithDirtyCallback(ref photoLastFeaturedPage, value, () => IsDirty = true, [nameof(PhotoLastFeaturedOnHubValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
     }
-    [JsonIgnore]
-    public ValidationResult PhotoLastFeaturedPageValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedPage);
 
     private string featureDescription = "";
     [JsonProperty(PropertyName = "featureDescription")]
     public string FeatureDescription
     {
         get => featureDescription;
-        set => SetWithDirtyCallback(ref featureDescription, value, () => IsDirty = true);
+        set => SetWithDirtyCallback(ref featureDescription, value, () => IsDirty = true, [nameof(FeatureDescriptionValidation)]);
     }
+    public ValidationResult FeatureDescriptionValidation => Validation.ValidateValueNotEmpty(featureDescription, ValidationLevel.Warning);
 
     private bool userHasFeaturesOnPage;
     [JsonProperty(PropertyName = "userHasFeaturesOnPage")]
@@ -149,7 +148,7 @@ public class Feature : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref lastFeaturedOnPage, value, () => IsDirty = true, [nameof(LastFeaturedOnPageValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
     }
     [JsonIgnore]
-    public ValidationResult LastFeaturedOnPageValidation => Validation.ValidateValueNotEmpty(lastFeaturedOnPage);
+    public ValidationResult LastFeaturedOnPageValidation => Validation.ValidateValueNotEmpty(lastFeaturedOnPage, ValidationLevel.Warning);
 
     private string featureCountOnPage = "many";
     [JsonProperty(PropertyName = "featureCountOnPage")]
@@ -183,17 +182,15 @@ public class Feature : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref lastFeaturedOnHub, value, () => IsDirty = true, [nameof(LastFeaturedOnHubValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
     }
     [JsonIgnore]
-    public ValidationResult LastFeaturedOnHubValidation => Validation.ValidateValueNotEmpty(lastFeaturedOnHub);
+    public ValidationResult LastFeaturedOnHubValidation => Validation.ValidateValuesNotEmpty([lastFeaturedOnHub, lastFeaturedPage], ValidationLevel.Warning);
 
     private string lastFeaturedPage = "";
     [JsonProperty(PropertyName = "lastFeaturedPage")]
     public string LastFeaturedPage
     {
         get => lastFeaturedPage;
-        set => SetWithDirtyCallback(ref lastFeaturedPage, value, () => IsDirty = true, [nameof(LastFeaturedPageValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
+        set => SetWithDirtyCallback(ref lastFeaturedPage, value, () => IsDirty = true, [nameof(LastFeaturedOnHubValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
     }
-    [JsonIgnore]
-    public ValidationResult LastFeaturedPageValidation => TooSoonToFeatureUser ? new ValidationResult() : Validation.ValidateValueNotEmpty(lastFeaturedPage);
 
     private string featureCountOnHub = "many";
     [JsonProperty(PropertyName = "featureCountOnHub")]
@@ -216,7 +213,7 @@ public class Feature : NotifyPropertyChanged
     public bool TooSoonToFeatureUser
     {
         get => tooSoonToFeatureUser;
-        set => SetWithDirtyCallback(ref tooSoonToFeatureUser, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey), nameof(LastFeaturedPageValidation)]);
+        set => SetWithDirtyCallback(ref tooSoonToFeatureUser, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey), nameof(LastFeaturedOnHubValidation)]);
     }
 
     private string tinEyeResults = "0 matches";
@@ -341,10 +338,9 @@ public class Feature : NotifyPropertyChanged
         !UserNameValidation.Valid ||
         !UserAliasValidation.Valid ||
         !UserLevelValidation.Valid ||
-        (PhotoFeaturedOnPage && !PhotoLastFeaturedPageValidation.Valid) ||
         (PhotoFeaturedOnHub && !PhotoLastFeaturedOnHubValidation.Valid) ||
         (UserHasFeaturesOnPage && !LastFeaturedOnPageValidation.Valid) ||
-        (UserHasFeaturesOnHub && (!LastFeaturedOnHubValidation.Valid || !LastFeaturedPageValidation.Valid));
+        (UserHasFeaturesOnHub && (!LastFeaturedOnHubValidation.Valid));
 
     [JsonIgnore]
     public string ValidationErrorSummary
@@ -356,10 +352,6 @@ public class Feature : NotifyPropertyChanged
             AddValidationError(validationErrors, UserNameValidation, "User name");
             AddValidationError(validationErrors, UserAliasValidation, "User alias");
             AddValidationError(validationErrors, UserLevelValidation, "User level");
-            if (PhotoFeaturedOnPage)
-            {
-                AddValidationError(validationErrors, PhotoLastFeaturedPageValidation, "Photo last featured on page");
-            }
             if (PhotoFeaturedOnHub)
             {
                 AddValidationError(validationErrors, PhotoLastFeaturedOnHubValidation, "Photo last featured on hub");
@@ -371,7 +363,6 @@ public class Feature : NotifyPropertyChanged
             if (UserHasFeaturesOnHub)
             {
                 AddValidationError(validationErrors, LastFeaturedOnHubValidation, "User last featured on hub");
-                AddValidationError(validationErrors, LastFeaturedPageValidation, "User last featured page");
             }
             return string.Join(",", validationErrors);
         }

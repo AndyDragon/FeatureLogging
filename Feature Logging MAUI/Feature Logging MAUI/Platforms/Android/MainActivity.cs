@@ -13,6 +13,10 @@ namespace FeatureLogging
     )]
     public class MainActivity : MauiAppCompatActivity
     {
-        //AndroidX.Core.SplashScreen.SplashScreen.InstallSplashScreen(this);
+        protected override void OnCreate(Bundle? savedInstanceState)
+        {
+            base.OnCreate(savedInstanceState);
+            SetTheme(Resource.Style.MainTheme);
+        }
     }
 }
