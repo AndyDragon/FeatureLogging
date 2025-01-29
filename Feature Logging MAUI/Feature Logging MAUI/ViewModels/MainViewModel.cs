@@ -161,7 +161,7 @@ public class MainViewModel : NotifyPropertyChanged
         SelectedFeature = null;
         Features.Clear();
         OnPropertyChanged(nameof(HasFeatures));
-        OnPropertyChanged(nameof(FeatureNavigationVisibility));
+        OnPropertyChanged(nameof(FeatureNavigationAllowed));
         OnPropertyChanged(nameof(CanChangePage));
     }, (_) => !WaitingForPages);
 
@@ -243,7 +243,7 @@ public class MainViewModel : NotifyPropertyChanged
                             Features.Add(loadedFeature);
                         }
                         base.OnPropertyChanged(nameof(HasFeatures));
-                        base.OnPropertyChanged(nameof(FeatureNavigationVisibility));
+                        base.OnPropertyChanged(nameof(FeatureNavigationAllowed));
                         base.OnPropertyChanged(nameof(CanChangePage));
                         base.OnPropertyChanged(nameof(SaveFeaturesCommand));   
                         base.OnPropertyChanged(nameof(GenerateReportCommand));   
@@ -408,11 +408,7 @@ public class MainViewModel : NotifyPropertyChanged
         OnPropertyChanged(nameof(SaveFeaturesCommand));
         OnPropertyChanged(nameof(SaveReportCommand));
         OnPropertyChanged(nameof(GenerateReportCommand));
-    }, () =>
-    {
-        Debugger.Log(0, "DEBUG", $"Can add feature: waiting for pages: {WaitingForPages}, has selected page: {SelectedPage != null}");
-        return !WaitingForPages && SelectedPage != null;
-    });
+    }, () => !WaitingForPages && SelectedPage != null);
 
     public SimpleCommand RemoveFeatureCommand => new(() =>
     {
@@ -421,7 +417,7 @@ public class MainViewModel : NotifyPropertyChanged
             SelectedFeature = null;
             Features.Remove(feature);
             OnPropertyChanged(nameof(HasFeatures));
-            OnPropertyChanged(nameof(FeatureNavigationVisibility));
+            OnPropertyChanged(nameof(FeatureNavigationAllowed));
             OnPropertyChanged(nameof(CanChangePage));
             OnPropertyChanged(nameof(SaveFeaturesCommand));
             OnPropertyChanged(nameof(GenerateReportCommand));
@@ -490,6 +486,61 @@ public class MainViewModel : NotifyPropertyChanged
                 "Copied the RAW hub feature tag to the clipboard");
         }
     }, () => SelectedPage != null && SelectedFeature != null && !string.IsNullOrEmpty(SelectedFeature.UserAlias));
+
+    public SimpleCommand NavigateToPreviousFeatureCommand => new(() =>
+    {
+        var pickedAndAllowedFeatures = Features.Where(feature => feature.IsPickedAndAllowed)
+            .OrderBy(feature => feature, FeatureComparer.Default)
+            .ToArray();
+        var currentIndex = Array.IndexOf(pickedAndAllowedFeatures, SelectedFeature);
+        if (currentIndex == -1)
+        {
+            return;
+        }
+        var newIndex = (currentIndex + pickedAndAllowedFeatures.Length - 1) % pickedAndAllowedFeatures.Length;
+        SelectedFeature = pickedAndAllowedFeatures[newIndex];
+        //SelectedFeature.OpenFeatureInVeroScriptsCommand.Execute(this);
+    });
+
+    public SimpleCommand NavigateToNextFeatureCommand => new(() =>
+    {
+        var pickedAndAllowedFeatures = Features.Where(feature => feature.IsPickedAndAllowed)
+            .OrderBy(feature => feature, FeatureComparer.Default)
+            .ToArray();
+        var currentIndex = Array.IndexOf(pickedAndAllowedFeatures, SelectedFeature);
+        if (currentIndex == -1)
+        {
+            return;
+        }
+
+        var newIndex = (currentIndex + 1) % pickedAndAllowedFeatures.Length;
+        SelectedFeature = pickedAndAllowedFeatures[newIndex];
+        //SelectedFeature.OpenFeatureInVeroScriptsCommand.Execute(this);
+    });
+
+    public SimpleCommandWithParameter EditFeatureCommand => new((feature) =>
+    {
+        SelectedFeature = feature as Feature;
+    });
+
+    public SimpleCommandWithParameter DeleteFeatureCommand => new((feature) =>
+    {
+        SelectedFeature = null;
+        Features.Remove(feature as Feature);
+        OnPropertyChanged(nameof(HasFeatures));
+        OnPropertyChanged(nameof(FeatureNavigationAllowed));
+        OnPropertyChanged(nameof(CanChangePage));
+        OnPropertyChanged(nameof(SaveFeaturesCommand));
+        OnPropertyChanged(nameof(GenerateReportCommand));
+        OnPropertyChanged(nameof(SaveReportCommand));
+    });
+
+    public SimpleCommandWithParameter ShowScriptsForFeatureCommand => new((feature) =>
+    {
+        ScriptViewModel.SelectedPage = SelectedPage;
+        ScriptViewModel.Feature = feature as Feature;
+        // TODO push the scripts view...
+    });
 
     #endregion
 
@@ -697,7 +748,7 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }
 
-    public Visibility FeatureNavigationVisibility => Features.Count(feature => feature.IsPickedAndAllowed) > 1 ? Visibility.Visible : Visibility.Collapsed;
+    public bool FeatureNavigationAllowed => Features.Count(feature => feature.IsPickedAndAllowed) > 1;
 
     public bool HasSelectedFeature => SelectedFeature != null;
 

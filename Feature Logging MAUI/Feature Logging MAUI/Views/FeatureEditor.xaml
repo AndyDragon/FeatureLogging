@@ -240,8 +240,7 @@
                 Grid.ColumnSpan="6"
                 StrokeThickness="1" 
                 Stroke="{AppThemeBinding Light={DynamicResource Gray100Brush}, Dark={DynamicResource Gray600}}"
-                Margin="0,8,0,4"
-                Height="1" />
+                Margin="0,8,0,4" />
             
             <!-- User featured on page -->
             <Label
@@ -336,8 +335,7 @@
                 Grid.ColumnSpan="6"
                 StrokeThickness="1" 
                 Stroke="{AppThemeBinding Light={DynamicResource Gray100Brush}, Dark={DynamicResource Gray600}}"
-                Margin="0,8,0,8"
-                Height="1" />
+                Margin="0,8,0,8" />
 
 
             <!-- User featured on hub -->
@@ -442,8 +440,7 @@
                 Grid.ColumnSpan="6"
                 StrokeThickness="1" 
                 Stroke="{AppThemeBinding Light={DynamicResource Gray100Brush}, Dark={DynamicResource Gray600}}"
-                Margin="0,8,0,4"
-                Height="1" />
+                Margin="0,8,0,4" />
         </Grid>
         
         <!-- Too soon -->

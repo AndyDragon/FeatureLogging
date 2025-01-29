@@ -4,16 +4,13 @@
     xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
     xmlns:localConverters="clr-namespace:FeatureLogging.Converters"
     xmlns:localModels="clr-namespace:FeatureLogging.Models"
+    xmlns:localViews="clr-namespace:FeatureLogging.Views"
     xmlns:localViewModels="clr-namespace:FeatureLogging.ViewModels"
     x:Class="FeatureLogging.Views.FeatureList"
     x:DataType="localViewModels:MainViewModel"
     BindingContextChanged="OnBindingContextChanged"
     NavigatedTo="OnContentPageNavigatedTo"
     NavigatedFrom="OnContentPageNavigatedFrom">
-    
-    <ContentPage.BindingContext>
-        <localViewModels:MainViewModel />
-    </ContentPage.BindingContext>
     
     <Shell.ToolbarItems>
         <ToolbarItem
@@ -47,6 +44,10 @@
             Order="Secondary"
             Command="{Binding LaunchAboutCommand}"/>
     </Shell.ToolbarItems>
+    
+    <ContentPage.BindingContext>
+        <localViewModels:MainViewModel />
+    </ContentPage.BindingContext>
     
     <ContentPage.Resources>
         <localConverters:ValueVisibilityConverter x:Key="ValueVisibilityConverter" />
@@ -116,21 +117,85 @@
                                 <Grid>
                                     <Border Background="{DynamicResource Gray400}" Opacity="0.2">
                                     </Border>
-                                    <VerticalStackLayout Padding="20" >
-                                        <HorizontalStackLayout>
-                                            <Label Text="Feature:" Margin="0,0,8,0" />
-                                            <Label Text="{Binding UserName}" IsVisible="{Binding UserName, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
-                                            <Label Text="user name" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding UserName, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
-                                            <Label Text="|" Margin="8,0" />
-                                            <Label Text="{Binding UserAlias}" IsVisible="{Binding UserAlias, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
-                                            <Label Text="user alias" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding UserAlias, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
-                                            <Label Text="|" Margin="8,0" />
-                                            <Label Text="{Binding FeatureDescription}" IsVisible="{Binding FeatureDescription, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
-                                            <Label Text="description" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding FeatureDescription, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
+                                    <Grid ColumnDefinitions="Auto, *, Auto">
+                                        <mi:MauiIcon
+                                            Grid.Column="0"
+                                            Icon="{mi:Material {Binding Icon}}"
+                                            IconColor="{Binding IconColor}"
+                                            IconSize="40"
+                                            Margin="12,0,3,0" />
+                                        <Grid 
+                                            Grid.Column="1" 
+                                            RowDefinitions="Auto, Auto, Auto" 
+                                            Padding="3,12,12,12">
+                                            <Grid Grid.Row="0" ColumnDefinitions="Auto, Auto, Auto, Auto">
+                                                <Label Grid.Column="0" Text="Feature:" Margin="0,0,8,0" />
+                                                <Label Grid.Column="1" Text="{Binding UserName}" MaxLines="1" LineBreakMode="TailTruncation" IsVisible="{Binding UserName, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
+                                                <Label Grid.Column="1" Text="user name" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding UserName, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
+                                                <Label Grid.Column="2" Text="|" Margin="8,0" />
+                                                <Label Grid.Column="3" Text="{Binding UserAlias}" MaxLines="1" LineBreakMode="TailTruncation" IsVisible="{Binding UserAlias, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
+                                                <Label Grid.Column="3" Text="user alias" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding UserAlias, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
+                                            </Grid>
+                                            <Grid Grid.Row="1" ColumnDefinitions="*">
+                                                <Label Grid.Column="0" Text="{Binding FeatureDescription}" LineBreakMode="TailTruncation" MaxLines="1" IsVisible="{Binding FeatureDescription, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
+                                                <Label Grid.Column="0" Text="description" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding FeatureDescription, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
+                                            </Grid>
+                                            <Grid Grid.Row="2" ColumnDefinitions="*">
+                                                <Label Text="{Binding PostLink}" LineBreakMode="TailTruncation" MaxLines="1" FontSize="Caption" IsVisible="{Binding PostLink, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
+                                                <Label Text="link to post" FontSize="Caption" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding PostLink, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
+                                            </Grid>
+                                        </Grid>
+                                        <HorizontalStackLayout
+                                            Grid.Column="2"
+                                            VerticalOptions="Center">
+                                            <ImageButton
+                                                Command="{Binding PickFeatureCommand}"
+                                                Margin="0"
+                                                Aspect="Center">
+                                                <ImageButton.Source>
+                                                    <mi:Material Icon="Star" IconSize="20" />
+                                                </ImageButton.Source>
+                                            </ImageButton>
+                                            <ImageButton
+                                                Command="{Binding BindingContext.EditFeatureCommand, Source={RelativeSource AncestorType={x:Type localViews:FeatureList}}}"
+                                                CommandParameter="{Binding .}"
+                                                Margin="0"
+                                                Aspect="Center">
+                                                <ImageButton.Source>
+                                                    <mi:Material Icon="Edit" IconSize="20"/>
+                                                </ImageButton.Source>
+                                            </ImageButton>
+                                            <ImageButton
+                                                Command="{Binding BindingContext.DeleteFeatureCommand, Source={RelativeSource AncestorType={x:Type localViews:FeatureList}}}"
+                                                CommandParameter="{Binding .}"
+                                                Margin="0"
+                                                Aspect="Center">
+                                                <ImageButton.Source>
+                                                    <mi:Material Icon="Delete" IconSize="20" />
+                                                </ImageButton.Source>
+                                            </ImageButton>
+                                            <ImageButton
+                                                Command="{Binding BindingContext.ShowScriptsForFeatureCommand, Source={RelativeSource AncestorType={x:Type localViews:FeatureList}}}"
+                                                CommandParameter="{Binding .}"
+                                                Margin="0"
+                                                Aspect="Center"
+                                                IsVisible="{Binding IsPicked}">
+                                                <ImageButton.Source>
+                                                    <mi:Material Icon="NoteAlt" IconSize="20" />
+                                                </ImageButton.Source>
+                                            </ImageButton>
+                                            <ImageButton
+                                                Command="{Binding BindingContext.ShowPersonalMessageForFeatureCommand, Source={RelativeSource AncestorType={x:Type localViews:FeatureList}}}"
+                                                CommandParameter="{Binding .}"
+                                                Margin="0"
+                                                Aspect="Center"
+                                                IsVisible="{Binding IsPicked}">
+                                                <ImageButton.Source>
+                                                    <mi:Material Icon="Message" IconSize="20" />
+                                                </ImageButton.Source>
+                                            </ImageButton>
                                         </HorizontalStackLayout>
-                                        <Label Text="{Binding PostLink}" FontSize="Caption" IsVisible="{Binding PostLink, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=true}" />
-                                        <Label Text="link to post" FontSize="Caption" FontAttributes="Italic" TextColor="{DynamicResource Gray400}" IsVisible="{Binding PostLink, Converter={StaticResource ValueVisibilityConverter}, ConverterParameter=false}" />
-                                    </VerticalStackLayout>
+                                    </Grid>
                                 </Grid>
                             </Border>
                         </ViewCell>

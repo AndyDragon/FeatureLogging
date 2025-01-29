@@ -240,6 +240,11 @@ public class Feature : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref personalMessage, value, () => IsDirty = true);
     }
 
+    public void OnSortKeyChange()
+    {
+        OnPropertyChanged(nameof(SortKey));
+    }
+
     [JsonIgnore]
     public MaterialIcons Icon
     {
@@ -269,66 +274,32 @@ public class Feature : NotifyPropertyChanged
         }
     }
 
-    public void OnSortKeyChange()
-    {
-        OnPropertyChanged(nameof(SortKey));
-    }
-
     [JsonIgnore]
-    public Brush IconColor
+    public Color IconColor
     {
         get
         {
             if (PhotoFeaturedOnPage)
             {
-                return Brush.Red;
+                return Colors.Red;
             }
             if (TooSoonToFeatureUser)
             {
-                return Brush.Red;
+                return Colors.Red;
             }
             if (TinEyeResults == "matches found")
             {
-                return Brush.Red;
+                return Colors.Red;
             }
             if (AiCheckResults == "ai")
             {
-                return Brush.Red;
+                return Colors.Red;
             }
             if (IsPicked)
             {
-                return Brush.Lime;
+                return Colors.Lime;
             }
-            return Brush.Transparent;
-        }
-    }
-
-    [JsonIgnore]
-    public string IconTooltip
-    {
-        get
-        {
-            if (PhotoFeaturedOnPage)
-            {
-                return "Photo is already featured on this page";
-            }
-            if (TooSoonToFeatureUser)
-            {
-                return "Too soon to feature this user";
-            }
-            if (TinEyeResults == "matches found")
-            {
-                return "TinEye matches found, possibly stolen photo";
-            }
-            if (AiCheckResults == "ai")
-            {
-                return "AI check verdict is image is AI generated";
-            }
-            if (IsPicked)
-            {
-                return "Photo is picked for feature";
-            }
-            return "";
+            return Colors.Transparent;
         }
     }
 
@@ -367,6 +338,12 @@ public class Feature : NotifyPropertyChanged
             return string.Join(",", validationErrors);
         }
     }
+
+    [JsonIgnore]
+    public SimpleCommand PickFeatureCommand => new(() =>
+    {
+        IsPicked = !IsPicked;
+    });
     
     [JsonIgnore]
     public SimpleCommandWithParameter EditPersonalMessageCommand => new(parameter =>
