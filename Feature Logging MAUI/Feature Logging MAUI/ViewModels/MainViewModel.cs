@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using CommunityToolkit.Maui.Alerts;
@@ -444,9 +443,9 @@ public class MainViewModel : NotifyPropertyChanged
     public SimpleCommand CopyPageFeatureTagCommand => new(() =>
     {
         var prefix = SettingsViewModel.IncludeHash ? "#" : "";
-        _ = CopyTextToClipboardAsync(SelectedPage.HubName == "other" 
-            ? $"{prefix}{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}" 
-            : $"{prefix}{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}", 
+        _ = CopyTextToClipboardAsync(SelectedPage!.HubName == "other" 
+            ? $"{prefix}{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature!.UserAlias}" 
+            : $"{prefix}{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature!.UserAlias}", 
             "Page feature tag", 
             "Copied the page feature tag to the clipboard");
     }, () => SelectedPage != null && SelectedFeature != null && !string.IsNullOrEmpty(SelectedFeature.UserAlias));
@@ -454,10 +453,10 @@ public class MainViewModel : NotifyPropertyChanged
     public SimpleCommand CopyRawPageFeatureTagCommand => new(() =>
     {
         var prefix = SettingsViewModel.IncludeHash ? "#" : "";
-        if (SelectedPage.HubName == "snap")
+        if (SelectedPage!.HubName == "snap")
         {
             _ = CopyTextToClipboardAsync(
-                $"{prefix}raw_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature.UserAlias}",
+                $"{prefix}raw_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature!.UserAlias}",
                 "RAW page feature tag", 
                 "Copied the RAW page feature tag to the clipboard");
         }
@@ -466,10 +465,10 @@ public class MainViewModel : NotifyPropertyChanged
     public SimpleCommand CopyHubFeatureTagCommand => new(() =>
     {
         var prefix = SettingsViewModel.IncludeHash ? "#" : "";
-        if (SelectedPage.HubName != "other")
+        if (SelectedPage!.HubName != "other")
         {
             _ = CopyTextToClipboardAsync(
-                $"{prefix}{SelectedPage.HubName}_featured_{SelectedFeature.UserAlias}",
+                $"{prefix}{SelectedPage.HubName}_featured_{SelectedFeature!.UserAlias}",
                 "Hub feature tag", 
                 "Copied the hub feature tag to the clipboard");
         }
@@ -478,10 +477,10 @@ public class MainViewModel : NotifyPropertyChanged
     public SimpleCommand CopyRawHubFeatureTagCommand => new(() =>
     {
         var prefix = SettingsViewModel.IncludeHash ? "#" : "";
-        if (SelectedPage.HubName == "snap")
+        if (SelectedPage!.HubName == "snap")
         {
             _ = CopyTextToClipboardAsync(
-                $"{prefix}raw_featured_{SelectedFeature.UserAlias}", 
+                $"{prefix}raw_featured_{SelectedFeature!.UserAlias}", 
                 "RAW hub feature tag",
                 "Copied the RAW hub feature tag to the clipboard");
         }
@@ -514,8 +513,7 @@ public class MainViewModel : NotifyPropertyChanged
         }
 
         var newIndex = (currentIndex + 1) % pickedAndAllowedFeatures.Length;
-        SelectedFeature = pickedAndAllowedFeatures[newIndex];
-        //SelectedFeature.OpenFeatureInVeroScriptsCommand.Execute(this);
+        ScriptViewModel.Feature = pickedAndAllowedFeatures[newIndex];
     });
 
     public SimpleCommandWithParameter EditFeatureCommand => new((feature) =>
@@ -526,7 +524,11 @@ public class MainViewModel : NotifyPropertyChanged
     public SimpleCommandWithParameter DeleteFeatureCommand => new((feature) =>
     {
         SelectedFeature = null;
-        Features.Remove(feature as Feature);
+        if (feature is Feature featureToDelete)
+        {
+            Features.Remove(featureToDelete);
+        }
+
         OnPropertyChanged(nameof(HasFeatures));
         OnPropertyChanged(nameof(FeatureNavigationAllowed));
         OnPropertyChanged(nameof(CanChangePage));
@@ -537,9 +539,14 @@ public class MainViewModel : NotifyPropertyChanged
 
     public SimpleCommandWithParameter ShowScriptsForFeatureCommand => new((feature) =>
     {
-        ScriptViewModel.SelectedPage = SelectedPage;
-        ScriptViewModel.Feature = feature as Feature;
-        // TODO push the scripts view...
+        if (feature is Feature featureToShow)
+        {
+            ScriptViewModel.Feature = featureToShow;
+            _ = MainWindow!.Navigation.PushAsync(new Scripts
+            {
+                BindingContext = this,
+            });
+        }
     });
 
     #endregion
@@ -712,7 +719,6 @@ public class MainViewModel : NotifyPropertyChanged
                 // Handle the navigation
                 if (selectedFeature != null)
                 {
-                    Console.WriteLine("Pushing into feature");
                     _ = MainWindow!.Navigation.PushAsync(new FeatureEditor
                     {
                         BindingContext = this,
@@ -720,7 +726,6 @@ public class MainViewModel : NotifyPropertyChanged
                 }
                 else
                 {
-                    Console.WriteLine("Pulling out of feature");
                     _ = MainWindow!.Navigation.PopToRootAsync();
                 }
             }
