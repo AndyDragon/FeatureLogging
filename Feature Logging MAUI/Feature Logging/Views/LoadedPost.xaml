@@ -4,9 +4,13 @@
     x:Class="FeatureLogging.Views.LoadedPost"
     Title="LoadedPostViewer">
 
-    <VerticalStackLayout>
+    <VerticalStackLayout
+        VerticalOptions="Center"
+        HorizontalOptions="Center">
         <Label
             Text="Coming soon!"
+            FontAttributes="Italic"
+            FontSize="24"
             VerticalOptions="Center"
             HorizontalOptions="Center" />
     </VerticalStackLayout>

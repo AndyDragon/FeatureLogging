@@ -2071,7 +2071,7 @@ namespace FeatureLogging
                     return int.MaxValue;
                 }
                 var featureCountOnHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnHub) : 0;
-                if (featureCountOnHub > 20)
+                if (featureCountOnHub > 120)
                 {
                     return int.MaxValue;
                 }

@@ -1,11 +1,10 @@
 ﻿using MauiIcons.Material;
 using Newtonsoft.Json;
 using FeatureLogging.Base;
-using FeatureLogging.ViewModels;
 
 namespace FeatureLogging.Models;
 
-public class Feature : NotifyPropertyChanged
+public class Feature(string hubName) : NotifyPropertyChanged
 {
     [JsonIgnore]
     public readonly string Id = Guid.NewGuid().ToString();
@@ -51,7 +50,7 @@ public class Feature : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref userName, value, () => IsDirty = true, [nameof(UserNameValidation), nameof(SortKey), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
     }
     [JsonIgnore]
-    public ValidationResult UserNameValidation => Validation.ValidateValueNotEmptyAndContainsNoNewlines(userName);
+    public ValidationResult UserNameValidation => Validation.ValidateUser(hubName, userName);
 
     private string userAlias = "";
     [JsonProperty(PropertyName = "userAlias")]
@@ -266,11 +265,7 @@ public class Feature : NotifyPropertyChanged
             {
                 return MaterialIcons.Shield;
             }
-            if (IsPicked)
-            {
-                return MaterialIcons.Star;
-            }
-            return MaterialIcons.Close;
+            return IsPicked ? MaterialIcons.Star : MaterialIcons.Close;
         }
     }
 
@@ -295,11 +290,7 @@ public class Feature : NotifyPropertyChanged
             {
                 return Colors.Red;
             }
-            if (IsPicked)
-            {
-                return Colors.Lime;
-            }
-            return Colors.Transparent;
+            return IsPicked ? Colors.Lime : Colors.Transparent;
         }
     }
 
@@ -345,22 +336,6 @@ public class Feature : NotifyPropertyChanged
         IsPicked = !IsPicked;
     });
     
-    [JsonIgnore]
-    public SimpleCommandWithParameter EditPersonalMessageCommand => new(parameter =>
-    {
-        if (parameter is MainViewModel vm && vm.SelectedPage != null)
-        {
-            vm.SelectedFeature = this;
-            // PersonalMessageDialog dialog = new()
-            // {
-            //     DataContext = vm,
-            //     Owner = Application.Current.MainWindow,
-            //     WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            // };
-            // dialog.ShowDialog();
-        }
-    });
-
     private static void AddValidationError(List<string> validationErrors, ValidationResult result, string validation)
     {
         if (!result.Valid)

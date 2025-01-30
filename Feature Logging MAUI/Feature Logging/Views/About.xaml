@@ -6,8 +6,15 @@
     x:DataType="localViewModels:AboutViewModel"
     Title="{Binding Title}">
     
-    <Grid Margin="20" RowDefinitions="Auto">
-        <Border Grid.Row="0" Grid.ColumnSpan="2" Background="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray600}}" Margin="0,0,0,8" Padding="20">
+    <Grid 
+        Margin="20" 
+        RowDefinitions="Auto">
+        <Border 
+            Grid.Row="0" 
+            Grid.ColumnSpan="2" 
+            Background="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray700}}" 
+            Margin="0,0,0,8" 
+            Padding="20">
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="8"></RoundRectangle>
             </Border.StrokeShape>

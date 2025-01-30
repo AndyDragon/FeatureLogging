@@ -1,0 +1,515 @@
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+    xmlns:localConverters="clr-namespace:FeatureLogging.Converters"
+    xmlns:localViewModels="clr-namespace:FeatureLogging.ViewModels"
+    x:Class="FeatureLogging.Views.FeatureEditor"
+    x:DataType="localViewModels:MainViewModel"
+    Title="Feature">
+
+    <Shell.ToolbarItems>
+        <ToolbarItem
+            Text="Remove feature"
+            Command="{Binding RemoveFeatureCommand}"
+            Priority="1"
+            Order="Primary" />
+    </Shell.ToolbarItems>
+    
+    <ContentPage.Resources>
+        <localConverters:ValidationResultColorConverter x:Key="ValidationResultColorConverter" />
+        <localConverters:ValidationResultVisibilityConverter x:Key="ValidationResultVisibilityConverter" />
+    </ContentPage.Resources>
+
+    <ScrollView Orientation="Both">
+        <Grid 
+            RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" 
+            Padding="30,0,30,30" 
+            WidthRequest="{Binding ScreenWidth}">
+            <!-- Is picked -->
+            <Grid 
+                Grid.Row="0"
+                ColumnDefinitions="Auto, Auto">
+                <Label
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Text="Is picked" />
+                <CheckBox
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    IsChecked="{Binding SelectedFeature.IsPicked, Mode=TwoWay}" />
+            </Grid>
+            
+            <!-- Post link -->
+            <Grid
+                Grid.Row="1"
+                ColumnDefinitions="Auto, *, Auto"
+                Margin="0,2">
+                <mi:MauiIcon
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Icon="{mi:Material Icon=Warning}"
+                    Scale="0.8"
+                    IconColor="{Binding SelectedFeature.PostLinkValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                    IsVisible="{Binding SelectedFeature.PostLinkValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                <Entry
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    Placeholder="enter the post link"
+                    Text="{Binding SelectedFeature.PostLink, Mode=TwoWay}" />
+                <Button
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    Margin="4,0"
+                    Padding="24,0"
+                    HeightRequest="32"
+                    MaximumHeightRequest="32"
+                    Command="{Binding LoadPostCommand}"
+                    Text="Load post" />
+            </Grid>
+            
+            <!-- User alias -->
+            <Grid
+                Grid.Row="2"
+                ColumnDefinitions="Auto, *, *"
+                Margin="0,2">
+                <mi:MauiIcon
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Icon="{mi:Material Icon=Warning}"
+                    Scale="0.8"
+                    IconColor="{Binding SelectedFeature.UserAliasValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                    IsVisible="{Binding SelectedFeature.UserAliasValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                <Entry
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    Placeholder="enter the user's alias without '@'"
+                    Text="{Binding SelectedFeature.UserAlias, Mode=TwoWay}" />
+            </Grid>
+            
+            <!-- User name -->
+            <Grid
+                Grid.Row="3"
+                ColumnDefinitions="Auto, *, *"
+                Margin="0,2">
+                <mi:MauiIcon
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Icon="{mi:Material Icon=Warning}"
+                    Scale="0.8"
+                    IconColor="{Binding SelectedFeature.UserNameValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                    IsVisible="{Binding SelectedFeature.UserNameValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                <Entry
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    Placeholder="enter the user's name"
+                    Text="{Binding SelectedFeature.UserName, Mode=TwoWay}" />
+            </Grid>
+            
+            <!-- User level -->
+            <Grid
+                Grid.Row="5"
+                ColumnDefinitions="Auto, Auto, 280, Auto, Auto, Auto"
+                Margin="0,2">
+                <mi:MauiIcon
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Icon="{mi:Material Icon=Warning}"
+                    Scale="0.8"
+                    IconColor="{Binding SelectedFeature.UserLevelValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                    IsVisible="{Binding SelectedFeature.UserLevelValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                <Label
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    Text="User level: " />
+                <Picker
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    ItemsSource="{Binding Memberships}"
+                    SelectedItem="{Binding SelectedFeature.UserLevel, Mode=TwoWay}" />
+                <Label
+                    Grid.Column="3"
+                    VerticalOptions="Center"
+                    Padding="12,0"
+                    Text="|" />
+                <Label
+                    Grid.Column="4"
+                    VerticalOptions="Center"
+                    Text="User is a team mate" />
+                <CheckBox
+                    Grid.Column="5"
+                    VerticalOptions="Center"
+                    IsChecked="{Binding SelectedFeature.UserIsTeammate, Mode=TwoWay}" />
+            </Grid>
+            
+            <!-- Tag source -->
+            <Grid
+                Grid.Row="6"
+                ColumnDefinitions="Auto, 280"
+                Margin="0,2">
+                <Label
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Text="Found using tag: " />
+                <Picker
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    ItemsSource="{Binding TagSources}"
+                    SelectedItem="{Binding SelectedFeature.TagSource, Mode=TwoWay}" />
+            </Grid>
+            
+            <!-- Photo featured on page / hub -->
+            <Grid
+                Grid.Row="7"
+                ColumnDefinitions="Auto, Auto, Auto, Auto, *, *"
+                RowDefinitions="Auto, Auto"
+                Margin="0,2">
+                
+                <!-- Photo featured on page -->
+                <Label
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Text="Photo featured on page" />
+                <CheckBox
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    IsChecked="{Binding SelectedFeature.PhotoFeaturedOnPage, Mode=TwoWay}" />
+                
+                <!-- Photo featured on hub -->
+                <Label
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Text="Photo featured on hub"
+                    IsVisible="{Binding SnapOrClickHubVisibility}" />
+                <CheckBox
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    IsChecked="{Binding SelectedFeature.PhotoFeaturedOnHub, Mode=TwoWay}"
+                    IsVisible="{Binding SnapOrClickHubVisibility}" />
+                <Label
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    Padding="12,0"
+                    Text="|"
+                    IsVisible="{Binding SelectedFeature.PhotoFeaturedOnHub}" />
+                <HorizontalStackLayout
+                    Grid.Row="1"
+                    Grid.Column="3"
+                    IsVisible="{Binding SelectedFeature.PhotoFeaturedOnHub}">
+                <mi:MauiIcon
+                    VerticalOptions="Center"
+                    Icon="{mi:Material Icon=Warning}"
+                    Scale="0.8"
+                    IconColor="{Binding SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                    IsVisible="{Binding SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                </HorizontalStackLayout>
+                <Entry
+                    Grid.Row="1"
+                    Grid.Column="4"
+                    VerticalOptions="Center"
+                    Placeholder="last date featured"
+                    Text="{Binding SelectedFeature.PhotoLastFeaturedOnHub, Mode=TwoWay}"
+                    IsVisible="{Binding SelectedFeature.PhotoFeaturedOnHub}" />
+                <Entry
+                    Grid.Row="1"
+                    Grid.Column="5"
+                    VerticalOptions="Center"
+                    Placeholder="on page"
+                    Text="{Binding SelectedFeature.PhotoLastFeaturedPage, Mode=TwoWay}"
+                    IsVisible="{Binding SelectedFeature.PhotoFeaturedOnHub}" />
+            </Grid>
+            
+            <!-- Feature description -->
+            <Grid
+                Grid.Row="8"
+                ColumnDefinitions="Auto, *"
+                Margin="0,2">
+                <mi:MauiIcon
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Icon="{mi:Material Icon=Warning}"
+                    Scale="0.8"
+                    IconColor="{Binding SelectedFeature.FeatureDescriptionValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                    IsVisible="{Binding SelectedFeature.FeatureDescriptionValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                <Entry
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    Placeholder="enter the description of the feature (not used in scripts)"
+                    Text="{Binding SelectedFeature.FeatureDescription, Mode=TwoWay}" />
+            </Grid>
+            
+            <!-- User featured on page / hub -->
+            <Grid
+                Grid.Row="9"
+                ColumnDefinitions="Auto, Auto, Auto, Auto, *, *"
+                RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto"
+                Margin="0,2">
+                
+                <Border 
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="6"
+                    StrokeThickness="1" 
+                    Stroke="{AppThemeBinding Light={DynamicResource Gray100Brush}, Dark={DynamicResource Gray600}}"
+                    Margin="0,8,0,4" />
+                
+                <!-- User featured on page -->
+                <Label
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Text="User featured on page" />
+                <CheckBox
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    IsChecked="{Binding SelectedFeature.UserHasFeaturesOnPage, Mode=TwoWay}" />
+                <Label
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    Padding="12,0"
+                    Text="|"
+                    IsVisible="{Binding SelectedFeature.UserHasFeaturesOnPage}" />
+                <HorizontalStackLayout
+                    Grid.Row="1"
+                    Grid.Column="3"
+                    IsVisible="{Binding SelectedFeature.UserHasFeaturesOnPage}">
+                    <mi:MauiIcon
+                        VerticalOptions="Center"
+                        Icon="{mi:Material Icon=Warning}"
+                        Scale="0.8"
+                        IconColor="{Binding SelectedFeature.LastFeaturedOnPageValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                        IsVisible="{Binding SelectedFeature.LastFeaturedOnPageValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                </HorizontalStackLayout>
+                <Entry
+                    Grid.Row="1"
+                    Grid.Column="4"
+                    VerticalOptions="Center"
+                    Placeholder="last date featured"
+                    Text="{Binding SelectedFeature.LastFeaturedOnPage, Mode=TwoWay}"
+                    IsVisible="{Binding SelectedFeature.UserHasFeaturesOnPage}" />
+
+                <!-- Feature counts -->
+                <Grid
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="6"
+                    ColumnDefinitions="Auto, 120, Auto, Auto, 120"
+                    IsVisible="{Binding SelectedFeature.UserHasFeaturesOnPage}">
+                    <Label
+                        Grid.Column="0"
+                        VerticalOptions="Center"
+                        Text="Feature count:" />
+                    <Picker
+                        Grid.Column="1"
+                        ItemsSource="{Binding FeaturedCounts}"
+                        SelectedItem="{Binding SelectedFeature.FeatureCountOnPage}" />
+                    <Label
+                        Grid.Column="2"
+                        VerticalOptions="Center"
+                        Padding="12,0"
+                        Text="|"
+                        IsVisible="{Binding SnapHubVisibility}" />
+                    <Label
+                        Grid.Column="3"
+                        VerticalOptions="Center"
+                        Text="Feature count:"
+                        IsVisible="{Binding SnapHubVisibility}" />
+                    <Picker
+                        Grid.Column="4"
+                        ItemsSource="{Binding FeaturedCounts}"
+                        SelectedItem="{Binding SelectedFeature.FeatureCountOnRawPage}" 
+                        IsVisible="{Binding SnapHubVisibility}" />
+                </Grid>
+                
+                <!-- Page tag buttons -->
+                <HorizontalStackLayout
+                    Grid.Row="3"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="6"
+                    HorizontalOptions="End">
+                    <Button
+                        Command="{Binding CopyPageFeatureTagCommand}"
+                        Margin="4,0"
+                        Padding="24,0"
+                        HeightRequest="32"
+                        MaximumHeightRequest="32"
+                        Text="Copy tag" />
+                    <Button
+                        Command="{Binding CopyRawPageFeatureTagCommand}"
+                        Margin="4,0"
+                        Padding="24,0"
+                        HeightRequest="32"
+                        MaximumHeightRequest="32"
+                        Text="Copy RAW tag"
+                        IsVisible="{Binding SnapHubVisibility}" />
+                </HorizontalStackLayout>
+
+                <Border 
+                    Grid.Row="4"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="6"
+                    StrokeThickness="1" 
+                    Stroke="{AppThemeBinding Light={DynamicResource Gray100Brush}, Dark={DynamicResource Gray600}}"
+                    Margin="0,8,0,8" />
+
+                <!-- User featured on hub -->
+                <Label
+                    Grid.Row="5"
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Text="User featured on hub"
+                    IsVisible="{Binding SnapOrClickHubVisibility}" />
+                <CheckBox
+                    Grid.Row="5"
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    IsChecked="{Binding SelectedFeature.UserHasFeaturesOnHub, Mode=TwoWay}"
+                    IsVisible="{Binding SnapOrClickHubVisibility}" />
+                <Label
+                    Grid.Row="5"
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    Padding="12,0"
+                    Text="|"
+                    IsVisible="{Binding SelectedFeature.UserHasFeaturesOnHub}" />
+                <HorizontalStackLayout
+                    Grid.Row="5"
+                    Grid.Column="3"
+                    IsVisible="{Binding SelectedFeature.UserHasFeaturesOnHub}">
+                    <mi:MauiIcon
+                        VerticalOptions="Center"
+                        Icon="{mi:Material Icon=Warning}"
+                        Scale="0.8"
+                        IconColor="{Binding SelectedFeature.LastFeaturedOnHubValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                        IsVisible="{Binding SelectedFeature.LastFeaturedOnHubValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                </HorizontalStackLayout>
+                <Entry
+                    Grid.Row="5"
+                    Grid.Column="4"
+                    VerticalOptions="Center"
+                    Placeholder="last date featured"
+                    Text="{Binding SelectedFeature.LastFeaturedOnHub, Mode=TwoWay}"
+                    IsVisible="{Binding SelectedFeature.UserHasFeaturesOnHub}" />
+                <Entry
+                    Grid.Row="5"
+                    Grid.Column="5"
+                    VerticalOptions="Center"
+                    Placeholder="on page"
+                    Text="{Binding SelectedFeature.LastFeaturedPage, Mode=TwoWay}"
+                    IsVisible="{Binding SelectedFeature.UserHasFeaturesOnHub}" />
+
+                <!-- Feature counts -->
+                <Grid
+                    Grid.Row="6"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="6"
+                    ColumnDefinitions="Auto, 120, Auto, Auto, 120"
+                    IsVisible="{Binding SelectedFeature.UserHasFeaturesOnHub}">
+                    <Label
+                        Grid.Column="0"
+                        VerticalOptions="Center"
+                        Text="Feature count:" />
+                    <Picker
+                        Grid.Column="1"
+                        ItemsSource="{Binding FeaturedCounts}"
+                        SelectedItem="{Binding SelectedFeature.FeatureCountOnHub}" />
+                    <Label
+                        Grid.Column="2"
+                        VerticalOptions="Center"
+                        Padding="12,0"
+                        Text="|"
+                        IsVisible="{Binding SnapHubVisibility}" />
+                    <Label
+                        Grid.Column="3"
+                        VerticalOptions="Center"
+                        Text="Feature count:"
+                        IsVisible="{Binding SnapHubVisibility}" />
+                    <Picker
+                        Grid.Column="4"
+                        ItemsSource="{Binding FeaturedCounts}"
+                        SelectedItem="{Binding SelectedFeature.FeatureCountOnRawHub}" 
+                        IsVisible="{Binding SnapHubVisibility}" />
+                </Grid>
+       
+                <!-- Hub tag buttons -->
+                <HorizontalStackLayout
+                    Grid.Row="7"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="6"
+                    HorizontalOptions="End">
+                    <Button
+                        Command="{Binding CopyHubFeatureTagCommand}"
+                        Margin="4,0"
+                        Padding="24,0"
+                        HeightRequest="32"
+                        MaximumHeightRequest="32"
+                        Text="Copy tag" />
+                    <Button
+                        Command="{Binding CopyRawHubFeatureTagCommand}"
+                        Margin="4,0"
+                        Padding="24,0"
+                        HeightRequest="32"
+                        MaximumHeightRequest="32"
+                        Text="Copy RAW tag"
+                        IsVisible="{Binding SnapHubVisibility}" />
+                </HorizontalStackLayout>
+
+                <Border 
+                    Grid.Row="8"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="6"
+                    StrokeThickness="1" 
+                    Stroke="{AppThemeBinding Light={DynamicResource Gray100Brush}, Dark={DynamicResource Gray600}}"
+                    Margin="0,8,0,4" />
+            </Grid>
+            
+            <!-- Too soon -->
+            <Grid 
+                Grid.Row="10"
+                ColumnDefinitions="Auto, Auto">
+                <Label
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Text="Too soon to feature user" />
+                <CheckBox
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    IsChecked="{Binding SelectedFeature.TooSoonToFeatureUser, Mode=TwoWay}" />
+            </Grid>
+            
+            <!-- Validation results -->
+            <Grid
+                Grid.Row="11"
+                ColumnDefinitions="Auto, 120, Auto, Auto, 120">
+                <Label
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    Text="TinEye:" />
+                <Picker
+                    Grid.Column="1"
+                    ItemsSource="{Binding TinEyeResults}"
+                    SelectedItem="{Binding SelectedFeature.TinEyeResults}" />
+                <Label
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    Padding="12,0"
+                    Text="|" />
+                <Label
+                    Grid.Column="3"
+                    VerticalOptions="Center"
+                    Text="AI Check:" />
+                <Picker
+                    Grid.Column="4"
+                    ItemsSource="{Binding AiCheckResults}"
+                    SelectedItem="{Binding SelectedFeature.AiCheckResults}" />
+            </Grid>
+        </Grid>
+    </ScrollView>
+</ContentPage>

@@ -62,7 +62,7 @@ public static class Validation
         {
             return new ValidationResult(failLevel, "User name should be more than 1 character long");
         }
-        return new ValidationResult();
+        return ValidateValueNotEmptyAndContainsNoNewlines(userName, failLevel);
     }
 
     internal static ValidationResult ValidateValueNotEmptyAndContainsNoNewlines(string value, ValidationLevel failLevel = ValidationLevel.Error)

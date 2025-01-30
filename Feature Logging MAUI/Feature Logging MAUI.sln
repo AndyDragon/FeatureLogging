@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35707.178 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Feature Logging MAUI", "Feature Logging MAUI\Feature Logging MAUI.csproj", "{00B45B70-FB48-4A21-A57A-81E5E539A60C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Feature Logging", "Feature Logging\Feature Logging.csproj", "{00B45B70-FB48-4A21-A57A-81E5E539A60C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

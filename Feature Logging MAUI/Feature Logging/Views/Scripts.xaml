@@ -1,0 +1,312 @@
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:localConverters="clr-namespace:FeatureLogging.Converters"
+    xmlns:localViewModels="clr-namespace:FeatureLogging.ViewModels"
+    x:Class="FeatureLogging.Views.Scripts"
+    x:DataType="localViewModels:MainViewModel"
+    Title="Scripts">
+    
+    <Shell.ToolbarItems>
+        <ToolbarItem
+            Text="Previous feature"
+            Command="{Binding NavigateToPreviousFeatureCommand}"
+            Priority="1"
+            Order="Primary"
+            IsEnabled="{Binding FeatureNavigationAllowed}" />
+        <ToolbarItem
+            Text="Next feature"
+            Command="{Binding NavigateToNextFeatureCommand}"
+            Priority="1"
+            Order="Primary" 
+            IsEnabled="{Binding FeatureNavigationAllowed}" />
+    </Shell.ToolbarItems>
+    
+    <ContentPage.Resources>
+        <localConverters:ValidationResultColorConverter x:Key="ValidationResultColorConverter" />
+        <localConverters:ValidationBooleanColorConverter x:Key="ValidationBooleanColorConverter" />
+    </ContentPage.Resources>
+
+    <ScrollView Orientation="Both">
+        <VerticalStackLayout
+            WidthRequest="{Binding ScreenWidth}">
+            <Grid
+                Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />                 <!-- Page / Staff level -->
+                    <RowDefinition Height="Auto" />                 <!-- You / Your first name -->
+                    <RowDefinition Height="Auto" />                 <!-- User / Level -->
+                    <RowDefinition Height="Auto" />                 <!-- Options -->
+                    <RowDefinition Height="Auto" />                 <!-- Feature script header -->
+                    <RowDefinition Height="5*" />                   <!-- Feature script -->
+                    <RowDefinition Height="Auto" />                 <!-- Comment script header -->
+                    <RowDefinition Height="3*" />                   <!-- Comment script -->
+                    <RowDefinition Height="Auto" />                 <!-- Original post script header -->
+                    <RowDefinition Height="2*" />                   <!-- Original post script -->
+                    <RowDefinition Height="Auto" />                 <!-- New membership script header -->
+                    <RowDefinition Height="3*" />                   <!-- New membership script -->
+                </Grid.RowDefinitions>
+                
+                <!-- Page / Staff level -->
+                <Grid
+                    Grid.Row="0"
+                    Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label 
+                        Grid.Column="0" 
+                        Text="Page:" 
+                        VerticalOptions="Center" 
+                        FontSize="11" 
+                        FontAttributes="Bold"
+                        Margin="0,0,4,0" 
+                        TextColor="{Binding PageValidation, Converter={StaticResource ValidationResultColorConverter}}" />
+                    <Editor Grid.Column="1" Text="{Binding Page, Mode=OneWay}" VerticalOptions="Center" Height="20" IsReadOnly="True" />
+                    <Label 
+                        Grid.Column="2" 
+                        Text="Page staff level:" 
+                        VerticalOptions="Center" 
+                        FontSize="11" 
+                        FontAttributes="Bold"
+                        Margin="10,0,4,0" />
+                    <Editor Grid.Column="3" Text="{Binding StaffLevel, Mode=OneWay}" VerticalOptions="Center" Height="20" IsReadOnly="True" />
+                </Grid>        
+                
+                <!-- You / Your first name -->
+                <Grid
+                    Grid.Row="1"
+                    Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label 
+                        Grid.Column="0" 
+                        Text="You:" 
+                        VerticalOptions="Center" 
+                        FontSize="11" 
+                        FontAttributes="Bold"
+                        Margin="0,0,4,0" 
+                        TextColor="{Binding YourAliasValidation, Converter={StaticResource ValidationResultColorConverter}}" />
+                    <Editor Grid.Column="1" Text="{Binding YourAlias, Mode=OneWay}" VerticalOptions="Center" Height="20" IsReadOnly="True" />
+                    <Label 
+                        Grid.Column="2" 
+                        Text="Your first name:" 
+                        VerticalOptions="Center" 
+                        FontSize="11" 
+                        FontAttributes="Bold"
+                        Margin="10, 0, 4, 0" 
+                        TextColor="{Binding YourFirstNameValidation, Converter={StaticResource ValidationResultColorConverter}}" />
+                    <Editor Grid.Column="3" Text="{Binding YourFirstName, Mode=OneWay}" VerticalOptions="Center" Height="20" IsReadOnly="True" />
+                </Grid>
+
+                <!-- User / Level -->
+                <Grid
+                    Grid.Row="2"
+                    Margin="0,0,0,8"
+                    ColumnDefinitions="Auto, *, Auto, *">
+                    <Label 
+                        Grid.Column="0" 
+                        Text="User:" 
+                        VerticalOptions="Center" 
+                        FontSize="11" 
+                        FontAttributes="Bold"
+                        Margin="0,0,4,0" 
+                        TextColor="{Binding ScriptViewModel.Feature.UserAliasValidation, Converter={StaticResource ValidationResultColorConverter}}" />
+                    <Editor Grid.Column="1" Text="{Binding ScriptViewModel.Feature.UserAlias, Mode=OneWay}" VerticalOptions="Center" Height="20" IsReadOnly="True" />
+                    <Label 
+                        Grid.Column="2" 
+                        Text="Level:" 
+                        VerticalOptions="Center" 
+                        FontSize="11" 
+                        FontAttributes="Bold"
+                        Margin="10, 0, 4, 0" 
+                        TextColor="{Binding ScriptViewModel.Feature.UserLevelValidation, Converter={StaticResource ValidationResultColorConverter}}" />
+                    <Editor Grid.Column="3" Text="{Binding ScriptViewModel.Feature.UserLevel, Mode=OneWay}" VerticalOptions="Center" Height="20" IsReadOnly="True" />
+                </Grid>
+
+                <!-- Options -->
+                <Grid
+                    Grid.Row="3"
+                    Margin="0,0,0,8"
+                    ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
+                    <Label Grid.Column="0" Text="First on page" VerticalOptions="Center" FontSize="11" FontAttributes="Bold" Margin="0, 0, 4, 0" />
+                    <CheckBox Grid.Column="1" IsChecked="{Binding ScriptViewModel.IsFirstFeature}" VerticalOptions="Center" IsEnabled="False" />
+                    <Label Grid.Column="2" Text="From RAW" VerticalOptions="Center" FontSize="11" FontAttributes="Bold" Margin="10, 0, 4, 0" />
+                    <CheckBox Grid.Column="3" IsChecked="{Binding ScriptViewModel.FromRawTag}" VerticalOptions="Center" IsEnabled="False" />
+                    <Label Grid.Column="4" Text="From community" VerticalOptions="Center" FontSize="11" FontAttributes="Bold" Margin="10, 0, 4, 0" />
+                    <CheckBox Grid.Column="5" IsChecked="{Binding ScriptViewModel.FromCommunityTag}" VerticalOptions="Center" IsEnabled="False" />
+                </Grid>
+                
+                <!-- Feature script header -->
+                <Grid
+                    Grid.Row="4"
+                    Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Text="Feature script:" Grid.Column="0" VerticalOptions="Center" FontAttributes="Bold" FontSize="11" />
+                    <Button
+                        Grid.Column="1"
+                        Text="Copy"
+                        IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                        VerticalOptions="Center"
+                        Margin="8,0,0,0"
+                        Padding="24,0"
+                        HeightRequest="32"
+                        MaximumHeightRequest="32"
+                        Command="{Binding ScriptViewModel.CopyFeatureScriptCommand}" />
+                    <Button
+                        Grid.Column="2"
+                        Text="Copy (with Placeholders)"
+                        IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                        IsVisible="{Binding ScriptViewModel.FeatureScriptPlaceholderVisibility}"
+                        VerticalOptions="Center"
+                        Margin="8,0,0,0"
+                        Padding="24,0"
+                        HeightRequest="32"
+                        MaximumHeightRequest="32"
+                        Command="{Binding ScriptViewModel.CopyFeatureScriptWithPlaceholdersCommand}" />
+                </Grid>
+                
+                <!-- Feature script -->
+                <Editor
+                    Grid.Row="5"
+                    Text="{Binding ScriptViewModel.FeatureScript, Mode=TwoWay}"
+                    Margin="0,0,0,8"
+                    TextColor="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource ValidationBooleanColorConverter}}" />
+                        
+                <!-- Comment script header -->
+                <Grid
+                    Grid.Row="6"
+                    Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Text="Comment script:" Grid.Column="0" VerticalOptions="Center" FontAttributes="Bold" FontSize="11" />
+                    <Button
+                        Grid.Column="1"
+                        Text="Copy"
+                        IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                        VerticalOptions="Center"
+                        Margin="8,0,0,0"
+                        Padding="24,0"
+                        HeightRequest="32"
+                        MaximumHeightRequest="32"
+                        Command="{Binding ScriptViewModel.CopyCommentScriptCommand}" />
+                    <Button
+                        Grid.Column="2"
+                        Text="Copy (with Placeholders)"
+                        IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                        IsVisible="{Binding ScriptViewModel.CommentScriptPlaceholderVisibility}"
+                        VerticalOptions="Center"
+                        Margin="8,0,0,0"
+                        Padding="24,0"
+                        HeightRequest="32"
+                        MaximumHeightRequest="32"
+                        Command="{Binding ScriptViewModel.CopyCommentScriptWithPlaceholdersCommand}" />
+                </Grid>
+                
+                <!-- Comment script -->
+                <Editor
+                    Grid.Row="7"
+                    Text="{Binding ScriptViewModel.CommentScript, Mode=TwoWay}"
+                    Margin="0,0,0,8"
+                    TextColor="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource ValidationBooleanColorConverter}}" />
+                        
+                <!-- Original post script header -->
+                <Grid
+                    Grid.Row="8"
+                    Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Text="Original post script:" Grid.Column="0" VerticalOptions="Center" FontAttributes="Bold" FontSize="11" />
+                    <Button
+                        Grid.Column="1"
+                        Text="Copy"
+                        IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                        VerticalOptions="Center"
+                        Margin="8,0,0,0"
+                        Padding="24,0"
+                        HeightRequest="32"
+                        MaximumHeightRequest="32"
+                        Command="{Binding ScriptViewModel.CopyOriginalPostScriptCommand}" />
+                    <Button
+                        Grid.Column="2"
+                        Text="Copy (with Placeholders)"
+                        IsEnabled="{Binding ScriptViewModel.CanCopyScripts}"
+                        IsVisible="{Binding ScriptViewModel.OriginalPostScriptPlaceholderVisibility}"
+                        VerticalOptions="Center"
+                        Margin="8,0,0,0"
+                        Padding="24,0"
+                        HeightRequest="32"
+                        MaximumHeightRequest="32"
+                        Command="{Binding ScriptViewModel.CopyOriginalPostScriptWithPlaceholdersCommand}" />
+                </Grid>
+                
+                <!-- Original post script -->
+                <Editor
+                    Grid.Row="9"
+                    Text="{Binding ScriptViewModel.OriginalPostScript, Mode=TwoWay}"
+                    Margin="0,0,0,8"
+                    TextColor="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource ValidationBooleanColorConverter}}" />
+
+                <!-- New membership script header -->
+                <Grid
+                    Grid.Row="10"
+                    Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label
+                        Grid.Column="0"
+                        Text="New membership script:"
+                        VerticalOptions="Center"
+                        FontAttributes="Bold"
+                        FontSize="11" />
+                    <Picker
+                        Grid.Column="1"
+                        ItemsSource="{Binding ScriptViewModel.HubNewMemberships}"
+                        SelectedItem="{Binding ScriptViewModel.NewMembership, Mode=TwoWay}"
+                        WidthRequest="230" />
+                    <Button
+                        Grid.Column="2"
+                        Text="Copy"
+                        IsEnabled="{Binding ScriptViewModel.CanCopyNewMembershipScript}"
+                        VerticalOptions="Center"
+                        Margin="8,0,0,0"
+                        Padding="24,0"
+                        HeightRequest="32"
+                        MaximumHeightRequest="32"
+                        Command="{Binding ScriptViewModel.CopyNewMembershipScriptCommand}" />
+                </Grid>
+                
+                <!-- New membership script -->
+                <Editor
+                    Grid.Row="11"
+                    Text="{Binding ScriptViewModel.NewMembershipScript, Mode=TwoWay}"
+                    Margin="0,0,0,8"
+                    TextColor="{Binding ScriptViewModel.CanCopyNewMembershipScript, Converter={StaticResource ValidationBooleanColorConverter}}" />
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

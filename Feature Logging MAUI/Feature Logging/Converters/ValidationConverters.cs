@@ -22,10 +22,10 @@ namespace FeatureLogging.Converters
             {
                 ValidationLevel.Warning => WarningColor ?? Colors.Orange,
                 ValidationLevel.Error => ErrorColor ?? Colors.Red,
-                _ => ValidColor ?? Colors.Green
+                _ => ValidColor ?? (Application.Current.RequestedTheme == AppTheme.Dark ? Colors.White : Colors.Black)
             };
         }
-
+        
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
@@ -51,6 +51,47 @@ namespace FeatureLogging.Converters
                 ValidationLevel.Error => ErrorVisibility ?? true,
                 _ => ValidVisibility ?? false
             };
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    internal class ValidationBooleanColorConverter : IValueConverter
+    {
+        public Color? ValidColor { get; set; }
+        public Color? ErrorColor { get; set; }
+        
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not bool result)
+            {
+                return ErrorColor ?? Colors.Red;
+            }
+
+            return !result 
+                ? ErrorColor ?? Colors.Red 
+                : ValidColor ?? (Application.Current.RequestedTheme == AppTheme.Dark ? Colors.White : Colors.Black);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    internal class ValidationBooleanVisibilityConverter : IValueConverter
+    {
+        public bool? ValidVisibility { get; set; }
+        
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not bool result)
+            {
+                return !(ValidVisibility ?? true);
+            }
+            
+            return !result && (ValidVisibility ?? true);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

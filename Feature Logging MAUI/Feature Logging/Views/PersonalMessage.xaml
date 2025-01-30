@@ -1,0 +1,40 @@
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:localViewModels="clr-namespace:FeatureLogging.ViewModels"
+    x:Class="FeatureLogging.Views.PersonalMessage"
+    x:DataType="localViewModels:PersonalMessageViewModel"
+    Title="Feature">
+    
+    <ScrollView
+        Orientation="Both">
+        <Grid 
+            RowDefinitions="Auto, Auto, Auto, Auto" 
+            ColumnDefinitions="140, *"
+            Padding="30,0,30,30" 
+            WidthRequest="{Binding MainViewModel.ScreenWidth}">
+            <Label Grid.Row="0" Grid.Column="0" Text="User:" HorizontalOptions="End" VerticalOptions="Center" Margin="0,0,8,0" />
+            <Editor Grid.Row="0" Grid.Column="1" Text="{Binding Feature.UserName}" VerticalOptions="Center" IsReadOnly="True" />
+            <Label Grid.Row="1" Grid.Column="0" Text="Description:" HorizontalOptions="End" VerticalOptions="Center" Margin="0,0,8,0" />
+            <Editor Grid.Row="1" Grid.Column="1" Text="{Binding Feature.FeatureDescription}" VerticalOptions="Center" IsReadOnly="True" />
+            <Label Grid.Row="2" Grid.Column="0" Text="Personal message (from your account):" HorizontalOptions="End" VerticalOptions="Start" Margin="0,0,8,0" />
+            <Editor Grid.Row="2" Grid.Column="1" Text="{Binding Feature.PersonalMessage, Mode=TwoWay}" HorizontalOptions="Fill" VerticalOptions="Start" />
+            <HorizontalStackLayout Grid.Row="3" Grid.Column="1" HorizontalOptions="End" Margin="0,20">
+                <Button 
+                    Text="Copy full text" 
+                    Margin="4,0"
+                    Padding="24,0"
+                    HeightRequest="32"
+                    MaximumHeightRequest="32"
+                    Command="{Binding MainViewModel.CopyPersonalMessageCommand}" CommandParameter="{Binding Feature}" />
+                <Button 
+                    Text="Close" 
+                    Margin="4,0"
+                    Padding="24,0"
+                    HeightRequest="32"
+                    MaximumHeightRequest="32"
+                    Clicked="OnCloseButtonClicked" />
+            </HorizontalStackLayout>
+        </Grid>
+    </ScrollView>
+</ContentPage>

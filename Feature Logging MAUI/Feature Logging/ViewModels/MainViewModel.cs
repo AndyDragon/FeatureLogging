@@ -19,8 +19,13 @@ public class MainViewModel : NotifyPropertyChanged
 
     public MainViewModel()
     {
-        scriptViewModel = new ScriptsViewModel(this);
-        settingsViewModel = new SettingsViewModel();
+        ScriptViewModel = new ScriptsViewModel(this);
+        SettingsViewModel = new SettingsViewModel();
+
+        DeviceDisplay.Current.MainDisplayInfoChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(ScreenWidth));
+        };
 
         _ = LoadPages();
     }
@@ -108,7 +113,7 @@ public class MainViewModel : NotifyPropertyChanged
             var content = await httpClient.GetStringAsync(templatesUri);
             if (!string.IsNullOrEmpty(content))
             {
-                scriptViewModel.TemplatesCatalog = JsonConvert.DeserializeObject<TemplatesCatalog>(content) ?? new TemplatesCatalog();
+                ScriptViewModel.TemplatesCatalog = JsonConvert.DeserializeObject<TemplatesCatalog>(content) ?? new TemplatesCatalog();
             }
         }
         catch (Exception ex)
@@ -211,7 +216,7 @@ public class MainViewModel : NotifyPropertyChanged
                         Features.Clear();
                         foreach (var fileFeature in file["features"])
                         {
-                            var loadedFeature = new Feature
+                            var loadedFeature = new Feature(SelectedPage.HubName)
                             {
                                 IsPicked = (bool)fileFeature["isPicked"],
                                 PostLink = (string)fileFeature["postLink"],
@@ -375,9 +380,20 @@ public class MainViewModel : NotifyPropertyChanged
         if (Clipboard.HasText)
         {
             var text = Clipboard.GetTextAsync().Result ?? "";
+            if (!string.IsNullOrEmpty(text))
+            {
+                var duplicateFeature = Features.FirstOrDefault(feature => string.Equals(feature.PostLink, text, StringComparison.OrdinalIgnoreCase));
+                if (duplicateFeature != null)
+                {
+                    _ = Toast.Make("There is already a feature in the list with that post link, selected the existing feature").Show();
+                    SelectedFeature = duplicateFeature;
+                    return;
+                }
+            }
+
             if (text.StartsWith("https://vero.co/"))
             {
-                var feature = new Feature
+                var feature = new Feature(SelectedPage!.HubName)
                 {
                     PostLink = text,
                     UserAlias = text["https://vero.co/".Length..].Split("/").FirstOrDefault() ?? "",
@@ -389,7 +405,7 @@ public class MainViewModel : NotifyPropertyChanged
             }
             else
             {
-                var feature = new Feature();
+                var feature = new Feature(SelectedPage!.HubName);
                 Features.Add(feature);
                 OnPropertyChanged(nameof(CanChangePage));
                 SelectedFeature = feature;
@@ -398,7 +414,7 @@ public class MainViewModel : NotifyPropertyChanged
         }
         else
         {
-            var feature = new Feature();
+            var feature = new Feature(SelectedPage!.HubName);
             Features.Add(feature);
             OnPropertyChanged(nameof(CanChangePage));
             SelectedFeature = feature;
@@ -496,9 +512,10 @@ public class MainViewModel : NotifyPropertyChanged
         {
             return;
         }
+
         var newIndex = (currentIndex + pickedAndAllowedFeatures.Length - 1) % pickedAndAllowedFeatures.Length;
         SelectedFeature = pickedAndAllowedFeatures[newIndex];
-        //SelectedFeature.OpenFeatureInVeroScriptsCommand.Execute(this);
+        ScriptViewModel.UpdateForFeature();
     });
 
     public SimpleCommand NavigateToNextFeatureCommand => new(() =>
@@ -514,14 +531,15 @@ public class MainViewModel : NotifyPropertyChanged
 
         var newIndex = (currentIndex + 1) % pickedAndAllowedFeatures.Length;
         ScriptViewModel.Feature = pickedAndAllowedFeatures[newIndex];
+        ScriptViewModel.UpdateForFeature();
     });
 
-    public SimpleCommandWithParameter EditFeatureCommand => new((feature) =>
+    public SimpleCommandWithParameter EditFeatureCommand => new(feature =>
     {
         SelectedFeature = feature as Feature;
     });
 
-    public SimpleCommandWithParameter DeleteFeatureCommand => new((feature) =>
+    public SimpleCommandWithParameter DeleteFeatureCommand => new(feature =>
     {
         SelectedFeature = null;
         if (feature is Feature featureToDelete)
@@ -537,15 +555,43 @@ public class MainViewModel : NotifyPropertyChanged
         OnPropertyChanged(nameof(SaveReportCommand));
     });
 
-    public SimpleCommandWithParameter ShowScriptsForFeatureCommand => new((feature) =>
+    public SimpleCommandWithParameter ShowScriptsForFeatureCommand => new(feature =>
     {
         if (feature is Feature featureToShow)
         {
             ScriptViewModel.Feature = featureToShow;
-            _ = MainWindow!.Navigation.PushAsync(new Scripts
-            {
-                BindingContext = this,
-            });
+            ScriptViewModel.UpdateForFeature();
+            _ = MainWindow!.Navigation.PushAsync(new Scripts(this));
+        }
+    });
+
+    public SimpleCommandWithParameter ShowPersonalMessageForFeatureCommand => new(feature =>
+    {
+        if (feature is Feature featureToShow)
+        {
+            _ = MainWindow!.Navigation.PushAsync(new PersonalMessage(new PersonalMessageViewModel(this, featureToShow)));
+        }
+    });
+    
+    public SimpleCommandWithParameter CopyPersonalMessageCommand => new(feature =>
+    {
+        if (SelectedPage != null && feature is Feature featureToCopy)
+        {
+            var personalMessageTemplate = featureToCopy.UserHasFeaturesOnPage
+                ? (string.IsNullOrEmpty(SettingsViewModel.PersonalMessage)
+                    ? "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+                    : SettingsViewModel.PersonalMessage)
+                : (string.IsNullOrEmpty(SettingsViewModel.PersonalMessageFirst)
+                    ? "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
+                    : SettingsViewModel.PersonalMessageFirst);
+            var fullMessage = personalMessageTemplate
+                .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
+                .Replace("%%HUBNAME%%", SelectedPage.HubName)
+                .Replace("%%USERNAME%%", featureToCopy.UserName)
+                .Replace("%%USERALIAS%%", featureToCopy.UserAlias)
+                .Replace("%%PERSONALMESSAGE%%", string.IsNullOrEmpty(featureToCopy.PersonalMessage) ? "[PERSONAL MESSAGE]" : featureToCopy.PersonalMessage);
+            _ = CopyTextToClipboardAsync(fullMessage, "Copied to clipboard", "The personal message was copied to the clipboard");
+            _ = MainWindow!.Navigation.PopAsync();
         }
     });
 
@@ -554,7 +600,8 @@ public class MainViewModel : NotifyPropertyChanged
     #region Waiting state
 
     private bool waitingForPages = true;
-    public bool WaitingForPages
+
+    private bool WaitingForPages
     {
         get => waitingForPages;
         set => Set(ref waitingForPages, value, [
@@ -574,13 +621,14 @@ public class MainViewModel : NotifyPropertyChanged
     #region Dirty state
 
     private bool isDirty;
-    public bool IsDirty
+
+    private bool IsDirty
     {
         get => isDirty;
         set => Set(ref isDirty, value);
     }
 
-    public async Task HandleDirtyActionAsync(string action, Action<bool> onConfirmAction)
+    private async Task HandleDirtyActionAsync(string action, Action<bool> onConfirmAction)
     {
         if (await MainWindow!.DisplayAlert(
             "Log not saved",
@@ -770,20 +818,20 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Staff level
 
-    public static string[] SnapStaffLevels => [
+    private static string[] SnapStaffLevels => [
         "Mod",
         "Co-Admin",
         "Admin",
         "Guest moderator"
     ];
 
-    public static string[] ClickStaffLevels => [
+    private static string[] ClickStaffLevels => [
         "Mod",
         "Co-Admin",
         "Admin",
     ];
 
-    public static string[] OtherStaffLevels => [
+    private static string[] OtherStaffLevels => [
         "Mod",
         "Co-Admin",
         "Admin",
@@ -816,6 +864,45 @@ public class MainViewModel : NotifyPropertyChanged
     }
 
     public bool CanChangeStaffLevel => !WaitingForPages;
+
+    #endregion
+    
+    #region Your alias
+
+    private string yourAlias = UserSettings.Get(nameof(YourAlias), "");
+    public string YourAlias
+    {
+        get => yourAlias;
+        set
+        {
+            if (Set(ref yourAlias, value, [nameof(YourAliasValidation)]))
+            {
+                UserSettings.Store(nameof(YourAlias), YourAlias);
+                ScriptViewModel.ClearAllPlaceholders();
+            }
+        }
+    }
+    public ValidationResult YourAliasValidation => Validation.ValidateUserName(YourAlias);
+
+    #endregion
+
+    #region Your first name
+
+    private string yourFirstName = UserSettings.Get(nameof(YourFirstName), "");
+    public string YourFirstName
+    {
+        get => yourFirstName;
+        set
+        {
+            if (Set(ref yourFirstName, value, [nameof(YourFirstNameValidation)]))
+            {
+                UserSettings.Store(nameof(YourFirstName), YourFirstName);
+                ScriptViewModel.ClearAllPlaceholders();
+            }
+        }
+    }
+
+    public ValidationResult YourFirstNameValidation => Validation.ValidateValueNotEmpty(YourFirstName);
 
     #endregion
 
@@ -908,28 +995,29 @@ public class MainViewModel : NotifyPropertyChanged
         SelectedPage?.HubName == "snap" ? SnapMemberships :
         OtherMemberships;
 
-    public Dictionary<string, string> OldMembershipMap =>
-        SelectedPage?.HubName == "click" ? new Dictionary<string, string>
+    private Dictionary<string, string> OldMembershipMap =>
+        SelectedPage?.HubName switch
         {
-            { "Member", "Click Member" },
-            { "Bronze Member", "Click Bronze Member" },
-            { "Silver Member", "Click Silver Member" },
-            { "Gold Member", "Click Gold Member" },
-            { "Platinum Member", "Click Platinum Member" },
-        }
-        :
-        SelectedPage?.HubName == "snap" ? new Dictionary<string, string>
-        {
-            { "Member", "Snap Member" },
-            { "VIP Member", "Snap VIP Member" },
-            { "VIP Gold Member", "Snap VIP Gold Member" },
-            { "Platinum Member", "Snap Platinum Member" },
-            { "Elite Member", "Snap Elite Member" },
-            { "Hall of Fame Member", "Snap Hall of Fame Member" },
-            { "Diamond Member", "Snap Diamond Member" },
-        }
-        :
-        [];
+            "click" => new Dictionary<string, string>
+            {
+                { "Member", "Click Member" },
+                { "Bronze Member", "Click Bronze Member" },
+                { "Silver Member", "Click Silver Member" },
+                { "Gold Member", "Click Gold Member" },
+                { "Platinum Member", "Click Platinum Member" },
+            },
+            "snap" => new Dictionary<string, string>
+            {
+                { "Member", "Snap Member" },
+                { "VIP Member", "Snap VIP Member" },
+                { "VIP Gold Member", "Snap VIP Gold Member" },
+                { "Platinum Member", "Snap Platinum Member" },
+                { "Elite Member", "Snap Elite Member" },
+                { "Hall of Fame Member", "Snap Hall of Fame Member" },
+                { "Diamond Member", "Snap Diamond Member" },
+            },
+            _ => []
+        };
 
     private string MapMembershipLevelFromFile(string userLevelFromFile)
     {
@@ -970,6 +1058,21 @@ public class MainViewModel : NotifyPropertyChanged
         SelectedPage?.HubName == "click" ? ClickTagSources :
         SelectedPage?.HubName == "snap" ? SnapTagSources :
         OtherTagSources;
+
+    public bool FromRawTag(string tagSource)
+    {
+        return SelectedPage?.HubName == "snap" && tagSource is "RAW page tag" or "RAW community tag";
+    }
+
+    public bool FromCommunityTag(string tagSource)
+    {
+        return SelectedPage?.HubName switch
+        {
+            "click" => tagSource is "Click community tag",
+            "snap" => tagSource is "Snap community tag" or "RAW community tag",
+            _ => false
+        };
+    }
 
     #endregion
 
@@ -1326,7 +1429,7 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Clipboard support
 
-    public static async Task CopyTextToClipboardAsync(string text, string title, string successMessage)
+    private static async Task CopyTextToClipboardAsync(string text, string title, string successMessage)
     {
         await TrySetClipboardText(text);
         await Toast.Make($"{title}: {successMessage}").Show();
@@ -1341,15 +1444,13 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Script view model
 
-    private readonly ScriptsViewModel scriptViewModel;
-    public ScriptsViewModel ScriptViewModel => scriptViewModel;
+    public ScriptsViewModel ScriptViewModel { get; }
 
     #endregion
 
     #region Settings view model
 
-    private readonly SettingsViewModel settingsViewModel;
-    public SettingsViewModel SettingsViewModel => settingsViewModel;
+    private SettingsViewModel SettingsViewModel { get; }
 
     #endregion
 
@@ -1370,6 +1471,8 @@ public class MainViewModel : NotifyPropertyChanged
     #region Misc
 
     public FeatureList? MainWindow { get; internal set; }
+    
+    public double ScreenWidth => Math.Max(800, DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density);
 
     internal void TriggerTinEyeSource()
     {

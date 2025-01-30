@@ -1,0 +1,58 @@
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:localModels="clr-namespace:FeatureLogging.Models"
+    xmlns:localViewModels="clr-namespace:FeatureLogging.ViewModels"
+    x:Class="FeatureLogging.Views.PlaceholderEditor"
+    x:DataType="localViewModels:PlaceholdersViewModel"
+    Title="Settings">
+    
+    <Grid RowDefinitions="Auto, Auto, *, Auto">
+        <Label Grid.Row="0" Margin="10,10,10,2" HorizontalOptions="Center">There are manual placeholders that need to be filled out:</Label>
+        <Label Grid.Row="1" Margin="10,2,10,10" HorizontalOptions="Center">(leave field blank to remove the placeholder)</Label>
+        <Border Grid.Row="2" BackgroundColor="{DynamicResource Gray500}" Margin="10,10,20,10" StrokeShape="RoundRectangle 10" Padding="4,0,6,0">
+            <VerticalStackLayout>
+                <ListView 
+                    HasUnevenRows="True"
+                    ItemsSource="{Binding Placeholders}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="localModels:Placeholder">
+                            <ViewCell>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="2*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Text="{Binding Name, Mode=OneWay}" Margin="8,0,0,0" FontSize="16" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                    <Editor Grid.Column="1" Text="{Binding Value, Mode=TwoWay}" Margin="8,0,0,0" FontSize="14" VerticalOptions="Center" />
+                                </Grid>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <ListView 
+                    ItemsSource="{Binding LongPlaceholders}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="localModels:Placeholder">
+                            <ViewCell>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="2*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Text="{Binding Name, Mode=OneWay}" Margin="8,0,0,0" FontSize="16" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" />
+                                    <Editor Grid.Column="1" Text="{Binding Value, Mode=TwoWay}" Margin="8,0,0,0" FontSize="14" Height="48" VerticalOptions="Start" />
+                                </Grid>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </VerticalStackLayout>
+        </Border>
+        <HorizontalStackLayout Grid.Row="3" Margin="0,0,10,10" HorizontalOptions="End">
+            <Button Text="Copy" HorizontalOptions="Start" Margin="10" VerticalOptions="Start" Width="152" Height="29" Clicked="OnCopyClicked" />
+            <Button Text="Copy with Placeholders" HorizontalOptions="Start" Margin="10" VerticalOptions="Start" Width="152" Height="29" Clicked="OnCopyUnchangedClicked" />
+            <Button Text="Cancel" HorizontalOptions="Start" Margin="10" VerticalOptions="Start" Width="152" Height="29" Clicked="OnCancelClicked" />
+        </HorizontalStackLayout>
+    </Grid>
+</ContentPage>
