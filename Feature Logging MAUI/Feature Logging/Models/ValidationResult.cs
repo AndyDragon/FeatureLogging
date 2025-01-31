@@ -7,27 +7,25 @@ public enum ValidationLevel
     Error,
 }
 
-public struct ValidationResult(ValidationLevel level = ValidationLevel.Valid, string? error = null, string? message = null)
+public readonly struct ValidationResult(ValidationLevel level = ValidationLevel.Valid, string? error = null, string? message = null) : IEquatable<ValidationResult>
 {
-    public readonly bool Valid => Level == ValidationLevel.Valid;
+    public bool Valid => Level == ValidationLevel.Valid;
 
-    public ValidationLevel Level { get; private set; } = level;
+    public ValidationLevel Level { get; } = level;
 
-    public string? Error { get; private set; } = error;
+    public string? Error { get; } = error;
 
-    public string? Message { get; private set; } = message;
+    public string? Message { get; } = message;
 
     public static bool operator ==(ValidationResult x, ValidationResult y)
     {
-        var xPrime = x;
-        var yPrime = y;
-        if (xPrime.Level == yPrime.Level)
+        if (x.Level == y.Level)
         {
-            if (xPrime.Level == ValidationLevel.Valid)
+            if (x.Level == ValidationLevel.Valid)
             {
-                return xPrime.Message == yPrime.Message;
+                return x.Message == y.Message;
             }
-            return xPrime.Error == yPrime.Error && xPrime.Message == yPrime.Message;
+            return x.Error == y.Error && x.Message == y.Message;
         }
         return false;
     }
@@ -37,7 +35,7 @@ public struct ValidationResult(ValidationLevel level = ValidationLevel.Valid, st
         return !(x == y);
     }
 
-    public readonly override bool Equals(object? obj)
+    public override bool Equals(object? obj)
     {
         if (obj is ValidationResult)
         {
@@ -47,8 +45,13 @@ public struct ValidationResult(ValidationLevel level = ValidationLevel.Valid, st
         return false;
     }
 
-    public readonly override int GetHashCode()
+    public override int GetHashCode()
     {
         return Level.GetHashCode() + (Error ?? "").GetHashCode() + (Message ?? "").GetHashCode();
+    }
+
+    public bool Equals(ValidationResult other)
+    {
+        return Level == other.Level && Error == other.Error && Message == other.Message;
     }
 }

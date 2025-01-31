@@ -382,10 +382,10 @@ public class FeatureComparer : IComparer<Feature>
         // Handle photo featured on page
         key += (feature.PhotoFeaturedOnPage ? "Z|" : "A|");
 
-        // Handle tin eye results
+        // Handle TinEye results
         key += (feature.TinEyeResults == "matches found" ? "Z|" : "A|");
 
-        // Handle ai check results
+        // Handle AI check results
         key += (feature.AiCheckResults == "ai" ? "Z|" : "A|");
 
         // Handle too soon to feature

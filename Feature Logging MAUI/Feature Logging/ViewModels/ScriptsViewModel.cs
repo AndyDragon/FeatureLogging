@@ -114,8 +114,8 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
                         return int.MaxValue;
                 }
 
-                var featureCountOnHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnHub ?? "0") : 0;
-                var featureCountOnRawHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnRawHub ?? "0") : 0;
+                var featureCountOnHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnHub) : 0;
+                var featureCountOnRawHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnRawHub) : 0;
                 return featureCountOnHub + featureCountOnRawHub;
             }
             default:

@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Maui.Storage;
 using FeatureLogging.Base;
 using FeatureLogging.Models;
 using FeatureLogging.Views;
@@ -15,7 +16,6 @@ namespace FeatureLogging.ViewModels;
 public class MainViewModel : NotifyPropertyChanged
 {
     private readonly HttpClient httpClient = new();
-    private string lastFilename = string.Empty;
 
     public MainViewModel()
     {
@@ -32,7 +32,7 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region User settings
 
-    public static string GetDataLocationPath()
+    private static string GetDataLocationPath()
     {
         var dataLocationPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -161,7 +161,6 @@ public class MainViewModel : NotifyPropertyChanged
             return;
         }
 
-        lastFilename = string.Empty;
         SelectedFeature = null;
         Features.Clear();
         OnPropertyChanged(nameof(HasFeatures));
@@ -192,7 +191,7 @@ public class MainViewModel : NotifyPropertyChanged
 
         PickOptions options = new()
         {
-            PickerTitle = "Please select a comic file",
+            PickerTitle = "Please select a log file",
             FileTypes = customFileType,
         };
 
@@ -201,9 +200,8 @@ public class MainViewModel : NotifyPropertyChanged
             var result = await FilePicker.Default.PickAsync(options);
             if (result != null)
             {
-                lastFilename = string.Empty;
                 SelectedFeature = null;
-                var file = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(File.ReadAllText(result.FileName));
+                var file = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(File.ReadAllText(result.FullPath));
                 if (file != null)
                 {
                     var pageId = file["page"];
@@ -252,7 +250,6 @@ public class MainViewModel : NotifyPropertyChanged
                         base.OnPropertyChanged(nameof(SaveFeaturesCommand));   
                         base.OnPropertyChanged(nameof(GenerateReportCommand));   
                         base.OnPropertyChanged(nameof(SaveReportCommand));   
-                        lastFilename = result.FileName;
                         IsDirty = false;
                         foreach (var feature in Features)
                         {
@@ -270,56 +267,41 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }, (_) => !WaitingForPages);
 
-    public SimpleCommand SaveFeaturesCommand => new(() =>
+    private void ClearDirty()
+    {
+        IsDirty = false;
+        foreach (var feature in Features)
+        {
+            feature.IsDirty = false;
+        }
+    }
+
+    public SimpleCommand SaveFeaturesCommand => new(async void () =>
     {
         if (SelectedPage != null)
         {
-            if (!string.IsNullOrEmpty(lastFilename))
+            Dictionary<string, dynamic> file = new()
             {
-                SaveLog(lastFilename);
+                ["features"] = Features,
+                ["page"] = SelectedPage.Id,
+            };
+            var jsonSettings = new JsonSerializerSettings
+            {
+                ContractResolver = new OrderedContractResolver(),
+            };
+            var json = JsonConvert.SerializeObject(file, Formatting.Indented, jsonSettings).Replace("\": ", "\" : ");
+
+            var fileName = $"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name} - {DateTime.Now:yyyy-MM-dd}.json";
+            using var stream = new MemoryStream(Encoding.Default.GetBytes(json));
+            var fileSaverResult = await FileSaver.Default.SaveAsync(fileName, stream);
+            if (fileSaverResult.IsSuccessful)
+            {
+                ClearDirty();
+                await Toast.Make($"Saved {Features.Count} features for the {SelectedPage.DisplayName} page").Show();
             }
             else
             {
-                // TODO andydragon
-                // SaveFileDialog dialog = new()
-                // {
-                //     Filter = "Log files (*.json)|*.json|All files (*.*)|*.*",
-                //     Title = "Save the features to a log file",
-                //     OverwritePrompt = true,
-                //     FileName = $"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name} - {DateTime.Now:yyyy-MM-dd}",
-                // };
-                // if (dialog.ShowDialog() == true)
-                // {
-                //     SaveLog(dialog.FileName);
-                // }
-            }
-        }
-
-        void SaveLog(string fileName)
-        {
-            try
-            {
-                Dictionary<string, dynamic> file = new()
-                {
-                    ["features"] = Features,
-                    ["page"] = SelectedPage.Id,
-                };
-                var jsonSettings = new JsonSerializerSettings
-                {
-                    ContractResolver = new OrderedContractResolver(),
-                };
-                File.WriteAllText(fileName, JsonConvert.SerializeObject(file, Formatting.Indented, jsonSettings).Replace("\": ", "\" : "));
-                lastFilename = fileName;
-                IsDirty = false;
-                foreach (var feature in Features)
-                {
-                    feature.IsDirty = false;
-                }
-                Toast.Make($"Saved {Features.Count} features for the {SelectedPage.DisplayName} page").Show();
-            }
-            catch (Exception ex)
-            {
-                Toast.Make($"Failed to save the feature log: {ex.Message})", ToastDuration.Long).Show();
+                await Toast.Make($"Failed to save the feature log: {fileSaverResult.Exception.Message})", ToastDuration.Long).Show();
             }
         }
     }, () => !WaitingForPages && HasFeatures);
@@ -334,29 +316,24 @@ public class MainViewModel : NotifyPropertyChanged
         _ = CopyTextToClipboardAsync(GenerateLogReport(), "Generated report", "Copied the report of features to the clipboard");
     }, () => !WaitingForPages && HasFeatures);
 
-    public SimpleCommand SaveReportCommand => new(() =>
+    public SimpleCommand SaveReportCommand => new(async void () =>
     {
         if (SelectedPage == null)
         {
             return;
         }
 
-        string initialFileName;
-        initialFileName = !string.IsNullOrEmpty(lastFilename) 
-            ? Path.ChangeExtension(lastFilename, ".features") 
-            : $"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name} - {DateTime.Now:yyyy-MM-dd}";
-        // TODO andydragon
-        // SaveFileDialog dialog = new()
-        // {
-        //     Filter = "Feature report files (*.features)|*.features|All files (*.*)|*.*",
-        //     Title = "Save the features to a report file",
-        //     OverwritePrompt = true,
-        //     FileName = initialFileName,
-        // };
-        // if (dialog.ShowDialog() == true)
-        // {
-        //     File.WriteAllText(dialog.FileName, GenerateLogReport());
-        // }
+        var fileName = $"{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name} - {DateTime.Now:yyyy-MM-dd}.features";
+        using var stream = new MemoryStream(Encoding.Default.GetBytes(GenerateLogReport()));
+        var fileSaverResult = await FileSaver.Default.SaveAsync(fileName, stream);
+        if (fileSaverResult.IsSuccessful)
+        {
+            await Toast.Make($"Saved {Features.Count} features for the {SelectedPage.DisplayName} page to a report").Show();
+        }
+        else
+        {
+            await Toast.Make($"Failed to save the feature report: {fileSaverResult.Exception.Message})", ToastDuration.Long).Show();
+        }
     }, () => !WaitingForPages && HasFeatures);
 
     public SimpleCommand LaunchSettingsCommand => new(() =>
@@ -751,7 +728,6 @@ public class MainViewModel : NotifyPropertyChanged
             var oldSelectedFeature = selectedFeature;
             if (Set(ref selectedFeature, value))
             {
-                Feature = SelectedFeature?.Id ?? string.Empty;
                 OnPropertyChanged(nameof(HasSelectedFeature));
                 OnPropertyChanged(nameof(RemoveFeatureCommand));
                 OnPropertyChanged(nameof(LoadPostCommand));
@@ -806,13 +782,6 @@ public class MainViewModel : NotifyPropertyChanged
     public bool HasSelectedFeature => SelectedFeature != null;
 
     public bool HasFeatures => Features.Count != 0;
-
-    private string feature = string.Empty;
-    public string Feature
-    {
-        get => feature;
-        set => Set(ref feature, value);
-    }
 
     #endregion
 

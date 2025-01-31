@@ -3,17 +3,11 @@ using FeatureLogging.Models;
 
 namespace FeatureLogging.ViewModels;
 
-public class PersonalMessageViewModel : NotifyPropertyChanged
+public class PersonalMessageViewModel(MainViewModel mainViewModel, Feature feature) : NotifyPropertyChanged
 {
-    public PersonalMessageViewModel(MainViewModel mainViewModel, Feature feature)
-    {
-        MainViewModel = mainViewModel;
-        this.feature = feature;
-    }
-    
-    public MainViewModel MainViewModel { get; }
+    public MainViewModel MainViewModel { get; } = mainViewModel;
 
-    private Feature feature;
+    private Feature feature = feature;
     public Feature Feature
     {
         get => feature;

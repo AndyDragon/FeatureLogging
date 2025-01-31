@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Maui;
 using MauiIcons.Material;
+#if DEBUG
 using Microsoft.Extensions.Logging;
+#endif
 
 namespace FeatureLogging
 {
@@ -14,8 +16,10 @@ namespace FeatureLogging
                 .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSans");
+                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemiBold");
+                    fonts.AddFont("OpenSans-Bold.ttf", "OpenSansBold");
+                    fonts.AddFont("OpenSans-ExtraBold.ttf", "OpenSansExtraBold");
                 })
                 .UseMaterialMauiIcons();
 

@@ -21,11 +21,11 @@
             <Grid ColumnDefinitions="180, *">
                 <Image Grid.Column="0" Source="app_image.png" Aspect="AspectFit" VerticalOptions="Center" />
                 <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
-                    <Label Text="{Binding AppTitle}" FontSize="32" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{DynamicResource PrimaryTextColor}" FontFamily="OpenSans-ExtraBold" />
-                    <Label Text="{Binding Version}" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{DynamicResource PrimaryTextColor}" FontFamily="OpenSans-Bold" />
-                    <Label Text="{Binding Author}" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{DynamicResource Tertiary}" FontFamily="OpenSans-Bold" />
-                    <Label Text="{Binding Copyright}" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{DynamicResource Tertiary}" FontFamily="OpenSans-Regular" />
-                    <Label Text="{Binding Rights}" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{DynamicResource Tertiary}" FontFamily="OpenSans-Regular" />
+                    <Label Text="{Binding AppTitle}" FontSize="32" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{DynamicResource PrimaryTextColor}" FontFamily="OpenSansExtraBold" />
+                    <Label Text="{Binding Version}" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{DynamicResource PrimaryTextColor}" FontFamily="OpenSansBold" />
+                    <Label Text="{Binding Author}" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{DynamicResource Tertiary}" FontFamily="OpenSansBold" />
+                    <Label Text="{Binding Copyright}" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{DynamicResource Tertiary}" FontFamily="OpenSans" />
+                    <Label Text="{Binding Rights}" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{DynamicResource Tertiary}" FontFamily="OpenSans" />
                 </VerticalStackLayout>
             </Grid>
         </Border>

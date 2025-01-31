@@ -12,7 +12,7 @@ public abstract class NotifyPropertyChanged : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    public bool Set<T>(ref T storage, T value, string[]? associatedPropertyNames = null, [CallerMemberName()] string? propertyName = null)
+    protected bool Set<T>(ref T storage, T value, string[]? associatedPropertyNames = null, [CallerMemberName()] string? propertyName = null)
     {
         if (!Equals(storage, value))
         {
@@ -30,7 +30,7 @@ public abstract class NotifyPropertyChanged : INotifyPropertyChanged
         return false;
     }
 
-    public bool SetWithDirtyCallback<T>(ref T storage, T value, Action setDirty, string[]? associatedPropertyNames = null, [CallerMemberName()] string? propertyName = null)
+    protected bool SetWithDirtyCallback<T>(ref T storage, T value, Action setDirty, string[]? associatedPropertyNames = null, [CallerMemberName()] string? propertyName = null)
     {
         if (!Equals(storage, value))
         {

@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.Globalization;
+﻿using System.Globalization;
 using FeatureLogging.Models;
 using Color = Microsoft.Maui.Graphics.Color;
 
@@ -11,7 +10,7 @@ namespace FeatureLogging.Converters
         public Color? WarningColor { get; set; }
         public Color? ErrorColor { get; set; }
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is not ValidationResult result)
             {
@@ -22,11 +21,11 @@ namespace FeatureLogging.Converters
             {
                 ValidationLevel.Warning => WarningColor ?? Colors.Orange,
                 ValidationLevel.Error => ErrorColor ?? Colors.Red,
-                _ => ValidColor ?? (Application.Current.RequestedTheme == AppTheme.Dark ? Colors.White : Colors.Black)
+                _ => ValidColor ?? (Application.Current!.RequestedTheme == AppTheme.Dark ? Colors.White : Colors.Black)
             };
         }
         
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -38,7 +37,7 @@ namespace FeatureLogging.Converters
         public bool? WarningVisibility { get; set; }
         public bool? ErrorVisibility { get; set; }
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is not ValidationResult result)
             {
@@ -53,7 +52,7 @@ namespace FeatureLogging.Converters
             };
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -63,7 +62,7 @@ namespace FeatureLogging.Converters
         public Color? ValidColor { get; set; }
         public Color? ErrorColor { get; set; }
         
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is not bool result)
             {
@@ -72,10 +71,10 @@ namespace FeatureLogging.Converters
 
             return !result 
                 ? ErrorColor ?? Colors.Red 
-                : ValidColor ?? (Application.Current.RequestedTheme == AppTheme.Dark ? Colors.White : Colors.Black);
+                : ValidColor ?? (Application.Current!.RequestedTheme == AppTheme.Dark ? Colors.White : Colors.Black);
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -84,7 +83,7 @@ namespace FeatureLogging.Converters
     {
         public bool? ValidVisibility { get; set; }
         
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is not bool result)
             {
@@ -94,7 +93,7 @@ namespace FeatureLogging.Converters
             return !result && (ValidVisibility ?? true);
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
