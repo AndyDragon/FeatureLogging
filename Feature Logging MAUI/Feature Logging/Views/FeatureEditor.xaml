@@ -21,7 +21,8 @@
         <localConverters:ValidationResultVisibilityConverter x:Key="ValidationResultVisibilityConverter" />
     </ContentPage.Resources>
 
-    <ScrollView Orientation="Both">
+    <ScrollView 
+        Orientation="Both">
         <Grid 
             RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" 
             Padding="30,0,30,30" 

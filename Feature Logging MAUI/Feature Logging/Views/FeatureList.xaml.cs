@@ -1,9 +1,10 @@
-﻿using FeatureLogging.ViewModels;
+﻿using FeatureLogging.Base;
+using FeatureLogging.ViewModels;
 using MauiIcons.Core;
 
 namespace FeatureLogging.Views;
 
-public partial class FeatureList : ContentPage
+public partial class FeatureList : IThemePage
 {
     public FeatureList()
     {
@@ -24,7 +25,7 @@ public partial class FeatureList : ContentPage
     {
         if (BindingContext is MainViewModel vm)
         {
-            // vm.WindowActive = true;
+            // MainViewModel.WindowActive = true;
             vm.SelectedFeature = null;
         }
     }
@@ -33,18 +34,11 @@ public partial class FeatureList : ContentPage
     {
         if (BindingContext is MainViewModel vm)
         {
-            // vm.WindowActive = false;
+            // MainViewModel.WindowActive = false;
         }
     }
 
-    internal void ResortList()
+    public void UpdateTheme(AppTheme theme)
     {
-        // this.FeaturesListBox.Items.SortDescriptions.Clear();
-        // var sortDescription = new SortDescription()
-        // {
-        //     Direction = ListSortDirection.Ascending,
-        //     PropertyName = "SortKey",
-        // };
-        // this.FeaturesListBox.Items.SortDescriptions.Add(sortDescription);
     }
 }

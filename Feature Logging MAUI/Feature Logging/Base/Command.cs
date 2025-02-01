@@ -15,11 +15,6 @@ public class SimpleCommand(Action execute, Func<bool>? canExecute = null) : ICom
     private readonly Action execute = execute ?? throw new ArgumentNullException(nameof(execute));
     private readonly Func<bool> canExecute = canExecute ?? (() => true);
 
-    public void OnCanExecuteChanged()
-    {
-        weakEventManager.HandleEvent(this, EventArgs.Empty, nameof(CanExecuteChanged));
-    }
-
     public bool CanExecute(object? sender) => canExecute();
 
     public void Execute(object? sender)
@@ -44,11 +39,6 @@ public class SimpleCommandWithParameter(Action<object?> execute, Func<object?, b
 
     private readonly Action<object?> execute = execute ?? throw new ArgumentNullException(nameof(execute));
     private readonly Func<object?, bool> canExecute = canExecute ?? (_ => true);
-
-    public void OnCanExecuteChanged()
-    {
-        weakEventManager.HandleEvent(this, EventArgs.Empty, nameof(CanExecuteChanged));
-    }
 
     public bool CanExecute(object? sender) => canExecute(sender);
 

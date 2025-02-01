@@ -147,6 +147,7 @@
                     Command="{Binding GenerateReportCommand}" />
             </HorizontalStackLayout>
             <ListView
+                x:Name="FeaturesListBox"
                 Grid.Row="3"
                 HasUnevenRows="True"
                 SeparatorVisibility="None"
@@ -221,7 +222,7 @@
                                                 CommandParameter="{Binding .}"
                                                 Margin="0"
                                                 Aspect="Center"
-                                                IsVisible="{Binding IsPicked}">
+                                                IsVisible="{Binding IsPickedAndAllowed}">
                                                 <ImageButton.Source>
                                                     <mi:Material Icon="NoteAlt" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
                                                 </ImageButton.Source>
@@ -231,7 +232,7 @@
                                                 CommandParameter="{Binding .}"
                                                 Margin="0"
                                                 Aspect="Center"
-                                                IsVisible="{Binding IsPicked}">
+                                                IsVisible="{Binding IsPickedAndAllowed}">
                                                 <ImageButton.Source>
                                                     <mi:Material Icon="Message" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
                                                 </ImageButton.Source>

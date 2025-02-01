@@ -4,7 +4,7 @@
     xmlns:localViewModels="clr-namespace:FeatureLogging.ViewModels"
     x:Class="FeatureLogging.Views.PersonalMessage"
     x:DataType="localViewModels:PersonalMessageViewModel"
-    Title="Feature">
+    Title="Personal message">
     
     <ScrollView
         Orientation="Both">

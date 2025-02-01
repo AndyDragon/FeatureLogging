@@ -1,44 +1,34 @@
 ﻿using System.Collections.ObjectModel;
-// using System.IO;
 using System.Net.Http.Headers;
-// using System.Net.Http;
-using System.Text;
-// using System.Windows.Media;
-// using System.Xml;
-// using Newtonsoft.Json;
-// using Sgml;
-// using System.Diagnostics;
-using System.Text.RegularExpressions;
-// using System.Windows.Input;
+using Android.Provider;
 using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
 using FeatureLogging.Base;
 using FeatureLogging.Models;
-
-// using CommunityToolkit.Maui.Core;
-// using System.Windows.Media.Imaging;
-// using Notification.Wpf;
-// using Newtonsoft.Json.Linq;
+using FeatureLogging.Views;
+using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
+using SkiaSharp;
+using Browser = Microsoft.Maui.ApplicationModel.Browser;
 
 namespace FeatureLogging.ViewModels;
 
-public class LoadedPostViewModel : NotifyPropertyChanged
+public class LoadedPostViewModel(MainViewModel vm) : NotifyPropertyChanged
 {
-    private static readonly Color? DefaultLogColor = null;
     private readonly HttpClient httpClient = new();
-    private readonly MainViewModel vm;
 
-    public LoadedPostViewModel(MainViewModel vm)
+    public async Task TriggerLoad()
     {
-        this.vm = vm;
-
-        // Load the post async-ly.
-        _ = LoadPost();
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        await LoadPost();
     }
+
+    public MainViewModel MainViewModel { get; } = vm;
 
     private async Task LoadPost()
     {
-        var postUrl = vm.SelectedFeature!.PostLink;
-        var selectedPage = vm.SelectedPage!;
+        LogEntries.Clear();
+
         try
         {
             // Disable client-side caching.
@@ -48,233 +38,202 @@ public class LoadedPostViewModel : NotifyPropertyChanged
             };
             // Accept JSON result
             httpClient.DefaultRequestHeaders.Accept.Clear();
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            var postUri = new Uri(postUrl);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/html", 0.9));
+            httpClient.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/xhtml+xml", 0.9));
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml", 0.9));
+            var postUri = new Uri(MainViewModel.SelectedFeature!.PostLink);
             var content = await httpClient.GetStringAsync(postUri);
+
             if (!string.IsNullOrEmpty(content))
             {
-                // try
-                // {
-                //     using var reader = new StringReader(content);
-                //     using var sgmlReader = new SgmlReader();
-                //     sgmlReader.DocType = "HTML";
-                //     sgmlReader.WhitespaceHandling = WhitespaceHandling.All;
-                //     sgmlReader.CaseFolding = CaseFolding.ToLower;
-                //     sgmlReader.InputStream = reader;
-                //     var document = new XmlDocument
-                //     {
-                //         PreserveWhitespace = true,
-                //         XmlResolver = null
-                //     };
-                //     document.Load(sgmlReader);
+                LogProgress("Loaded the post contents");
+                var document = new HtmlDocument();
+                document.LoadHtml(content);
+                var scripts = document.DocumentNode.Descendants("script").ToArray();
+                foreach (var script in scripts)
+                {
+                    var scriptText = script.InnerText.Trim();
+                    if (string.IsNullOrEmpty(scriptText))
+                    {
+                        continue;
+                    }
 
-                //     progress.Report((40, "Looking for script", null, null));
-                //     var scriptElements = document.GetElementsByTagName("script");
-                //     foreach (var scriptElement in scriptElements)
-                //     {
-                //         if (scriptElement is XmlElement scriptXmlElement)
-                //         {
-                //             var scriptText = scriptXmlElement.InnerText;
-                //             if (!string.IsNullOrEmpty(scriptText))
-                //             {
-                //                 if (scriptText.StartsWith("window.__staticRouterHydrationData = JSON.parse(\"") && scriptText.EndsWith("\");"))
-                //                 {
-                //                     var prefixLength = "window.__staticRouterHydrationData = JSON.parse(\"".Length;
-                //                     var jsonString = string.Concat("\"", scriptText
-                //                         .AsSpan(prefixLength, scriptText.Length - (prefixLength + 3)), "\"");
-                //                     // Use JToken.Parse to convert from JSON encoded as a JSON string to the JSON.
-                //                     jsonString = (string)JToken.Parse(jsonString)!;
-                //                     var postData = PostData.FromJson(jsonString);
-                //                     if (postData != null)
-                //                     {
-                //                         var profile = postData.LoaderData?.Entry?.Profile?.Profile;
-                //                         if (profile != null)
-                //                         {
-                //                             UserAlias = profile.Username;
-                //                             if (string.IsNullOrEmpty(UserAlias) && !string.IsNullOrEmpty(profile.Name))
-                //                             {
-                //                                 UserAlias = profile.Name!.Replace(" ", "");
-                //                             }
-                //                             LogProgress(UserAlias, "User's alias");
-                //                             UserName = profile.Name;
-                //                             LogProgress(UserName, "User's name");
-                //                             UserProfileUrl = profile.Url?.ToString();
-                //                             LogProgress(UserProfileUrl, "User's profile URL");
-                //                             UserBio = profile.Bio?.Replace("\\n", "\n").StripExtraSpaces(true);
-                //                             LogProgress(UserBio, "User's BIO");
-                //                         }
-                //                         else
-                //                         {
-                //                             LogEntries.Add(new LogEntry("Failed to find the profile information, the account is likely private", Colors.Red));
-                //                             LogEntries.Add(new LogEntry("Post must be handled manually in VERO app", Colors.Red));
-                //                             // TODO andydragon : add post validation and mark it failed here...
-                //                         }
-                //                         var post = postData.LoaderData?.Entry?.Post?.Post;
-                //                         if (post != null)
-                //                         {
-                //                             ShowDescription = true;
-                //                             pageHashTags.Clear();
-                //                             Description = post.Caption != null ? JoinSegments(post.Caption, pageHashTags).StripExtraSpaces() : "";
-                //                             var pageTagFound = "";
-                //                             if (pageHashTags.FirstOrDefault(hashTag =>
-                //                             {
-                //                                 return selectedPage.PageTags.FirstOrDefault(pageHashTag =>
-                //                                 {
-                //                                     if (string.Equals(hashTag, pageHashTag, StringComparison.OrdinalIgnoreCase))
-                //                                     {
-                //                                         pageTagFound = pageHashTag.ToLower();
-                //                                         return true;
-                //                                     }
-                //                                     return false;
-                //                                 }) != null;
-                //                             }) != null)
-                //                             {
-                //                                 PageHashtagCheck = new ValidationResult(true, message: $"Contains page hashtag {pageTagFound}");
-                //                                 LogEntries.Add(new LogEntry(PageHashtagCheck.Message!, defaultLogColor));
-                //                             }
-                //                             else
-                //                             {
-                //                                 PageHashtagCheck = new ValidationResult(false, "MISSING page hashtag");
-                //                                 LogEntries.Add(new LogEntry(PageHashtagCheck.Error!, Colors.Red));
-                //                             }
-                //                             UpdateExcludedTags();
+                    if (!scriptText.StartsWith("window.__staticRouterHydrationData = JSON.parse(\"") ||
+                        !scriptText.EndsWith("\");"))
+                    {
+                        continue;
+                    }
 
-                //                             var imageUrls = post?.Images?.Select(image => image.Url).Where(url => url != null && url.ToString().StartsWith("https://"));
-                //                             if (imageUrls?.Count() > 0)
-                //                             {
-                //                                 foreach (var imageUrl in imageUrls)
-                //                                 {
-                //                                     LogProgress(imageUrl!.ToString(), "Image source");
-                //                                     ImageUrls.Add(new ImageEntry(imageUrl, userName ?? "unknown", this, notificationManager));
-                //                                 }
-                //                                 ShowImages = true;
-                //                             }
-                //                             else
-                //                             {
-                //                                 LogEntries.Add(new LogEntry("No images found in post", Colors.Red));
-                //                             }
+                    var prefixLength = "window.__staticRouterHydrationData = JSON.parse(\"".Length;
+                    var jsonString = string.Concat("\"", scriptText
+                        .AsSpan(prefixLength, scriptText.Length - (prefixLength + 3)), "\"");
+                    // Use JToken.Parse to convert from JSON encoded as a JSON string to the JSON.
+                    jsonString = (string)JToken.Parse(jsonString)!;
+                    var postData = PostData.FromJson(jsonString);
+                    if (postData != null)
+                    {
+                        LogProgress("Found the post data", LogType.Success);
+                        var profile = postData.LoaderData?.Entry?.Profile?.Profile;
+                        if (profile != null)
+                        {
+                            LogProgress("Loaded the user's profile", LogType.Success);
+                            UserAlias = profile.Username ?? string.Empty;
+                            if (string.IsNullOrEmpty(UserAlias) && !string.IsNullOrEmpty(profile.Name))
+                            {
+                                UserAlias = profile.Name!.Replace(" ", "");
+                            }
 
-                //                             if (selectedPage.HubName == "snap" || selectedPage.HubName == "click")
-                //                             {
-                //                                 var comments = postData.LoaderData?.Entry?.Post?.Comments ?? [];
-                //                                 var localPageComments = new List<CommentEntry>();
-                //                                 var localHubComments = new List<CommentEntry>();
-                //                                 foreach (var comment in comments)
-                //                                 {
-                //                                     var commentUserName = comment?.Author?.Username?.ToLower() ?? "";
-                //                                     if (commentUserName.Equals(selectedPage.DisplayName, StringComparison.OrdinalIgnoreCase))
-                //                                     {
-                //                                         var commentSegments = JoinSegments(comment?.Content).StripExtraSpaces(true);
-                //                                         localPageComments.Add(new CommentEntry(
-                //                                             commentUserName,
-                //                                             comment?.Timestamp,
-                //                                             commentSegments,
-                //                                             (page, timestamp) => { vm.SelectedFeature!.PhotoFeaturedOnPage = true; }));
-                //                                         PageCommentsValidation = new ValidationResult(false, "Found page comments - possibly already featured on page");
-                //                                         ShowComments = true;
-                //                                         LogEntries.Add(new LogEntry($"Found page comment: {commentUserName} - {comment?.Timestamp?.FormatTimestamp()} - {commentSegments}", Colors.Red));
-                //                                     }
-                //                                     else if (commentUserName.StartsWith($"{selectedPage.HubName.ToLower()}_"))
-                //                                     {
-                //                                         var commentSegments = JoinSegments(comment?.Content).StripExtraSpaces(true);
-                //                                         localHubComments.Add(new CommentEntry(
-                //                                             commentUserName,
-                //                                             comment?.Timestamp,
-                //                                             commentSegments,
-                //                                             (page, timestamp) =>
-                //                                             {
-                //                                                 vm.SelectedFeature!.PhotoFeaturedOnHub = true;
-                //                                                 vm.SelectedFeature!.PhotoLastFeaturedPage = page[(selectedPage.HubName.Length + 1)..];
-                //                                                 vm.SelectedFeature!.PhotoLastFeaturedOnHub = timestamp;
-                //                                             }));
-                //                                         HubCommentsValidation = new ValidationResult(false, "Found hub comments - possibly already featured on another page");
-                //                                         ShowComments = true;
-                //                                         LogEntries.Add(new LogEntry($"Found hub comment: {commentUserName} - {comment?.Timestamp?.FormatTimestamp()} - {commentSegments}", Colors.Orange));
-                //                                     }
-                //                                 }
-                //                                 MoreComments = comments.Length < (post?.Comments ?? 0);
-                //                                 if (MoreComments)
-                //                                 {
-                //                                     LogEntries.Add(new LogEntry("More comments!", Colors.Orange));
-                //                                     ShowComments = true;
-                //                                 }
-                //                                 PageComments = [.. localPageComments];
-                //                                 HubComments = [.. localHubComments];
-                //                             }
-                //                         }
-                //                         else
-                //                         {
-                //                             LogEntries.Add(new LogEntry("Failed to find the post information, the account is likely private", Colors.Red));
-                //                             LogEntries.Add(new LogEntry("Post must be handled manually in VERO app", Colors.Red));
-                //                             // TODO andydragon : add post validation and mark it failed here...
-                //                         }
-                //                     }
-                //                     else
-                //                     {
-                //                         LogEntries.Add(new LogEntry("Failed to parse the post JSON", Colors.Red));
-                //                         // TODO andydragon : add post validation and mark it failed here...
-                //                     }
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
-                // catch (Exception ex)
-                // {
-                //     LogEntries.Add(new LogEntry($"Could not load the post {ex.Message}", Colors.Red));
-                // }
+                            UserName = profile.Name ?? string.Empty;
+                            UserProfileUrl = profile.Url?.ToString() ?? string.Empty;
+                            UserBio = profile.Bio?.Replace("\\n", "\n").StripExtraSpaces(true) ?? string.Empty;
+                        }
+                        else
+                        {
+                            LogProgress("No profile found", LogType.Error);
+                        }
+
+                        var post = postData.LoaderData?.Entry?.Post?.Post;
+                        if (post != null)
+                        {
+                            ShowDescription = true;
+                            pageHashTags.Clear();
+                            Description = post.Caption != null
+                                ? PostDataHelper.JoinSegments(post.Caption, pageHashTags).StripExtraSpaces()
+                                : "";
+                            var pageTagFound = "";
+                            if (pageHashTags.FirstOrDefault(hashTag =>
+                                {
+                                    return MainViewModel.SelectedPage!.PageTags.FirstOrDefault(pageHashTag =>
+                                    {
+                                        if (string.Equals(hashTag, pageHashTag, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            pageTagFound = pageHashTag.ToLower();
+                                            return true;
+                                        }
+                                        return false;
+                                    }) != null;
+                                }) != null)
+                            {
+                                PageHashtagCheck = new ValidationResult(message: $"Contains page hashtag {pageTagFound}");
+                                LogProgress(PageHashtagCheck.Message!);
+                            }
+                            else
+                            {
+                                PageHashtagCheck = new ValidationResult(ValidationLevel.Error, "MISSING page hashtag");
+                                LogProgress(PageHashtagCheck.Message!, LogType.Error);
+                            }
+                            UpdateExcludedTags();
+
+                            ImageEntries.Clear();
+                            var imageUrls = post.Images?.Select(image => image.Url)
+                                .Where(url => url != null && url.ToString().StartsWith("https://")).ToArray();
+                            if (imageUrls?.Length > 0)
+                            {
+                                foreach (var imageUrl in imageUrls)
+                                {
+                                    if (imageUrl != null)
+                                    {
+                                        ImageEntries.Add(new ImageEntry(imageUrl, this));
+                                    }
+                                }
+                            }
+                            if (ImageEntries.Count > 0)
+                            {
+                                ShowImages = true;
+                                LogProgress($"Found {ImageEntries.Count} images in post");
+                            }
+                            else
+                            {
+                                LogProgress("No images found in post", LogType.Error);
+                            }
+                            ShowImageNavigators = ImageEntries.Count > 1;
+
+                            if (MainViewModel.SelectedPage!.HubName == "snap" ||
+                                MainViewModel.SelectedPage!.HubName == "click")
+                            {
+                                var comments = postData.LoaderData?.Entry?.Post?.Comments ?? [];
+                                var localPageComments = new List<CommentEntry>();
+                                var localHubComments = new List<CommentEntry>();
+                                foreach (var comment in comments)
+                                {
+                                    var commentUserName = comment.Author?.Username?.ToLower() ?? "";
+                                    if (commentUserName.Equals(MainViewModel.SelectedPage!.DisplayName, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        var commentSegments = PostDataHelper.JoinSegments(comment.Content).StripExtraSpaces(true);
+                                        localPageComments.Add(new CommentEntry(
+                                            commentUserName,
+                                            comment.Timestamp,
+                                            commentSegments,
+                                            (_, _) => { MainViewModel.SelectedFeature!.PhotoFeaturedOnPage = true; }));
+                                        PageCommentsValidation = new ValidationResult(
+                                            ValidationLevel.Error, 
+                                            "Found page comments - possibly already featured on page");
+                                        ShowComments = true;
+                                        LogProgress(
+                                            $"Found page comment: {commentUserName} - {comment.Timestamp?.FormatTimestamp()} - {commentSegments}", 
+                                            LogType.Error);
+                                    }
+                                    else if (commentUserName.StartsWith($"{MainViewModel.SelectedPage!.HubName.ToLower()}_"))
+                                    {
+                                        var commentSegments = PostDataHelper.JoinSegments(comment.Content).StripExtraSpaces(true);
+                                        localHubComments.Add(new CommentEntry(
+                                            commentUserName,
+                                            comment.Timestamp,
+                                            commentSegments,
+                                            (page, timestamp) =>
+                                            {
+                                                MainViewModel.SelectedFeature!.PhotoFeaturedOnHub = true;
+                                                MainViewModel.SelectedFeature!.PhotoLastFeaturedPage =
+                                                    page[(MainViewModel.SelectedPage!.HubName.Length + 1)..];
+                                                MainViewModel.SelectedFeature!.PhotoLastFeaturedOnHub = timestamp;
+                                            }));
+                                        HubCommentsValidation = new ValidationResult(
+                                            ValidationLevel.Warning,
+                                            "Found hub comments - possibly already featured on another page");
+                                        ShowComments = true;
+                                        LogProgress(
+                                            $"Found hub comment: {commentUserName} - {comment.Timestamp?.FormatTimestamp()} - {commentSegments}",
+                                            LogType.Warning);
+                                    }
+                                }
+
+                                MoreComments = comments.Length < (post.Comments ?? 0);
+                                if (MoreComments)
+                                {
+                                    LogProgress("More comments!", LogType.Warning);
+                                    ShowComments = true;
+                                }
+
+                                PageComments = [.. localPageComments];
+                                HubComments = [.. localHubComments];
+                            }
+                        }
+                        else
+                        {
+                            LogProgress("No post information in the post data found", LogType.Error);
+                        }
+                    }
+                    else
+                    {
+                        LogProgress("No post data found", LogType.Error);
+                    }
+                }
+            }
+            else
+            {
+                LogProgress("No contents were loaded for the post", LogType.Error);
             }
         }
         catch (Exception ex)
         {
-            // Do nothing, not vital
-            Console.WriteLine("Error occurred: {0}", ex.Message);
+            LogProgress($"Failed to load the post: {ex.Message}", LogType.Error);
         }
     }
 
-    private void LogProgress(string? value, string label)
+    private void LogProgress(string message, LogType type = LogType.Info)
     {
-        LogEntries.Add(string.IsNullOrEmpty(UserAlias)
-            ? new LogEntry($"{label.ToLower()} not find", Colors.Red)
-            : new LogEntry($"{label}: {value}", DefaultLogColor));
-    }
-
-    private static string JoinSegments(Segment[]? segments, List<string>? hashTags = null)
-    {
-        var builder = new StringBuilder();
-        foreach (var segment in (segments ?? []))
-        {
-            switch (segment.Type)
-            {
-                case "text":
-                    builder.Append(segment.Value);
-                    break;
-
-                case "tag":
-                    builder.Append($"#{segment.Value}");
-                    if (segment.Value != null)
-                    {
-                        hashTags?.Add(segment.Value);
-                    }
-                    break;
-
-                case "person":
-                    if (segment.Label != null)
-                    {
-                        builder.Append($"@{segment.Label}");
-                    }
-                    else
-                    {
-                        builder.Append(segment.Value);
-                    }
-                    break;
-
-                case "url":
-                    builder.Append(segment.Label ?? segment.Value);
-                    break;
-            }
-        }
-        return builder.ToString().Replace("\\n", "\n");
+        LogEntries.Add(new LogEntry(message, type));
     }
 
     private readonly List<string> pageHashTags = [];
@@ -288,6 +247,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     #region User Alias
 
     private string? userAlias;
+
     public string? UserAlias
     {
         get => userAlias;
@@ -297,12 +257,12 @@ public class LoadedPostViewModel : NotifyPropertyChanged
             {
                 UserAliasValidation = Validation.ValidateUserName(userAlias ?? "");
                 OnPropertyChanged(nameof(TransferUserAliasCommand));
-                // TransferUserAliasCommand.OnCanExecuteChanged();
             }
         }
     }
 
     private ValidationResult userAliasValidation = Validation.ValidateUserName("");
+
     public ValidationResult UserAliasValidation
     {
         get => userAliasValidation;
@@ -314,6 +274,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     #region User Name
 
     private string? userName;
+
     public string? UserName
     {
         get => userName;
@@ -323,12 +284,12 @@ public class LoadedPostViewModel : NotifyPropertyChanged
             {
                 UserNameValidation = Validation.ValidateUserName(userName ?? "");
                 OnPropertyChanged(nameof(TransferUserNameCommand));
-                // TransferUserNameCommand.OnCanExecuteChanged();
             }
         }
     }
 
     private ValidationResult userNameValidation = Validation.ValidateUserName("");
+
     public ValidationResult UserNameValidation
     {
         get => userNameValidation;
@@ -340,6 +301,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     #region User Profile URL
 
     private string? userProfileUrl;
+
     public string? UserProfileUrl
     {
         get => userProfileUrl;
@@ -350,13 +312,12 @@ public class LoadedPostViewModel : NotifyPropertyChanged
                 UserProfileUrlValidation = Validation.ValidateUserProfileUrl(userProfileUrl ?? "");
                 OnPropertyChanged(nameof(CopyUserProfileUrlCommand));
                 OnPropertyChanged(nameof(LaunchUserProfileUrlCommand));
-                // CopyUserProfileUrlCommand.OnCanExecuteChanged();
-                // LaunchUserProfileUrlCommand.OnCanExecuteChanged();
             }
         }
     }
 
     private ValidationResult userProfileUrlValidation = Validation.ValidateUserProfileUrl("");
+
     public ValidationResult UserProfileUrlValidation
     {
         get => userProfileUrlValidation;
@@ -368,6 +329,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     #region User BIO
 
     private string? userBio;
+
     public string? UserBio
     {
         get => userBio;
@@ -379,6 +341,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     #region Description
 
     private bool showDescription;
+
     public bool ShowDescription
     {
         get => showDescription;
@@ -386,6 +349,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     }
 
     private string? description;
+
     public string? Description
     {
         get => description;
@@ -397,6 +361,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     #region Tag Checks
 
     private ValidationResult pageHashtagCheck = new(ValidationLevel.Valid);
+
     public ValidationResult PageHashtagCheck
     {
         get => pageHashtagCheck;
@@ -404,6 +369,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     }
 
     private ValidationResult excludedHashtagCheck = new(ValidationLevel.Valid);
+
     public ValidationResult ExcludedHashtagCheck
     {
         get => excludedHashtagCheck;
@@ -415,6 +381,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     #region Comments
 
     private bool showComments;
+
     public bool ShowComments
     {
         get => showComments;
@@ -422,6 +389,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     }
 
     private CommentEntry[] pageComments = [];
+
     public CommentEntry[] PageComments
     {
         get => pageComments;
@@ -429,6 +397,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     }
 
     private ValidationResult pageCommentsValidation = new(ValidationLevel.Valid);
+
     public ValidationResult PageCommentsValidation
     {
         get => pageCommentsValidation;
@@ -436,6 +405,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     }
 
     private CommentEntry[] hubComments = [];
+
     public CommentEntry[] HubComments
     {
         get => hubComments;
@@ -443,6 +413,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     }
 
     private ValidationResult hubCommentsValidation = new(ValidationLevel.Valid);
+
     public ValidationResult HubCommentsValidation
     {
         get => hubCommentsValidation;
@@ -450,6 +421,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     }
 
     private bool moreComments;
+
     public bool MoreComments
     {
         get => moreComments;
@@ -460,13 +432,27 @@ public class LoadedPostViewModel : NotifyPropertyChanged
 
     #region Images
 
-    public ObservableCollection<ImageEntry> ImageUrls { get; } = [];
+    public ObservableCollection<ImageEntry> ImageEntries { get; } = [];
+
+    private ImageEntry? currentImage;
+    public ImageEntry? CurrentImage
+    {
+        get => currentImage;
+        set => Set(ref currentImage, value);
+    }
 
     private bool showImages;
     public bool ShowImages
     {
         get => showImages;
         set => Set(ref showImages, value);
+    }
+
+    private bool showImageNavigators;
+    public bool ShowImageNavigators
+    {
+        get => showImageNavigators;
+        set => Set(ref showImageNavigators, value);
     }
 
     #endregion
@@ -477,11 +463,11 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     public ImageValidationViewModel? ImageValidation
     {
         get => imageValidation;
-        set
+        private set
         {
             if (Set(ref imageValidation, value))
             {
-                vm.TriggerTinEyeSource();
+                MainViewModel.TriggerTinEyeSource();
             }
         }
     }
@@ -492,24 +478,19 @@ public class LoadedPostViewModel : NotifyPropertyChanged
 
     public SimpleCommand CopyPostUrlCommand => new(() =>
     {
-        if (!string.IsNullOrEmpty(vm.SelectedFeature?.PostLink))
+        if (!string.IsNullOrEmpty(MainViewModel.SelectedFeature?.PostLink))
         {
-            _ = CopyTextToClipboard(vm.SelectedFeature.PostLink, "Copied the post URL to the clipboard");
+            _ = CopyTextToClipboard(MainViewModel.SelectedFeature.PostLink, "Copied the post URL to the clipboard");
         }
-    }, () => !string.IsNullOrEmpty(vm.SelectedFeature?.PostLink));
+    }, () => !string.IsNullOrEmpty(MainViewModel.SelectedFeature?.PostLink));
 
     public SimpleCommand LaunchPostUrlCommand => new(() =>
     {
-        if (!string.IsNullOrEmpty(vm.SelectedFeature?.PostLink))
+        if (!string.IsNullOrEmpty(MainViewModel.SelectedFeature?.PostLink))
         {
-            // TODO andydragon
-            // Process.Start(new ProcessStartInfo
-            // {
-            //     FileName = vm.SelectedFeature.PostLink,
-            //     UseShellExecute = true
-            // });
+            _ = Browser.OpenAsync(MainViewModel.SelectedFeature!.PostLink, BrowserLaunchMode.SystemPreferred);
         }
-    }, () => !string.IsNullOrEmpty(vm.SelectedFeature?.PostLink));
+    }, () => !string.IsNullOrEmpty(MainViewModel.SelectedFeature?.PostLink));
 
     public SimpleCommand CopyUserProfileUrlCommand => new(() =>
     {
@@ -523,28 +504,38 @@ public class LoadedPostViewModel : NotifyPropertyChanged
     {
         if (!string.IsNullOrEmpty(UserProfileUrl))
         {
-            // TODO andydragon
-            // Process.Start(new ProcessStartInfo
-            // {
-            //     FileName = UserProfileUrl,
-            //     UseShellExecute = true
-            // });
+            _ = Browser.OpenAsync(UserProfileUrl, BrowserLaunchMode.SystemPreferred);
         }
     }, () => !string.IsNullOrEmpty(UserProfileUrl));
 
-    public SimpleCommand TransferUserAliasCommand => new(() =>
-    {
-        vm.SelectedFeature!.UserAlias = UserAlias!;
-    }, () => !string.IsNullOrEmpty(UserAlias));
+    public SimpleCommand TransferUserAliasCommand => new(() => { MainViewModel.SelectedFeature!.UserAlias = UserAlias!; },
+        () => !string.IsNullOrEmpty(UserAlias));
 
-    public SimpleCommand TransferUserNameCommand => new(() =>
+    public SimpleCommand TransferUserNameCommand => new(() => { MainViewModel.SelectedFeature!.UserName = UserName!; },
+        () => !string.IsNullOrEmpty(UserName));
+
+    public SimpleCommand PreviousImageCommand => new(() =>
     {
-        vm.SelectedFeature!.UserName = UserName!;
-    }, () => !string.IsNullOrEmpty(UserName));
+        if (CurrentImage != null && ImageEntries.Count > 1)
+        {
+            var index = ImageEntries.IndexOf(CurrentImage);
+            CurrentImage = index > 0 ? ImageEntries[index - 1] : ImageEntries.Last();
+        }
+    });
+
+    public SimpleCommand NextImageCommand => new(() =>
+    {
+        if (CurrentImage != null && ImageEntries.Count > 1)
+        {
+            var index = ImageEntries.IndexOf(CurrentImage);
+            CurrentImage = index < ImageEntries.Count - 1 ? ImageEntries[index + 1] : ImageEntries.First();
+        }
+    });
 
     public SimpleCommand CopyLogCommand => new(() =>
     {
-        _ = CopyTextToClipboard(string.Join("\n", LogEntries.Select(entry => entry.Messsage)), "Copied the log messages to the clipboard");
+        _ = CopyTextToClipboard(string.Join("\n", LogEntries.Select(entry => entry.Message)),
+            "Copied the log messages to the clipboard");
     });
 
     #endregion
@@ -557,7 +548,7 @@ public class LoadedPostViewModel : NotifyPropertyChanged
 
     public void UpdateExcludedTags()
     {
-        var excludedHashtags = vm.ExcludedTags.Split(",", StringSplitOptions.RemoveEmptyEntries);
+        var excludedHashtags = MainViewModel.ExcludedTags.Split(",", StringSplitOptions.RemoveEmptyEntries);
         if (excludedHashtags.Length != 0)
         {
             ExcludedHashtagCheck = new ValidationResult(message: "Post does not contain any excluded hashtags");
@@ -565,131 +556,46 @@ public class LoadedPostViewModel : NotifyPropertyChanged
             {
                 if (pageHashTags.IndexOf(excludedHashtag) != -1)
                 {
-                    ExcludedHashtagCheck = new ValidationResult(ValidationLevel.Error, error: $"Post contains excluded hashtag {excludedHashtag}");
-                    LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Error!, Colors.Red));
+                    ExcludedHashtagCheck = new ValidationResult(ValidationLevel.Error, $"Post contains excluded hashtag {excludedHashtag}");
+                    LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Message!, LogType.Error));
                     break;
                 }
             }
+
             if (ExcludedHashtagCheck.Valid)
             {
-                LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Message!, DefaultLogColor));
+                LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Message!));
             }
         }
         else
         {
             ExcludedHashtagCheck = new ValidationResult(message: "There are no excluded hashtags");
-            LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Error!, DefaultLogColor));
+            LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Message!));
         }
     }
 
     public void ValidateImage(ImageEntry imageEntry)
     {
-        this.ImageValidation = new ImageValidationViewModel(vm, imageEntry);
-        // vm.View = MainViewModel.ViewMode.ImageValidationView;
+        ImageValidation = new ImageValidationViewModel(MainViewModel, imageEntry);
+        MainViewModel.MainWindow!.Navigation.PushAsync(new ImageValidation
+        {
+            BindingContext = ImageValidation
+        });
     }
 }
 
-public static partial class StringExtensions
+public class ImageEntry : NotifyPropertyChanged, IDisposable
 {
-    public static string StripExtraSpaces(this string source, bool stripNewlines = false)
+    public ImageEntry(Uri source, LoadedPostViewModel vm)
     {
-        if (stripNewlines)
-        {
-            return WhitespaceRegex().Replace(source, " ");
-        }
-        return string.Join("\n", source.Split('\n').Select(line => line.Trim().StripExtraSpaces(true)));
-    }
-
-    [GeneratedRegex("[\\s]+")]
-    private static partial Regex WhitespaceRegex();
-}
-
-public static class DateTimeExtensions
-{
-    public static string FormatTimestamp(this DateTime source)
-    {
-        var delta = DateTime.Now - source.ToLocalTime();
-        if (delta.TotalMinutes < 1)
-        {
-            return "Now";
-        }
-        if (delta.TotalMinutes < 60)
-        {
-            var minutes = (int)delta.TotalMinutes;
-            var result = $"{minutes}m";
-            return result;
-        }
-        if (delta.TotalHours < 24)
-        {
-            var hours = (int)delta.TotalHours;
-            var result = $"{hours}h";
-            return result;
-        }
-        if (delta.TotalDays < 7)
-        {
-            var days = (int)delta.TotalDays;
-            var result = $"{days}d";
-            return result;
-        }
-        if (source.Year == DateTime.Now.Year)
-        {
-            return source.ToString("MMM d");
-        }
-        return source.ToString("MMM d, yyyy");
-    }
-}
-
-public class LogEntry(string message, Color? color = null, bool skipBullet = false) : NotifyPropertyChanged
-{
-    private Color? color = color;
-    public Color? Color
-    {
-        get => color;
-        set => Set(ref color, value);
-    }
-
-    private string message = message;
-    public string Messsage
-    {
-        get => message;
-        set => Set(ref message, value);
-    }
-
-    private bool skipBullet = skipBullet;
-    public bool SkipBullet
-    {
-        get => skipBullet;
-        set => Set(ref skipBullet, value);
-    }
-}
-
-public class ImageEntry : NotifyPropertyChanged
-{
-    private readonly LoadedPostViewModel postVm;
-
-    public ImageEntry(Uri source, string username, LoadedPostViewModel postVm)
-    {
-        this.postVm = postVm;
         Source = source;
-        // frame = BitmapFrame.Create(source);
-        // if (!frame.IsFrozen && frame.IsDownloading)
-        // {
-        //     frame.DownloadCompleted += (object? sender, EventArgs e) =>
-        //     {
-        //         Width = frame.PixelWidth;
-        //         Height = frame.PixelHeight;
-        //     };
-        // }
-        // else
-        // {
-        //     Width = frame.PixelWidth;
-        //     Height = frame.PixelHeight;
-        // }
+        this.vm = vm;
+        _ = GetImageDimensionsAsync(source.AbsoluteUri);
     }
 
     public Uri Source { get; }
-
-    // private readonly BitmapFrame frame;
+   
+    private readonly LoadedPostViewModel vm;
 
     private int width;
     public int Width
@@ -704,85 +610,133 @@ public class ImageEntry : NotifyPropertyChanged
         get => height;
         private set => Set(ref height, value);
     }
+    
+    private SKBitmap? SkiaBitmap { get; set; }
 
+    private async Task GetImageDimensionsAsync(string imageUrl)
+    {
+        // Create HttpClient instance
+        using var client = new HttpClient();
+        // Download the image data
+        var response = await client.GetAsync(imageUrl);
+        if (response.IsSuccessStatusCode)
+        {
+            // Read the image data into a memory stream
+            var imageData = await response.Content.ReadAsByteArrayAsync();
+            using var stream = new MemoryStream(imageData);
+            // Load the image from the memory stream
+            // Load the image from the memory stream using SkiaSharp
+            SkiaBitmap = SKBitmap.Decode(stream);
+            // Get the image dimensions
+            Width = SkiaBitmap.Width;
+            Height = SkiaBitmap.Height;
+        }
+        else
+        {
+            throw new Exception("Failed to download image");
+        }
+    }    
+    
     public SimpleCommand ValidateImageCommand => new(() =>
     {
-        postVm.ValidateImage(this);
+        vm.ValidateImage(this);
     });
 
-    public SimpleCommand SaveImageCommand => new(() =>
+    public SimpleCommand SaveImageCommand => new(async void () =>
     {
-        // PngBitmapEncoder png = new();
-        // png.Frames.Add(frame);
-        // var veroSnapshotsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "VERO");
-        // if (!Directory.Exists(veroSnapshotsFolder))
-        // {
-        //     try
-        //     {
-        //         Directory.CreateDirectory(veroSnapshotsFolder);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         notificationManager.Show(ex);
-        //         return;
-        //     }
-        // }
-        // try
-        // {
-        //     using var stream = File.Create(Path.Combine(veroSnapshotsFolder, $"{username}.png"));
-        //     png.Save(stream);
-        //     notificationManager.Show(
-        //         "Saved image",
-        //         $"Saved the image to the {veroSnapshotsFolder} folder",
-        //         type: NotificationType.Success,
-        //         areaName: "WindowArea",
-        //         expirationTime: TimeSpan.FromSeconds(3));
-        // }
-        // catch (Exception ex)
-        // {
-        //     notificationManager.Show(ex);
-        // }
+        try
+        {
+            using var imageStream = new MemoryStream();
+            using var skImage = SKImage.FromBitmap(SkiaBitmap);
+            using var skData = skImage.Encode(SKEncodedImageFormat.Png, 100);
+            skData.SaveTo(imageStream);
+            await SaveToPhotoLibraryAsync(imageStream.ToArray());
+            await Toast.Make($"Saved the image to your photo gallery folder").Show();
+        }
+        catch (Exception ex)
+        {
+            await Toast.Make($"Failed to save image: {ex.Message}", ToastDuration.Long).Show();
+        }
     });
+    
+    private static async Task SaveToPhotoLibraryAsync(byte[] imageData)
+    {
+        if (DeviceInfo.Platform == DevicePlatform.Android)
+        {
+            await SaveToPhotoLibraryAndroidAsync(imageData);
+        }
+        else if (DeviceInfo.Platform == DevicePlatform.iOS)
+        {
+            throw new NotImplementedException("Saving images to the iOS photo library is not implemented yet.");
+        }
+    }
+
+    private static Task SaveToPhotoLibraryAndroidAsync(byte[] imageData)
+    {
+#pragma warning disable CA1416
+        var context = Android.App.Application.Context;
+        var filename = $"IMG_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+        var values = new Android.Content.ContentValues();
+        values.Put(
+            MediaStore.Images.Media.InterfaceConsts.DisplayName, 
+            filename);
+        values.Put(
+            MediaStore.Images.Media.InterfaceConsts.MimeType, 
+            "image/png");
+        values.Put(
+            MediaStore.Images.Media.InterfaceConsts.DateAdded,
+            Java.Lang.JavaSystem.CurrentTimeMillis() / 1000);
+        values.Put(
+            MediaStore.Images.Media.InterfaceConsts.DateTaken,
+            Java.Lang.JavaSystem.CurrentTimeMillis());
+
+        if (MediaStore.Images.Media.ExternalContentUri != null)
+        {
+            var uri = context.ContentResolver?.Insert(MediaStore.Images.Media.ExternalContentUri, values);
+            if (uri != null)
+            {
+                using var outputStream = context.ContentResolver?.OpenOutputStream(uri);
+                outputStream?.Write(imageData, 0, imageData.Length);
+            }
+        }
+#pragma warning restore CA1416
+
+        return Task.CompletedTask;
+    }
 
     public SimpleCommand CopyImageUrlCommand => new(() =>
     {
         _ = CopyTextToClipboard(Source.AbsoluteUri, "Copied image URL to clipboard");
     });
-
     public SimpleCommand LaunchImageCommand => new(() =>
     {
-        // TODO andydragon
-        // Process.Start(new ProcessStartInfo
-        // {
-        //     FileName = Source.AbsoluteUri,
-        //     UseShellExecute = true
-        // });
+        _ = Browser.OpenAsync(Source.AbsoluteUri, BrowserLaunchMode.SystemPreferred);
     });
 
-    private static async Task CopyTextToClipboard(string text, string successMessage/*, NotificationManager notificationManager*/)
+    private static async Task CopyTextToClipboard(string text, string successMessage)
     {
         await MainViewModel.TrySetClipboardText(text);
         await Toast.Make(successMessage).Show();
     }
+
+    public void Dispose()
+    {
+        if (SkiaBitmap != null)
+        {
+            SkiaBitmap.Dispose();
+            SkiaBitmap = null;
+        }
+        GC.SuppressFinalize(this);
+    }
 }
 
-public class CommentEntry : NotifyPropertyChanged
+public class CommentEntry(string page, DateTime? timestamp, string comment, Action<string, string> markFeature) : NotifyPropertyChanged
 {
-    private readonly Action<string, string> markFeature;
+    public string Page { get; } = page;
 
-    public CommentEntry(string page, DateTime? timestamp, string comment, Action<string, string> markFeature)
-    {
-        Page = page;
-        Timestamp = timestamp?.FormatTimestamp() ?? "?";
-        Comment = comment;
-        this.markFeature = markFeature;
-    }
+    public string Timestamp { get; } = timestamp?.FormatTimestamp() ?? "?";
 
-    public string Page { get; }
-
-    private string Timestamp { get; }
-
-    public string Comment { get; }
+    public string Comment { get; } = comment;
 
     public SimpleCommand MarkFeatureCommand => new(() =>
     {

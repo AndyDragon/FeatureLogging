@@ -20,6 +20,8 @@ namespace FeatureLogging
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemiBold");
                     fonts.AddFont("OpenSans-Bold.ttf", "OpenSansBold");
                     fonts.AddFont("OpenSans-ExtraBold.ttf", "OpenSansExtraBold");
+                    fonts.AddFont("TimesNewRoman-Regular.ttf", "TimesNewRoman");
+                    fonts.AddFont("TimesNewRoman-Bold.ttf", "TimesNewRomanBold");
                 })
                 .UseMaterialMauiIcons();
 

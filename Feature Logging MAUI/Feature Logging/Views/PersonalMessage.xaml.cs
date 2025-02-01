@@ -1,8 +1,9 @@
+using FeatureLogging.Base;
 using FeatureLogging.ViewModels;
 
 namespace FeatureLogging.Views;
 
-public partial class PersonalMessage : ContentPage
+public partial class PersonalMessage : IThemePage
 {
     public PersonalMessage(PersonalMessageViewModel viewModel)
     {
@@ -16,5 +17,9 @@ public partial class PersonalMessage : ContentPage
         {
             _ = viewModel.MainViewModel.MainWindow!.Navigation.PopAsync();
         }
+    }
+
+    public void UpdateTheme(AppTheme theme)
+    {
     }
 }

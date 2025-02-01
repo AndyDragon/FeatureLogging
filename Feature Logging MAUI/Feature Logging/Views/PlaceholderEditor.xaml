@@ -5,7 +5,7 @@
     xmlns:localViewModels="clr-namespace:FeatureLogging.ViewModels"
     x:Class="FeatureLogging.Views.PlaceholderEditor"
     x:DataType="localViewModels:PlaceholdersViewModel"
-    Title="Settings">
+    Title="Placeholders">
     
     <Grid RowDefinitions="Auto, Auto, *, Auto">
         <Label Grid.Row="0" Margin="10,10,10,2" HorizontalOptions="Center">There are manual placeholders that need to be filled out:</Label>

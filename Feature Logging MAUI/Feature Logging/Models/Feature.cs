@@ -340,7 +340,7 @@ public class Feature(string hubName) : NotifyPropertyChanged
     {
         if (!result.Valid)
         {
-            validationErrors.Add(validation + ": " + (result.Message ?? result.Error ?? "unknown validation error"));
+            validationErrors.Add(validation + ": " + (result.Message ?? "unknown validation error"));
         }
     }
 }

@@ -68,9 +68,12 @@
 		<PackageReference Include="AathifMahir.Maui.MauiIcons.Material" Version="4.0.0" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Maui.Controls.Core" Version="9.0.14" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="SkiaSharp" Version="3.116.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
@@ -81,6 +84,12 @@
 	  <None Update="Platforms\Android\Resources\drawable\maui_splash.xml">
 	    <SubType>Designer</SubType>
 	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="Mono.Android">
+	    <HintPath>..\..\..\..\..\..\..\usr\local\share\dotnet\packs\Microsoft.Android.Ref.35\35.0.39\ref\net9.0\Mono.Android.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 </Project>

@@ -7,13 +7,11 @@ public enum ValidationLevel
     Error,
 }
 
-public readonly struct ValidationResult(ValidationLevel level = ValidationLevel.Valid, string? error = null, string? message = null) : IEquatable<ValidationResult>
+public readonly struct ValidationResult(ValidationLevel level = ValidationLevel.Valid, string? message = null) : IEquatable<ValidationResult>
 {
     public bool Valid => Level == ValidationLevel.Valid;
 
     public ValidationLevel Level { get; } = level;
-
-    public string? Error { get; } = error;
 
     public string? Message { get; } = message;
 
@@ -25,7 +23,7 @@ public readonly struct ValidationResult(ValidationLevel level = ValidationLevel.
             {
                 return x.Message == y.Message;
             }
-            return x.Error == y.Error && x.Message == y.Message;
+            return x.Message == y.Message;
         }
         return false;
     }
@@ -37,21 +35,20 @@ public readonly struct ValidationResult(ValidationLevel level = ValidationLevel.
 
     public override bool Equals(object? obj)
     {
-        if (obj is ValidationResult)
+        if (obj is ValidationResult other)
         {
-            var objAsValidationResult = obj as ValidationResult?;
-            return this == objAsValidationResult;
+            return this == other;
         }
         return false;
     }
 
     public override int GetHashCode()
     {
-        return Level.GetHashCode() + (Error ?? "").GetHashCode() + (Message ?? "").GetHashCode();
+        return Level.GetHashCode() + (Message ?? "").GetHashCode();
     }
 
     public bool Equals(ValidationResult other)
     {
-        return Level == other.Level && Error == other.Error && Message == other.Message;
+        return this == other;
     }
 }

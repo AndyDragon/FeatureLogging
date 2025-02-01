@@ -1,18 +1,813 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+    xmlns:localConverters="clr-namespace:FeatureLogging.Converters"
+    xmlns:localModels="clr-namespace:FeatureLogging.Models"
+    xmlns:localViewModels="clr-namespace:FeatureLogging.ViewModels"
     x:Class="FeatureLogging.Views.LoadedPost"
-    Title="LoadedPostViewer">
+    x:DataType="localViewModels:LoadedPostViewModel"
+    Title="Post viewer">
 
-    <VerticalStackLayout
-        VerticalOptions="Center"
-        HorizontalOptions="Center">
-        <Label
-            Text="Coming soon!"
-            FontAttributes="Italic"
-            FontSize="24"
-            VerticalOptions="Center"
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+    <Shell.ToolbarItems>
+        <ToolbarItem
+            Text="Remove feature"
+            Command="{Binding MainViewModel.RemoveFeatureCommand}"
+            Priority="1"
+            Order="Primary" />
+    </Shell.ToolbarItems>
+    
+    <ContentPage.Resources>
+        <localConverters:ValidationResultColorConverter x:Key="ValidationResultColorConverter" />
+        <localConverters:ValidationResultVisibilityConverter x:Key="ValidationResultVisibilityConverter" />
+        <localConverters:StringJoinConverter x:Key="StringJoinConverter" />
+    </ContentPage.Resources>
+
+    <ScrollView 
+        Orientation="Both">
+        <VerticalStackLayout
+            WidthRequest="{Binding MainViewModel.ScreenWidth}">
+            <!-- Page and post link -->
+            <Border
+                Margin="20,0,20,10"
+                Padding="20, 10"
+                BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray700}}"
+                StrokeShape="RoundRectangle 10">
+                <Grid
+                    HorizontalOptions="Fill"
+                    RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto"
+                    ColumnDefinitions="Auto, *">
+                    
+                    <!-- Page -->
+                    <HorizontalStackLayout
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        HorizontalOptions="End">
+                        <mi:MauiIcon
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding MainViewModel.PageValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding MainViewModel.PageValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="Page:"
+                            TextColor="Green" />
+                    </HorizontalStackLayout>
+                    <Label
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        TextColor="Blue"
+                        Text="{Binding MainViewModel.SelectedPage.Title}" />
+                    
+                    <!-- Page tags -->
+                    <HorizontalStackLayout
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        HorizontalOptions="End">
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="Page tags:"
+                            TextColor="Green" />
+                    </HorizontalStackLayout>
+                    <Label
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        TextColor="Blue"
+                        Text="{Binding MainViewModel.SelectedPage.PageTags, Converter={StaticResource StringJoinConverter}}" />
+
+                    <!-- Page excluded tags -->
+                    <HorizontalStackLayout
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        HorizontalOptions="End">
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="Excluded tags:"
+                            TextColor="Green" />
+                    </HorizontalStackLayout>
+                    <Editor
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Text="{Binding MainViewModel.ExcludedTags, Mode=TwoWay}"
+                        Placeholder="page excluded tags without '#' separated by comma" />
+                    
+                    <!-- Post link -->
+                    <HorizontalStackLayout
+                        Grid.Row="3"
+                        Grid.Column="0"
+                        HorizontalOptions="End">
+                        <mi:MauiIcon
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding MainViewModel.SelectedFeature.PostLinkValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding MainViewModel.SelectedFeature.PostLinkValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="Post URL:"
+                            TextColor="Green" />
+                    </HorizontalStackLayout>
+                    <Label
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        TextColor="Blue"
+                        Text="{Binding MainViewModel.SelectedFeature.PostLink, Converter={StaticResource StringJoinConverter}}" />
+                    
+                    <!-- Post link actions -->
+                    <HorizontalStackLayout
+                        Grid.Row="4"
+                        Grid.Column="1">
+                        <Button
+                            VerticalOptions="Center"
+                            Margin="4,0"
+                            Padding="16,0"
+                            HeightRequest="22"
+                            MaximumHeightRequest="22"
+                            Command="{Binding CopyPostUrlCommand}"
+                            Text="Copy URL" />
+                        <Button
+                            VerticalOptions="Center"
+                            Margin="4,0"
+                            Padding="16,0"
+                            HeightRequest="22"
+                            MaximumHeightRequest="22"
+                            Command="{Binding LaunchPostUrlCommand}"
+                            Text="Launch" />
+                    </HorizontalStackLayout>
+                    
+                    <!-- User profile link -->
+                    <HorizontalStackLayout
+                        Grid.Row="5"
+                        Grid.Column="0"
+                        HorizontalOptions="End">
+                        <mi:MauiIcon
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding UserProfileUrlValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding UserProfileUrlValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="User profile URL:"
+                            TextColor="Green" />
+                    </HorizontalStackLayout>
+                    <Label
+                        Grid.Row="5"
+                        Grid.Column="1"
+                        TextColor="Blue"
+                        Text="{Binding UserProfileUrl, Converter={StaticResource StringJoinConverter}}" />
+                    
+                    <!-- User profile link actions -->
+                    <HorizontalStackLayout
+                        Grid.Row="6"
+                        Grid.Column="1">
+                        <Button
+                            VerticalOptions="Center"
+                            Margin="4,0"
+                            Padding="16,0"
+                            HeightRequest="22"
+                            MaximumHeightRequest="22"
+                            Command="{Binding CopyUserProfileUrlCommand}"
+                            Text="Copy URL" />
+                        <Button
+                            VerticalOptions="Center"
+                            Margin="4,0"
+                            Padding="16,0"
+                            HeightRequest="22"
+                            MaximumHeightRequest="22"
+                            Command="{Binding LaunchUserProfileUrlCommand}"
+                            Text="Launch" />
+                    </HorizontalStackLayout>
+                </Grid>
+            </Border>
+            
+            <!-- User -->
+            <Border
+                Margin="20,0,20,10"
+                Padding="20, 10"
+                BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray700}}"
+                StrokeShape="RoundRectangle 10">
+                <Grid 
+                    RowDefinitions="Auto, Auto, Auto, Auto, Auto"
+                    ColumnDefinitions="Auto, *, 1.5*, Auto">
+                    
+                    <!-- User alias -->
+                    <HorizontalStackLayout
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        VerticalOptions="Center"
+                        HorizontalOptions="End">
+                        <mi:MauiIcon
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding UserAliasValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding UserAliasValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="User alias:"
+                            TextColor="Green" />
+                    </HorizontalStackLayout>
+                    <Label
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        TextColor="Blue"
+                        VerticalOptions="Center"
+                        Text="{Binding UserAlias}" />
+                    <Grid
+                        Grid.Row="0"
+                        Grid.Column="2"
+                        HorizontalOptions="Fill"
+                        VerticalOptions="Center"
+                        ColumnDefinitions="Auto, *">
+                        <mi:MauiIcon
+                            Grid.Column="0"
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding MainViewModel.SelectedFeature.UserAliasValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding MainViewModel.SelectedFeature.UserAliasValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Entry
+                            Grid.Column="1"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Center"
+                            Placeholder="enter the user's alias without '@'"
+                            Text="{Binding MainViewModel.SelectedFeature.UserAlias, Mode=TwoWay}" />
+                    </Grid>
+                    <Button
+                        Grid.Row="0"
+                        Grid.Column="3"
+                        VerticalOptions="Center"
+                        Margin="4,0"
+                        Padding="16,0"
+                        HeightRequest="22"
+                        MaximumHeightRequest="22"
+                        Command="{Binding TransferUserAliasCommand}"
+                        Text="Transfer" />
+                    
+                    <!-- User name -->
+                    <HorizontalStackLayout
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        VerticalOptions="Center"
+                        HorizontalOptions="End">
+                        <mi:MauiIcon
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding UserNameValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding UserNameValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="User name:"
+                            TextColor="Green" />
+                    </HorizontalStackLayout>
+                    <Label
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        TextColor="Blue"
+                        VerticalOptions="Center"
+                        Text="{Binding UserName}" />
+                    <Grid
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        VerticalOptions="Center"
+                        ColumnDefinitions="Auto, *">
+                        <mi:MauiIcon
+                            Grid.Column="0"
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding MainViewModel.SelectedFeature.UserNameValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding MainViewModel.SelectedFeature.UserNameValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Entry
+                            Grid.Column="1"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Center"
+                            Placeholder="enter the user's name"
+                            Text="{Binding MainViewModel.SelectedFeature.UserName, Mode=TwoWay}" />
+                    </Grid>
+                    <Button
+                        Grid.Row="1"
+                        Grid.Column="3"
+                        VerticalOptions="Center"
+                        Margin="4,0"
+                        Padding="16,0"
+                        HeightRequest="22"
+                        MaximumHeightRequest="22"
+                        Command="{Binding TransferUserNameCommand}"
+                        Text="Transfer" />
+
+                    <!-- User bio -->
+                    <Label
+                        Grid.Row="2"
+                        Grid.ColumnSpan="4"
+                        HorizontalOptions="Start"
+                        VerticalOptions="Center"
+                        Margin="0,0,10,0"
+                        Text="User BIO:"
+                        TextColor="Green" />
+                    <Label 
+                        Grid.Row="3"
+                        Grid.ColumnSpan="4"
+                        HorizontalOptions="Start"
+                        Text="{Binding UserBio}"
+                        MaximumWidthRequest="520"
+                        FontFamily="TimesNewRoman"
+                        FontSize="17" />
+                    
+                    <!-- User level and team mate -->
+                    <Grid
+                        Grid.Row="4"
+                        Grid.ColumnSpan="4"
+                        ColumnDefinitions="Auto, Auto, 280, Auto, Auto, Auto"
+                        Margin="0,2">
+                        <mi:MauiIcon
+                            Grid.Column="0"
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding MainViewModel.SelectedFeature.UserLevelValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding MainViewModel.SelectedFeature.UserLevelValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Label
+                            Grid.Column="1"
+                            VerticalOptions="Center"
+                            Text="User level: "
+                            TextColor="{Binding MainViewModel.SelectedFeature.UserLevelValidation, Converter={StaticResource ValidationResultColorConverter}}" />
+                        <Picker
+                            Grid.Column="2"
+                            VerticalOptions="Center"
+                            ItemsSource="{Binding MainViewModel.Memberships}"
+                            SelectedItem="{Binding MainViewModel.SelectedFeature.UserLevel, Mode=TwoWay}" />
+                        <Label
+                            Grid.Column="3"
+                            VerticalOptions="Center"
+                            Padding="12,0"
+                            Text="|" />
+                        <Label
+                            Grid.Column="4"
+                            VerticalOptions="Center"
+                            Text="User is a team mate" />
+                        <CheckBox
+                            Grid.Column="5"
+                            VerticalOptions="Center"
+                            IsChecked="{Binding MainViewModel.SelectedFeature.UserIsTeammate, Mode=TwoWay}" />
+                    </Grid>
+                </Grid>
+            </Border>
+            
+            <!-- Description -->
+            <Border
+                Margin="20,0,20,10"
+                Padding="20, 20"
+                BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray700}}"
+                StrokeShape="RoundRectangle 10">
+                <Grid 
+                    RowDefinitions="Auto, Auto, Auto, Auto">
+                    
+                    <!-- Page tag check -->
+                    <HorizontalStackLayout
+                        Grid.Row="0"
+                        VerticalOptions="Center">
+                        <mi:MauiIcon
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding PageHashtagCheck, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding PageHashtagCheck, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="{Binding PageHashtagCheck.Message}"
+                            TextColor="{Binding PageHashtagCheck, Converter={StaticResource ValidationResultColorConverter}}" />
+                    </HorizontalStackLayout>
+                    
+                    <!-- Page excluded tag check -->
+                    <HorizontalStackLayout
+                        Grid.Row="1"
+                        VerticalOptions="Center">
+                        <mi:MauiIcon
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding ExcludedHashtagCheck, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding ExcludedHashtagCheck, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="{Binding ExcludedHashtagCheck.Message}"
+                            TextColor="{Binding ExcludedHashtagCheck, Converter={StaticResource ValidationResultColorConverter}}" />
+                    </HorizontalStackLayout>
+                    
+                    <!-- Description -->
+                    <VerticalStackLayout
+                        Grid.Row="2"
+                        Margin="0,8,0,0">
+                        <Label
+                            HorizontalOptions="Start"
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="Post description:"
+                            TextColor="Green" />
+                        <ScrollView
+                            Orientation="Vertical"
+                            MaximumHeightRequest="80">
+                            <Label 
+                                Text="{Binding Description}"
+                                FontSize="12" />
+                        </ScrollView>
+                    </VerticalStackLayout>
+                    
+                    <!-- Feature description -->
+                    <Grid
+                        Grid.Row="3"
+                        ColumnDefinitions="Auto, *">
+                        <mi:MauiIcon
+                            Grid.Column="0"
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding MainViewModel.SelectedFeature.FeatureDescriptionValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding MainViewModel.SelectedFeature.FeatureDescriptionValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Entry
+                            Grid.Column="1"
+                            VerticalOptions="Center"
+                            Placeholder="enter the description of the feature (not used in scripts)"
+                            Text="{Binding MainViewModel.SelectedFeature.FeatureDescription, Mode=TwoWay}" />
+                    </Grid>
+                </Grid>
+            </Border>
+            
+            <!-- Page and hub comments -->
+            <Border
+                Margin="20,0,20,10"
+                Padding="20, 10"
+                BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray700}}"
+                StrokeShape="RoundRectangle 10"
+                IsVisible="{Binding ShowComments}">
+                <Grid 
+                    RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto">
+                    
+                    <!-- Page comment -->
+                    <HorizontalStackLayout
+                        Grid.Row="0"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Start">
+                        <mi:MauiIcon
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding PageCommentsValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding PageCommentsValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="{Binding PageCommentsValidation.Message}"
+                            TextColor="{Binding PageCommentsValidation, Converter={StaticResource ValidationResultColorConverter}}" />
+                    </HorizontalStackLayout>
+
+                    <!-- User already featured on page -->
+                    <Grid
+                        Grid.Row="1"
+                        ColumnDefinitions="Auto, Auto, Auto, Auto, *, *">
+                        <Label
+                            Grid.Column="0"
+                            VerticalOptions="Center"
+                            Text="Photo featured on page" />
+                        <CheckBox
+                            Grid.Column="1"
+                            VerticalOptions="Center"
+                            IsChecked="{Binding MainViewModel.SelectedFeature.PhotoFeaturedOnPage, Mode=TwoWay}" />
+                    </Grid>
+                    
+                    <!-- Page comments -->
+                    <ListView
+                        Grid.Row="2"
+                        HasUnevenRows="True"
+                        SeparatorVisibility="None"
+                        ItemsSource="{Binding PageComments}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="localViewModels:CommentEntry">
+                                <ViewCell>
+                                    <Grid ColumnDefinitions="Auto, *, Auto">
+                                        <HorizontalStackLayout
+                                            Grid.Column="0" 
+                                            VerticalOptions="Start">
+                                            <Label Text="{Binding Page}" VerticalOptions="Start" FontSize="12" TextColor="Red" />
+                                            <Label Text=" - " VerticalOptions="Start" FontSize="12" TextColor="Red" />
+                                            <Label Text="{Binding Timestamp}" FontSize="12" TextColor="Red" />
+                                            <Label Text=" - " VerticalOptions="Start" FontSize="12" TextColor="Red" />
+                                        </HorizontalStackLayout>
+                                        <Label 
+                                            Grid.Column="1" 
+                                            Text="{Binding Comment}" 
+                                            VerticalOptions="Start"
+                                            FontSize="12"
+                                            TextColor="Red" />
+                                        <Button
+                                            Grid.Column="2"
+                                            VerticalOptions="Center"
+                                            Margin="4,2"
+                                            Padding="16,0"
+                                            HeightRequest="22"
+                                            MaximumHeightRequest="22"
+                                            Command="{Binding MarkFeatureCommand}"
+                                            Text="Mark post" />
+                                    </Grid>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                    
+                    <!-- Hub comment -->
+                    <HorizontalStackLayout
+                        Grid.Row="3"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Start">
+                        <mi:MauiIcon
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="{Binding HubCommentsValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                            IsVisible="{Binding HubCommentsValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="{Binding HubCommentsValidation.Message}"
+                            TextColor="{Binding HubCommentsValidation, Converter={StaticResource ValidationResultColorConverter}}" />
+                    </HorizontalStackLayout>
+
+                    <!-- User already featured on hub -->
+                    <Grid
+                        Grid.Row="4"
+                        ColumnDefinitions="Auto, Auto, Auto, Auto, *, *"
+                        IsVisible="{Binding MainViewModel.SnapOrClickHubVisibility}">
+                        <Label
+                            Grid.Column="0"
+                            VerticalOptions="Center"
+                            Text="Photo featured on hub" />
+                        <CheckBox
+                            Grid.Column="1"
+                            VerticalOptions="Center"
+                            IsChecked="{Binding MainViewModel.SelectedFeature.PhotoFeaturedOnHub, Mode=TwoWay}" />
+                        <Label
+                            Grid.Column="2"
+                            VerticalOptions="Center"
+                            Padding="12,0"
+                            Text="|"
+                            IsVisible="{Binding MainViewModel.SelectedFeature.PhotoFeaturedOnHub}" />
+                        <HorizontalStackLayout
+                            Grid.Column="3"
+                            IsVisible="{Binding MainViewModel.SelectedFeature.PhotoFeaturedOnHub}">
+                            <mi:MauiIcon
+                                VerticalOptions="Center"
+                                Icon="{mi:Material Icon=Warning}"
+                                Scale="0.8"
+                                IconColor="{Binding MainViewModel.SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource ValidationResultColorConverter}}"
+                                IsVisible="{Binding MainViewModel.SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
+                        </HorizontalStackLayout>
+                        <Entry
+                            Grid.Column="4"
+                            VerticalOptions="Center"
+                            Placeholder="last date featured"
+                            Text="{Binding MainViewModel.SelectedFeature.PhotoLastFeaturedOnHub, Mode=TwoWay}"
+                            IsVisible="{Binding MainViewModel.SelectedFeature.PhotoFeaturedOnHub}" />
+                        <Entry
+                            Grid.Column="5"
+                            VerticalOptions="Center"
+                            Placeholder="on page"
+                            Text="{Binding MainViewModel.SelectedFeature.PhotoLastFeaturedPage, Mode=TwoWay}"
+                            IsVisible="{Binding MainViewModel.SelectedFeature.PhotoFeaturedOnHub}" />
+                    </Grid>
+                    
+                    <!-- Hub comments -->
+                    <ListView
+                        Grid.Row="5"
+                        HasUnevenRows="True"
+                        SeparatorVisibility="None"
+                        ItemsSource="{Binding HubComments}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="localViewModels:CommentEntry">
+                                <ViewCell>
+                                    <Grid ColumnDefinitions="Auto, *, Auto">
+                                        <HorizontalStackLayout
+                                            Grid.Column="0" 
+                                            VerticalOptions="Start">
+                                            <Label Text="{Binding Page}" VerticalOptions="Start" FontSize="12" TextColor="Orange" />
+                                            <Label Text=" - " VerticalOptions="Start" FontSize="12" TextColor="Orange" />
+                                            <Label Text="{Binding Timestamp}" FontSize="12" TextColor="Orange" />
+                                            <Label Text=" - " VerticalOptions="Start" FontSize="12" TextColor="Orange" />
+                                        </HorizontalStackLayout>
+                                        <Label 
+                                            Grid.Column="1" 
+                                            Text="{Binding Comment}" 
+                                            VerticalOptions="Start"
+                                            FontSize="12"
+                                            TextColor="Orange" />
+                                        <Button
+                                            Grid.Column="2"
+                                            VerticalOptions="Center"
+                                            Margin="4,2"
+                                            Padding="16,0"
+                                            HeightRequest="22"
+                                            MaximumHeightRequest="22"
+                                            Command="{Binding MarkFeatureCommand}"
+                                            Text="Mark post" />
+                                    </Grid>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                    
+                    <!-- More comments -->
+                    <HorizontalStackLayout
+                        Grid.Row="6"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Start"
+                        IsVisible="{Binding MoreComments}">
+                        <mi:MauiIcon
+                            VerticalOptions="Center"
+                            Icon="{mi:Material Icon=Warning}"
+                            Scale="0.8"
+                            IconColor="Orange" />
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="Not all comments loading in the post, check VERO app to see all comments"
+                            TextColor="Orange" />
+                    </HorizontalStackLayout>
+
+                </Grid>
+            </Border>
+
+            <!-- Images -->
+            <Border
+                Margin="20,0,20,10"
+                Padding="20, 10"
+                BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray700}}"
+                StrokeShape="RoundRectangle 10"
+                IsVisible="{Binding ShowImages}">
+                <VerticalStackLayout>
+                    <HorizontalStackLayout
+                        HorizontalOptions="Center">
+                        <Label
+                            VerticalOptions="Center"
+                            Text="{Binding ImageEntries.Count}"
+                            TextColor="Green" />
+                        <Label
+                            VerticalOptions="Center"
+                            Text=" Image(s) in Post" 
+                            TextColor="Green" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout
+                        HorizontalOptions="Center">
+                        <ImageButton
+                            VerticalOptions="Center"
+                            IsVisible="{Binding ShowImageNavigators}"
+                            Command="{Binding PreviousImageCommand}">
+                            <ImageButton.Source>
+                                <mi:Material Icon="ChevronLeft" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
+                            </ImageButton.Source>
+                        </ImageButton>
+                        <CarouselView
+                            Margin="0,4,0,0"
+                            IndicatorView="IndicatorView"
+                            ItemsSource="{Binding ImageEntries}"
+                            CurrentItem="{Binding CurrentImage}">
+                            <CarouselView.ItemTemplate>
+                                <DataTemplate x:DataType="localViewModels:ImageEntry">
+                                    <Border
+                                        BackgroundColor="{AppThemeBinding Light={DynamicResource Gray200}, Dark={DynamicResource Gray600}}"
+                                        StrokeShape="RoundRectangle 8"
+                                        Margin="20,0"
+                                        Padding="20">
+                                        <VerticalStackLayout>
+                                            <Image Source="{Binding Source}" WidthRequest="400" HeightRequest="300" />
+                                            <HorizontalStackLayout
+                                                HorizontalOptions="Center">
+                                                <Label Text="Size: " />
+                                                <Label Text="{Binding Width}" />
+                                                <Label Text=" x " />
+                                                <Label Text="{Binding Height}" />
+                                            </HorizontalStackLayout>
+                                            <HorizontalStackLayout
+                                                Margin="0,8,0,0"
+                                                HorizontalOptions="Center">
+                                                <Button
+                                                    VerticalOptions="Center"
+                                                    Margin="4,0"
+                                                    Padding="16,0"
+                                                    HeightRequest="22"
+                                                    MaximumHeightRequest="22"
+                                                    Command="{Binding ValidateImageCommand}"
+                                                    Text="Validate" />
+                                                <Button
+                                                    VerticalOptions="Center"
+                                                    Margin="4,0"
+                                                    Padding="16,0"
+                                                    HeightRequest="22"
+                                                    MaximumHeightRequest="22"
+                                                    Command="{Binding SaveImageCommand}"
+                                                    Text="Save image" />
+                                                <Button
+                                                    VerticalOptions="Center"
+                                                    Margin="4,0"
+                                                    Padding="16,0"
+                                                    HeightRequest="22"
+                                                    MaximumHeightRequest="22"
+                                                    Command="{Binding CopyImageUrlCommand}"
+                                                    Text="Copy URL" />
+                                                <Button
+                                                    VerticalOptions="Center"
+                                                    Margin="4,0"
+                                                    Padding="16,0"
+                                                    HeightRequest="22"
+                                                    MaximumHeightRequest="22"
+                                                    Command="{Binding LaunchImageCommand}"
+                                                    Text="Launch" />
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+                                    </Border>                        
+                                </DataTemplate>
+                            </CarouselView.ItemTemplate>
+                        </CarouselView>
+                        <ImageButton
+                            VerticalOptions="Center"
+                            IsVisible="{Binding ShowImageNavigators}"
+                            Command="{Binding NextImageCommand}">
+                            <ImageButton.Source>
+                                <mi:Material Icon="ChevronRight" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </HorizontalStackLayout>
+                    <IndicatorView 
+                        x:Name="IndicatorView"
+                        IndicatorColor="LightGray"
+                        SelectedIndicatorColor="DarkGray"
+                        HorizontalOptions="Center"
+                        Margin="0,10,0,0" />
+                </VerticalStackLayout>
+            </Border>
+            
+            <!-- Logging -->
+            <Border
+                Margin="20,0,20,30"
+                Padding="20, 10"
+                BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray700}}"
+                StrokeShape="RoundRectangle 10"
+                IsVisible="{Binding ShowImages}">
+                <VerticalStackLayout>
+                    <Grid ColumnDefinitions="*, *">
+                        <Label
+                            Grid.Column="0"
+                            VerticalOptions="Center"
+                            Text="Logging"
+                            TextColor="Green" />
+                        <Button
+                            Grid.Column="1"
+                            HorizontalOptions="End"
+                            VerticalOptions="Center"
+                            Margin="4,0"
+                            Padding="16,0"
+                            HeightRequest="22"
+                            MaximumHeightRequest="22"
+                            Command="{Binding CopyLogCommand}"
+                            Text="Copy" />
+                    </Grid>
+                    <ListView
+                        HasUnevenRows="True"
+                        SeparatorVisibility="None"
+                        ItemsSource="{Binding LogEntries}"
+                        MaximumHeightRequest="80">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="localModels:LogEntry">
+                                <ViewCell>
+                                    <HorizontalStackLayout>
+                                        <Label
+                                            Text="●"
+                                            TextColor="{Binding Color}"
+                                            Background="Transparent"
+                                            Margin="0,0,8,0"
+                                            IsVisible="{Binding ShowBullet}"/>
+                                        <Label
+                                            Text="{Binding Message}"
+                                            TextColor="{Binding Color}" />
+                                    </HorizontalStackLayout>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </VerticalStackLayout>
+            </Border>            
+        </VerticalStackLayout>
+    </ScrollView>
 
 </ContentPage>

@@ -2,11 +2,13 @@
 
 namespace FeatureLogging.Models;
 
-public struct VerdictResult(string message, Color color, MaterialIcons icon) : IEquatable<VerdictResult>
+public struct VerdictResult(string message, string details, Color color, MaterialIcons icon) : IEquatable<VerdictResult>
 {
     public string Message { get; } = message;
 
-    public Brush Color { get; private set; } = new SolidColorBrush(color);
+    public string Details { get; } = details;
+
+    public Color Color { get; private set; } = color;
 
     public MaterialIcons Icon { get; private set; } = icon;
 

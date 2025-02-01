@@ -1,41 +1,76 @@
-﻿// using System;
-using System.Collections.ObjectModel;
-// using System.Diagnostics;
-// using System.Net.Http;
+﻿using System.Collections.ObjectModel;
 using System.Net.Http.Headers;
-// using System.Windows;
-using CommunityToolkit.Maui.Alerts;
 using FeatureLogging.Base;
 using FeatureLogging.Models;
 using MauiIcons.Material;
-// using System.Windows.Media;
-// using MahApps.Metro.IconPacks;
 using Newtonsoft.Json;
-
-// using Notification.Wpf;
 
 namespace FeatureLogging.ViewModels;
 
+public enum VisibleTab
+{
+    TinEye,
+    HiveAi,
+}
+
 public class ImageValidationViewModel : NotifyPropertyChanged
 {
-    private static readonly Color? DefaultLogColor = null;
     private readonly HttpClient httpClient = new();
-    private readonly MainViewModel vm;
     private readonly ImageEntry imageEntry;
 
-    public ImageValidationViewModel(MainViewModel vm, ImageEntry imageEntry)
+    public ImageValidationViewModel(MainViewModel mainViewModel, ImageEntry imageEntry)
     {
-        this.vm = vm;
+        MainViewModel = mainViewModel;
         this.imageEntry = imageEntry;
 
         var encodedImageUri = Uri.EscapeDataString(imageEntry.Source.AbsoluteUri);
-        TinEyeUri =
-            $"https://www.tineye.com/search/?pluginver=chrome-2.0.4&sort=score&order=desc&url={encodedImageUri}";
-        _ = LoadImageValidation();
+        TinEyeUri = $"https://www.tineye.com/search/?pluginver=chrome-2.0.4&sort=score&order=desc&url={encodedImageUri}";
     }
+
+    public async Task TriggerLoad()
+    {
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        await LoadImageValidation();
+    }
+    
+    public MainViewModel MainViewModel { get; }
+    
+    private VisibleTab visibleTab = VisibleTab.TinEye;
+    private VisibleTab VisibleTab
+    {
+        get => visibleTab;
+        set => Set(ref visibleTab, value, [
+            nameof(TinEyeTabColor), 
+            nameof(HiveAiTabColor), 
+            nameof(TinEyeTabTextColor), 
+            nameof(HiveAiTabTextColor), 
+            nameof(IsTinEyeTab), 
+            nameof(IsHiveAiTab)
+        ]);
+    }
+
+    public bool IsTinEyeTab => visibleTab == VisibleTab.TinEye;
+    public Color TinEyeTabColor => VisibleTab == VisibleTab.TinEye 
+        ? (Application.Current!.RequestedTheme == AppTheme.Light ? Color.FromRgb(0x20, 0x20, 0x60) : Color.FromRgb(0xb0, 0xb0, 0xd0)) 
+        : (Application.Current!.RequestedTheme == AppTheme.Light ? Color.FromRgb(0xff, 0xff, 0xff) : Color.FromRgb(0x20, 0x20, 0x20));
+    public Color TinEyeTabTextColor => VisibleTab == VisibleTab.TinEye 
+        ? (Application.Current!.RequestedTheme == AppTheme.Light ? Colors.White : Colors.Black) 
+        : (Application.Current!.RequestedTheme == AppTheme.Light ? Colors.Black : Colors.White);
+    public SimpleCommand SwitchToTinEyeTabCommand => new(() => VisibleTab = VisibleTab.TinEye);
+
+    public bool IsHiveAiTab => visibleTab == VisibleTab.HiveAi;
+    public Color HiveAiTabColor => VisibleTab == VisibleTab.HiveAi 
+        ? (Application.Current!.RequestedTheme == AppTheme.Light ? Color.FromRgb(0x20, 0x40, 0x60) : Color.FromRgb(0xb0, 0xc0, 0xd0)) 
+        : (Application.Current!.RequestedTheme == AppTheme.Light ? Color.FromRgb(0xff, 0xff, 0xff) : Color.FromRgb(0x20, 0x20, 0x20));
+    public Color HiveAiTabTextColor => VisibleTab == VisibleTab.HiveAi 
+        ? (Application.Current!.RequestedTheme == AppTheme.Light ? Colors.White : Colors.Black) 
+        : (Application.Current!.RequestedTheme == AppTheme.Light ? Colors.Black : Colors.White);
+    public SimpleCommand SwitchToHivAiTabCommand => new(() => VisibleTab = VisibleTab.HiveAi);
 
     private async Task LoadImageValidation()
     {
+        LogEntries.Clear();
+
         try
         {
             // Disable client-side caching.
@@ -61,60 +96,59 @@ public class ImageValidationViewModel : NotifyPropertyChanged
                     var response = HiveResponse.FromJson(content);
                     if (response != null)
                     {
-                        LogEntries.Add(new LogEntry(JsonConvert.SerializeObject(response, Formatting.Indented),
-                            DefaultLogColor, skipBullet: true));
+                        var formattedResponse = JsonConvert.SerializeObject(response, Formatting.Indented);
+                        var lines = formattedResponse.Split('\n');
+                        foreach (var line in lines)
+                        {
+                            LogEntries.Add(new LogEntry(line, LogType.Info, showBullet: false));
+                        }
+
                         if (response.StatusCode is >= 200 and <= 299)
                         {
-                            var verdictClass = response.Data.Classes.FirstOrDefault(verdictClass =>
-                                verdictClass.Class == "not_ai_generated");
+                            var verdictClass = response.Data.Classes.FirstOrDefault(verdictClass => verdictClass.Class == "not_ai_generated");
                             if (verdictClass != null)
                             {
                                 var highestClass = response.Data.Classes
-                                    .Where(vc => !new List<string>
-                                    {
-                                        "not_ai_generated", "ai_generated", "none", "inconclusive", "inconclusive_video"
-                                    }.Contains(vc.Class))
+                                    .Where(vc => !new List<string>{ "not_ai_generated", "ai_generated", "none", "inconclusive", "inconclusive_video" }.Contains(vc.Class))
+                                    .Where(vc => vc.Score > 1)
                                     .MaxBy(vc => vc.Score);
                                 var highestClassString = highestClass != null
-                                    ? $", highest possibility of AI: {highestClass.Class} @ {highestClass.Score:P2}"
-                                    : "";
-                                var resultString = verdictClass.Score > 0.8 ? "Not AI" :
-                                    verdictClass.Score < 0.5 ? "AI" : "Indeterminate";
-                                var resultColor = verdictClass.Score > 0.8 ? Colors.Lime :
-                                    verdictClass.Score < 0.5 ? Colors.Red : Colors.Yellow;
-                                var resultIcon = verdictClass.Score > 0.8 ? MaterialIcons.VerifiedUser :
-                                    verdictClass.Score < 0.5 ? MaterialIcons.GppBad : MaterialIcons.PrivacyTip;
-                                Verdict = new VerdictResult($"{resultString} ({verdictClass.Score:P2} not AI{highestClassString})", resultColor, resultIcon);
-                                VerdictVisibility = Visibility.Visible;
+                                    ? $"Highest possibility of AI: {highestClass.Class} @ {highestClass.Score:P2}" : "No indication of AI";
+                                var resultString = verdictClass.Score > 0.8 
+                                    ? "Not AI" : verdictClass.Score < 0.5 
+                                        ? "AI" : "Indeterminate";
+                                var resultColor = verdictClass.Score > 0.8 
+                                    ? Colors.Green : verdictClass.Score < 0.5 
+                                        ? Colors.Red : Colors.Yellow;
+                                var resultIcon = verdictClass.Score > 0.8 
+                                    ? MaterialIcons.VerifiedUser : verdictClass.Score < 0.5 
+                                        ? MaterialIcons.GppBad : MaterialIcons.PrivacyTip;
+                                Verdict = new VerdictResult($"{resultString} ({verdictClass.Score:P2} not AI)", highestClassString, resultColor, resultIcon);
                             }
                             else
                             {
-                                LogEntries.Add(new LogEntry($"Could not find result class in results", Colors.Violet));
-                                Verdict = new VerdictResult($"Could not determine", Colors.Violet, MaterialIcons.Shield);
-                                VerdictVisibility = Visibility.Visible;
+                                LogEntries.Add(new LogEntry($"Could not find result class in results", LogType.Special));
+                                Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialIcons.Shield);
                             }
                         }
                     }
                     else
                     {
-                        LogEntries.Add(new LogEntry($"Could not parse the AI detection", Colors.Violet));
-                        Verdict = new VerdictResult($"Could not determine", Colors.Violet, MaterialIcons.Shield);
-                        VerdictVisibility = Visibility.Visible;
+                        LogEntries.Add(new LogEntry($"Could not parse the AI detection", LogType.Special));
+                        Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialIcons.Shield);
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogEntries.Add(new LogEntry($"Could not load the AI detection {ex.Message}", Colors.Violet));
-                    Verdict = new VerdictResult($"Could not determine", Colors.Violet, MaterialIcons.Shield);
-                    VerdictVisibility = Visibility.Visible;
+                    LogEntries.Add(new LogEntry($"Could not load the AI detection {ex.Message}", LogType.Special));
+                    Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialIcons.Shield);
                 }
             }
         }
         catch (Exception ex)
         {
-            LogEntries.Add(new LogEntry($"Could not request the AI detection {ex.Message}", Colors.Violet));
-            Verdict = new VerdictResult($"Could not determine", Colors.Violet, MaterialIcons.Shield);
-            VerdictVisibility = Visibility.Visible;
+            LogEntries.Add(new LogEntry($"Could not request the AI detection {ex.Message}", LogType.Special));
+            Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialIcons.Shield);
         }
     }
 
@@ -135,7 +169,7 @@ public class ImageValidationViewModel : NotifyPropertyChanged
         {
             if (Set(ref tinEyeUri, value))
             {
-                vm.TriggerTinEyeSource();
+                MainViewModel.TriggerTinEyeSource();
             }
         }
     }
@@ -144,37 +178,22 @@ public class ImageValidationViewModel : NotifyPropertyChanged
 
     #region HIVE results
 
-    private Visibility verdictVisibility = Visibility.Collapsed;
-
-    public Visibility VerdictVisibility
-    {
-        get => verdictVisibility;
-        set => Set(ref verdictVisibility, value);
-    }
-
-    private VerdictResult verdict = new("Checking", Colors.Gray, MaterialIcons.Shield);
+    private VerdictResult verdict = new("Checking...", "", Colors.Gray, MaterialIcons.Shield);
 
     public VerdictResult Verdict
     {
         get => verdict;
-        set => Set(ref verdict, value);
+        private set => Set(ref verdict, value);
     }
 
     #endregion
 
-    #region Commands
-
-    public SimpleCommand CopyLogCommand => new(() =>
+    public void TriggerThemeChange()
     {
-        _ = CopyTextToClipboard(string.Join("\n", LogEntries.Select(entry => entry.Messsage)), "Copied the log messages to the clipboard");
-    });
-
-    #endregion
-
-    private static async Task CopyTextToClipboard(string text, string successMessage)
-    {
-        await MainViewModel.TrySetClipboardText(text);
-        await Toast.Make(successMessage).Show();
+        OnPropertyChanged(nameof(TinEyeTabColor));
+        OnPropertyChanged(nameof(HiveAiTabColor));
+        OnPropertyChanged(nameof(TinEyeTabTextColor));
+        OnPropertyChanged(nameof(HiveAiTabTextColor));
     }
 }
 

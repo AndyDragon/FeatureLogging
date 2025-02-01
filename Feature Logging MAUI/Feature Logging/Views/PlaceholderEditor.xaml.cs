@@ -1,8 +1,9 @@
+using FeatureLogging.Base;
 using FeatureLogging.ViewModels;
 
 namespace FeatureLogging.Views;
 
-public partial class PlaceholderEditor : ContentPage
+public partial class PlaceholderEditor : IThemePage
 {
     private readonly Script script;
     
@@ -37,5 +38,9 @@ public partial class PlaceholderEditor : ContentPage
         {
             viewModel.ScriptsViewModel.PopView();
         }
+    }
+
+    public void UpdateTheme(AppTheme theme)
+    {
     }
 }

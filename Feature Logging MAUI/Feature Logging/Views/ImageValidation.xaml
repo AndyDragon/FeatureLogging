@@ -1,0 +1,155 @@
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+    xmlns:localConverters="clr-namespace:FeatureLogging.Converters"
+    xmlns:localModels="clr-namespace:FeatureLogging.Models"
+    xmlns:localViewModels="clr-namespace:FeatureLogging.ViewModels"
+    x:Class="FeatureLogging.Views.ImageValidation"
+    x:DataType="localViewModels:ImageValidationViewModel"
+    Title="Image validation">
+
+    <Shell.ToolbarItems>
+        <ToolbarItem
+            Text="Remove feature"
+            Command="{Binding MainViewModel.RemoveFeatureCommand}"
+            Priority="1"
+            Order="Primary" />
+    </Shell.ToolbarItems>
+    
+    <Grid
+        RowDefinitions="Auto, Auto, *"
+        Margin="30">
+        
+        <!-- Validation results -->
+        <Grid
+            Grid.Row="0"
+            ColumnDefinitions="Auto, 200, Auto, Auto, 200">
+            <Label
+                Grid.Column="0"
+                VerticalOptions="Center"
+                Text="TinEye:" />
+            <Picker
+                Grid.Column="1"
+                ItemsSource="{Binding MainViewModel.TinEyeResults}"
+                SelectedItem="{Binding MainViewModel.SelectedFeature.TinEyeResults}" />
+            <Label
+                Grid.Column="2"
+                VerticalOptions="Center"
+                Padding="12,0"
+                Text="|" />
+            <Label
+                Grid.Column="3"
+                VerticalOptions="Center"
+                Text="AI Check:" />
+            <Picker
+                Grid.Column="4"
+                ItemsSource="{Binding MainViewModel.AiCheckResults}"
+                SelectedItem="{Binding MainViewModel.SelectedFeature.AiCheckResults}" />
+        </Grid>
+        
+        <!-- HIVE verdict -->
+        <Border
+            Grid.Row="1"
+            StrokeShape="RoundRectangle 8"
+            BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray700}}"
+            Margin="0,10,0,0">
+            <VerticalStackLayout Margin="10,10">
+                <HorizontalStackLayout>
+                    <mi:MauiIcon
+                        VerticalOptions="Center"
+                        Margin="0,0,12,0"
+                        Icon="{Binding Verdict.Icon}"
+                        IconColor="{Binding Verdict.Color}" />
+                    <Label
+                        VerticalOptions="Center"
+                        Text="HIVE AI verdict: "
+                        TextColor="{Binding Verdict.Color}"
+                        Margin="0,0,4,0"
+                        FontSize="20" />
+                    <Label
+                        VerticalOptions="Center"
+                        Text="{Binding Verdict.Message}"
+                        TextColor="{Binding Verdict.Color}"
+                        FontSize="20" />
+                </HorizontalStackLayout>
+                <Label
+                    VerticalOptions="Center"
+                    Margin="48,0,0,0"
+                    Text="{Binding Verdict.Details}"
+                    TextColor="{Binding Verdict.Color}"
+                    FontSize="14" />
+            </VerticalStackLayout>
+        </Border>
+        
+        <!-- TinEye webview -->
+        <Grid 
+            Grid.Row="2" 
+            RowDefinitions="Auto, *"
+            Margin="0,8,0,0">
+            <Grid
+                Grid.Row="0"
+                ColumnDefinitions="Auto, Auto">
+                <Button 
+                    Grid.Column="0" 
+                    Command="{Binding SwitchToTinEyeTabCommand}" 
+                    Text="TinEye Check" 
+                    BackgroundColor="{Binding TinEyeTabColor}"
+                    BorderColor="{Binding TinEyeTabColor}"
+                    TextColor="{Binding TinEyeTabTextColor}"
+                    Margin="1,0"
+                    Padding="16,0"
+                    HeightRequest="32"
+                    MaximumHeightRequest="32" />
+                <Button 
+                    Grid.Column="1" 
+                    Command="{Binding SwitchToHivAiTabCommand}" 
+                    Text="HIVE AI Log" 
+                    BackgroundColor="{Binding HiveAiTabColor}"
+                    BorderColor="{Binding HiveAiTabColor}"
+                    TextColor="{Binding HiveAiTabTextColor}"
+                    Margin="1,0"
+                    Padding="16,0"
+                    HeightRequest="32"
+                    MaximumHeightRequest="32" />
+            </Grid>
+            <Border
+                Grid.Row="1"
+                StrokeShape="RoundRectangle 8"
+                Margin="0,8,0,0">
+                <Grid>
+                    <ScrollView
+                        Orientation="Vertical"
+                        IsVisible="{Binding IsTinEyeTab}">
+                        <WebView 
+                            Source="{Binding TinEyeUri}" />
+                    </ScrollView>
+                    <ListView
+                        IsVisible="{Binding IsHiveAiTab}"
+                        HasUnevenRows="True"
+                        SeparatorVisibility="None"
+                        ItemsSource="{Binding LogEntries}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="localModels:LogEntry">
+                                <ViewCell>
+                                    <HorizontalStackLayout>
+                                        <Label
+                                            Text="●"
+                                            TextColor="{Binding Color}"
+                                            Background="Transparent"
+                                            Margin="0,0,8,0"
+                                            IsVisible="{Binding ShowBullet}"/>
+                                        <Label
+                                            Text="{Binding Message}"
+                                            TextColor="{Binding Color}" />
+                                    </HorizontalStackLayout>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+    
+</ContentPage>

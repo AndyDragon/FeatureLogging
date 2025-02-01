@@ -150,32 +150,40 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Commands
 
-    public SimpleCommandWithParameter NewFeaturesCommand => new(async void (ignoreDirty) =>
+    public SimpleCommand NewFeaturesCommand => new(() =>
     {
-        if (IsDirty && ignoreDirty == null)
+        _ = NewFeaturesAsync();
+    }, () => !WaitingForPages);
+        
+    private async Task NewFeaturesAsync(bool ignoreDirty = false)
+    {
+        if (IsDirty && !ignoreDirty)
         {
-            await HandleDirtyActionAsync("creating a new log", _ =>
-            {
-                NewFeaturesCommand.Execute(true);
-            });
+            await HandleDirtyActionAsync("creating a new log", _ => NewFeaturesAsync(true));
             return;
         }
 
         SelectedFeature = null;
+        foreach (var feature in Features)
+        {
+            feature.PropertyChanged -= OnFeaturePropertyChanged;
+        }
         Features.Clear();
         OnPropertyChanged(nameof(HasFeatures));
         OnPropertyChanged(nameof(FeatureNavigationAllowed));
         OnPropertyChanged(nameof(CanChangePage));
-    }, (_) => !WaitingForPages);
+    }
 
-    public SimpleCommandWithParameter OpenFeaturesCommand => new(async void (ignoreDirty) =>
+    public SimpleCommand OpenFeaturesCommand => new(() =>
     {
-        if (IsDirty && ignoreDirty == null)
+        _ = OpenFeaturesAsync();
+    }, () => !WaitingForPages);
+        
+    private async Task OpenFeaturesAsync(bool ignoreDirty = false)
+    {
+        if (IsDirty && !ignoreDirty)
         {
-            await HandleDirtyActionAsync("opening a different log", _ =>
-            {
-                OpenFeaturesCommand.Execute(true);
-            });
+            await HandleDirtyActionAsync("opening a different log", _ => OpenFeaturesAsync(true));
             return;
         }
 
@@ -201,7 +209,7 @@ public class MainViewModel : NotifyPropertyChanged
             if (result != null)
             {
                 SelectedFeature = null;
-                var file = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(File.ReadAllText(result.FullPath));
+                var file = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(await File.ReadAllTextAsync(result.FullPath));
                 if (file != null)
                 {
                     var pageId = file["page"];
@@ -211,6 +219,10 @@ public class MainViewModel : NotifyPropertyChanged
                         // Force the page to update.
                         selectedPage = null;
                         SelectedPage = foundPage;
+                        foreach (var feature in Features)
+                        {
+                            feature.PropertyChanged -= OnFeaturePropertyChanged;
+                        }
                         Features.Clear();
                         foreach (var fileFeature in file["features"])
                         {
@@ -242,6 +254,7 @@ public class MainViewModel : NotifyPropertyChanged
                                 AiCheckResults = new List<string>(AiCheckResults).Contains((string)fileFeature["aiCheckResults"]) ? (string)fileFeature["aiCheckResults"] : AiCheckResults[0],
                                 PersonalMessage = fileFeature.ContainsKey("personalMessage") ? (string)fileFeature["personalMessage"] : "",
                             };
+                            loadedFeature.PropertyChanged += OnFeaturePropertyChanged;
                             Features.Add(loadedFeature);
                         }
                         base.OnPropertyChanged(nameof(HasFeatures));
@@ -265,7 +278,7 @@ public class MainViewModel : NotifyPropertyChanged
         {
             await Toast.Make($"Failed: {ex.Message}", ToastDuration.Long).Show();
         }
-    }, (_) => !WaitingForPages);
+    }
 
     private void ClearDirty()
     {
@@ -276,7 +289,12 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }
 
-    public SimpleCommand SaveFeaturesCommand => new(async void () =>
+    public SimpleCommand SaveFeaturesCommand => new(() =>
+    {
+        _ = SaveFeaturesAsync();
+    }, () => !WaitingForPages && HasFeatures);
+        
+    private async Task SaveFeaturesAsync()
     {
         if (SelectedPage != null)
         {
@@ -304,7 +322,7 @@ public class MainViewModel : NotifyPropertyChanged
                 await Toast.Make($"Failed to save the feature log: {fileSaverResult.Exception.Message})", ToastDuration.Long).Show();
             }
         }
-    }, () => !WaitingForPages && HasFeatures);
+    }
 
     public SimpleCommand GenerateReportCommand => new(() =>
     {
@@ -316,7 +334,12 @@ public class MainViewModel : NotifyPropertyChanged
         _ = CopyTextToClipboardAsync(GenerateLogReport(), "Generated report", "Copied the report of features to the clipboard");
     }, () => !WaitingForPages && HasFeatures);
 
-    public SimpleCommand SaveReportCommand => new(async void () =>
+    public SimpleCommand SaveReportCommand => new(() =>
+    {
+        _ = SaveReportAsync();
+    }, () => !WaitingForPages && HasFeatures);
+    
+    private async Task SaveReportAsync()
     {
         if (SelectedPage == null)
         {
@@ -334,7 +357,7 @@ public class MainViewModel : NotifyPropertyChanged
         {
             await Toast.Make($"Failed to save the feature report: {fileSaverResult.Exception.Message})", ToastDuration.Long).Show();
         }
-    }, () => !WaitingForPages && HasFeatures);
+    }
 
     public SimpleCommand LaunchSettingsCommand => new(() =>
     {
@@ -375,6 +398,7 @@ public class MainViewModel : NotifyPropertyChanged
                     PostLink = text,
                     UserAlias = text["https://vero.co/".Length..].Split("/").FirstOrDefault() ?? "",
                 };
+                feature.PropertyChanged += OnFeaturePropertyChanged;
                 Features.Add(feature);
                 OnPropertyChanged(nameof(CanChangePage));
                 SelectedFeature = feature;
@@ -383,6 +407,7 @@ public class MainViewModel : NotifyPropertyChanged
             else
             {
                 var feature = new Feature(SelectedPage!.HubName);
+                feature.PropertyChanged += OnFeaturePropertyChanged;
                 Features.Add(feature);
                 OnPropertyChanged(nameof(CanChangePage));
                 SelectedFeature = feature;
@@ -392,6 +417,7 @@ public class MainViewModel : NotifyPropertyChanged
         else
         {
             var feature = new Feature(SelectedPage!.HubName);
+            feature.PropertyChanged += OnFeaturePropertyChanged;
             Features.Add(feature);
             OnPropertyChanged(nameof(CanChangePage));
             SelectedFeature = feature;
@@ -407,6 +433,7 @@ public class MainViewModel : NotifyPropertyChanged
         if (SelectedFeature is Feature feature)
         {
             SelectedFeature = null;
+            feature.PropertyChanged -= OnFeaturePropertyChanged;
             Features.Remove(feature);
             OnPropertyChanged(nameof(HasFeatures));
             OnPropertyChanged(nameof(FeatureNavigationAllowed));
@@ -521,6 +548,7 @@ public class MainViewModel : NotifyPropertyChanged
         SelectedFeature = null;
         if (feature is Feature featureToDelete)
         {
+            featureToDelete.PropertyChanged -= OnFeaturePropertyChanged;
             Features.Remove(featureToDelete);
         }
 
@@ -605,20 +633,20 @@ public class MainViewModel : NotifyPropertyChanged
         set => Set(ref isDirty, value);
     }
 
-    private async Task HandleDirtyActionAsync(string action, Action<bool> onConfirmAction)
+    private async Task HandleDirtyActionAsync(string action, Func<bool, Task> onConfirmAction)
     {
         if (await MainWindow!.DisplayAlert(
             "Log not saved",
             $"The current log document has been edited. Would you like to save the log before {action}?",
             "Yes", "No"))
         {
-            SaveFeaturesCommand.Execute(null);
+            _ = SaveFeaturesAsync();
             if (!IsDirty)
             {
-                onConfirmAction(true);
+                await onConfirmAction(true);
             }
         } else {
-            onConfirmAction(false);
+            await onConfirmAction(false);
         }
     }
 
@@ -717,7 +745,13 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Features
 
-    public ObservableCollection<Feature> Features { get; } = [];
+    private ObservableCollection<Feature> features = [];
+
+    public ObservableCollection<Feature> Features
+    {
+        get => features;
+        set => Set(ref features, value);
+    }
 
     private Feature? selectedFeature;
     public Feature? SelectedFeature
@@ -725,20 +759,11 @@ public class MainViewModel : NotifyPropertyChanged
         get => selectedFeature;
         set
         {
-            var oldSelectedFeature = selectedFeature;
             if (Set(ref selectedFeature, value))
             {
                 OnPropertyChanged(nameof(HasSelectedFeature));
                 OnPropertyChanged(nameof(RemoveFeatureCommand));
                 OnPropertyChanged(nameof(LoadPostCommand));
-                if (oldSelectedFeature != null)
-                {
-                    oldSelectedFeature.PropertyChanged -= OnSelectedFeaturePropertyChanged;
-                }
-                if (selectedFeature != null)
-                {
-                    selectedFeature.PropertyChanged += OnSelectedFeaturePropertyChanged;
-                }
 
                 // Handle the navigation
                 if (selectedFeature != null)
@@ -756,25 +781,39 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }
 
-    private void OnSelectedFeaturePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnFeaturePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         switch (e.PropertyName)
         {
             case "SortKey":
-                MainWindow?.ResortList();
+                ResortList();
                 break;
             
             case "PostLink":
-                OnPropertyChanged(nameof(LoadPostCommand));
+                if (sender is Feature postLinkFeature && postLinkFeature == SelectedFeature)
+                {
+                    OnPropertyChanged(nameof(LoadPostCommand));
+                }
+
                 break;
             
             case "UserAlias":
-                OnPropertyChanged(nameof(CopyPageFeatureTagCommand));
-                OnPropertyChanged(nameof(CopyRawPageFeatureTagCommand));
-                OnPropertyChanged(nameof(CopyHubFeatureTagCommand));
-                OnPropertyChanged(nameof(CopyRawHubFeatureTagCommand));
+                if (sender is Feature userAliasFeature && userAliasFeature == SelectedFeature)
+                {
+                    OnPropertyChanged(nameof(CopyPageFeatureTagCommand));
+                    OnPropertyChanged(nameof(CopyRawPageFeatureTagCommand));
+                    OnPropertyChanged(nameof(CopyHubFeatureTagCommand));
+                    OnPropertyChanged(nameof(CopyRawHubFeatureTagCommand));
+                }
+
                 break;
         }
+    }
+
+    private void ResortList()
+    {
+        var sortedFeatures = Features.OrderBy(feature => feature.SortKey).ToList();
+        Features = new ObservableCollection<Feature>(sortedFeatures);
     }
 
     public bool FeatureNavigationAllowed => Features.Count(feature => feature.IsPickedAndAllowed) > 1;
@@ -960,9 +999,12 @@ public class MainViewModel : NotifyPropertyChanged
     ];
 
     public string[] Memberships =>
-        SelectedPage?.HubName == "click" ? ClickMemberships :
-        SelectedPage?.HubName == "snap" ? SnapMemberships :
-        OtherMemberships;
+        SelectedPage?.HubName switch
+        {
+            "click" => ClickMemberships,
+            "snap" => SnapMemberships,
+            _ => OtherMemberships
+        };
 
     private Dictionary<string, string> OldMembershipMap =>
         SelectedPage?.HubName switch
@@ -988,17 +1030,17 @@ public class MainViewModel : NotifyPropertyChanged
             _ => []
         };
 
-    private string MapMembershipLevelFromFile(string userLevelFromFile)
+    private string MapMembershipLevelFromFile(string? userLevelFromFile)
     {
+        if (userLevelFromFile == null)
+        {
+            return "None";
+        }
         if (Memberships.Contains(userLevelFromFile))
         {
             return userLevelFromFile;
         }
-        if (OldMembershipMap.TryGetValue(userLevelFromFile, out string? value))
-        {
-            return value;
-        }
-        return Memberships[0];
+        return OldMembershipMap.TryGetValue(userLevelFromFile, out var value) ? value : Memberships[0];
     }
 
     #endregion
@@ -1427,10 +1469,10 @@ public class MainViewModel : NotifyPropertyChanged
 
     private LoadedPostViewModel? loadedPost;
 
-    public LoadedPostViewModel? LoadedPost
+    private LoadedPostViewModel? LoadedPost
     {
         get => loadedPost;
-        private set => Set(ref loadedPost, value, [nameof(TinEyeSource)]);
+        set => Set(ref loadedPost, value, [nameof(TinEyeSource)]);
     }
 
     public string TinEyeSource => LoadedPost?.ImageValidation?.TinEyeUri ?? "about:blank";

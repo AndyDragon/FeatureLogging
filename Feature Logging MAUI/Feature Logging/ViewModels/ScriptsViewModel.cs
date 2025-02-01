@@ -462,7 +462,7 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
             {
                 if (!result.Valid)
                 {
-                    validationErrors += prefix + ": " + (result.Error ?? "unknown") + "\n";
+                    validationErrors += prefix + ": " + (result.Message ?? "unknown") + "\n";
                 }
             }
 
@@ -590,7 +590,7 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
             {
                 if (!result.Valid)
                 {
-                    validationErrors += prefix + ": " + (result.Error ?? "unknown") + "\n";
+                    validationErrors += prefix + ": " + (result.Message ?? "unknown") + "\n";
                 }
             }
 
