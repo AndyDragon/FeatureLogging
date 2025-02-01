@@ -4,15 +4,15 @@ using System.Net.Http.Headers;
 using System.Net.Http;
 using System.Text;
 using System.Windows.Media;
-using System.Xml;
-using Newtonsoft.Json;
-using Sgml;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using Notification.Wpf;
+
+using HtmlAgilityPack;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Notification.Wpf;
 
 namespace FeatureLogging
 {
@@ -92,6 +92,8 @@ namespace FeatureLogging
 
         private async Task LoadPost()
         {
+            LogEntries.Clear();
+
             var postUrl = vm.SelectedFeature!.PostLink!;
             var selectedPage = vm.SelectedPage!;
             using var progress = notificationManager.ShowProgressBar(
@@ -106,9 +108,11 @@ namespace FeatureLogging
                 {
                     NoCache = true
                 };
-                // Accept JSON result
+                // Accept HTML result.
                 httpClient.DefaultRequestHeaders.Accept.Clear();
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/html", 0.9));
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xhtml+xml", 0.9));
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml", 0.9));
                 var postUri = new Uri(postUrl);
                 progress.Report((20, "Waiting for server", null, null));
                 var content = await httpClient.GetStringAsync(postUri);
@@ -116,165 +120,153 @@ namespace FeatureLogging
                 {
                     try
                     {
-                        using var reader = new StringReader(content);
-                        using var sgmlReader = new SgmlReader();
-                        sgmlReader.DocType = "HTML";
-                        sgmlReader.WhitespaceHandling = WhitespaceHandling.All;
-                        sgmlReader.CaseFolding = CaseFolding.ToLower;
-                        sgmlReader.InputStream = reader;
-                        var document = new XmlDocument
-                        {
-                            PreserveWhitespace = true,
-                            XmlResolver = null
-                        };
-                        document.Load(sgmlReader);
-
+                        progress.Report((30, "Loaded the post contents", null, null));
+                        var document = new HtmlDocument();
+                        document.LoadHtml(content);
                         progress.Report((40, "Looking for script", null, null));
-                        var scriptElements = document.GetElementsByTagName("script");
-                        foreach (var scriptElement in scriptElements)
+                        var scripts = document.DocumentNode.Descendants("script").ToArray();
+                        foreach (var script in scripts)
                         {
-                            if (scriptElement is XmlElement scriptXmlElement)
+                            var scriptText = script.InnerText.Trim();
+                            if (!string.IsNullOrEmpty(scriptText))
                             {
-                                var scriptText = scriptXmlElement.InnerText;
-                                if (!string.IsNullOrEmpty(scriptText))
+                                if (scriptText.StartsWith("window.__staticRouterHydrationData = JSON.parse(\"") && scriptText.EndsWith("\");"))
                                 {
-                                    if (scriptText.StartsWith("window.__staticRouterHydrationData = JSON.parse(\"") && scriptText.EndsWith("\");"))
+                                    var prefixLength = "window.__staticRouterHydrationData = JSON.parse(\"".Length;
+                                    var jsonString = string.Concat("\"", scriptText
+                                        .AsSpan(prefixLength, scriptText.Length - (prefixLength + 3)), "\"");
+                                    // Use JToken.Parse to convert from JSON encoded as a JSON string to the JSON.
+                                    jsonString = (string)JToken.Parse(jsonString)!;
+                                    var postData = PostData.FromJson(jsonString);
+                                    if (postData != null)
                                     {
-                                        var prefixLength = "window.__staticRouterHydrationData = JSON.parse(\"".Length;
-                                        var jsonString = string.Concat("\"", scriptText
-                                            .AsSpan(prefixLength, scriptText.Length - (prefixLength + 3)), "\"");
-                                        // Use JToken.Parse to convert from JSON encoded as a JSON string to the JSON.
-                                        jsonString = (string)JToken.Parse(jsonString)!;
-                                        var postData = PostData.FromJson(jsonString);
-                                        if (postData != null)
+                                        var profile = postData.LoaderData?.Entry?.Profile?.Profile;
+                                        if (profile != null)
                                         {
-                                            var profile = postData.LoaderData?.Entry?.Profile?.Profile;
-                                            if (profile != null)
+                                            UserAlias = profile.Username;
+                                            if (string.IsNullOrEmpty(UserAlias) && !string.IsNullOrEmpty(profile.Name))
                                             {
-                                                UserAlias = profile.Username;
-                                                if (string.IsNullOrEmpty(UserAlias) && !string.IsNullOrEmpty(profile.Name))
+                                                UserAlias = profile.Name!.Replace(" ", "");
+                                            }
+                                            LogProgress(UserAlias, "User's alias");
+                                            UserName = profile.Name;
+                                            LogProgress(UserName, "User's name");
+                                            UserProfileUrl = profile.Url?.ToString();
+                                            LogProgress(UserProfileUrl, "User's profile URL");
+                                            UserBio = profile.Bio?.Replace("\\n", "\n").StripExtraSpaces(true);
+                                            LogProgress(UserBio, "User's BIO");
+                                        }
+                                        else
+                                        {
+                                            LogEntries.Add(new LogEntry("Failed to find the profile information, the account is likely private", Colors.Red));
+                                            LogEntries.Add(new LogEntry("Post must be handled manually in VERO app", Colors.Red));
+                                            // TODO andydragon : add post validation and mark it failed here...
+                                        }
+                                        var post = postData.LoaderData?.Entry?.Post?.Post;
+                                        if (post != null)
+                                        {
+                                            ShowDescription = true;
+                                            pageHashTags.Clear();
+                                            Description = post.Caption != null ? JoinSegments(post.Caption, pageHashTags).StripExtraSpaces() : "";
+                                            var pageTagFound = "";
+                                            if (pageHashTags.FirstOrDefault(hashTag =>
+                                            {
+                                                return selectedPage.PageTags.FirstOrDefault(pageHashTag =>
                                                 {
-                                                    UserAlias = profile.Name!.Replace(" ", "");
-                                                }
-                                                LogProgress(UserAlias, "User's alias");
-                                                UserName = profile.Name;
-                                                LogProgress(UserName, "User's name");
-                                                UserProfileUrl = profile.Url?.ToString();
-                                                LogProgress(UserProfileUrl, "User's profile URL");
-                                                UserBio = profile.Bio?.Replace("\\n", "\n").StripExtraSpaces(true);
-                                                LogProgress(UserBio, "User's BIO");
+                                                    if (string.Equals(hashTag, pageHashTag, StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        pageTagFound = pageHashTag.ToLower();
+                                                        return true;
+                                                    }
+                                                    return false;
+                                                }) != null;
+                                            }) != null)
+                                            {
+                                                PageHashtagCheck = new ValidationResult(true, message: $"Contains page hashtag {pageTagFound}");
+                                                LogEntries.Add(new LogEntry(PageHashtagCheck.Message!, defaultLogColor));
                                             }
                                             else
                                             {
-                                                LogEntries.Add(new LogEntry("Failed to find the profile information, the account is likely private", Colors.Red));
-                                                LogEntries.Add(new LogEntry("Post must be handled manually in VERO app", Colors.Red));
-                                                // TODO andydragon : add post validation and mark it failed here...
+                                                PageHashtagCheck = new ValidationResult(false, "MISSING page hashtag");
+                                                LogEntries.Add(new LogEntry(PageHashtagCheck.Error!, Colors.Red));
                                             }
-                                            var post = postData.LoaderData?.Entry?.Post?.Post;
-                                            if (post != null)
+                                            UpdateExcludedTags();
+
+                                            var imageUrls = post?.Images?.Select(image => image.Url).Where(url => url != null && url.ToString().StartsWith("https://"));
+                                            if (imageUrls?.Count() > 0)
                                             {
-                                                ShowDescription = true;
-                                                pageHashTags.Clear();
-                                                Description = post.Caption != null ? JoinSegments(post.Caption, pageHashTags).StripExtraSpaces() : "";
-                                                var pageTagFound = "";
-                                                if (pageHashTags.FirstOrDefault(hashTag =>
+                                                foreach (var imageUrl in imageUrls)
                                                 {
-                                                    return selectedPage.PageTags.FirstOrDefault(pageHashTag =>
-                                                    {
-                                                        if (string.Equals(hashTag, pageHashTag, StringComparison.OrdinalIgnoreCase))
-                                                        {
-                                                            pageTagFound = pageHashTag.ToLower();
-                                                            return true;
-                                                        }
-                                                        return false;
-                                                    }) != null;
-                                                }) != null)
-                                                {
-                                                    PageHashtagCheck = new ValidationResult(true, message: $"Contains page hashtag {pageTagFound}");
-                                                    LogEntries.Add(new LogEntry(PageHashtagCheck.Message!, defaultLogColor));
+                                                    LogProgress(imageUrl!.ToString(), "Image source");
+                                                    ImageEntries.Add(new ImageEntry(imageUrl, userName ?? "unknown", this, notificationManager));
                                                 }
-                                                else
-                                                {
-                                                    PageHashtagCheck = new ValidationResult(false, "MISSING page hashtag");
-                                                    LogEntries.Add(new LogEntry(PageHashtagCheck.Error!, Colors.Red));
-                                                }
-                                                UpdateExcludedTags();
+                                                ShowImages = true;
+                                            }
+                                            else
+                                            {
+                                                LogEntries.Add(new LogEntry("No images found in post", Colors.Red));
+                                            }
+                                            OnPropertyChanged(nameof(MultipleImages));
 
-                                                var imageUrls = post?.Images?.Select(image => image.Url).Where(url => url != null && url.ToString().StartsWith("https://"));
-                                                if (imageUrls?.Count() > 0)
+                                            if (selectedPage.HubName == "snap" || selectedPage.HubName == "click")
+                                            {
+                                                var comments = postData.LoaderData?.Entry?.Post?.Comments ?? [];
+                                                var localPageComments = new List<CommentEntry>();
+                                                var localHubComments = new List<CommentEntry>();
+                                                foreach (var comment in comments)
                                                 {
-                                                    foreach (var imageUrl in imageUrls)
+                                                    var commentUserName = comment?.Author?.Username?.ToLower() ?? "";
+                                                    if (commentUserName.Equals(selectedPage.DisplayName, StringComparison.OrdinalIgnoreCase))
                                                     {
-                                                        LogProgress(imageUrl!.ToString(), "Image source");
-                                                        ImageUrls.Add(new ImageEntry(imageUrl, userName ?? "unknown", this, notificationManager));
-                                                    }
-                                                    ShowImages = true;
-                                                }
-                                                else
-                                                {
-                                                    LogEntries.Add(new LogEntry("No images found in post", Colors.Red));
-                                                }
-
-                                                if (selectedPage.HubName == "snap" || selectedPage.HubName == "click")
-                                                {
-                                                    var comments = postData.LoaderData?.Entry?.Post?.Comments ?? [];
-                                                    var localPageComments = new List<CommentEntry>();
-                                                    var localHubComments = new List<CommentEntry>();
-                                                    foreach (var comment in comments)
-                                                    {
-                                                        var commentUserName = comment?.Author?.Username?.ToLower() ?? "";
-                                                        if (commentUserName.Equals(selectedPage.DisplayName, StringComparison.OrdinalIgnoreCase))
-                                                        {
-                                                            var commentSegments = JoinSegments(comment?.Content).StripExtraSpaces(true);
-                                                            localPageComments.Add(new CommentEntry(
-                                                                commentUserName,
-                                                                comment?.Timestamp,
-                                                                commentSegments,
-                                                                (page, timestamp) => { vm.SelectedFeature!.PhotoFeaturedOnPage = true; }));
-                                                            PageCommentsValidation = new ValidationResult(false, "Found page comments - possibly already featured on page");
-                                                            ShowComments = true;
-                                                            LogEntries.Add(new LogEntry($"Found page comment: {commentUserName} - {comment?.Timestamp?.FormatTimestamp()} - {commentSegments}", Colors.Red));
-                                                        }
-                                                        else if (commentUserName.StartsWith($"{selectedPage.HubName.ToLower()}_"))
-                                                        {
-                                                            var commentSegments = JoinSegments(comment?.Content).StripExtraSpaces(true);
-                                                            localHubComments.Add(new CommentEntry(
-                                                                commentUserName,
-                                                                comment?.Timestamp,
-                                                                commentSegments,
-                                                                (page, timestamp) =>
-                                                                {
-                                                                    vm.SelectedFeature!.PhotoFeaturedOnHub = true;
-                                                                    vm.SelectedFeature!.PhotoLastFeaturedPage = page[(selectedPage.HubName.Length + 1)..];
-                                                                    vm.SelectedFeature!.PhotoLastFeaturedOnHub = timestamp;
-                                                                }));
-                                                            HubCommentsValidation = new ValidationResult(false, "Found hub comments - possibly already featured on another page");
-                                                            ShowComments = true;
-                                                            LogEntries.Add(new LogEntry($"Found hub comment: {commentUserName} - {comment?.Timestamp?.FormatTimestamp()} - {commentSegments}", Colors.Orange));
-                                                        }
-                                                    }
-                                                    MoreComments = comments.Length < (post?.Comments ?? 0);
-                                                    if (MoreComments)
-                                                    {
-                                                        LogEntries.Add(new LogEntry("More comments!", Colors.Orange));
+                                                        var commentSegments = JoinSegments(comment?.Content).StripExtraSpaces(true);
+                                                        localPageComments.Add(new CommentEntry(
+                                                            commentUserName,
+                                                            comment?.Timestamp,
+                                                            commentSegments,
+                                                            (page, timestamp) => { vm.SelectedFeature!.PhotoFeaturedOnPage = true; }));
+                                                        PageCommentsValidation = new ValidationResult(false, "Found page comments - possibly already featured on page");
                                                         ShowComments = true;
+                                                        LogEntries.Add(new LogEntry($"Found page comment: {commentUserName} - {comment?.Timestamp?.FormatTimestamp()} - {commentSegments}", Colors.Red));
                                                     }
-                                                    PageComments = [.. localPageComments];
-                                                    HubComments = [.. localHubComments];
+                                                    else if (commentUserName.StartsWith($"{selectedPage.HubName.ToLower()}_"))
+                                                    {
+                                                        var commentSegments = JoinSegments(comment?.Content).StripExtraSpaces(true);
+                                                        localHubComments.Add(new CommentEntry(
+                                                            commentUserName,
+                                                            comment?.Timestamp,
+                                                            commentSegments,
+                                                            (page, timestamp) =>
+                                                            {
+                                                                vm.SelectedFeature!.PhotoFeaturedOnHub = true;
+                                                                vm.SelectedFeature!.PhotoLastFeaturedPage = page[(selectedPage.HubName.Length + 1)..];
+                                                                vm.SelectedFeature!.PhotoLastFeaturedOnHub = timestamp;
+                                                            }));
+                                                        HubCommentsValidation = new ValidationResult(false, "Found hub comments - possibly already featured on another page");
+                                                        ShowComments = true;
+                                                        LogEntries.Add(new LogEntry($"Found hub comment: {commentUserName} - {comment?.Timestamp?.FormatTimestamp()} - {commentSegments}", Colors.Orange));
+                                                    }
                                                 }
-                                            }
-                                            else
-                                            {
-                                                LogEntries.Add(new LogEntry("Failed to find the post information, the account is likely private", Colors.Red));
-                                                LogEntries.Add(new LogEntry("Post must be handled manually in VERO app", Colors.Red));
-                                                // TODO andydragon : add post validation and mark it failed here...
+                                                MoreComments = comments.Length < (post?.Comments ?? 0);
+                                                if (MoreComments)
+                                                {
+                                                    LogEntries.Add(new LogEntry("More comments!", Colors.Orange));
+                                                    ShowComments = true;
+                                                }
+                                                PageComments = [.. localPageComments];
+                                                HubComments = [.. localHubComments];
                                             }
                                         }
                                         else
                                         {
-                                            LogEntries.Add(new LogEntry("Failed to parse the post JSON", Colors.Red));
+                                            LogEntries.Add(new LogEntry("Failed to find the post information, the account is likely private", Colors.Red));
+                                            LogEntries.Add(new LogEntry("Post must be handled manually in VERO app", Colors.Red));
                                             // TODO andydragon : add post validation and mark it failed here...
                                         }
+                                    }
+                                    else
+                                    {
+                                        LogEntries.Add(new LogEntry("Failed to parse the post JSON", Colors.Red));
+                                        // TODO andydragon : add post validation and mark it failed here...
                                     }
                                 }
                             }
@@ -559,8 +551,8 @@ namespace FeatureLogging
 
         #region Images
 
-        private readonly ObservableCollection<ImageEntry> imageUrls = [];
-        public ObservableCollection<ImageEntry> ImageUrls { get => imageUrls; }
+        private readonly ObservableCollection<ImageEntry> imageEntries = [];
+        public ObservableCollection<ImageEntry> ImageEntries { get => imageEntries; }
 
         private bool showImages = false;
         public bool ShowImages
@@ -568,6 +560,8 @@ namespace FeatureLogging
             get => showImages;
             set => Set(ref showImages, value);
         }
+
+        public bool MultipleImages => ImageEntries.Count > 1;
 
         #endregion
 

@@ -755,8 +755,6 @@
                                 <ColumnDefinition Width="*" />                      <!-- last date featured -->
                                 <ColumnDefinition Width="Auto" />                   <!-- label -->
                                 <ColumnDefinition Width="*" MaxWidth="120" />       <!-- features on page -->
-                                <ColumnDefinition Width="Auto" />                   <!-- label -->
-                                <ColumnDefinition Width="*" MaxWidth="120" />       <!-- features on RAW page -->
                             </Grid.ColumnDefinitions>
                             <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                                 <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.LastFeaturedOnPageValidation.Error}">
@@ -783,15 +781,6 @@
                                 </StackPanel>
                             </Label>
                             <ComboBox Grid.Column="3" ItemsSource="{Binding FeaturedCounts}" SelectedItem="{Binding SelectedFeature.FeatureCountOnPage, Mode=TwoWay}" VerticalAlignment="Center" />
-                            <Label Grid.Column="4" VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0" Visibility="{Binding SnapHubVisibility}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock
-                                    Text="Features on RAW page:"
-                                    FontWeight="Bold"
-                                    VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Label>
-                            <ComboBox Grid.Column="5" ItemsSource="{Binding FeaturedCounts}" SelectedItem="{Binding SelectedFeature.FeatureCountOnRawPage, Mode=TwoWay}" VerticalAlignment="Center" Visibility="{Binding SnapHubVisibility}" />
                         </Grid>
                         <Grid
                             Grid.Column="2"
@@ -856,8 +845,6 @@
                                 <ColumnDefinition Width="*" />                      <!-- last page -->
                                 <ColumnDefinition Width="Auto" />                   <!-- label -->
                                 <ColumnDefinition Width="*" MaxWidth="120" />       <!-- features on hub -->
-                                <ColumnDefinition Width="Auto" />                   <!-- label -->
-                                <ColumnDefinition Width="*" MaxWidth="120" />       <!-- features on RAW hub -->
                             </Grid.ColumnDefinitions>
                             <Label Grid.Column="0" VerticalAlignment="Center" FontSize="11" Margin="0,0,4,0">
                                 <StackPanel Orientation="Horizontal" ToolTip="{Binding SelectedFeature.LastFeaturedOnHubValidation.Error}">
@@ -900,15 +887,6 @@
                                 </StackPanel>
                             </Label>
                             <ComboBox Grid.Column="5" ItemsSource="{Binding FeaturedCounts}" SelectedItem="{Binding SelectedFeature.FeatureCountOnHub, Mode=TwoWay}" VerticalAlignment="Center" />
-                            <Label Grid.Column="6" VerticalAlignment="Center" FontSize="11" Margin="10,0,4,0" Visibility="{Binding SnapHubVisibility}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock
-                                    Text="Features on RAW hub:"
-                                    FontWeight="Bold"
-                                    VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Label>
-                            <ComboBox Grid.Column="7" ItemsSource="{Binding FeaturedCounts}" SelectedItem="{Binding SelectedFeature.FeatureCountOnRawHub, Mode=TwoWay}" VerticalAlignment="Center" Visibility="{Binding SnapHubVisibility}" />
                         </Grid>
                         <Grid
                             Grid.Column="2"
@@ -2866,7 +2844,7 @@
                                     VerticalAlignment="Center"
                                     Foreground="Lime" />
                                 <TextBlock
-                                    Text="{Binding LoadedPost.ImageUrls.Count}"
+                                    Text="{Binding LoadedPost.ImageEntries.Count}"
                                     FontWeight="Bold"
                                     VerticalAlignment="Center"
                                     Foreground="Lime" />
@@ -2877,110 +2855,109 @@
                                     Foreground="Lime" />
                             </StackPanel>
                         </Label>
-                        <ScrollViewer
+                        <mah:FlipView 
                             Grid.Row="1"
-                            CanContentScroll="True"
-                            HorizontalScrollBarVisibility="Visible"
-                            VerticalScrollBarVisibility="Hidden"
-                            mah:ScrollViewerHelper.IsHorizontalScrollWheelEnabled="True">
-                            <ItemsControl
-                                Margin="12, 0, 12, 6"
-                                Width="Auto"
-                                ItemsSource="{Binding LoadedPost.ImageUrls}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="local:ImageEntry">
-                                        <Border
-                                            Width="416"
-                                            Height="356"
-                                            BorderThickness="0"
-                                            CornerRadius="6"
-                                            Margin="8"
-                                            Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}">
-                                            <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="300" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                </Grid.RowDefinitions>
-                                                <Image
-                                                    Grid.Row="0"
-                                                    VerticalAlignment="Center"
-                                                    Margin="8"
-                                                    RenderOptions.BitmapScalingMode="HighQuality"
-                                                    Source="{Binding Source}">
-                                                </Image>
-                                                <StackPanel
-                                                    Grid.Row="1"
-                                                    Orientation="Horizontal"
-                                                    HorizontalAlignment="Center"
-                                                    Margin="0,0,0,4">
-                                                    <TextBlock
-                                                        Text="{Binding Width}" />
-                                                    <TextBlock
-                                                        Text=" x " />
-                                                    <TextBlock
-                                                        Text="{Binding Height}" />
-                                                </StackPanel>
-                                                <StackPanel
-                                                    Grid.Row="2"
-                                                    Orientation="Horizontal"
-                                                    HorizontalAlignment="Center">
-                                                    <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding ValidateImageCommand}">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <iconPacks:PackIconFeatherIcons
-                                                                VerticalAlignment="Center"
-                                                                Kind="CheckSquare"
-                                                                Margin="0,0,0,0"
-                                                                Height="11"
-                                                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                                                            <TextBlock Text="Validate" VerticalAlignment="Center" Padding="4,0,4,2" />
-                                                        </StackPanel>
-                                                    </Button>
-                                                    <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding SaveImageCommand}">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <iconPacks:PackIconFeatherIcons
-                                                                VerticalAlignment="Center"
-                                                                Kind="Save"
-                                                                Margin="0,0,0,0"
-                                                                Height="11"
-                                                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                                                            <TextBlock Text="Save image" VerticalAlignment="Center" Padding="4,0,4,2" />
-                                                        </StackPanel>
-                                                    </Button>
-                                                    <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding CopyImageUrlCommand}">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <iconPacks:PackIconFeatherIcons
-                                                                VerticalAlignment="Center"
-                                                                Kind="Clipboard"
-                                                                Margin="0,0,0,0"
-                                                                Height="11"
-                                                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                                                            <TextBlock Text="Copy URL" VerticalAlignment="Center" Padding="4,0,4,2" />
-                                                        </StackPanel>
-                                                    </Button>
-                                                    <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding LaunchImageCommand}">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <iconPacks:PackIconFeatherIcons
-                                                                VerticalAlignment="Center"
-                                                                Kind="Globe"
-                                                                Margin="0,0,0,0"
-                                                                Height="11"
-                                                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                                                            <TextBlock Text="Launch" VerticalAlignment="Center" Padding="4,0,4,2" />
-                                                        </StackPanel>
-                                                    </Button>
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
+                            CircularNavigation="False"
+                            IndexPlacement="Bottom"
+                            IsBannerEnabled="False"
+                            IsNavigationEnabled="True"
+                            ItemsSource="{Binding LoadedPost.ImageEntries}"
+                            MouseHoverBorderEnabled="False"
+                            NavigationButtonsPosition="Outside"
+                            ShowIndex="{Binding LoadedPost.MultipleImages}"
+                            Visibility="{Binding LoadedPost.ShowImages, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <mah:FlipView.ItemTemplate>
+                                <DataTemplate DataType="local:ImageEntry">
+                                    <Border
+                                        BorderThickness="0"
+                                        CornerRadius="6"
+                                        Margin="8"
+                                        Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}">
+                                        <Grid Margin="8,4,8,12">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="420" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <Image
+                                                Grid.Row="0"
+                                                VerticalAlignment="Center"
+                                                Margin="8"
+                                                RenderOptions.BitmapScalingMode="HighQuality"
+                                                Source="{Binding Source}">
+                                            </Image>
+                                            <StackPanel
+                                                Grid.Row="1"
+                                                Orientation="Horizontal"
+                                                HorizontalAlignment="Center"
+                                                Margin="0,0,0,4">
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Text="Size: " />
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Text="{Binding Width}" />
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Text=" x " />
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Text="{Binding Height}" />
+                                            </StackPanel>
+                                            <StackPanel
+                                                Grid.Row="2"
+                                                Orientation="Horizontal"
+                                                HorizontalAlignment="Center">
+                                                <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding ValidateImageCommand}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <iconPacks:PackIconFeatherIcons
+                                                            VerticalAlignment="Center"
+                                                            Kind="CheckSquare"
+                                                            Margin="0,0,0,0"
+                                                            Height="11"
+                                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                                        <TextBlock Text="Validate" VerticalAlignment="Center" Padding="4,0,4,2" />
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding SaveImageCommand}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <iconPacks:PackIconFeatherIcons
+                                                            VerticalAlignment="Center"
+                                                            Kind="Save"
+                                                            Margin="0,0,0,0"
+                                                            Height="11"
+                                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                                        <TextBlock Text="Save image" VerticalAlignment="Center" Padding="4,0,4,2" />
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding CopyImageUrlCommand}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <iconPacks:PackIconFeatherIcons
+                                                            VerticalAlignment="Center"
+                                                            Kind="Clipboard"
+                                                            Margin="0,0,0,0"
+                                                            Height="11"
+                                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                                        <TextBlock Text="Copy URL" VerticalAlignment="Center" Padding="4,0,4,2" />
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding LaunchImageCommand}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <iconPacks:PackIconFeatherIcons
+                                                            VerticalAlignment="Center"
+                                                            Kind="Globe"
+                                                            Margin="0,0,0,0"
+                                                            Height="11"
+                                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                                        <TextBlock Text="Launch" VerticalAlignment="Center" Padding="4,0,4,2" />
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </mah:FlipView.ItemTemplate>
+                        </mah:FlipView>
                     </Grid>
                 </Border>
                 <!-- Logging -->

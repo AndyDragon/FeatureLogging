@@ -199,13 +199,17 @@ namespace FeatureLogging
                                         FeatureDescription = (string)feature["featureDescription"],
                                         UserHasFeaturesOnPage = (bool)feature["userHasFeaturesOnPage"],
                                         LastFeaturedOnPage = (string)feature["lastFeaturedOnPage"],
-                                        FeatureCountOnPage = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnPage"]) ? (string)feature["featureCountOnPage"] : FeaturedCounts[0],
-                                        FeatureCountOnRawPage = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnRawPage"]) ? (string)feature["featureCountOnRawPage"] : FeaturedCounts[0],
+                                        FeatureCountOnPage = CalculateFeatureCount(
+                                            SelectedPage!.HubName, 
+                                            (string)feature["featureCountOnPage"], 
+                                            feature.ContainsKey("featureCountOnRawPage") ? (string)feature["featureCountOnRawPage"] : "0"),
                                         UserHasFeaturesOnHub = (bool)feature["userHasFeaturesOnHub"],
                                         LastFeaturedOnHub = (string)feature["lastFeaturedOnHub"],
                                         LastFeaturedPage = (string)feature["lastFeaturedPage"],
-                                        FeatureCountOnHub = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnHub"]) ? (string)feature["featureCountOnHub"] : FeaturedCounts[0],
-                                        FeatureCountOnRawHub = new List<string>(FeaturedCounts).Contains((string)feature["featureCountOnRawHub"]) ? (string)feature["featureCountOnRawHub"] : FeaturedCounts[0],
+                                        FeatureCountOnHub = CalculateFeatureCount(
+                                            SelectedPage!.HubName, 
+                                            (string)feature["featureCountOnHub"], 
+                                            feature.ContainsKey("featureCountOnRawHub") ? (string)feature["featureCountOnRawHub"] : "0"),
                                         TooSoonToFeatureUser = (bool)feature["tooSoonToFeatureUser"],
                                         TinEyeResults = new List<string>(TinEyeResults).Contains((string)feature["tinEyeResults"]) ? (string)feature["tinEyeResults"] : TinEyeResults[0],
                                         AiCheckResults = new List<string>(AiCheckResults).Contains((string)feature["aiCheckResults"]) ? (string)feature["aiCheckResults"] : AiCheckResults[0],
@@ -690,6 +694,30 @@ namespace FeatureLogging
             };
 
             #endregion
+        }
+
+        private string CalculateFeatureCount(string hub, string featureCount, string rawFeatureCount)
+        {
+            featureCount = new List<string>(FeaturedCounts).Contains(featureCount) ? featureCount : FeaturedCounts[0];
+            rawFeatureCount = new List<string>(FeaturedCounts).Contains(rawFeatureCount) ? rawFeatureCount : FeaturedCounts[0];
+            if (featureCount == "many" || rawFeatureCount == "many")
+            {
+                return "many";
+            }
+            if (rawFeatureCount == "0")
+            {
+                return featureCount;
+            }
+            var count = int.TryParse(featureCount, out int countValue) ? countValue : 0;
+            var rawCount = int.TryParse(rawFeatureCount, out int rawCountValue) ? rawCountValue : 0;
+            var total = count + rawCount;
+            return hub switch
+            {
+                "snap" when total > 20 => "many",
+                "click" when total > 75 => "many",
+                _ when total > 50 => "many",
+                _ => $"{total}"
+            };
         }
 
         private string MapMembershipLevelFromFile(string userLevelFromFile)
@@ -1620,19 +1648,19 @@ namespace FeatureLogging
                     builder.AppendLine($"{indent}member level - {feature.UserLevel}");
                     if (feature.UserHasFeaturesOnPage)
                     {
-                        builder.AppendLine($"{indent}last feature on page - {feature.LastFeaturedOnPage} (features on page {feature.FeatureCountOnPage} Snap + {feature.FeatureCountOnRawPage} RAW)");
+                        builder.AppendLine($"{indent}last feature on page - {feature.LastFeaturedOnPage} (features on page {feature.FeatureCountOnPage})");
                     }
                     else
                     {
-                        builder.AppendLine($"{indent}last feature on page - never (features on page 0 Snap + 0 RAW)");
+                        builder.AppendLine($"{indent}last feature on page - never (features on page 0)");
                     }
                     if (feature.UserHasFeaturesOnHub)
                     {
-                        builder.AppendLine($"{indent}last feature - {feature.LastFeaturedOnHub} {feature.LastFeaturedPage} (features {feature.FeatureCountOnHub} Snap + {feature.FeatureCountOnRawHub} RAW)");
+                        builder.AppendLine($"{indent}last feature - {feature.LastFeaturedOnHub} {feature.LastFeaturedPage} (features {feature.FeatureCountOnHub})");
                     }
                     else
                     {
-                        builder.AppendLine($"{indent}last feature - never (features 0 Snap + 0 RAW)");
+                        builder.AppendLine($"{indent}last feature - never (features 0)");
                     }
                     var alreadyFeatured = feature.PhotoFeaturedOnPage ? "YES" : "no";
                     var alreadyFeaturedOnHub = feature.PhotoFeaturedOnHub ? $"{feature.PhotoLastFeaturedOnHub} {feature.PhotoLastFeaturedPage}" : "no";
@@ -2011,72 +2039,20 @@ namespace FeatureLogging
 
         private static int GetPageFeatureCount(string page, Feature feature)
         {
-            if (page.StartsWith("snap:"))
+            if (feature.UserHasFeaturesOnPage && feature.FeatureCountOnPage == "many")
             {
-                if (feature.UserHasFeaturesOnPage && feature.FeatureCountOnPage == "many")
-                {
-                    return int.MaxValue;
-                }
-                if (feature.UserHasFeaturesOnPage && feature.FeatureCountOnRawPage == "many")
-                {
-                    return int.MaxValue;
-                }
-                var featureCountOnPage = feature.UserHasFeaturesOnPage ? int.Parse(feature.FeatureCountOnPage) : 0;
-                var featureCountOnRawPage = feature.UserHasFeaturesOnPage ? int.Parse(feature.FeatureCountOnRawPage) : 0;
-                if (featureCountOnPage + featureCountOnRawPage > 20)
-                {
-                    return int.MaxValue;
-                }
-                return featureCountOnPage + featureCountOnRawPage;
+                return int.MaxValue;
             }
-            else
-            {
-                if (feature.UserHasFeaturesOnPage && feature.FeatureCountOnPage == "many")
-                {
-                    return int.MaxValue;
-                }
-                var featureCountOnPage = feature.UserHasFeaturesOnPage ? int.Parse(feature.FeatureCountOnPage) : 0;
-                if (featureCountOnPage > 20)
-                {
-                    return int.MaxValue;
-                }
-                return featureCountOnPage;
-            }
+            return feature.UserHasFeaturesOnPage ? int.Parse(feature.FeatureCountOnPage) : 0;
         }
 
         private static int GetHubFeatureCount(string page, Feature feature)
         {
-            if (page.StartsWith("snap:"))
+            if (feature.UserHasFeaturesOnHub && feature.FeatureCountOnHub == "many")
             {
-                if (feature.UserHasFeaturesOnHub && feature.FeatureCountOnHub == "many")
-                {
-                    return int.MaxValue;
-                }
-                if (feature.UserHasFeaturesOnHub && feature.FeatureCountOnRawHub == "many")
-                {
-                    return int.MaxValue;
-                }
-                var featureCountOnHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnHub) : 0;
-                var featureCountOnRawHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnRawHub) : 0;
-                if (featureCountOnHub + featureCountOnRawHub > 20)
-                {
-                    return int.MaxValue;
-                }
-                return featureCountOnHub + featureCountOnRawHub;
+                return int.MaxValue;
             }
-            else
-            {
-                if (feature.UserHasFeaturesOnHub && feature.FeatureCountOnHub == "many")
-                {
-                    return int.MaxValue;
-                }
-                var featureCountOnHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnHub) : 0;
-                if (featureCountOnHub > 120)
-                {
-                    return int.MaxValue;
-                }
-                return featureCountOnHub;
-            }
+            return feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnHub) : 0;
         }
 
         private static int BinFeatureCount(int featureCount, int binSize)
@@ -2504,8 +2480,7 @@ namespace FeatureLogging
                             {
                                 if (GetFeatureCount(FeatureCountOnHub, out int featuresOnHub))
                                 {
-                                    var totalFeatures = featuresOnHub;
-                                    featureDictionary["newLevel"] = (totalFeatures + 1) switch
+                                    featureDictionary["newLevel"] = (featuresOnHub + 1) switch
                                     {
                                         5 => "Click Member",
                                         15 => "Click Bronze Member",
@@ -2514,7 +2489,7 @@ namespace FeatureLogging
                                         75 => "Click Platinum Member",
                                         _ => "",
                                     };
-                                    featureDictionary["userLevel"] = (totalFeatures + 1) switch
+                                    featureDictionary["userLevel"] = (featuresOnHub + 1) switch
                                     {
                                         5 => "Click Member",
                                         15 => "Click Bronze Member",
@@ -2531,16 +2506,15 @@ namespace FeatureLogging
                             }
                             else if (vm.SelectedPage.HubName == "snap")
                             {
-                                if (GetFeatureCount(FeatureCountOnHub, out int featuresOnHub) && GetFeatureCount(FeatureCountOnRawHub, out int featuresOnRaw))
+                                if (GetFeatureCount(FeatureCountOnHub, out int featuresOnHub))
                                 {
-                                    var totalFeatures = featuresOnHub + featuresOnRaw;
-                                    featureDictionary["newLevel"] = (totalFeatures + 1) switch
+                                    featureDictionary["newLevel"] = (featuresOnHub + 1) switch
                                     {
                                         5 => "Snap Member (feature comment)",
                                         15 => "Snap VIP Member (feature comment)",
                                         _ => "",
                                     };
-                                    featureDictionary["userLevel"] = (totalFeatures + 1) switch
+                                    featureDictionary["userLevel"] = (featuresOnHub + 1) switch
                                     {
                                         5 => "Snap Member",
                                         15 => "Snap VIP Member",
@@ -2735,14 +2709,6 @@ namespace FeatureLogging
             set => SetWithDirtyCallback(ref featureCountOnPage, value, () => IsDirty = true);
         }
 
-        private string featureCountOnRawPage = "0";
-        [JsonProperty(PropertyName = "featureCountOnRawPage")]
-        public string FeatureCountOnRawPage
-        {
-            get => featureCountOnRawPage;
-            set => SetWithDirtyCallback(ref featureCountOnRawPage, value, () => IsDirty = true);
-        }
-
         private bool userHasFeaturesOnHub = false;
         [JsonProperty(PropertyName = "userHasFeaturesOnHub")]
         public bool UserHasFeaturesOnHub
@@ -2777,14 +2743,6 @@ namespace FeatureLogging
         {
             get => featureCountOnHub;
             set => SetWithDirtyCallback(ref featureCountOnHub, value, () => IsDirty = true);
-        }
-
-        private string featureCountOnRawHub = "0";
-        [JsonProperty(PropertyName = "featureCountOnRawHub")]
-        public string FeatureCountOnRawHub
-        {
-            get => featureCountOnRawHub;
-            set => SetWithDirtyCallback(ref featureCountOnRawHub, value, () => IsDirty = true);
         }
 
         private bool tooSoonToFeatureUser = false;

@@ -36,11 +36,10 @@ public class LoadedPostViewModel(MainViewModel vm) : NotifyPropertyChanged
             {
                 NoCache = true
             };
-            // Accept JSON result
+            // Accept HTML result.
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/html", 0.9));
-            httpClient.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/xhtml+xml", 0.9));
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xhtml+xml", 0.9));
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml", 0.9));
             var postUri = new Uri(MainViewModel.SelectedFeature!.PostLink);
             var content = await httpClient.GetStringAsync(postUri);
