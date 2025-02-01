@@ -601,25 +601,6 @@ struct FeatureEditor: View {
                     .accentColor(Color.accentColor)
                     .foregroundStyle(Color.accentColor, Color(UIColor.label))
 
-                    Text("|")
-                        .padding([.leading, .trailing])
-
-                    Text("RAW feature count:")
-                    Picker(
-                        "",
-                        selection: $selectedFeature.feature.featureCountOnRawPage.onChange { _ in
-                            markDocumentDirty()
-                        }
-                    ) {
-                        Text("many").tag("many")
-                        ForEach(0 ..< 21) { value in
-                            Text("\(value)").tag("\(value)")
-                        }
-                    }
-                    .tint(Color.accentColor)
-                    .accentColor(Color.accentColor)
-                    .foregroundStyle(Color.accentColor, Color(UIColor.label))
-
                     Spacer()
                 }
                 .padding(.vertical, 2)
@@ -725,25 +706,6 @@ struct FeatureEditor: View {
                     Picker(
                         "",
                         selection: $selectedFeature.feature.featureCountOnHub.onChange { _ in
-                            markDocumentDirty()
-                        }
-                    ) {
-                        Text("many").tag("many")
-                        ForEach(0 ..< 21) { value in
-                            Text("\(value)").tag("\(value)")
-                        }
-                    }
-                    .tint(Color.accentColor)
-                    .accentColor(Color.accentColor)
-                    .foregroundStyle(Color.accentColor, Color(UIColor.label))
-
-                    Text("|")
-                        .padding([.leading, .trailing])
-
-                    Text("RAW feature count:")
-                    Picker(
-                        "",
-                        selection: $selectedFeature.feature.featureCountOnRawHub.onChange { _ in
                             markDocumentDirty()
                         }
                     ) {

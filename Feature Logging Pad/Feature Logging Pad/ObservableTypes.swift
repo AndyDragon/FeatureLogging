@@ -25,12 +25,10 @@ class ObservableFeature: Identifiable, Hashable {
     var userHasFeaturesOnPage = false
     var lastFeaturedOnPage = ""
     var featureCountOnPage = "many"
-    var featureCountOnRawPage = "0"
     var userHasFeaturesOnHub = false
     var lastFeaturedOnHub = ""
     var lastFeaturedPage = ""
     var featureCountOnHub = "many"
-    var featureCountOnRawHub = "0"
     var tooSoonToFeatureUser = false
     var tinEyeResults = TinEyeResults.zeroMatches
     var aiCheckResults = AiCheckResults.human
@@ -115,7 +113,7 @@ class ObservableFeatureWrapper: Identifiable, Hashable {
                 userLevel = MembershipCase.commonPlatinumMember
             }
         } else if page.hub == "snap" {
-            let totalFeatures = calculateFeatureCount(feature.featureCountOnHub) + calculateFeatureCount(feature.featureCountOnRawHub)
+            let totalFeatures = calculateFeatureCount(feature.featureCountOnHub)
             if totalFeatures + 1 == 5 {
                 newLevel = NewMembershipCase.snapMemberFeature
                 userLevel = MembershipCase.commonMember

@@ -47,8 +47,6 @@ enum FocusField: Hashable {
          lastFeaturedOnHub,
          lastFeaturedPage,
          featureCountOnHub,
-         featureCountOnRawPage,
-         featureCountOnRawHub,
          tooSoonToFeatureUser,
          tinEyeResults,
          aiCheckResults,

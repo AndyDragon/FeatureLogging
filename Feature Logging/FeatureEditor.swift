@@ -307,6 +307,7 @@ struct FeatureEditor: View {
             .onKeyPress(characters: .alphanumerics) { keyPress in
                 navigateToUserLevelWithPrefix(keyPress)
             }
+            .frame(maxWidth: 320)
 
             Text("|")
                 .padding([.leading, .trailing])
@@ -329,6 +330,8 @@ struct FeatureEditor: View {
                 markDocumentDirty()
                 return .handled
             }
+
+            Spacer()
         }
     }
 
@@ -529,7 +532,7 @@ struct FeatureEditor: View {
                 Text("|")
                     .padding([.leading, .trailing])
 
-                Text("Page feature count:")
+                Text("Feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnPage.onChange { _ in
@@ -641,7 +644,7 @@ struct FeatureEditor: View {
                 Text("|")
                     .padding([.leading, .trailing])
 
-                Text("Click feature count:")
+                Text("Feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnHub.onChange { _ in
@@ -749,7 +752,7 @@ struct FeatureEditor: View {
                 Text("|")
                     .padding([.leading, .trailing])
 
-                Text("Page feature count:")
+                Text("Feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnPage.onChange { _ in
@@ -761,6 +764,7 @@ struct FeatureEditor: View {
                         Text("\(value)").tag("\(value)")
                     }
                 }
+                .frame(maxWidth: 200)
                 .tint(Color.accentColor)
                 .accentColor(Color.accentColor)
                 .foregroundStyle(Color.accentColor, Color.label)
@@ -771,33 +775,6 @@ struct FeatureEditor: View {
                 }
                 .onKeyPress(characters: .alphanumerics) { keyPress in
                     navigateToFeatureCountOnPageWithPrefix(20, keyPress)
-                }
-
-                Text("|")
-                    .padding([.leading, .trailing])
-
-                Text("RAW feature count:")
-                Picker(
-                    "",
-                    selection: $selectedFeature.feature.featureCountOnRawPage.onChange { _ in
-                        navigateToFeatureCountOnRawPage(20, .same)
-                    }
-                ) {
-                    Text("many").tag("many")
-                    ForEach(0 ..< 21) { value in
-                        Text("\(value)").tag("\(value)")
-                    }
-                }
-                .tint(Color.accentColor)
-                .accentColor(Color.accentColor)
-                .foregroundStyle(Color.accentColor, Color.label)
-                .focusable()
-                .focused(focusedField, equals: .featureCountOnRawPage)
-                .onKeyPress(phases: .down) { keyPress in
-                    navigateToFeatureCountOnRawPageWithArrows(20, keyPress)
-                }
-                .onKeyPress(characters: .alphanumerics) { keyPress in
-                    navigateToFeatureCountOnRawPageWithPrefix(20, keyPress)
                 }
             }
 
@@ -912,7 +889,7 @@ struct FeatureEditor: View {
                 Text("|")
                     .padding([.leading, .trailing])
 
-                Text("Snap feature count:")
+                Text("Feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnHub.onChange { _ in
@@ -924,6 +901,7 @@ struct FeatureEditor: View {
                         Text("\(value)").tag("\(value)")
                     }
                 }
+                .frame(maxWidth: 200)
                 .tint(Color.accentColor)
                 .accentColor(Color.accentColor)
                 .foregroundStyle(Color.accentColor, Color.label)
@@ -934,33 +912,6 @@ struct FeatureEditor: View {
                 }
                 .onKeyPress(characters: .alphanumerics) { keyPress in
                     navigateToFeatureCountOnHubWithPrefix(20, keyPress)
-                }
-
-                Text("|")
-                    .padding([.leading, .trailing])
-
-                Text("RAW feature count:")
-                Picker(
-                    "",
-                    selection: $selectedFeature.feature.featureCountOnRawHub.onChange { _ in
-                        navigateToFeatureCountOnRawHub(20, .same)
-                    }
-                ) {
-                    Text("many").tag("many")
-                    ForEach(0 ..< 21) { value in
-                        Text("\(value)").tag("\(value)")
-                    }
-                }
-                .tint(Color.accentColor)
-                .accentColor(Color.accentColor)
-                .foregroundStyle(Color.accentColor, Color.label)
-                .focusable()
-                .focused(focusedField, equals: .featureCountOnRawHub)
-                .onKeyPress(phases: .down) { keyPress in
-                    navigateToFeatureCountOnRawHubWithArrows(20, keyPress)
-                }
-                .onKeyPress(characters: .alphanumerics) { keyPress in
-                    navigateToFeatureCountOnRawHubWithPrefix(20, keyPress)
                 }
             }
 
@@ -1063,7 +1014,7 @@ struct FeatureEditor: View {
                 Text("|")
                     .padding([.leading, .trailing])
 
-                Text("Page feature count:")
+                Text("Feature count:")
                 Picker(
                     "",
                     selection: $selectedFeature.feature.featureCountOnPage.onChange { _ in
@@ -1071,7 +1022,7 @@ struct FeatureEditor: View {
                     }
                 ) {
                     Text("many").tag("many")
-                    ForEach(0 ..< 76) { value in
+                    ForEach(0 ..< 51) { value in
                         Text("\(value)").tag("\(value)")
                     }
                 }
@@ -1082,10 +1033,10 @@ struct FeatureEditor: View {
                 .focusable()
                 .focused(focusedField, equals: .featureCountOnPage)
                 .onKeyPress(phases: .down) { keyPress in
-                    navigateToFeatureCountOnPageWithArrows(75, keyPress)
+                    navigateToFeatureCountOnPageWithArrows(50, keyPress)
                 }
                 .onKeyPress(characters: .alphanumerics) { keyPress in
-                    navigateToFeatureCountOnPageWithPrefix(75, keyPress)
+                    navigateToFeatureCountOnPageWithPrefix(50, keyPress)
                 }
             }
 
@@ -1171,6 +1122,7 @@ struct FeatureEditor: View {
             .onKeyPress(characters: .alphanumerics) { keyPress in
                 navigateToTinEyeResultWithPrefix(keyPress)
             }
+            .frame(maxWidth: 320)
 
             Text("|")
                 .padding([.leading, .trailing])
@@ -1199,6 +1151,9 @@ struct FeatureEditor: View {
             .onKeyPress(characters: .alphanumerics) { keyPress in
                 navigateToAiCheckResultWithPrefix(keyPress)
             }
+            .frame(maxWidth: 320)
+
+            Spacer()
         }
     }
 
@@ -1320,68 +1275,6 @@ struct FeatureEditor: View {
         let (change, newValue) = navigateGenericWithPrefix(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnHub, keyPress.characters.lowercased())
         if change {
             selectedFeature.feature.featureCountOnHub = newValue
-            markDocumentDirty()
-            return .handled
-        }
-        return .ignored
-    }
-
-    // MARK: - feature count on raw page navigation
-
-    private func navigateToFeatureCountOnRawPage(_ maxCount: Int, _ direction: Direction) {
-        let (change, newValue) = navigateGeneric(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawPage, direction, allowWrap: false)
-        if change {
-            if direction != .same {
-                selectedFeature.feature.featureCountOnRawPage = newValue
-            }
-            markDocumentDirty()
-        }
-    }
-
-    private func navigateToFeatureCountOnRawPageWithArrows(_ maxCount: Int, _ keyPress: KeyPress) -> KeyPress.Result {
-        let direction = directionFromModifiers(keyPress)
-        if direction != .same {
-            navigateToFeatureCountOnRawPage(maxCount, direction)
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToFeatureCountOnRawPageWithPrefix(_ maxCount: Int, _ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawPage, keyPress.characters.lowercased())
-        if change {
-            selectedFeature.feature.featureCountOnRawPage = newValue
-            markDocumentDirty()
-            return .handled
-        }
-        return .ignored
-    }
-
-    // MARK: - feature count on raw hub navigation
-
-    private func navigateToFeatureCountOnRawHub(_ maxCount: Int, _ direction: Direction) {
-        let (change, newValue) = navigateGeneric(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawHub, direction, allowWrap: false)
-        if change {
-            if direction != .same {
-                selectedFeature.feature.featureCountOnRawHub = newValue
-            }
-            markDocumentDirty()
-        }
-    }
-
-    private func navigateToFeatureCountOnRawHubWithArrows(_ maxCount: Int, _ keyPress: KeyPress) -> KeyPress.Result {
-        let direction = directionFromModifiers(keyPress)
-        if direction != .same {
-            navigateToFeatureCountOnRawHub(maxCount, direction)
-            return .handled
-        }
-        return .ignored
-    }
-
-    private func navigateToFeatureCountOnRawHubWithPrefix(_ maxCount: Int, _ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(["many"] + (0 ..< (maxCount + 1)).map({ "\($0)" }), selectedFeature.feature.featureCountOnRawHub, keyPress.characters.lowercased())
-        if change {
-            selectedFeature.feature.featureCountOnRawHub = newValue
             markDocumentDirty()
             return .handled
         }

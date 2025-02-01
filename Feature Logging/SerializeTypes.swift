@@ -24,12 +24,10 @@ struct LogFeature: Codable {
     var userHasFeaturesOnPage: Bool
     var lastFeaturedOnPage: String
     var featureCountOnPage: String
-    var featureCountOnRawPage: String
     var userHasFeaturesOnHub: Bool
     var lastFeaturedOnHub: String
     var lastFeaturedPage: String
     var featureCountOnHub: String
-    var featureCountOnRawHub: String
     var tooSoonToFeatureUser: Bool
     var tinEyeResults: TinEyeResults
     var aiCheckResults: AiCheckResults
@@ -51,12 +49,10 @@ struct LogFeature: Codable {
         userHasFeaturesOnPage = feature.userHasFeaturesOnPage
         lastFeaturedOnPage = feature.lastFeaturedOnPage
         featureCountOnPage = feature.featureCountOnPage
-        featureCountOnRawPage = feature.featureCountOnRawPage
         userHasFeaturesOnHub = feature.userHasFeaturesOnHub
         lastFeaturedOnHub = feature.lastFeaturedOnHub
         lastFeaturedPage = feature.lastFeaturedPage
         featureCountOnHub = feature.featureCountOnHub
-        featureCountOnRawHub = feature.featureCountOnRawHub
         tooSoonToFeatureUser = feature.tooSoonToFeatureUser
         tinEyeResults = feature.tinEyeResults
         aiCheckResults = feature.aiCheckResults
@@ -79,16 +75,50 @@ struct LogFeature: Codable {
         case userHasFeaturesOnPage
         case lastFeaturedOnPage
         case featureCountOnPage
-        case featureCountOnRawPage
+        case featureCountOnRawPage // Obsolete
         case userHasFeaturesOnHub
         case lastFeaturedOnHub
         case lastFeaturedPage
         case featureCountOnHub
-        case featureCountOnRawHub
+        case featureCountOnRawHub // Obsolete
         case tooSoonToFeatureUser
         case tinEyeResults
         case aiCheckResults
         case personalMessage
+    }
+
+    static func collateRawFeatureCount(_ featureCount: String, _ rawFeatureCount: String) -> String {
+        if featureCount == "many" || rawFeatureCount == "many" {
+            return "many"
+        }
+        if rawFeatureCount == "0" {
+            return featureCount
+        }
+        let count = Int(featureCount) ?? 0
+        let rawCount = Int(rawFeatureCount) ?? 0
+        return "\(count + rawCount)"
+    }
+
+    static func clipFeatureCount(_ hub: String, _ featureCount: String) -> String {
+        if featureCount == "many" || featureCount == "0" {
+            return featureCount
+        }
+        let featureCountValue = Int(featureCount) ?? 0
+        switch hub {
+        case "snap":
+            if featureCountValue > 20 {
+                return "many"
+            }
+        case "click":
+            if featureCountValue > 75 {
+                return "many"
+            }
+        default:
+            if featureCountValue > 50 {
+                return "many"
+            }
+        }
+        return featureCount
     }
 
     init(from decoder: Decoder) throws {
@@ -107,13 +137,15 @@ struct LogFeature: Codable {
         featureDescription = try container.decode(String.self, forKey: .featureDescription)
         userHasFeaturesOnPage = try container.decode(Bool.self, forKey: .userHasFeaturesOnPage)
         lastFeaturedOnPage = try container.decode(String.self, forKey: .lastFeaturedOnPage)
-        featureCountOnPage = try container.decode(String.self, forKey: .featureCountOnPage)
-        featureCountOnRawPage = try container.decode(String.self, forKey: .featureCountOnRawPage)
+        let pageFeatureCount = try container.decode(String.self, forKey: .featureCountOnPage)
+        let rawPageFeatureCount = try container.decode(String.self, forKey: .featureCountOnRawPage)
+        featureCountOnPage = Self.collateRawFeatureCount(pageFeatureCount, rawPageFeatureCount)
         userHasFeaturesOnHub = try container.decode(Bool.self, forKey: .userHasFeaturesOnHub)
         lastFeaturedOnHub = try container.decode(String.self, forKey: .lastFeaturedOnHub)
         lastFeaturedPage = try container.decode(String.self, forKey: .lastFeaturedPage)
-        featureCountOnHub = try container.decode(String.self, forKey: .featureCountOnHub)
-        featureCountOnRawHub = try container.decode(String.self, forKey: .featureCountOnRawHub)
+        let hubFeatureCount = try container.decode(String.self, forKey: .featureCountOnHub)
+        let rawHubFeatureCount = try container.decode(String.self, forKey: .featureCountOnRawHub)
+        featureCountOnHub = Self.collateRawFeatureCount(hubFeatureCount, rawHubFeatureCount)
         tooSoonToFeatureUser = try container.decode(Bool.self, forKey: .tooSoonToFeatureUser)
         tinEyeResults = try container.decode(TinEyeResults.self, forKey: .tinEyeResults)
         aiCheckResults = try container.decode(AiCheckResults.self, forKey: .aiCheckResults)
@@ -137,12 +169,10 @@ struct LogFeature: Codable {
         try container.encode(userHasFeaturesOnPage, forKey: .userHasFeaturesOnPage)
         try container.encode(lastFeaturedOnPage, forKey: .lastFeaturedOnPage)
         try container.encode(featureCountOnPage, forKey: .featureCountOnPage)
-        try container.encode(featureCountOnRawPage, forKey: .featureCountOnRawPage)
         try container.encode(userHasFeaturesOnHub, forKey: .userHasFeaturesOnHub)
         try container.encode(lastFeaturedOnHub, forKey: .lastFeaturedOnHub)
         try container.encode(lastFeaturedPage, forKey: .lastFeaturedPage)
         try container.encode(featureCountOnHub, forKey: .featureCountOnHub)
-        try container.encode(featureCountOnRawHub, forKey: .featureCountOnRawHub)
         try container.encode(tooSoonToFeatureUser, forKey: .tooSoonToFeatureUser)
         try container.encode(tinEyeResults, forKey: .tinEyeResults)
         try container.encode(aiCheckResults, forKey: .aiCheckResults)
@@ -183,7 +213,7 @@ struct Log: Codable {
         try container.encode(features, forKey: .features)
     }
 
-    func getFeatures() -> [ObservableFeature] {
+    func getFeatures(_ hub: String) -> [ObservableFeature] {
         var featuresFromLog = [ObservableFeature]()
         for logFeature in features {
             let feature = ObservableFeature()
@@ -201,13 +231,11 @@ struct Log: Codable {
             feature.featureDescription = logFeature.featureDescription
             feature.userHasFeaturesOnPage = logFeature.userHasFeaturesOnPage
             feature.lastFeaturedOnPage = logFeature.lastFeaturedOnPage
-            feature.featureCountOnPage = logFeature.featureCountOnPage
-            feature.featureCountOnRawPage = logFeature.featureCountOnRawPage
+            feature.featureCountOnPage = LogFeature.clipFeatureCount(hub, logFeature.featureCountOnPage)
             feature.userHasFeaturesOnHub = logFeature.userHasFeaturesOnHub
             feature.lastFeaturedOnHub = logFeature.lastFeaturedOnHub
             feature.lastFeaturedPage = logFeature.lastFeaturedPage
-            feature.featureCountOnHub = logFeature.featureCountOnHub
-            feature.featureCountOnRawHub = logFeature.featureCountOnRawHub
+            feature.featureCountOnHub = LogFeature.clipFeatureCount(hub, logFeature.featureCountOnHub)
             feature.tooSoonToFeatureUser = logFeature.tooSoonToFeatureUser
             feature.tinEyeResults = logFeature.tinEyeResults
             feature.aiCheckResults = logFeature.aiCheckResults

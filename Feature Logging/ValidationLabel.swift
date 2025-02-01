@@ -29,24 +29,44 @@ extension ValidationResult {
         }
     }
 
-    func getImage() -> AnyView {
+    func getImage(small: Bool = false) -> AnyView {
         switch self {
         case .Success:
             return AnyView(Color.black)
 
         case .Warning:
-            return AnyView(
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(Color.black, getColor())
-                    .imageScale(.small)
-            )
+            if small {
+                return AnyView(
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 13))
+                        .frame(width: 14, height: 16)
+                        .foregroundStyle(Color.black, getColor())
+                        .imageScale(.small)
+                )
+            } else {
+                return AnyView(
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(Color.black, getColor())
+                        .imageScale(.small)
+                )
+            }
 
         default:
-            return AnyView(
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(Color.white, getColor())
-                    .imageScale(.small)
-            )
+            if small {
+                return AnyView(
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 13))
+                        .frame(width: 14, height: 16)
+                        .foregroundStyle(Color.white, getColor())
+                        .imageScale(.small)
+                )
+            } else {
+                return AnyView(
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(Color.white, getColor())
+                        .imageScale(.small)
+                )
+            }
         }
     }
 }

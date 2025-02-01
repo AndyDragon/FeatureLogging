@@ -457,17 +457,6 @@ struct StatisticsContentView: View {
     }
 
     private func getPageFeatureCount(_ log: Log, _ feature: LogFeature) -> Int {
-        if log.page.starts(with: "snap:") {
-            if feature.userHasFeaturesOnPage && feature.featureCountOnPage == "many" {
-                return Int.max
-            }
-            if feature.userHasFeaturesOnPage && feature.featureCountOnRawPage == "many" {
-                return Int.max
-            }
-            let featureCountOnPage = feature.userHasFeaturesOnPage ? (Int(feature.featureCountOnPage) ?? 0) : 0
-            let featureCountOnRawPage = feature.userHasFeaturesOnPage ? (Int(feature.featureCountOnRawPage) ?? 0) : 0
-            return featureCountOnPage + featureCountOnRawPage
-        }
         if feature.userHasFeaturesOnPage && feature.featureCountOnPage == "many" {
             return Int.max
         }
@@ -475,17 +464,6 @@ struct StatisticsContentView: View {
     }
 
     private func getHubFeatureCount(_ log: Log, _ feature: LogFeature) -> Int {
-        if log.page.starts(with: "snap:") {
-            if feature.userHasFeaturesOnHub && feature.featureCountOnHub == "many" {
-                return Int.max
-            }
-            if feature.userHasFeaturesOnHub && feature.featureCountOnRawHub == "many" {
-                return Int.max
-            }
-            let featureCountOnHub = feature.userHasFeaturesOnHub ? (Int(feature.featureCountOnHub) ?? 0) : 0
-            let featureCountOnRawHub = feature.userHasFeaturesOnHub ? (Int(feature.featureCountOnRawHub) ?? 0) : 0
-            return featureCountOnHub + featureCountOnRawHub
-        }
         if feature.userHasFeaturesOnHub && feature.featureCountOnHub == "many" {
             return Int.max
         }

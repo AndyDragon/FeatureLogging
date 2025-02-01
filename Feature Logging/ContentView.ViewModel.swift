@@ -307,14 +307,14 @@ extension ContentView {
                         lines.append("\(indent)member level - \(feature.userLevel.rawValue)")
                         if feature.userHasFeaturesOnPage {
                             lines.append(
-                                "\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage) Snap + \(feature.featureCountOnRawPage) RAW)"
+                                "\(indent)last feature on page - \(feature.lastFeaturedOnPage) (features on page \(feature.featureCountOnPage))"
                             )
                         } else {
                             lines.append("\(indent)last feature on page - never (features on page 0 Snap + 0 RAW)")
                         }
                         if feature.userHasFeaturesOnHub {
                             lines.append(
-                                "\(indent)last feature - \(feature.lastFeaturedOnHub) \(feature.lastFeaturedPage) (features \(feature.featureCountOnHub) Snap + \(feature.featureCountOnRawHub) RAW)"
+                                "\(indent)last feature - \(feature.lastFeaturedOnHub) \(feature.lastFeaturedPage) (features \(feature.featureCountOnHub))"
                             )
                         } else {
                             lines.append("\(indent)last feature - never (features 0 Snap + 0 RAW)")

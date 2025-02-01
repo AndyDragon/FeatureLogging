@@ -106,6 +106,62 @@ struct FeatureListRow: View {
 
                     Text(" | ")
 
+                    Image(systemName: "tag.square")
+                        .foregroundStyle(
+                            feature.photoFeaturedOnHub ? Color.accentColor : Color(UIColor.secondaryLabel).opacity(0.5),
+                            feature.photoFeaturedOnHub ? Color(UIColor.secondaryLabel) : Color(UIColor.secondaryLabel).opacity(0.5))
+                        .font(.system(size: 13))
+                        .frame(width: 14, height: 16)
+                        .imageScale(.small)
+                        .padding(.top, 3)
+                        .help(feature.photoFeaturedOnHub ? "Photo featured on hub" : "Photo not featured on hub")
+                    Spacer()
+                        .frame(width: 2)
+                    Image(systemName: "tag")
+                        .foregroundStyle(
+                            feature.userHasFeaturesOnPage ? Color.accentColor : Color(UIColor.secondaryLabel).opacity(0.5),
+                            feature.userHasFeaturesOnPage ? Color(UIColor.secondaryLabel) : Color(UIColor.secondaryLabel).opacity(0.5))
+                        .font(.system(size: 13))
+                        .frame(width: 14, height: 16)
+                        .imageScale(.small)
+                        .padding(.top, 3)
+                        .help(feature.userHasFeaturesOnPage ? "User has features on page" : "First feature on page")
+                    Spacer()
+                        .frame(width: 2)
+                    Image(systemName: "tag.fill")
+                        .foregroundStyle(
+                            feature.userHasFeaturesOnHub ? Color.accentColor : Color(UIColor.secondaryLabel).opacity(0.5),
+                            feature.userHasFeaturesOnHub ? Color(UIColor.secondaryLabel) : Color(UIColor.secondaryLabel).opacity(0.5))
+                        .font(.system(size: 13))
+                        .frame(width: 14, height: 16)
+                        .imageScale(.small)
+                        .padding(.top, 3)
+                        .help(feature.userHasFeaturesOnHub ? "User has features on hub" : "First feature on hub")
+                    Spacer()
+                        .frame(width: 2)
+                    Image(systemName: "person.badge.key.fill")
+                        .foregroundStyle(
+                            feature.userIsTeammate ? Color(UIColor.secondaryLabel) : Color(UIColor.secondaryLabel).opacity(0.5),
+                            feature.userIsTeammate ? Color.accentColor : Color(UIColor.secondaryLabel).opacity(0.5))
+                        .font(.system(size: 13))
+                        .frame(width: 14, height: 16)
+                        .imageScale(.small)
+                        .padding(.top, 3)
+                        .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
+
+                    let validationResult = feature.validationResult
+                    if validationResult != .Success {
+                        Spacer()
+                            .frame(width: 2)
+                        validationResult.getImage(small: true)
+                            .padding(.top, 3)
+                            .help(validationResult == .Warning ? "Feature has some warnings" : "Feature has some errors")
+                    }
+
+                    Spacer()
+                }
+
+                HStack {
                     if !feature.featureDescription.isEmpty {
                         Text(feature.featureDescription)
                             .lineLimit(1)
@@ -118,52 +174,10 @@ struct FeatureListRow: View {
                             .font(.system(size: 13))
                     }
 
-                    Text(" | ")
-
-                    Image(systemName: "tag.square")
-                        .foregroundStyle(
-                            feature.photoFeaturedOnHub ? Color.accentColor : Color(UIColor.secondaryLabel).opacity(0.5),
-                            feature.photoFeaturedOnHub ? Color(UIColor.secondaryLabel) : Color(UIColor.secondaryLabel).opacity(0.5))
-                        .font(.system(size: 13))
-                        .frame(width: 16, height: 16)
-                        .help(feature.photoFeaturedOnHub ? "Photo featured on hub" : "Photo not featured on hub")
-                    Spacer()
-                        .frame(width: 6)
-                    Image(systemName: "tag")
-                        .foregroundStyle(
-                            feature.userHasFeaturesOnPage ? Color.accentColor : Color(UIColor.secondaryLabel).opacity(0.5),
-                            feature.userHasFeaturesOnPage ? Color(UIColor.secondaryLabel) : Color(UIColor.secondaryLabel).opacity(0.5))
-                        .font(.system(size: 13))
-                        .frame(width: 16, height: 16)
-                        .help(feature.userHasFeaturesOnPage ? "User has features on page" : "First feature on page")
-                    Spacer()
-                        .frame(width: 6)
-                    Image(systemName: "tag.fill")
-                        .foregroundStyle(
-                            feature.userHasFeaturesOnHub ? Color.accentColor : Color(UIColor.secondaryLabel).opacity(0.5),
-                            feature.userHasFeaturesOnHub ? Color(UIColor.secondaryLabel) : Color(UIColor.secondaryLabel).opacity(0.5))
-                        .font(.system(size: 13))
-                        .frame(width: 16, height: 16)
-                        .help(feature.userHasFeaturesOnHub ? "User has features on hub" : "First feature on hub")
-                    Spacer()
-                        .frame(width: 6)
-                    Image(systemName: "person.badge.key.fill")
-                        .foregroundStyle(
-                            feature.userIsTeammate ? Color(UIColor.secondaryLabel) : Color(UIColor.secondaryLabel).opacity(0.5),
-                            feature.userIsTeammate ? Color.accentColor : Color(UIColor.secondaryLabel).opacity(0.5))
-                        .font(.system(size: 13))
-                        .frame(width: 16, height: 16)
-                        .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
-
-                    let validationResult = feature.validationResult
-                    if validationResult != .Success {
-                        Text(" | ")
-                        validationResult.getImage()
-                            .help(validationResult == .Warning ? "Feature has some warnings" : "Feature has some errors")
-                    }
-
                     Spacer()
                 }
+                .padding(.bottom, 4)
+
                 HStack {
                     if !feature.postLink.isEmpty {
                         Text(feature.postLink)
@@ -183,42 +197,7 @@ struct FeatureListRow: View {
 
             Spacer()
 
-            if feature.isPickedAndAllowed {
-                Spacer()
-                    .frame(width: 12)
-
-                Button(action: {
-                    logger.verbose("Tapped edit scripts for feature", context: "User")
-                    viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
-                    launchVeroScripts()
-                }) {
-                    HStack(alignment: .center) {
-                        Image(systemName: "pencil.and.list.clipboard")
-                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
-                    }
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
-                    .frame(width: 12)
-
-                Button(action: {
-                    logger.verbose("Tapped edit personal message for feature", context: "User")
-                    viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
-                    showingMessageEditor.toggle()
-                }) {
-                    HStack(alignment: .center) {
-                        Image(systemName: "bubble.and.pencil")
-                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
-                    }
-                }
-                .buttonStyle(.plain)
-            }
-
             if feature.isPickAllowed {
-                Spacer()
-                    .frame(width: 12)
-
                 Button(action: {
                     feature.isPicked.toggle()
                 }) {
@@ -260,6 +239,38 @@ struct FeatureListRow: View {
                 }
             }
             .buttonStyle(.plain)
+
+            if feature.isPickedAndAllowed {
+                Spacer()
+                    .frame(width: 12)
+
+                Button(action: {
+                    logger.verbose("Tapped edit scripts for feature", context: "User")
+                    viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
+                    launchVeroScripts()
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "pencil.and.list.clipboard")
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
+                    }
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+                    .frame(width: 12)
+
+                Button(action: {
+                    logger.verbose("Tapped edit personal message for feature", context: "User")
+                    viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
+                    showingMessageEditor.toggle()
+                }) {
+                    HStack(alignment: .center) {
+                        Image(systemName: "bubble.and.pencil")
+                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
+                    }
+                }
+                .buttonStyle(.plain)
+            }
         }
         .sheet(
             isPresented: $showingMessageEditor,

@@ -66,11 +66,12 @@ struct FeatureListRow: View {
                     .frame(width: 32, height: 32)
                     .help("Photo is picked for feature")
             } else {
-                Image(systemName: "xmark")
+                Image(systemName: "star.fill")
                     .foregroundColor(.gray)
                     .font(.system(size: 20))
                     .frame(width: 32, height: 32)
-                    .opacity(0.0000001)
+                    .help("Photo is not picked for feature")
+                    .opacity(0.00001)
             }
 
             VStack {
@@ -109,41 +110,85 @@ struct FeatureListRow: View {
 
                     Image(systemName: "tag.square")
                         .foregroundStyle(feature.photoFeaturedOnHub ? Color.accentColor : Color.secondaryLabel, feature.photoFeaturedOnHub ? Color.accentColor : Color.secondaryLabel)
-                        .font(.system(size: 14))
-                        .frame(width: 16, height: 16)
+                        .font(.system(size: 13))
+                        .frame(width: 14, height: 16)
+                        .imageScale(.small)
+                        .padding(.top, 3)
                         .help(feature.photoFeaturedOnHub ? "Photo featured on hub" : "Photo not featured on hub")
                     Spacer()
-                        .frame(width: 6)
+                        .frame(width: 2)
                     Image(systemName: "tag")
                         .foregroundStyle(feature.userHasFeaturesOnPage ? Color.accentColor : Color.secondaryLabel, Color.secondaryLabel)
-                        .font(.system(size: 14))
-                        .frame(width: 16, height: 16)
+                        .font(.system(size: 13))
+                        .frame(width: 14, height: 16)
+                        .imageScale(.small)
+                        .padding(.top, 3)
                         .help(feature.userHasFeaturesOnPage ? "User has features on page" : "First feature on page")
                     Spacer()
-                        .frame(width: 6)
+                        .frame(width: 2)
                     Image(systemName: "tag.fill")
                         .foregroundStyle(feature.userHasFeaturesOnHub ? Color.accentColor : Color.secondaryLabel, Color.secondaryLabel)
-                        .font(.system(size: 14))
-                        .frame(width: 16, height: 16)
+                        .font(.system(size: 13))
+                        .frame(width: 14, height: 16)
+                        .imageScale(.small)
+                        .padding(.top, 3)
                         .help(feature.userHasFeaturesOnHub ? "User has features on hub" : "First feature on hub")
                     Spacer()
-                        .frame(width: 6)
+                        .frame(width: 2)
                     Image(systemName: "person.badge.key.fill")
                         .foregroundStyle(Color.secondaryLabel, feature.userIsTeammate ? Color.accentColor : Color.secondaryLabel)
-                        .font(.system(size: 14))
-                        .frame(width: 16, height: 16)
+                        .font(.system(size: 13))
+                        .frame(width: 14, height: 16)
+                        .imageScale(.small)
+                        .padding(.top, 3)
                         .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
 
                     let validationResult = feature.validationResult
                     if validationResult != .Success {
-                        Text(" | ")
-                        validationResult.getImage()
+                        Spacer()
+                            .frame(width: 2)
+                        validationResult.getImage(small: true)
+                            .padding(.top, 3)
                             .help(validationResult == .Warning ? "Feature has some warnings" : "Feature has some errors")
                     }
 
                     Spacer()
 
+                    if feature.isPickAllowed {
+                        Button(action: {
+                            feature.isPicked.toggle()
+                        }) {
+                            HStack(alignment: .center) {
+                                Image(systemName: feature.isPicked ? "star.slash" : "star")
+                                    .foregroundStyle(Color.white, Color(Color.secondaryLabel))
+                                Text(feature.isPicked ? "Unpick" : "Pick")
+                            }
+                            .padding(.horizontal, 4)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    Spacer()
+                        .frame(width: 12)
+
+                    Button(action: {
+                        viewModel.selectedFeature = nil
+                        viewModel.features.removeAll(where: { $0.id == feature.id })
+                        viewModel.markDocumentDirty()
+                    }) {
+                        HStack(alignment: .center) {
+                            Image(systemName: "trash")
+                                .foregroundStyle(Color.white, Color(Color.secondaryLabel))
+                            Text("Remove")
+                        }
+                        .padding(.horizontal, 4)
+                    }
+                    .buttonStyle(.plain)
+
                     if feature.isPickedAndAllowed {
+                        Spacer()
+                            .frame(width: 12)
+
                         Button(action: {
                             logger.verbose("Tapped edit scripts for feature", context: "User")
                             viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
@@ -151,20 +196,15 @@ struct FeatureListRow: View {
                         }) {
                             HStack(alignment: .center) {
                                 Image(systemName: "pencil.and.list.clipboard")
-                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                    .foregroundStyle(Color.white, Color(Color.secondaryLabel))
                                 Text("Edit scripts")
                             }
+                            .padding(.horizontal, 4)
                         }
-                        .focusable()
-                        .onKeyPress(.space) {
-                            logger.verbose("Pressed space on edit scripts for feature", context: "User")
-                            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
-                            launchVeroScripts()
-                            return .handled
-                        }
+                        .buttonStyle(.plain)
 
                         Spacer()
-                            .frame(width: 8)
+                            .frame(width: 12)
 
                         Button(action: {
                             logger.verbose("Tapped edit personal message for feature", context: "User")
@@ -172,18 +212,13 @@ struct FeatureListRow: View {
                             showingMessageEditor.toggle()
                         }) {
                             HStack(alignment: .center) {
-                                Image(systemName: "square.and.pencil")
-                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
-                                Text("Edit personal message")
+                                Image(systemName: "bubble.and.pencil")
+                                    .foregroundStyle(Color.white, Color(Color.secondaryLabel))
+                                Text("Edit message")
                             }
+                            .padding(.horizontal, 4)
                         }
-                        .focusable()
-                        .onKeyPress(.space) {
-                            logger.verbose("Pressed space on personal message for feature", context: "User")
-                            viewModel.selectedFeature = ObservableFeatureWrapper(using: viewModel.selectedPage!, from: feature)
-                            showingMessageEditor.toggle()
-                            return .handled
-                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 HStack {

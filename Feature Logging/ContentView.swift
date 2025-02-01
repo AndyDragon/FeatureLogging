@@ -487,7 +487,7 @@ extension ContentView {
                 if let loadedPage = viewModel.loadedCatalogs.loadedPages.first(where: { $0.id == loadedLog.page }) {
                     viewModel.selectedFeature = nil
                     viewModel.selectedPage = loadedPage
-                    viewModel.features = loadedLog.getFeatures()
+                    viewModel.features = loadedLog.getFeatures(loadedPage.hub)
                 }
                 logURL = file
                 logger.verbose("Loaded log file with \(viewModel.sortedFeatures.count) features", context: "System")
