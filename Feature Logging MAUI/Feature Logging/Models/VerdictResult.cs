@@ -24,12 +24,16 @@ public struct VerdictResult(string message, string details, Color color, Materia
 
     public readonly override bool Equals(object? obj)
     {
-        if (obj is VerdictResult)
+        switch (obj)
         {
-            var objAsVerdictResult = obj as VerdictResult?;
-            return this == objAsVerdictResult;
+            case VerdictResult:
+            {
+                var objAsVerdictResult = obj as VerdictResult?;
+                return this == objAsVerdictResult;
+            }
+            default:
+                return false;
         }
-        return false;
     }
 
     public readonly override int GetHashCode()

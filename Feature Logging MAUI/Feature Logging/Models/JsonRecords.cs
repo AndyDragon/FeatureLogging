@@ -1,4 +1,7 @@
-﻿namespace FeatureLogging.Models;
+﻿// ReSharper disable ConvertConstructorToMemberInitializers
+// ReSharper disable ClassNeverInstantiated.Global
+
+namespace FeatureLogging.Models;
 
 public class ScriptsCatalog
 {
@@ -25,17 +28,7 @@ public class PageEntry
 
 public class LoadedPage(string hubName, PageEntry page)
 {
-    public string Id
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(HubName))
-            {
-                return Name;
-            }
-            return $"{HubName}:{Name}";
-        }
-    }
+    public string Id => string.IsNullOrEmpty(HubName) ? Name : $"{HubName}:{Name}";
     public string HubName { get; } = hubName;
     public string Name { get; } = page.Name;
     public string? PageName { get; } = page.PageName;
@@ -56,19 +49,17 @@ public class LoadedPage(string hubName, PageEntry page)
     {
         get
         {
-            if (HubName == "snap")
+            return HubName switch
             {
-                if (!string.IsNullOrEmpty(PageName) && PageName != Name)
-                {
-                    return [HashTag ?? $"snap_{Name}", $"raw_{Name}", $"snap_{PageName}", $"raw_{PageName}"];
-                }
-                return [HashTag ?? $"snap_{Name}", $"raw_{Name}"];
-            }
-            if (HubName == "click")
-            {
-                return [HashTag ?? $"click_{Name}"];
-            }
-            return [HashTag ?? Name];
+                "snap" when !string.IsNullOrEmpty(PageName) && PageName != Name => 
+                    [HashTag ?? $"snap_{Name}", $"raw_{Name}", $"snap_{PageName}", $"raw_{PageName}"],
+                "snap" => 
+                    [HashTag ?? $"snap_{Name}", $"raw_{Name}"],
+                "click" => 
+                    [HashTag ?? $"click_{Name}"],
+                _ => 
+                    [HashTag ?? Name]
+            };
         }
     }
 }
@@ -116,27 +107,28 @@ internal class LoadedPageComparer : IComparer<LoadedPage>
 {
     public int Compare(LoadedPage? x, LoadedPage? y)
     {
-        if (x == null && y == null)
+        switch (x)
         {
-            return 0;
+            case null when y == null:
+                return 0;
+            case null:
+                return -1;
         }
-        if (x == null)
-        {
-            return -1;
-        }
+
         if (y == null)
         {
             return 1;
         }
-        if (x.HubName == "other" && y.HubName == "other")
+        
+        switch (x.HubName)
         {
-            // ReSharper disable once StringCompareIsCultureSpecific.3
-            return string.Compare(x.Id, y.Id, true);
+            case "other" when y.HubName == "other":
+                // ReSharper disable once StringCompareIsCultureSpecific.3
+                return string.Compare(x.Id, y.Id, true);
+            case "other":
+                return 1;
         }
-        if (x.HubName == "other")
-        {
-            return 1;
-        }
+
         if (y.HubName == "other")
         {
             return -1;

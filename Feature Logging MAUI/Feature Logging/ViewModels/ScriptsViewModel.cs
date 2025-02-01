@@ -150,7 +150,7 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
 
     public TemplatesCatalog TemplatesCatalog { get; set; } = new();
 
-    public Dictionary<Script, string> Scripts { get; } = new()
+    private Dictionary<Script, string> Scripts { get; } = new()
     {
         { Script.Feature, "" },
         { Script.Comment, "" },
@@ -427,7 +427,7 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
         mainViewModel.YourFirstNameValidation.Valid &&
         mainViewModel.PageValidation.Valid;
 
-    public void UpdateScripts()
+    private void UpdateScripts()
     {
         var pageName = mainViewModel.Page;
         var sourcePage = mainViewModel.SelectedPage;
@@ -581,7 +581,7 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
         };
     }
 
-    public void UpdateNewMembershipScripts()
+    private void UpdateNewMembershipScripts()
     {
         if (!CanCopyNewMembershipScript)
         {

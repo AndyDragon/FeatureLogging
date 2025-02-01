@@ -2,6 +2,7 @@
 using FeatureLogging.Models;
 
 namespace FeatureLogging.ViewModels;
+
 public class PlaceholdersViewModel(ScriptsViewModel scriptViewModel, Script script)
 {
     public ScriptsViewModel ScriptsViewModel { get; private set; } = scriptViewModel;

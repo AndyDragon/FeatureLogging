@@ -10,6 +10,8 @@
         <Grid 
             Margin="20" 
             RowDefinitions="Auto, Auto">
+            
+            <!-- Options -->
             <Border 
                 Grid.Row="0" 
                 Grid.ColumnSpan="2" 
@@ -26,6 +28,8 @@
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Border>
+            
+            <!-- Personal messages -->
             <Border 
                 Grid.Row="1" 
                 Grid.ColumnSpan="2" 

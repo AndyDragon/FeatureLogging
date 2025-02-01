@@ -82,7 +82,7 @@
             </VerticalStackLayout>
         </Border>
         
-        <!-- TinEye webview -->
+        <!-- TinEye webview / HIVE log -->
         <Grid 
             Grid.Row="2" 
             RowDefinitions="Auto, *"

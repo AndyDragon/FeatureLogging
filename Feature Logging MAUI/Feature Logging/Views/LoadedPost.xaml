@@ -27,6 +27,7 @@
         Orientation="Both">
         <VerticalStackLayout
             WidthRequest="{Binding MainViewModel.ScreenWidth}">
+            
             <!-- Page and post link -->
             <Border
                 Margin="20,0,20,10"

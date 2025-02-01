@@ -60,6 +60,8 @@
              RowDefinitions="Auto, Auto, Auto, *"
              WidthRequest="{Binding ScreenWidth}"
              Padding="30,0">
+            
+            <!-- Page name and page staff level -->
             <Grid
                 Grid.Row="0"
                 ColumnDefinitions="Auto, Auto, 2*, Auto, *, Auto">
@@ -94,6 +96,8 @@
                     SelectedItem="{Binding StaffLevel, Mode=TwoWay}"
                     IsEnabled="{Binding CanChangeStaffLevel}" />
             </Grid>
+            
+            <!-- Your alias and your first name -->
             <Grid
                 Grid.Row="1"
                 ColumnDefinitions="Auto, Auto, *, Auto, *"
@@ -127,6 +131,8 @@
                     Text="{Binding YourFirstName, Mode=TwoWay}"
                     Placeholder="enter your first name" />
             </Grid>
+            
+            <!-- List buttons -->
             <HorizontalStackLayout 
                 Grid.Row="2"
                 HorizontalOptions="Start"
@@ -146,8 +152,9 @@
                     MaximumHeightRequest="32"
                     Command="{Binding GenerateReportCommand}" />
             </HorizontalStackLayout>
+            
+            <!-- Features list -->
             <ListView
-                x:Name="FeaturesListBox"
                 Grid.Row="3"
                 HasUnevenRows="True"
                 SeparatorVisibility="None"

@@ -12,6 +12,8 @@
         <Label Grid.Row="1" Margin="10,2,10,10" HorizontalOptions="Center">(leave field blank to remove the placeholder)</Label>
         <Border Grid.Row="2" BackgroundColor="{DynamicResource Gray500}" Margin="10,10,20,10" StrokeShape="RoundRectangle 10" Padding="4,0,6,0">
             <VerticalStackLayout>
+
+                <!-- Placeholders -->
                 <ListView 
                     HasUnevenRows="True"
                     ItemsSource="{Binding Placeholders}">
@@ -30,6 +32,8 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+
+                <!-- Long-form placeholders -->
                 <ListView 
                     ItemsSource="{Binding LongPlaceholders}">
                     <ListView.ItemTemplate>
@@ -49,6 +53,8 @@
                 </ListView>
             </VerticalStackLayout>
         </Border>
+        
+        <!-- Actions -->
         <HorizontalStackLayout Grid.Row="3" Margin="0,0,10,10" HorizontalOptions="End">
             <Button Text="Copy" HorizontalOptions="Start" Margin="10" VerticalOptions="Start" Width="152" Height="29" Clicked="OnCopyClicked" />
             <Button Text="Copy with Placeholders" HorizontalOptions="Start" Margin="10" VerticalOptions="Start" Width="152" Height="29" Clicked="OnCopyUnchangedClicked" />

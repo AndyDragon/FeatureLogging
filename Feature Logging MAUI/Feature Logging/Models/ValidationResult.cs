@@ -17,15 +17,7 @@ public readonly struct ValidationResult(ValidationLevel level = ValidationLevel.
 
     public static bool operator ==(ValidationResult x, ValidationResult y)
     {
-        if (x.Level == y.Level)
-        {
-            if (x.Level == ValidationLevel.Valid)
-            {
-                return x.Message == y.Message;
-            }
-            return x.Message == y.Message;
-        }
-        return false;
+        return x.Level == y.Level && x.Message == y.Message;
     }
 
     public static bool operator !=(ValidationResult x, ValidationResult y)
@@ -35,11 +27,7 @@ public readonly struct ValidationResult(ValidationLevel level = ValidationLevel.
 
     public override bool Equals(object? obj)
     {
-        if (obj is ValidationResult other)
-        {
-            return this == other;
-        }
-        return false;
+        return obj is ValidationResult other && this == other;
     }
 
     public override int GetHashCode()

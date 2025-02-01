@@ -61,8 +61,8 @@ internal static class UserSettings
             Debug.WriteLine("Failed to load the user settings: " + ex.Message);
         }
         return defaultValue;
-
     }
+
     internal static void Store<T>(string key, T value)
     {
         try

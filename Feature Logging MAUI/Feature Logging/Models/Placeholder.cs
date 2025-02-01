@@ -14,7 +14,7 @@ public class Placeholder : NotifyPropertyChanged
     public string Name
     {
         get => name;
-        init => Set(ref name, value);
+        private init => Set(ref name, value);
     }
 
     private string currentValue = "";
