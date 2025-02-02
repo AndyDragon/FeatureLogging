@@ -138,13 +138,13 @@ struct LogFeature: Codable {
         userHasFeaturesOnPage = try container.decode(Bool.self, forKey: .userHasFeaturesOnPage)
         lastFeaturedOnPage = try container.decode(String.self, forKey: .lastFeaturedOnPage)
         let pageFeatureCount = try container.decode(String.self, forKey: .featureCountOnPage)
-        let rawPageFeatureCount = try container.decode(String.self, forKey: .featureCountOnRawPage)
+        let rawPageFeatureCount = try container.decodeIfPresent(String.self, forKey: .featureCountOnRawPage) ?? "0"
         featureCountOnPage = Self.collateRawFeatureCount(pageFeatureCount, rawPageFeatureCount)
         userHasFeaturesOnHub = try container.decode(Bool.self, forKey: .userHasFeaturesOnHub)
         lastFeaturedOnHub = try container.decode(String.self, forKey: .lastFeaturedOnHub)
         lastFeaturedPage = try container.decode(String.self, forKey: .lastFeaturedPage)
         let hubFeatureCount = try container.decode(String.self, forKey: .featureCountOnHub)
-        let rawHubFeatureCount = try container.decode(String.self, forKey: .featureCountOnRawHub)
+        let rawHubFeatureCount = try container.decodeIfPresent(String.self, forKey: .featureCountOnRawHub) ?? "0"
         featureCountOnHub = Self.collateRawFeatureCount(hubFeatureCount, rawHubFeatureCount)
         tooSoonToFeatureUser = try container.decode(Bool.self, forKey: .tooSoonToFeatureUser)
         tinEyeResults = try container.decode(TinEyeResults.self, forKey: .tinEyeResults)
