@@ -13,12 +13,20 @@
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
     <DelaySign>False</DelaySign>
-    <Copyright>Copyright (c) 2024 AndyDragon Software, all rights reserved</Copyright>
+    <Copyright>Copyright (c) 2024-2025 AndyDragon Software, all rights reserved</Copyright>
     <Company>AndyDragon Software</Company>
     <Authors>Andrew Forget</Authors>
-    <Version>2.1.25</Version>
+    <Version>2.1.26</Version>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="app_image.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\app_image.png" />
+  </ItemGroup>
 
   <ItemGroup>
     <Resource Include="App.ico" />
@@ -40,6 +48,9 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Update="AboutDialog.xaml.cs">
+      <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
 

@@ -367,6 +367,17 @@ namespace FeatureLogging
                 (LaunchAiCheckAppCommand as Command)?.OnCanExecuteChanged();
             });
 
+            LaunchAboutCommand = new Command(() =>
+            {
+                var panel = new AboutDialog
+                {
+                    DataContext = new AboutViewModel(),
+                    Owner = Application.Current.MainWindow,
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner
+                };
+                panel.ShowDialog();
+            });
+
             CopyPageTagCommand = new CommandWithParameter((parameter) =>
             {
                 if (parameter is string pageTag)
@@ -441,14 +452,7 @@ namespace FeatureLogging
             {
                 if (SelectedFeature is Feature feature)
                 {
-                    SelectedFeature = null;
-                    Features.Remove(feature);
-                    OnPropertyChanged(nameof(HasFeatures));
-                    OnPropertyChanged(nameof(FeatureNavigationVisibility));
-                    OnPropertyChanged(nameof(CanChangePage));
-                    SaveFeaturesCommand?.OnCanExecuteChanged();
-                    GenerateReportCommand?.OnCanExecuteChanged();
-                    SaveReportCommand?.OnCanExecuteChanged();
+                    RemoveFeature(feature);
                 }
             }, () => SelectedFeature != null);
 
@@ -696,6 +700,21 @@ namespace FeatureLogging
             #endregion
         }
 
+        public void RemoveFeature(Feature feature)
+        {
+            if (feature == SelectedFeature)
+            {
+                SelectedFeature = null;
+            }
+            Features.Remove(feature);
+            OnPropertyChanged(nameof(HasFeatures));
+            OnPropertyChanged(nameof(FeatureNavigationVisibility));
+            OnPropertyChanged(nameof(CanChangePage));
+            SaveFeaturesCommand?.OnCanExecuteChanged();
+            GenerateReportCommand?.OnCanExecuteChanged();
+            SaveReportCommand?.OnCanExecuteChanged();
+        }
+
         private string CalculateFeatureCount(string hub, string featureCount, string rawFeatureCount)
         {
             featureCount = new List<string>(FeaturedCounts).Contains(featureCount) ? featureCount : FeaturedCounts[0];
@@ -885,6 +904,8 @@ namespace FeatureLogging
         public Command SaveReportCommand { get; }
 
         public ICommand LaunchSettingsCommand { get; }
+
+        public ICommand LaunchAboutCommand { get; }
 
         public ICommand CopyPageTagCommand { get; }
 
@@ -2422,6 +2443,20 @@ namespace FeatureLogging
                     dialog.ShowDialog();
                 }
             });
+            PickFeatureCommand = new CommandWithParameter((parameter) =>
+            {
+                if (parameter is MainViewModel vm)
+                {
+                    IsPicked = !IsPicked;
+                }
+            });
+            DeleteFeatureCommand = new CommandWithParameter((parameter) =>
+            {
+                if (parameter is MainViewModel vm)
+                {
+                    vm.RemoveFeature(this);
+                }
+            });
             OpenFeatureInVeroScriptsCommand = new CommandWithParameter((parameter) =>
             {
                 if (parameter is MainViewModel vm && vm.SelectedPage != null)
@@ -2557,7 +2592,13 @@ namespace FeatureLogging
         [JsonIgnore]
         public bool IsPickedAndAllowed
         {
-            get => IsPicked && !TooSoonToFeatureUser && !PhotoFeaturedOnPage && TinEyeResults != "matches found" && AiCheckResults != "ai";
+            get => IsPicked && IsAllowed;
+        }
+
+        [JsonIgnore]
+        public bool IsAllowed
+        {
+            get => !TooSoonToFeatureUser && !PhotoFeaturedOnPage && TinEyeResults != "matches found" && AiCheckResults != "ai";
         }
 
         [JsonIgnore]
@@ -2580,7 +2621,7 @@ namespace FeatureLogging
         public bool IsPicked
         {
             get => isPicked;
-            set => SetWithDirtyCallback(ref isPicked, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey)]);
+            set => SetWithDirtyCallback(ref isPicked, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(IsAllowed), nameof(SortKey)]);
         }
 
         private string postLink = "";
@@ -2644,7 +2685,7 @@ namespace FeatureLogging
         public bool PhotoFeaturedOnPage
         {
             get => photoFeaturedOnPage;
-            set => SetWithDirtyCallback(ref photoFeaturedOnPage, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey)]);
+            set => SetWithDirtyCallback(ref photoFeaturedOnPage, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(IsAllowed), nameof(SortKey)]);
         }
 
         private bool photoFeaturedOnHub = false;
@@ -2750,7 +2791,7 @@ namespace FeatureLogging
         public bool TooSoonToFeatureUser
         {
             get => tooSoonToFeatureUser;
-            set => SetWithDirtyCallback(ref tooSoonToFeatureUser, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey), nameof(LastFeaturedPageValidation)]);
+            set => SetWithDirtyCallback(ref tooSoonToFeatureUser, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(IsAllowed), nameof(SortKey), nameof(LastFeaturedPageValidation)]);
         }
 
         private string tinEyeResults = "0 matches";
@@ -2758,7 +2799,7 @@ namespace FeatureLogging
         public string TinEyeResults
         {
             get => tinEyeResults;
-            set => SetWithDirtyCallback(ref tinEyeResults, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey)]);
+            set => SetWithDirtyCallback(ref tinEyeResults, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(IsAllowed), nameof(SortKey)]);
         }
 
         private string aiCheckResults = "human";
@@ -2766,7 +2807,7 @@ namespace FeatureLogging
         public string AiCheckResults
         {
             get => aiCheckResults;
-            set => SetWithDirtyCallback(ref aiCheckResults, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(SortKey)]);
+            set => SetWithDirtyCallback(ref aiCheckResults, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(IsAllowed), nameof(SortKey)]);
         }
 
         private string personalMessage = "";
@@ -2918,6 +2959,12 @@ namespace FeatureLogging
                 validationErrors.Add(validation + ": " + (result.Message ?? result.Error ?? "unknown validation error"));
             }
         }
+
+        [JsonIgnore]
+        public ICommand PickFeatureCommand { get; }
+
+        [JsonIgnore]
+        public ICommand DeleteFeatureCommand { get; }
 
         [JsonIgnore]
         public ICommand OpenFeatureInVeroScriptsCommand { get; }
