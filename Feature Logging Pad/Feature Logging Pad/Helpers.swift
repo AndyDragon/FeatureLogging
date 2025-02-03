@@ -160,6 +160,9 @@ public struct StringBuilder {
     }
 }
 
+let pattern = "(^|\\s|\\()@([\\w]+)(\\s|$|,|\\.|\\:|\\))"
+let regex = try! NSRegularExpression(pattern: pattern, options: [])
+
 extension String {
     public init(@StringBuilder _ builder: () -> String) {
         self.init(builder())
@@ -183,6 +186,14 @@ extension String {
 
     static func * (str: String, repeatTimes: Int) -> String {
         return String(repeating: str, count: repeatTimes)
+    }
+
+    func insertSpacesInUserTags(_ doReplacements: Bool = false) -> String {
+        if !doReplacements {
+            return self
+        }
+        let range = NSRange(self.startIndex..<self.endIndex, in: self)
+        return regex.stringByReplacingMatches(in: self, options: [], range: range, withTemplate: "$1@ $2$3")
     }
 }
 

@@ -10,6 +10,11 @@ import SwiftUI
 import SwiftyBeaver
 
 struct ScriptContentView: View {
+    @AppStorage(
+        "preference_includespace",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var includeSpace = false
+
     private var viewModel: ContentView.ViewModel
     private var selectedPage: ObservablePage
     private var selectedFeature: ObservableFeatureWrapper
@@ -187,6 +192,9 @@ struct ScriptContentView: View {
         }
         .onAppear {
             populateFromSharedFeature()
+        }
+        .onChange(of: includeSpace) {
+            updateScripts()
         }
     }
 
@@ -695,9 +703,8 @@ struct ScriptContentView: View {
                 .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
                 .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
                 .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
-                // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
                 .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
+                .insertSpacesInUserTags(includeSpace)
 
             commentScript = getTemplateFromCatalog(
                 "comment",
@@ -714,9 +721,8 @@ struct ScriptContentView: View {
                 .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
                 .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
                 .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
-                // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
                 .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
+                .insertSpacesInUserTags(includeSpace)
 
             originalPostScript = getTemplateFromCatalog(
                 "original post",
@@ -733,9 +739,8 @@ struct ScriptContentView: View {
                 .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
                 .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
                 .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
-                // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
                 .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
+                .insertSpacesInUserTags(includeSpace)
         }
     }
 
@@ -866,9 +871,8 @@ struct ScriptContentView: View {
                 .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
                 .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
                 .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
-                // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
                 .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
+                .insertSpacesInUserTags(includeSpace)
         }
     }
 }

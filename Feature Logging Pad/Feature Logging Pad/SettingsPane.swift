@@ -18,6 +18,10 @@ struct SettingsPane: View {
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var includeHash = false
     @AppStorage(
+        "preference_includespace",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var includeSpace = false
+    @AppStorage(
         "preference_personalMessage",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var personalMessage = "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉"
@@ -41,6 +45,22 @@ struct SettingsPane: View {
                         }
                         .tint(Color.accentColor)
                         .accentColor(Color.accentColor)
+
+                        Toggle(isOn: $includeSpace) {
+                            Text("Insert a space after '@' in user tags when copying tags to the clipboard")
+                        }
+                        .tint(Color.accentColor)
+                        .accentColor(Color.accentColor)
+                        .padding(.top)
+
+                        Text("For example, for the user tag '@alphabeta', the script will be '@ alphabeta'")
+                            .padding(.top, 4)
+                            .padding(.leading, 20)
+                            .font(.footnote)
+                        Text("And for the page tag '@snap_longexposure', the script will be '@ snap_longexposure'")
+                            .padding(.top, 4)
+                            .padding(.leading, 20)
+                            .font(.footnote)
                     }
                 } header: {
                     Text("Tags:")
