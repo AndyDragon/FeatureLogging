@@ -103,31 +103,12 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
 
     private static int GetHubFeatureCount(string hubName, Feature feature)
     {
-        switch (hubName)
+        if (feature is { UserHasFeaturesOnHub: true, FeatureCountOnHub: "many" })
         {
-            case "snap":
-            {
-                switch (feature)
-                {
-                    case { UserHasFeaturesOnHub: true, FeatureCountOnHub: "many" }:
-                    case { UserHasFeaturesOnHub: true, FeatureCountOnRawHub: "many" }:
-                        return int.MaxValue;
-                }
-
-                var featureCountOnHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnHub) : 0;
-                var featureCountOnRawHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnRawHub) : 0;
-                return featureCountOnHub + featureCountOnRawHub;
-            }
-            default:
-            {
-                if (feature is { UserHasFeaturesOnHub: true, FeatureCountOnHub: "many" })
-                {
-                    return int.MaxValue;
-                }
-                var featureCountOnHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnHub) : 0;
-                return featureCountOnHub;
-            }
+            return int.MaxValue;
         }
+        var featureCountOnHub = feature.UserHasFeaturesOnHub ? int.Parse(feature.FeatureCountOnHub) : 0;
+        return featureCountOnHub;
     }
 
     #region Commands

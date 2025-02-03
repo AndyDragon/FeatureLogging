@@ -157,14 +157,6 @@ public class Feature(string hubName) : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref featureCountOnPage, value, () => IsDirty = true);
     }
 
-    private string featureCountOnRawPage = "0";
-    [JsonProperty(PropertyName = "featureCountOnRawPage")]
-    public string FeatureCountOnRawPage
-    {
-        get => featureCountOnRawPage;
-        set => SetWithDirtyCallback(ref featureCountOnRawPage, value, () => IsDirty = true);
-    }
-
     private bool userHasFeaturesOnHub;
     [JsonProperty(PropertyName = "userHasFeaturesOnHub")]
     public bool UserHasFeaturesOnHub
@@ -197,14 +189,6 @@ public class Feature(string hubName) : NotifyPropertyChanged
     {
         get => featureCountOnHub;
         set => SetWithDirtyCallback(ref featureCountOnHub, value, () => IsDirty = true);
-    }
-
-    private string featureCountOnRawHub = "0";
-    [JsonProperty(PropertyName = "featureCountOnRawHub")]
-    public string FeatureCountOnRawHub
-    {
-        get => featureCountOnRawHub;
-        set => SetWithDirtyCallback(ref featureCountOnRawHub, value, () => IsDirty = true);
     }
 
     private bool tooSoonToFeatureUser;

@@ -72,13 +72,7 @@ public class MainViewModel : NotifyPropertyChanged
                 var pagesCatalog = JsonConvert.DeserializeObject<ScriptsCatalog>(content) ?? new ScriptsCatalog();
                 if (pagesCatalog.Hubs != null)
                 {
-                    foreach (var hubPair in pagesCatalog.Hubs)
-                    {
-                        foreach (var hubPage in hubPair.Value)
-                        {
-                            loadedPages.Add(new LoadedPage(hubPair.Key, hubPage));
-                        }
-                    }
+                    loadedPages.AddRange(from hubPair in pagesCatalog.Hubs from hubPage in hubPair.Value select new LoadedPage(hubPair.Key, hubPage));
                 }
                 LoadedPages.Clear();
                 foreach (var loadedPage in loadedPages.OrderBy(loadedPage => loadedPage, LoadedPageComparer.Default))
@@ -242,13 +236,17 @@ public class MainViewModel : NotifyPropertyChanged
                                 FeatureDescription = (string)fileFeature["featureDescription"],
                                 UserHasFeaturesOnPage = (bool)fileFeature["userHasFeaturesOnPage"],
                                 LastFeaturedOnPage = (string)fileFeature["lastFeaturedOnPage"],
-                                FeatureCountOnPage = new List<string>(FeaturedCounts).Contains((string)fileFeature["featureCountOnPage"]) ? (string)fileFeature["featureCountOnPage"] : FeaturedCounts[0],
-                                FeatureCountOnRawPage = new List<string>(FeaturedCounts).Contains((string)fileFeature["featureCountOnRawPage"]) ? (string)fileFeature["featureCountOnRawPage"] : FeaturedCounts[0],
+                                FeatureCountOnPage = CalculateFeatureCount(
+                                    SelectedPage!.HubName, 
+                                    (string)fileFeature["featureCountOnPage"], 
+                                    fileFeature.ContainsKey("featureCountOnRawPage") ? (string)fileFeature["featureCountOnRawPage"] : "0"),
                                 UserHasFeaturesOnHub = (bool)fileFeature["userHasFeaturesOnHub"],
                                 LastFeaturedOnHub = (string)fileFeature["lastFeaturedOnHub"],
                                 LastFeaturedPage = (string)fileFeature["lastFeaturedPage"],
-                                FeatureCountOnHub = new List<string>(FeaturedCounts).Contains((string)fileFeature["featureCountOnHub"]) ? (string)fileFeature["featureCountOnHub"] : FeaturedCounts[0],
-                                FeatureCountOnRawHub = new List<string>(FeaturedCounts).Contains((string)fileFeature["featureCountOnRawHub"]) ? (string)fileFeature["featureCountOnRawHub"] : FeaturedCounts[0],
+                                FeatureCountOnHub = CalculateFeatureCount(
+                                    SelectedPage!.HubName, 
+                                    (string)fileFeature["featureCountOnHub"], 
+                                    fileFeature.ContainsKey("featureCountOnRawHub") ? (string)fileFeature["featureCountOnRawHub"] : "0"),
                                 TooSoonToFeatureUser = (bool)fileFeature["tooSoonToFeatureUser"],
                                 TinEyeResults = new List<string>(TinEyeResults).Contains((string)fileFeature["tinEyeResults"]) ? (string)fileFeature["tinEyeResults"] : TinEyeResults[0],
                                 AiCheckResults = new List<string>(AiCheckResults).Contains((string)fileFeature["aiCheckResults"]) ? (string)fileFeature["aiCheckResults"] : AiCheckResults[0],
@@ -1287,19 +1285,19 @@ public class MainViewModel : NotifyPropertyChanged
                 builder.AppendLine($"{indent}member level - {feature.UserLevel}");
                 if (feature.UserHasFeaturesOnPage)
                 {
-                    builder.AppendLine($"{indent}last feature on page - {feature.LastFeaturedOnPage} (features on page {feature.FeatureCountOnPage} Snap + {feature.FeatureCountOnRawPage} RAW)");
+                    builder.AppendLine($"{indent}last feature on page - {feature.LastFeaturedOnPage} (features on page {feature.FeatureCountOnPage})");
                 }
                 else
                 {
-                    builder.AppendLine($"{indent}last feature on page - never (features on page 0 Snap + 0 RAW)");
+                    builder.AppendLine($"{indent}last feature on page - never (features on page 0)");
                 }
                 if (feature.UserHasFeaturesOnHub)
                 {
-                    builder.AppendLine($"{indent}last feature - {feature.LastFeaturedOnHub} {feature.LastFeaturedPage} (features {feature.FeatureCountOnHub} Snap + {feature.FeatureCountOnRawHub} RAW)");
+                    builder.AppendLine($"{indent}last feature - {feature.LastFeaturedOnHub} {feature.LastFeaturedPage} (features {feature.FeatureCountOnHub})");
                 }
                 else
                 {
-                    builder.AppendLine($"{indent}last feature - never (features 0 Snap + 0 RAW)");
+                    builder.AppendLine($"{indent}last feature - never (features 0)");
                 }
                 var alreadyFeatured = feature.PhotoFeaturedOnPage ? "YES" : "no";
                 var alreadyFeaturedOnHub = feature.PhotoFeaturedOnHub ? $"{feature.PhotoLastFeaturedOnHub} {feature.PhotoLastFeaturedPage}" : "no";
@@ -1488,6 +1486,30 @@ public class MainViewModel : NotifyPropertyChanged
     internal void TriggerTinEyeSource()
     {
         OnPropertyChanged(nameof(TinEyeSource));
+    }
+
+    private string CalculateFeatureCount(string hub, string featureCount, string rawFeatureCount)
+    {
+        featureCount = new List<string>(FeaturedCounts).Contains(featureCount) ? featureCount : FeaturedCounts[0];
+        rawFeatureCount = new List<string>(FeaturedCounts).Contains(rawFeatureCount) ? rawFeatureCount : FeaturedCounts[0];
+        if (featureCount == "many" || rawFeatureCount == "many")
+        {
+            return "many";
+        }
+        if (rawFeatureCount == "0")
+        {
+            return featureCount;
+        }
+        var count = int.TryParse(featureCount, out int countValue) ? countValue : 0;
+        var rawCount = int.TryParse(rawFeatureCount, out int rawCountValue) ? rawCountValue : 0;
+        var total = count + rawCount;
+        return hub switch
+        {
+            "snap" when total > 20 => "many",
+            "click" when total > 75 => "many",
+            _ when total > 50 => "many",
+            _ => $"{total}"
+        };
     }
 
     #endregion

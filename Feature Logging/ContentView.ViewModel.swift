@@ -74,9 +74,9 @@ extension ContentView {
             }
         }
 
+#if STANDALONE
         // MARK: Version check
 
-#if STANDALONE
         private var lastVersionCheckResult = VersionCheckResult.complete
 
         func handleVersionCheck(
