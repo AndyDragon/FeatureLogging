@@ -29,8 +29,6 @@ extension EnvironmentValues {
 
 @main
 struct FeatureLoggingApp: App {
-    @Environment(\.openWindow) private var openWindow
-
     @State private var showingAboutBox = false
 
     let logger = SwiftyBeaver.self
