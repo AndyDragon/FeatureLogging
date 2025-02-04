@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using CommunityToolkit.Maui.Alerts;
@@ -74,6 +75,7 @@ public class MainViewModel : NotifyPropertyChanged
                 {
                     loadedPages.AddRange(from hubPair in pagesCatalog.Hubs from hubPage in hubPair.Value select new LoadedPage(hubPair.Key, hubPage));
                 }
+                
                 LoadedPages.Clear();
                 foreach (var loadedPage in loadedPages.OrderBy(loadedPage => loadedPage, LoadedPageComparer.Default))
                 {
@@ -83,14 +85,18 @@ public class MainViewModel : NotifyPropertyChanged
             }
             SelectedPage = LoadedPages.FirstOrDefault(loadedPage => loadedPage.Id == Page);
             WaitingForPages = false;
+            Debugger.Log(100, "Info", "No longer waiting for pages...");
+            
             await LoadTemplates();
             await LoadDisallowList();
+
             IsDirty = false;
         }
         catch (Exception ex)
         {
             Console.WriteLine("Error occurred loading page catalog (will retry): {0}", ex.Message);
-            _ = Toast.Make($"Failed to load the page catalog: {ex.Message}", ToastDuration.Long).Show().ContinueWith(_ => LoadPages());
+            await Toast.Make($"Failed to load the page catalog: {ex.Message}", ToastDuration.Long).Show();
+            _ = LoadPages();
         }
     }
 
@@ -113,7 +119,8 @@ public class MainViewModel : NotifyPropertyChanged
         catch (Exception ex)
         {
             Console.WriteLine("Error occurred loading the template catalog (will retry): {0}", ex.Message);
-            _ = Toast.Make($"Failed to load the page templates: {ex.Message}", ToastDuration.Long).Show().ContinueWith(_ => LoadTemplates());
+            await Toast.Make($"Failed to load the page templates: {ex.Message}", ToastDuration.Long).Show();
+            _ = LoadTemplates();
         }
     }
 
