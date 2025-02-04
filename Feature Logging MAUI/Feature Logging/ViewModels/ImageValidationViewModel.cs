@@ -2,7 +2,7 @@
 using System.Net.Http.Headers;
 using FeatureLogging.Base;
 using FeatureLogging.Models;
-using MauiIcons.Material;
+using MauiIcons.Material.Rounded;
 using Newtonsoft.Json;
 
 namespace FeatureLogging.ViewModels;
@@ -121,34 +121,34 @@ public class ImageValidationViewModel : NotifyPropertyChanged
                                     ? Colors.Green : verdictClass.Score < 0.5 
                                         ? Colors.Red : Colors.Yellow;
                                 var resultIcon = verdictClass.Score > 0.8 
-                                    ? MaterialIcons.VerifiedUser : verdictClass.Score < 0.5 
-                                        ? MaterialIcons.GppBad : MaterialIcons.PrivacyTip;
+                                    ? MaterialRoundedIcons.VerifiedUser : verdictClass.Score < 0.5 
+                                        ? MaterialRoundedIcons.GppBad : MaterialRoundedIcons.PrivacyTip;
                                 Verdict = new VerdictResult($"{resultString} ({verdictClass.Score:P2} not AI)", highestClassString, resultColor, resultIcon);
                             }
                             else
                             {
                                 LogEntries.Add(new LogEntry($"Could not find result class in results", LogType.Special));
-                                Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialIcons.Shield);
+                                Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialRoundedIcons.Shield);
                             }
                         }
                     }
                     else
                     {
                         LogEntries.Add(new LogEntry($"Could not parse the AI detection", LogType.Special));
-                        Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialIcons.Shield);
+                        Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialRoundedIcons.Shield);
                     }
                 }
                 catch (Exception ex)
                 {
                     LogEntries.Add(new LogEntry($"Could not load the AI detection {ex.Message}", LogType.Special));
-                    Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialIcons.Shield);
+                    Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialRoundedIcons.Shield);
                 }
             }
         }
         catch (Exception ex)
         {
             LogEntries.Add(new LogEntry($"Could not request the AI detection {ex.Message}", LogType.Special));
-            Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialIcons.Shield);
+            Verdict = new VerdictResult($"Could not determine", "", Colors.Violet, MaterialRoundedIcons.Shield);
         }
     }
 
@@ -178,7 +178,7 @@ public class ImageValidationViewModel : NotifyPropertyChanged
 
     #region HIVE results
 
-    private VerdictResult verdict = new("Checking...", "", Colors.Gray, MaterialIcons.Shield);
+    private VerdictResult verdict = new("Checking...", "", Colors.Gray, MaterialRoundedIcons.Shield);
 
     public VerdictResult Verdict
     {

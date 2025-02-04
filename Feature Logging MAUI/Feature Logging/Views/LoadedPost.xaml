@@ -46,7 +46,7 @@
                         HorizontalOptions="End">
                         <mi:MauiIcon
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding MainViewModel.PageValidation, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding MainViewModel.PageValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -103,7 +103,7 @@
                         HorizontalOptions="End">
                         <mi:MauiIcon
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding MainViewModel.SelectedFeature.PostLinkValidation, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding MainViewModel.SelectedFeature.PostLinkValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -148,7 +148,7 @@
                         HorizontalOptions="End">
                         <mi:MauiIcon
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding UserProfileUrlValidation, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding UserProfileUrlValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -206,7 +206,7 @@
                         HorizontalOptions="End">
                         <mi:MauiIcon
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding UserAliasValidation, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding UserAliasValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -231,7 +231,7 @@
                         <mi:MauiIcon
                             Grid.Column="0"
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding MainViewModel.SelectedFeature.UserAliasValidation, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding MainViewModel.SelectedFeature.UserAliasValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -261,7 +261,7 @@
                         HorizontalOptions="End">
                         <mi:MauiIcon
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding UserNameValidation, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding UserNameValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -285,7 +285,7 @@
                         <mi:MauiIcon
                             Grid.Column="0"
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding MainViewModel.SelectedFeature.UserNameValidation, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding MainViewModel.SelectedFeature.UserNameValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -334,7 +334,7 @@
                         <mi:MauiIcon
                             Grid.Column="0"
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding MainViewModel.SelectedFeature.UserLevelValidation, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding MainViewModel.SelectedFeature.UserLevelValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -380,7 +380,7 @@
                         VerticalOptions="Center">
                         <mi:MauiIcon
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding PageHashtagCheck, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding PageHashtagCheck, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -397,7 +397,7 @@
                         VerticalOptions="Center">
                         <mi:MauiIcon
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding ExcludedHashtagCheck, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding ExcludedHashtagCheck, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -434,7 +434,7 @@
                         <mi:MauiIcon
                             Grid.Column="0"
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding MainViewModel.SelectedFeature.FeatureDescriptionValidation, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding MainViewModel.SelectedFeature.FeatureDescriptionValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -464,7 +464,7 @@
                         HorizontalOptions="Start">
                         <mi:MauiIcon
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding PageCommentsValidation, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding PageCommentsValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -535,7 +535,7 @@
                         HorizontalOptions="Start">
                         <mi:MauiIcon
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="{Binding HubCommentsValidation, Converter={StaticResource ValidationResultColorConverter}}"
                             IsVisible="{Binding HubCommentsValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -570,7 +570,7 @@
                             IsVisible="{Binding MainViewModel.SelectedFeature.PhotoFeaturedOnHub}">
                             <mi:MauiIcon
                                 VerticalOptions="Center"
-                                Icon="{mi:Material Icon=Warning}"
+                                Icon="{mi:MaterialRounded Icon=Warning}"
                                 Scale="0.8"
                                 IconColor="{Binding MainViewModel.SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource ValidationResultColorConverter}}"
                                 IsVisible="{Binding MainViewModel.SelectedFeature.PhotoLastFeaturedOnHubValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
@@ -636,7 +636,7 @@
                         IsVisible="{Binding MoreComments}">
                         <mi:MauiIcon
                             VerticalOptions="Center"
-                            Icon="{mi:Material Icon=Warning}"
+                            Icon="{mi:MaterialRounded Icon=Warning}"
                             Scale="0.8"
                             IconColor="Orange" />
                         <Label
@@ -675,7 +675,7 @@
                             IsVisible="{Binding ShowImageNavigators}"
                             Command="{Binding PreviousImageCommand}">
                             <ImageButton.Source>
-                                <mi:Material Icon="ChevronLeft" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
+                                <mi:MaterialRounded Icon="ChevronLeft" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
                             </ImageButton.Source>
                         </ImageButton>
                         <CarouselView
@@ -745,7 +745,7 @@
                             IsVisible="{Binding ShowImageNavigators}"
                             Command="{Binding NextImageCommand}">
                             <ImageButton.Source>
-                                <mi:Material Icon="ChevronRight" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
+                                <mi:MaterialRounded Icon="ChevronRight" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
                             </ImageButton.Source>
                         </ImageButton>
                     </HorizontalStackLayout>

@@ -1,8 +1,8 @@
-﻿using MauiIcons.Material;
+﻿using MauiIcons.Material.Rounded;
 
 namespace FeatureLogging.Models;
 
-public struct VerdictResult(string message, string details, Color color, MaterialIcons icon) : IEquatable<VerdictResult>
+public struct VerdictResult(string message, string details, Color color, MaterialRoundedIcons icon) : IEquatable<VerdictResult>
 {
     public string Message { get; } = message;
 
@@ -10,7 +10,7 @@ public struct VerdictResult(string message, string details, Color color, Materia
 
     public Color Color { get; private set; } = color;
 
-    public MaterialIcons Icon { get; private set; } = icon;
+    public MaterialRoundedIcons Icon { get; private set; } = icon;
 
     public static bool operator ==(VerdictResult x, VerdictResult y)
     {

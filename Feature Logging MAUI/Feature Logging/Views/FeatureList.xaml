@@ -68,7 +68,7 @@
                 <mi:MauiIcon
                     Grid.Column="0"
                     VerticalOptions="Center"
-                    Icon="{mi:Material Icon=Warning}"
+                    Icon="{mi:MaterialRounded Icon=Warning}"
                     IconColor="Red"
                     IsVisible="{Binding NoSelectedPage}" />
                 <Label
@@ -110,7 +110,7 @@
                 <mi:MauiIcon
                     Grid.Column="1"
                     VerticalOptions="Center"
-                    Icon="{mi:Material Icon=Warning}"
+                    Icon="{mi:MaterialRounded Icon=Warning}"
                     IconColor="Red"
                     IsVisible="{Binding YourAliasValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
                 <Editor
@@ -122,7 +122,7 @@
                 <mi:MauiIcon
                     Grid.Column="3"
                     VerticalOptions="Center"
-                    Icon="{mi:Material Icon=Warning}"
+                    Icon="{mi:MaterialRounded Icon=Warning}"
                     IconColor="Red"
                     IsVisible="{Binding YourFirstNameValidation, Converter={StaticResource ValidationResultVisibilityConverter}}" />
                 <Editor
@@ -170,7 +170,7 @@
                                     <Grid ColumnDefinitions="Auto, *, Auto">
                                         <mi:MauiIcon
                                             Grid.Column="0"
-                                            Icon="{mi:Material {Binding Icon}}"
+                                            Icon="{mi:MaterialRounded {Binding Icon}}"
                                             IconColor="{Binding IconColor}"
                                             IconSize="40"
                                             Margin="12,0,3,0" />
@@ -203,7 +203,7 @@
                                                 Margin="0"
                                                 Aspect="Center">
                                                 <ImageButton.Source>
-                                                    <mi:Material Icon="Star" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
+                                                    <mi:MaterialRounded Icon="Star" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
                                                 </ImageButton.Source>
                                             </ImageButton>
                                             <ImageButton
@@ -212,7 +212,7 @@
                                                 Margin="0"
                                                 Aspect="Center">
                                                 <ImageButton.Source>
-                                                    <mi:Material Icon="Edit" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
+                                                    <mi:MaterialRounded Icon="Edit" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
                                                 </ImageButton.Source>
                                             </ImageButton>
                                             <ImageButton
@@ -221,7 +221,7 @@
                                                 Margin="0"
                                                 Aspect="Center">
                                                 <ImageButton.Source>
-                                                    <mi:Material Icon="Delete" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
+                                                    <mi:MaterialRounded Icon="Delete" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
                                                 </ImageButton.Source>
                                             </ImageButton>
                                             <ImageButton
@@ -231,7 +231,7 @@
                                                 Aspect="Center"
                                                 IsVisible="{Binding IsPickedAndAllowed}">
                                                 <ImageButton.Source>
-                                                    <mi:Material Icon="NoteAlt" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
+                                                    <mi:MaterialRounded Icon="NoteAlt" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
                                                 </ImageButton.Source>
                                             </ImageButton>
                                             <ImageButton
@@ -241,7 +241,7 @@
                                                 Aspect="Center"
                                                 IsVisible="{Binding IsPickedAndAllowed}">
                                                 <ImageButton.Source>
-                                                    <mi:Material Icon="Message" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
+                                                    <mi:MaterialRounded Icon="Message" IconSize="20" IconColor="{AppThemeBinding Light=Black, Dark=White}" />
                                                 </ImageButton.Source>
                                             </ImageButton>
                                         </HorizontalStackLayout>

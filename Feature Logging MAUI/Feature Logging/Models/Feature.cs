@@ -1,4 +1,4 @@
-﻿using MauiIcons.Material;
+﻿using MauiIcons.Material.Rounded;
 using Newtonsoft.Json;
 using FeatureLogging.Base;
 
@@ -229,27 +229,27 @@ public class Feature(string hubName) : NotifyPropertyChanged
     }
 
     [JsonIgnore]
-    public MaterialIcons Icon
+    public MaterialRoundedIcons Icon
     {
         get
         {
             if (PhotoFeaturedOnPage)
             {
-                return MaterialIcons.Warning;
+                return MaterialRoundedIcons.Warning;
             }
             if (TooSoonToFeatureUser)
             {
-                return MaterialIcons.Timer;
+                return MaterialRoundedIcons.Timer;
             }
             if (TinEyeResults == "matches found")
             {
-                return MaterialIcons.Shield;
+                return MaterialRoundedIcons.Shield;
             }
             if (AiCheckResults == "ai")
             {
-                return MaterialIcons.Shield;
+                return MaterialRoundedIcons.Shield;
             }
-            return IsPicked ? MaterialIcons.Star : MaterialIcons.Close;
+            return IsPicked ? MaterialRoundedIcons.Star : MaterialRoundedIcons.Close;
         }
     }
 
