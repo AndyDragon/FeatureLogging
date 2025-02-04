@@ -159,7 +159,7 @@ extension PostDownloaderImageView {
             if !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil) {
                 try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: false, attributes: nil)
             }
-            let fileURL = folderURL.appendingPathComponent("\(userName).\(fileExtension)")
+            let fileURL = folderURL.appendingPathComponent("\(userName)\(fileExtension)")
             try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
             logger.verbose("Saved the image to file \(fileURL.path)", context: "System")
             viewModel.showSuccessToast("Saved", "Saved the image to file \(fileURL.lastPathComponent) to your Pictures/VERO folder")

@@ -275,11 +275,15 @@ struct FeatureLoggingApp: App {
         }
 
         func windowShouldClose(_ sender: NSWindow) -> Bool {
-            return false
+            return DocumentManager.default.canTerminate()
         }
 
         func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
             return DocumentManager.default.canTerminate() ? .terminateNow : .terminateCancel
+        }
+
+        func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+            return true
         }
 
         func applicationWillTerminate(_ notification: Notification) {
