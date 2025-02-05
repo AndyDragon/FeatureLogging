@@ -164,6 +164,30 @@ struct PostDownloaderView: View {
             .foregroundStyle(Color.label, Color.secondaryLabel)
             .toolbar {
                 Button(action: {
+                    logger.verbose("Tapped remove feature button", context: "System")
+                    if let currentFeature = viewModel.selectedFeature {
+                        viewModel.selectedFeature = nil
+                        viewModel.features.removeAll(where: { $0.id == currentFeature.feature.id })
+                        viewModel.markDocumentDirty()
+                    }
+                    viewModel.visibleView = .FeatureView
+                }) {
+                    HStack {
+                        Image(systemName: "person.fill.badge.minus")
+                            .foregroundStyle(Color.red, Color.secondaryLabel)
+                        Text("Remove feature")
+                            .font(.system(.body, design: .rounded).bold())
+                            .foregroundStyle(Color.label, Color.secondaryLabel)
+                        Text("    ⌘ -")
+                            .font(.system(.body, design: .rounded))
+                            .foregroundStyle(Color.gray, Color.secondaryLabel)
+                    }
+                    .padding(4)
+                }
+                .keyboardShortcut("-", modifiers: .command)
+                .disabled(viewModel.hasModalToasts)
+
+                Button(action: {
                     viewModel.visibleView = .FeatureView
                 }) {
                     HStack {
@@ -826,31 +850,15 @@ struct PostDownloaderView: View {
             HStack(alignment: .center) {
                 ValidationLabel("Image\(imageUrls.count == 1 ? "" : "s") found: ", validation: imageUrls.count > 0, validColor: .green)
                 ValidationLabel("\(imageUrls.count)", validation: imageUrls.count > 0, validColor: .accentColor)
-
+                
                 Spacer()
             }
             .frame(height: 20)
             .frame(maxWidth: 1280)
             .padding([.leading, .trailing])
-
-            ScrollView(.horizontal) {
-                VStack(alignment: .center) {
-                    HStack {
-                        ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
-                            PostDownloaderImageView(
-                                viewModel: viewModel,
-                                imageUrl: imageUrl,
-                                userName: userName,
-                                index: index
-                            )
-                            .padding(.all, 0.001)
-                        }
-                    }
-                    .frame(minWidth: 20)
-                }
-                .padding([.leading, .bottom, .trailing])
-            }
-            .frame(minWidth: 20, maxWidth: 1280)
+            
+            CarouselView(viewModel: viewModel, images: imageUrls, userName: userName)
+                .frame(minWidth: 20, maxWidth: 1280)
         }
     }
 

@@ -807,24 +807,8 @@ struct PostDownloaderView: View {
             .frame(maxWidth: .infinity)
             .padding([.leading, .trailing])
 
-            ScrollView(.horizontal) {
-                VStack(alignment: .center) {
-                    HStack {
-                        ForEach(Array(imageUrls.enumerated()), id: \.offset) { index, imageUrl in
-                            PostDownloaderImageView(
-                                viewModel: viewModel,
-                                imageUrl: imageUrl,
-                                userName: userName,
-                                index: index
-                            )
-                            .padding(.all, 0.001)
-                        }
-                    }
-                    .frame(minWidth: 20)
-                }
-                .padding([.leading, .bottom, .trailing])
-            }
-            .frame(minWidth: 20, maxWidth: .infinity)
+            CarouselView(viewModel: viewModel, images: imageUrls, userName: userName)
+                .frame(minWidth: 20, maxWidth: .infinity)
         }
     }
 

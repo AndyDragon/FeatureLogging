@@ -56,27 +56,28 @@ struct PostDownloaderImageView: View {
 #endif
                             width = Int(pixelSize.width)
                             height = Int(pixelSize.height)
-                            scale = min(400.0 / Float(result.image.size.width), 360.0 / Float(result.image.size.height))
+                            scale = min(608.0 / Float(result.image.size.width), 448.0 / Float(result.image.size.height))
                         }
                         .interpolation(.high)
                         .antialiased(true)
                         .forceRefresh()
-                        .cornerRadius(2)
+                        .cornerRadius(4)
                 }
                 .scaleEffect(CGFloat(scale))
-                .frame(width: 400, height: 360)
+                .frame(width: 640, height: 480)
                 .clipped()
 
                 Slider(value: $scale, in: 0.01 ... 2)
+                    .padding(.horizontal, 16)
 
                 Text("Size: \(width)px x \(height)px")
                     .foregroundStyle(.black, .secondary)
                     .font(.system(size: 12))
             }
-            .frame(width: 400, height: 414)
-            .padding(.all, 4)
-            .cornerRadius(4)
+            .frame(width: 640, height: 530)
+            .padding(.bottom, 8)
             .background(Color(red: 0.9, green: 0.9, blue: 0.92))
+            .cornerRadius(8)
 
             HStack {
                 Button(action: {

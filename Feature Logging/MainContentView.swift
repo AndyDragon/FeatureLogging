@@ -474,42 +474,6 @@ struct MainContentView: View {
             Spacer()
                 .frame(width: 16)
 
-            // Remove feature
-            Button(action: {
-                logger.verbose("Tapped remove feature button", context: "System")
-                if let currentFeature = viewModel.selectedFeature {
-                    viewModel.selectedFeature = nil
-                    viewModel.features.removeAll(where: { $0.id == currentFeature.feature.id })
-                    viewModel.markDocumentDirty()
-                }
-            }) {
-                HStack(alignment: .center) {
-                    Image(systemName: "person.fill.badge.minus")
-                        .foregroundStyle(Color.red, Color.secondaryLabel)
-                    Text("Remove feature")
-                    Text("    ⌘ -")
-                        .font(.system(.body, design: .rounded))
-                        .foregroundStyle(Color.gray, Color.secondaryLabel)
-                }
-                .padding(2)
-            }
-            .disabled(viewModel.selectedFeature == nil)
-            .keyboardShortcut("-", modifiers: .command)
-            .focusable()
-            .focused(focusedField, equals: .removeFeature)
-            .onKeyPress(.space) {
-                logger.verbose("Pressed space on remove feature button", context: "System")
-                if let currentFeature = viewModel.selectedFeature {
-                    viewModel.selectedFeature = nil
-                    viewModel.features.removeAll(where: { $0.id == currentFeature.feature.id })
-                    viewModel.markDocumentDirty()
-                }
-                return .handled
-            }
-
-            Spacer()
-                .frame(width: 16)
-
             // Copy report
             Button(action: {
                 logger.verbose("Tapped generate report button", context: "User")

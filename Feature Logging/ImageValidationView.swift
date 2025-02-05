@@ -93,6 +93,30 @@ struct ImageValidationView: View {
                 .foregroundStyle(Color.label, Color.secondaryLabel)
                 .toolbar {
                     Button(action: {
+                        logger.verbose("Tapped remove feature button", context: "System")
+                        if let currentFeature = viewModel.selectedFeature {
+                            viewModel.selectedFeature = nil
+                            viewModel.features.removeAll(where: { $0.id == currentFeature.feature.id })
+                            viewModel.markDocumentDirty()
+                        }
+                        viewModel.visibleView = .FeatureView
+                    }) {
+                        HStack {
+                            Image(systemName: "person.fill.badge.minus")
+                                .foregroundStyle(Color.red, Color.secondaryLabel)
+                            Text("Remove feature")
+                                .font(.system(.body, design: .rounded).bold())
+                                .foregroundStyle(Color.label, Color.secondaryLabel)
+                            Text("    ⌘ -")
+                                .font(.system(.body, design: .rounded))
+                                .foregroundStyle(Color.gray, Color.secondaryLabel)
+                        }
+                        .padding(4)
+                    }
+                    .keyboardShortcut("-", modifiers: .command)
+                    .disabled(viewModel.hasModalToasts || uploadToServer != nil)
+
+                    Button(action: {
                         viewModel.visibleView = .PostDownloadView
                     }) {
                         HStack {
