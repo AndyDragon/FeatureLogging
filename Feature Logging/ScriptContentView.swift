@@ -761,8 +761,6 @@ extension ScriptContentView {
             .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
             .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
             .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
-            // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
             .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
 
             commentScript = getTemplateFromCatalog(
@@ -781,8 +779,6 @@ extension ScriptContentView {
             .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
             .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
             .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
-            // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
             .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
 
             originalPostScript = getTemplateFromCatalog(
@@ -801,8 +797,6 @@ extension ScriptContentView {
             .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
             .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
             .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
-            // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-            .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
             .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
         }
     }
@@ -934,8 +928,6 @@ extension ScriptContentView {
                 .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
                 .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
                 .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
-                // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                .replacingOccurrences(of: "[[YOUR FIRST NAME]]", with: viewModel.yourFirstName)
                 .replacingOccurrences(of: "%%STAFFLEVEL%%", with: viewModel.selectedPageStaffLevel.rawValue)
         }
     }

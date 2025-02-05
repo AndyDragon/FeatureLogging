@@ -962,8 +962,6 @@ namespace FeatureLogging
                     .Replace("%%USERNAME%%", UserName)
                     .Replace("%%YOURNAME%%", YourName)
                     .Replace("%%YOURFIRSTNAME%%", YourFirstName)
-                    // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                    .Replace("[[YOUR FIRST NAME]]", YourFirstName)
                     .Replace("%%STAFFLEVEL%%", StaffLevel);
                 CommentScript = commentScriptTemplate
                     .Replace("%%PAGENAME%%", scriptPageName)
@@ -974,8 +972,6 @@ namespace FeatureLogging
                     .Replace("%%USERNAME%%", UserName)
                     .Replace("%%YOURNAME%%", YourName)
                     .Replace("%%YOURFIRSTNAME%%", YourFirstName)
-                    // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                    .Replace("[[YOUR FIRST NAME]]", YourFirstName)
                     .Replace("%%STAFFLEVEL%%", StaffLevel);
                 OriginalPostScript = originalPostScriptTemplate
                     .Replace("%%PAGENAME%%", scriptPageName)
@@ -986,8 +982,6 @@ namespace FeatureLogging
                     .Replace("%%USERNAME%%", UserName)
                     .Replace("%%YOURNAME%%", YourName)
                     .Replace("%%YOURFIRSTNAME%%", YourFirstName)
-                    // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                    .Replace("[[YOUR FIRST NAME]]", YourFirstName)
                     .Replace("%%STAFFLEVEL%%", StaffLevel);
             }
         }
@@ -1139,8 +1133,6 @@ namespace FeatureLogging
                         .Replace("%%USERNAME%%", UserName)
                         .Replace("%%YOURNAME%%", YourName)
                         .Replace("%%YOURFIRSTNAME%%", YourFirstName)
-                        // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                        .Replace("[[YOUR FIRST NAME]]", YourFirstName)
                         .Replace("%%STAFFLEVEL%%", StaffLevel);
                 }
                 else if (NewMembership == "Member")
@@ -1154,8 +1146,6 @@ namespace FeatureLogging
                         .Replace("%%USERNAME%%", UserName)
                         .Replace("%%YOURNAME%%", YourName)
                         .Replace("%%YOURFIRSTNAME%%", YourFirstName)
-                        // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                        .Replace("[[YOUR FIRST NAME]]", YourFirstName)
                         .Replace("%%STAFFLEVEL%%", StaffLevel);
                 }
                 else if (NewMembership == "VIP Member")
@@ -1169,8 +1159,6 @@ namespace FeatureLogging
                         .Replace("%%USERNAME%%", UserName)
                         .Replace("%%YOURNAME%%", YourName)
                         .Replace("%%YOURFIRSTNAME%%", YourFirstName)
-                        // Special case for 'YOUR FIRST NAME' since it's now autofilled.
-                        .Replace("[[YOUR FIRST NAME]]", YourFirstName)
                         .Replace("%%STAFFLEVEL%%", StaffLevel);
                 }
             }

@@ -112,8 +112,6 @@ namespace FeatureLogging
         private readonly NotificationManager notificationManager = new();
         private string lastFilename = string.Empty;
 
-        // Change this to 'true' to load the testing scripts.
-        const bool ScriptTesting = false;
 
         public MainViewModel()
         {
@@ -809,9 +807,7 @@ namespace FeatureLogging
                 {
                     NoCache = true
                 };
-                var pagesUri = new Uri(ScriptTesting
-                    ? "https://vero.andydragon.com/static/data/testing/pages.json"
-                    : "https://vero.andydragon.com/static/data/pages.json");
+                var pagesUri = new Uri("https://vero.andydragon.com/static/data/pages.json");
                 var content = await httpClient.GetStringAsync(pagesUri);
                 if (!string.IsNullOrEmpty(content))
                 {
@@ -864,9 +860,7 @@ namespace FeatureLogging
                 {
                     NoCache = true
                 };
-                var templatesUri = new Uri(ScriptTesting
-                    ? "https://vero.andydragon.com/static/data/testing/templates.json"
-                    : "https://vero.andydragon.com/static/data/templates.json");
+                var templatesUri = new Uri("https://vero.andydragon.com/static/data/templates.json");
                 var content = await httpClient.GetStringAsync(templatesUri);
                 if (!string.IsNullOrEmpty(content))
                 {
