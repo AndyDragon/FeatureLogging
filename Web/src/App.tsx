@@ -31,6 +31,7 @@ import {
 import About from "./About";
 import General from "./General";
 import ReleaseNotes from "./ReleaseNotes";
+import Support from "./Support";
 import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
 import Tutorial from "./Tutorial";
 
@@ -76,9 +77,16 @@ function App() {
                     </DrawerHeader>
                     <DrawerBody style={{ marginTop: "40px"}}>
                         <nav>
-                            <Link className={styles.cleanLink} style={{ fontSize: "20pt", marginTop: "40px" }} to="/">
-                                About
-                            </Link>
+                            <div style={{ display: "flex", flexDirection: "column", marginTop: "0px" }}>
+                                <Link className={styles.cleanLink} style={{ fontSize: "20pt", marginTop: "40px" }} to="/">
+                                    About
+                                </Link>
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", marginTop: "0px" }}>
+                                <Link className={styles.cleanLink} style={{ fontSize: "20pt", marginTop: "40px" }} to="/support">
+                                    Support
+                                </Link>
+                            </div>
                             {showMacInfo && (
                             <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
                                 <Title3>macOS</Title3>
@@ -177,6 +185,11 @@ function App() {
                         <Routes>
                             <Route path="/" element={(
                                 <About
+                                    applicationName={applicationName}
+                                    versionLocation={versionLocation} />
+                            )} />
+                            <Route path="/support" element={(
+                                <Support
                                     applicationName={applicationName}
                                     versionLocation={versionLocation} />
                             )} />

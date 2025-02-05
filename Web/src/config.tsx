@@ -31,6 +31,8 @@ export const showWindowsV2Info = true;
 export const windowsV2InstallerLocation = "featurelogging/windowsV2";
 export const windowsV2ReleaseNotesLocation = "releaseNotes-windows_v2.json";
 
+export const supportEmail = "andydragon@live.com";
+
 export const hasTutorial = true;
 
 export type Platform = "macOS" | "macOS_v2" | "windows" | "windows_v2";
