@@ -74,6 +74,7 @@
         <KeyBinding Key="L" Modifiers="Ctrl" Command="{Binding LoadPostCommand}" />
         <KeyBinding Key="T" Modifiers="Ctrl+Shift" Command="{Binding ShowStatisticsViewCommand}" />
 
+        <KeyBinding Key="Backspace" Modifiers="Ctrl" Command="{Binding RemoveDownloadedPostFeatureCommand}" />
         <KeyBinding Key="OemTilde" Modifiers="Ctrl" Command="{Binding CloseCurrentViewCommand}" />
         <KeyBinding Key="Left" Modifiers="Ctrl" Command="{Binding NavigateToPreviousFeatureCommand}" />
         <KeyBinding Key="Right" Modifiers="Ctrl" Command="{Binding NavigateToNextFeatureCommand}" />
@@ -234,6 +235,24 @@
             </Button>
             <Button
                 Visibility="{Binding PostDownloaderViewVisibility}"
+                Command="{Binding RemoveDownloadedPostFeatureCommand}"
+                Content="Remove feature" ToolTip="Removes the feature currently open (Ctrl+backspace)">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconJamIcons
+                                Width="20"
+                                Height="20"
+                                Kind="Trash" />
+                            <TextBlock Margin="4 0 0 0"
+                                VerticalAlignment="Center"
+                                Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button
+                Visibility="{Binding PostDownloaderViewVisibility}"
                 Command="{Binding CloseCurrentViewCommand}"
                 Content="Close" ToolTip="Closes the post viewer (Ctrl+tilda)">
                 <Button.ContentTemplate>
@@ -252,8 +271,62 @@
             </Button>
             <Button
                 Visibility="{Binding ImageValidationViewVisibility}"
+                Command="{Binding RemoveDownloadedPostFeatureCommand}"
+                Content="Remove feature" ToolTip="Removes the feature currently open (Ctrl+backspace)">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconJamIcons
+                                Width="20"
+                                Height="20"
+                                Kind="Trash" />
+                            <TextBlock Margin="4 0 0 0"
+                                VerticalAlignment="Center"
+                                Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button
+                Visibility="{Binding ImageValidationViewVisibility}"
                 Command="{Binding CloseCurrentViewCommand}"
                 Content="Close" ToolTip="Closes the image validator (Ctrl+tilda)">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconJamIcons
+                                Width="20"
+                                Height="20"
+                                Kind="CloseCircle" />
+                            <TextBlock Margin="4 0 0 0"
+                                VerticalAlignment="Center"
+                                Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button
+                Visibility="{Binding ImageViewVisibility}"
+                Command="{Binding RemoveDownloadedPostFeatureCommand}"
+                Content="Remove feature" ToolTip="Removes the feature currently open (Ctrl+backspace)">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconJamIcons
+                                Width="20"
+                                Height="20"
+                                Kind="Trash" />
+                            <TextBlock Margin="4 0 0 0"
+                                VerticalAlignment="Center"
+                                Text="{Binding}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+            <Button
+                Visibility="{Binding ImageViewVisibility}"
+                Command="{Binding CloseCurrentViewCommand}"
+                Content="Close" ToolTip="Closes the image viewer (Ctrl+tilda)">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -2932,6 +3005,7 @@
                             IsBannerEnabled="False"
                             IsNavigationEnabled="True"
                             ItemsSource="{Binding LoadedPost.ImageEntries}"
+                            SelectedIndex="{Binding LoadedPost.CurrentImageEntry, Mode=TwoWay}"
                             MouseHoverBorderEnabled="False"
                             NavigationButtonsPosition="Outside"
                             ShowIndex="{Binding LoadedPost.MultipleImages}"
@@ -2978,6 +3052,17 @@
                                                 Grid.Row="2"
                                                 Orientation="Horizontal"
                                                 HorizontalAlignment="Center">
+                                                <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding ViewImageCommand}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <iconPacks:PackIconFeatherIcons
+                                                            VerticalAlignment="Center"
+                                                            Kind="Search"
+                                                            Margin="0,0,0,0"
+                                                            Height="11"
+                                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                                        <TextBlock Text="View" VerticalAlignment="Center" Padding="4,0,4,2" />
+                                                    </StackPanel>
+                                                </Button>
                                                 <Button Height="24" MinWidth="24" Margin="4,0" Command="{Binding ValidateImageCommand}">
                                                     <StackPanel Orientation="Horizontal">
                                                         <iconPacks:PackIconFeatherIcons
@@ -3116,6 +3201,74 @@
                 </Border>
             </Grid>
         </ScrollViewer>
+
+        <Grid
+            Grid.Row="1"
+            Visibility="{Binding ImageViewVisibility}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="20,10">
+                <Button Height="24" MinWidth="24" Margin="8,4,8,0" Command="{Binding LoadedPost.ValidateCommand}" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconFeatherIcons
+                            VerticalAlignment="Center"
+                            Kind="CheckSquare"
+                            Margin="0,0,0,0"
+                            Height="11"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                        <TextBlock Text="Validate" VerticalAlignment="Center" Padding="4,0,4,2" />
+                    </StackPanel>
+                </Button>
+                <TextBlock Text="|" FontSize="16" Margin="16,2" VerticalAlignment="Center" />
+                <TextBlock Text="Size:   " FontSize="18" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding LoadedPost.Image.Width}" FontSize="18" VerticalAlignment="Center" />
+                <TextBlock Text=" x " FontSize="18" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding LoadedPost.Image.Height}" FontSize="18" VerticalAlignment="Center" />
+                <TextBlock Text="|" FontSize="16" Margin="16,2" VerticalAlignment="Center" />
+                <TextBlock Text="Scale:   " FontSize="18" VerticalAlignment="Center" />
+                <Slider 
+                    Margin="0,4,0,0"
+                    Orientation="Horizontal" 
+                    VerticalAlignment="Center"
+                    Minimum="10" 
+                    Maximum="200" 
+                    Value="{Binding LoadedPost.ImageScalePercent, Mode=TwoWay}" 
+                    Width="500" />
+                <Button Height="24" MinWidth="24" Margin="8,4,8,0" Command="{Binding LoadedPost.ResetImageScaleCommand}" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconFeatherIcons
+                            VerticalAlignment="Center"
+                            Kind="RefreshCcw"
+                            Margin="0,0,0,0"
+                            Height="11"
+                            Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                        <TextBlock Text="Reset" VerticalAlignment="Center" Padding="4,0,4,2" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+            <ScrollViewer
+                Grid.Row="1"
+                CanContentScroll="True"
+                HorizontalScrollBarVisibility="Auto"
+                VerticalScrollBarVisibility="Auto">
+                <Viewbox
+                    Margin="20" 
+                    HorizontalAlignment="Left" 
+                    VerticalAlignment="Top">
+                    <Viewbox.RenderTransform>
+                        <ScaleTransform 
+                            ScaleX="{Binding LoadedPost.ImageScale}"
+                            ScaleY="{Binding LoadedPost.ImageScale}" />
+                    </Viewbox.RenderTransform>
+                    <Image
+                        Stretch="None"
+                        RenderOptions.BitmapScalingMode="HighQuality"                        
+                        Source="{Binding LoadedPost.Image.Source}" />
+                </Viewbox>
+            </ScrollViewer>
+        </Grid>
 
         <!-- IMAGE VALIDATION VIEW -->
         <Grid

@@ -200,6 +200,7 @@ namespace FeatureLogging
                                                     LogProgress(imageUrl!.ToString(), "Image source");
                                                     ImageEntries.Add(new ImageEntry(imageUrl, userName ?? "unknown", this, notificationManager));
                                                 }
+                                                CurrentImageEntry = 0;
                                                 ShowImages = true;
                                             }
                                             else
@@ -554,6 +555,13 @@ namespace FeatureLogging
         private readonly ObservableCollection<ImageEntry> imageEntries = [];
         public ObservableCollection<ImageEntry> ImageEntries { get => imageEntries; }
 
+        private int currentImageEntry = -1;
+        public int CurrentImageEntry
+        {
+            get => currentImageEntry;
+            set => Set(ref currentImageEntry, value);
+        }
+
         private bool showImages = false;
         public bool ShowImages
         {
@@ -562,6 +570,29 @@ namespace FeatureLogging
         }
 
         public bool MultipleImages => ImageEntries.Count > 1;
+
+        #endregion
+
+        #region Image
+
+        private ImageEntry? image;
+        public ImageEntry? Image
+        {
+            get => image;
+            set => Set(ref image, value);
+        }
+
+        public Command ValidateCommand => new(() => { ValidateImage(Image!); });
+
+        private int imageScalePercent = 100;
+        public int ImageScalePercent
+        {
+            get => imageScalePercent;
+            set => Set(ref imageScalePercent, value, [nameof(ImageScale)]);
+        }
+        public double ImageScale => ImageScalePercent / 100.0;
+
+        public Command ResetImageScaleCommand => new(() => { ImageScalePercent = 100; });
 
         #endregion
 
@@ -656,9 +687,16 @@ namespace FeatureLogging
             }
         }
 
+        public void ViewImage(ImageEntry imageEntry)
+        {
+            ImageScalePercent = 100;
+            Image = imageEntry;
+            vm.View = MainViewModel.ViewMode.ImageView;
+        }
+
         public void ValidateImage(ImageEntry imageEntry)
         {
-            this.ImageValidation = new ImageValidationViewModel(vm, imageEntry);
+            ImageValidation = new ImageValidationViewModel(vm, imageEntry);
             vm.View = MainViewModel.ViewMode.ImageValidationView;
         }
     }
@@ -760,6 +798,10 @@ namespace FeatureLogging
                 Height = frame.PixelHeight;
             }
 
+            ViewImageCommand = new Command(() =>
+            {
+                this.postVm.ViewImage(this);
+            });
             ValidateImageCommand = new Command(() =>
             {
                 this.postVm.ValidateImage(this);
@@ -832,6 +874,8 @@ namespace FeatureLogging
             get => height;
             private set => Set(ref height, value);
         }
+
+        public ICommand ViewImageCommand { get; }
 
         public ICommand ValidateImageCommand { get; }
 

@@ -606,10 +606,29 @@ namespace FeatureLogging
                     case ViewMode.PostDownloaderView:
                         View = ViewMode.LogView;
                         break;
+                    case ViewMode.ImageView:
+                        View = ViewMode.PostDownloaderView;
+                        break;
                     case ViewMode.ImageValidationView:
                         View = ViewMode.PostDownloaderView;
                         break;
+                    default:
+                        View = ViewMode.LogView;
+                        break;
                 }
+            });
+
+            RemoveDownloadedPostFeatureCommand = new Command(() =>
+            {
+                if (SelectedFeature is Feature feature)
+                {
+                    View = ViewMode.LogView;
+                    RemoveFeature(feature);
+                }
+            },
+            () =>
+            {
+                return SelectedPage != null && SelectedFeature != null && (View == ViewMode.PostDownloaderView || View == ViewMode.ImageValidationView || View == ViewMode.ImageView);
             });
 
             NavigateToPreviousFeatureCommand = new Command(() =>
@@ -935,6 +954,8 @@ namespace FeatureLogging
 
         public ICommand CloseCurrentViewCommand { get; }
 
+        public Command RemoveDownloadedPostFeatureCommand { get; }
+
         public ICommand NavigateToPreviousFeatureCommand { get; }
 
         public ICommand NavigateToNextFeatureCommand { get; }
@@ -984,7 +1005,7 @@ namespace FeatureLogging
                     : (" - scripts for: " + SelectedFeature?.UserName))}{(string.IsNullOrEmpty(SelectedFeature?.FeatureDescription)
                     ? ""
                     : " - description: " + SelectedFeature?.FeatureDescription)}"
-                : View == ViewMode.PostDownloaderView || View == ViewMode.ImageValidationView
+                : View == ViewMode.PostDownloaderView || View == ViewMode.ImageValidationView || View == ViewMode.ImageView
                     ? $"Feature Logging{(IsDirty ? " - edited" : string.Empty)}{(string.IsNullOrEmpty(SelectedFeature?.UserName)
                         ? " - post viewer"
                         : (" - post viewer: " + SelectedFeature?.UserName))}{(string.IsNullOrEmpty(SelectedFeature?.FeatureDescription)
@@ -1070,7 +1091,7 @@ namespace FeatureLogging
 
         #region View management
 
-        public enum ViewMode { LogView, ScriptView, StatisticsView, PostDownloaderView, ImageValidationView }
+        public enum ViewMode { LogView, ScriptView, StatisticsView, PostDownloaderView, ImageValidationView, ImageView }
         private ViewMode view = ViewMode.LogView;
 
         public ViewMode View
@@ -1085,9 +1106,10 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(StatisticsViewVisibility));
                     OnPropertyChanged(nameof(PostDownloaderViewVisibility));
                     OnPropertyChanged(nameof(ImageValidationViewVisibility));
+                    OnPropertyChanged(nameof(ImageViewVisibility));
                     OnPropertyChanged(nameof(FeatureNavigationVisibility));
                     OnPropertyChanged(nameof(Title));
-                    if (view != ViewMode.PostDownloaderView && view != ViewMode.ImageValidationView)
+                    if (view != ViewMode.PostDownloaderView && view != ViewMode.ImageValidationView && view != ViewMode.ImageView)
                     {
                         LoadedPost = null;
                     }
@@ -1095,6 +1117,7 @@ namespace FeatureLogging
                     {
                         StatisticsFolder = "";
                     }
+                    RemoveDownloadedPostFeatureCommand.OnCanExecuteChanged();
                 }
             }
         }
@@ -1104,6 +1127,7 @@ namespace FeatureLogging
         public Visibility StatisticsViewVisibility => view == ViewMode.StatisticsView ? Visibility.Visible : Visibility.Collapsed;
         public Visibility PostDownloaderViewVisibility => view == ViewMode.PostDownloaderView ? Visibility.Visible : Visibility.Collapsed;
         public Visibility ImageValidationViewVisibility => view == ViewMode.ImageValidationView ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility ImageViewVisibility => view == ViewMode.ImageView ? Visibility.Visible : Visibility.Collapsed;
 
         #endregion
 
@@ -2058,7 +2082,7 @@ namespace FeatureLogging
             return collection;
         }
 
-        private static int GetPageFeatureCount(string page, Feature feature)
+        private static int GetPageFeatureCount(Feature feature)
         {
             if (feature.UserHasFeaturesOnPage && feature.FeatureCountOnPage == "many")
             {
@@ -2067,7 +2091,7 @@ namespace FeatureLogging
             return feature.UserHasFeaturesOnPage ? int.Parse(feature.FeatureCountOnPage) : 0;
         }
 
-        private static int GetHubFeatureCount(string page, Feature feature)
+        private static int GetHubFeatureCount(Feature feature)
         {
             if (feature.UserHasFeaturesOnHub && feature.FeatureCountOnHub == "many")
             {
@@ -2094,7 +2118,7 @@ namespace FeatureLogging
                 {
                     if (feature.IsPickedAndAllowed)
                     {
-                        var count = BinFeatureCount(GetPageFeatureCount(loggingFile.Page.ToLower(), feature), 5);
+                        var count = BinFeatureCount(GetPageFeatureCount(feature), 5);
                         if (!buckets.TryGetValue(count, out int value))
                         {
                             value = 0;
@@ -2127,7 +2151,7 @@ namespace FeatureLogging
                 {
                     if (feature.IsPickedAndAllowed)
                     {
-                        var count = BinFeatureCount(GetHubFeatureCount(loggingFile.Page.ToLower(), feature), 5);
+                        var count = BinFeatureCount(GetHubFeatureCount(feature), 5);
                         if (!buckets.TryGetValue(count, out int value))
                         {
                             value = 0;
