@@ -196,12 +196,12 @@ struct ContentView: View {
             }
         }
 #if STANDALONE
-        .navigationTitle("Feature Logging v2.1 - Standalone Version\(titleSuffix)")
+        .navigationTitle("Feature Logging - Standalone Version\(titleSuffix)")
         .attachVersionCheckState(viewModel, appState) { url in
             openURL(url)
         }
 #else
-        .navigationTitle("Feature Logging v2.1\(titleSuffix)")
+        .navigationTitle("Feature Logging\(titleSuffix)")
 #endif
         .frame(minWidth: 1024, minHeight: 720)
         .background(Color.backgroundColor)

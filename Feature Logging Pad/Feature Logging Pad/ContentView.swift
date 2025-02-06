@@ -188,7 +188,7 @@ struct ContentView: View {
             }
         }
         .padding()
-        .navigationTitle("Feature Logging Pad v1.0\(titleSuffix)" + (viewModel.isDirty ? " - edited" : ""))
+        .navigationTitle("Feature Logging Pad\(titleSuffix)" + (viewModel.isDirty ? " - edited" : ""))
         .background(Color.backgroundColor)
         .sheet(isPresented: $viewModel.isShowingDocumentDirtyAlert) {
             DocumentDirtySheet(
