@@ -31,29 +31,6 @@ public class MainViewModel : NotifyPropertyChanged
         _ = LoadPages();
     }
 
-    #region User settings
-
-    private static string GetDataLocationPath()
-    {
-        var dataLocationPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "AndyDragonSoftware",
-            "FeatureLogging");
-        if (!Directory.Exists(dataLocationPath))
-        {
-            Directory.CreateDirectory(dataLocationPath);
-        }
-        return dataLocationPath;
-    }
-
-    public static string GetUserSettingsPath()
-    {
-        var dataLocationPath = GetDataLocationPath();
-        return Path.Combine(dataLocationPath, "settings.json");
-    }
-
-    #endregion
-
     #region Server access
 
     private async Task LoadPages()
@@ -682,12 +659,12 @@ public class MainViewModel : NotifyPropertyChanged
                 OnPropertyChanged(nameof(PageTags));
                 OnPropertyChanged(nameof(FeaturedCounts));
                 excludedTags = SelectedPage != null 
-                    ? UserSettings.Get(nameof(ExcludedTags) + ":" + SelectedPage.Id, "") 
+                    ? Preferences.Default.Get(nameof(ExcludedTags) + ":" + SelectedPage.Id, "") 
                     : "";
                 OnPropertyChanged(nameof(ExcludedTags));
                 StaffLevel = SelectedPage != null 
-                    ? UserSettings.Get(nameof(StaffLevel) + ":" + SelectedPage.Id, StaffLevels[0]) 
-                    : UserSettings.Get(nameof(StaffLevel), StaffLevels[0]);
+                    ? Preferences.Default.Get(nameof(StaffLevel) + ":" + SelectedPage.Id, StaffLevels[0]) 
+                    : Preferences.Default.Get(nameof(StaffLevel), StaffLevels[0]);
                 if (!StaffLevels.Contains(StaffLevel))
                 {
                     StaffLevel = StaffLevels[0];
@@ -722,7 +699,7 @@ public class MainViewModel : NotifyPropertyChanged
         return "snap:" + page;
     }
 
-    private string page = FixPageHub(UserSettings.Get(nameof(Page), ""));
+    private string page = FixPageHub(Preferences.Default.Get(nameof(Page), ""));
 
     public string Page
     {
@@ -731,14 +708,14 @@ public class MainViewModel : NotifyPropertyChanged
         {
             if (Set(ref page, value, [nameof(StaffLevels)]))
             {
-                UserSettings.Store(nameof(Page), Page);
+                Preferences.Default.Set(nameof(Page), Page);
                 PageValidation = CalculatePageValidation(Page);
                 IsDirty = true;
             }
         }
     }
 
-    private ValidationResult pageValidation = CalculatePageValidation(UserSettings.Get(nameof(Page), ""));
+    private ValidationResult pageValidation = CalculatePageValidation(Preferences.Default.Get(nameof(Page), ""));
 
     public ValidationResult PageValidation
     {
@@ -855,7 +832,7 @@ public class MainViewModel : NotifyPropertyChanged
         SelectedPage?.HubName == "snap" ? SnapStaffLevels :
         OtherStaffLevels;
 
-    private string staffLevel = UserSettings.Get(nameof(StaffLevel), "Mod");
+    private string staffLevel = Preferences.Default.Get(nameof(StaffLevel), "Mod");
 
     public string StaffLevel
     {
@@ -866,11 +843,11 @@ public class MainViewModel : NotifyPropertyChanged
             {
                 if (SelectedPage != null)
                 {
-                    UserSettings.Store(nameof(StaffLevel) + ":" + SelectedPage.Id, StaffLevel);
+                    Preferences.Default.Set(nameof(StaffLevel) + ":" + SelectedPage.Id, StaffLevel);
                 }
                 else
                 {
-                    UserSettings.Store(nameof(StaffLevel), StaffLevel);
+                    Preferences.Default.Set(nameof(StaffLevel), StaffLevel);
                 }
             }
         }
@@ -882,7 +859,7 @@ public class MainViewModel : NotifyPropertyChanged
     
     #region Your alias
 
-    private string yourAlias = UserSettings.Get(nameof(YourAlias), "");
+    private string yourAlias = Preferences.Default.Get(nameof(YourAlias), "");
     public string YourAlias
     {
         get => yourAlias;
@@ -890,7 +867,7 @@ public class MainViewModel : NotifyPropertyChanged
         {
             if (Set(ref yourAlias, value, [nameof(YourAliasValidation)]))
             {
-                UserSettings.Store(nameof(YourAlias), YourAlias);
+                Preferences.Default.Set(nameof(YourAlias), YourAlias);
                 ScriptViewModel.ClearAllPlaceholders();
             }
         }
@@ -901,7 +878,7 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Your first name
 
-    private string yourFirstName = UserSettings.Get(nameof(YourFirstName), "");
+    private string yourFirstName = Preferences.Default.Get(nameof(YourFirstName), "");
     public string YourFirstName
     {
         get => yourFirstName;
@@ -909,7 +886,7 @@ public class MainViewModel : NotifyPropertyChanged
         {
             if (Set(ref yourFirstName, value, [nameof(YourFirstNameValidation)]))
             {
-                UserSettings.Store(nameof(YourFirstName), YourFirstName);
+                Preferences.Default.Set(nameof(YourFirstName), YourFirstName);
                 ScriptViewModel.ClearAllPlaceholders();
             }
         }
@@ -931,7 +908,7 @@ public class MainViewModel : NotifyPropertyChanged
             {
                 if (SelectedPage != null)
                 {
-                    UserSettings.Store(nameof(ExcludedTags) + ":" + SelectedPage.Id, ExcludedTags);
+                    Preferences.Default.Set(nameof(ExcludedTags) + ":" + SelectedPage.Id, ExcludedTags);
                 }
                 LoadedPost?.UpdateExcludedTags();
             }
@@ -1229,8 +1206,8 @@ public class MainViewModel : NotifyPropertyChanged
                 if (isPicked)
                 {
                     var personalMessageTemplate = feature.UserHasFeaturesOnPage
-                        ? UserSettings.Get("PersonalMessage", "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉")
-                        : UserSettings.Get("PersonalMessageFirst", "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉");
+                        ? Preferences.Default.Get("PersonalMessage", "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉")
+                        : Preferences.Default.Get("PersonalMessageFirst", "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉");
                     var fullMessage = personalMessageTemplate
                         .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
                         .Replace("%%HUBNAME%%", SelectedPage.HubName)
@@ -1336,8 +1313,8 @@ public class MainViewModel : NotifyPropertyChanged
                 if (isPicked)
                 {
                     var personalMessageTemplate = feature.UserHasFeaturesOnPage
-                        ? UserSettings.Get("PersonalMessage", "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉")
-                        : UserSettings.Get("PersonalMessageFirst", "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉");
+                        ? Preferences.Default.Get("PersonalMessage", "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉")
+                        : Preferences.Default.Get("PersonalMessageFirst", "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉");
                     var fullMessage = personalMessageTemplate
                         .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
                         .Replace("%%HUBNAME%%", SelectedPage.HubName)
@@ -1417,8 +1394,8 @@ public class MainViewModel : NotifyPropertyChanged
                 if (isPicked)
                 {
                     var personalMessageTemplate = feature.UserHasFeaturesOnPage
-                        ? UserSettings.Get("PersonalMessage", "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉")
-                        : UserSettings.Get("PersonalMessageFirst", "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉");
+                        ? Preferences.Default.Get("PersonalMessage", "🎉💫 Congratulations on your @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉")
+                        : Preferences.Default.Get("PersonalMessageFirst", "🎉💫 Congratulations on your first @%%PAGENAME%% feature %%USERNAME%% @%%USERALIAS%%! %%PERSONALMESSAGE%% 💫🎉");
                     var fullMessage = personalMessageTemplate
                         .Replace("%%PAGENAME%%", SelectedPage.DisplayName)
                         .Replace("%%HUBNAME%%", "")
