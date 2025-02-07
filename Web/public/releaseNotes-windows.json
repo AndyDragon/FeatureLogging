@@ -1,100 +1,62 @@
 [
     {
-        "version": "1.0.0",
+        "version": "2.0.8",
         "notes": [
             {
-                "date": "April 4, 2024",
+                "date": "July 24, 2024",
                 "notes": [
-                    "Initial release, ported from macOS app."
+                    "Initial release from V1 to match macOS v2"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.1",
+        "version": "2.0.9",
         "notes": [
             {
-                "date": "April 5, 2024",
+                "date": "Sept 30, 2024",
                 "notes": [
-                    "Fixed crash caused by copy to clipboard failure.",
-                    "Fixed visibility of copy feature tag buttons."
+                    "Moved the staff level picker to the feature logging screen which is used in the script editor",
+                    "Disallow list split up by hub to allow hubs to have different lists",
+                    "Allow feature / original post comments for new membership levels for snap"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.2",
+        "version": "2.0.10",
         "notes": [
             {
-                "date": "April 5, 2024",
+                "date": "Oct 4, 2024",
                 "notes": [
-                    "Minor tweaks to match macOS app."
+                    "Add retry to the page load failure in case of network issues"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.3",
+        "version": "2.1.19",
         "notes": [
             {
-                "date": "April 6, 2024",
+                "date": "January 3, 2025",
                 "notes": [
-                    "Added support for editing and copying the personal messages right in the app.",
-                    "Added settings dialog.",
-                    "Added personal messages to picked features and added to LOG .json file.",
-                    "Added ability to save the report as a .features file."
+                    "Many changes to the data model, improvements to performance",
+                    "Added parsing of the post on Vero's website to get information automatically",
+                    "Added integration with Hive AI check and TinEye inside the app",
+                    "Added guest moderator for snap pages"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.4",
+        "version": "2.1.22",
         "notes": [
             {
-                "date": "April 12, 2024",
+                "date": "January 10, 2025",
                 "notes": [
-                    "[URB] Added a warning toast and prevent adding feature for a post link which already exists.",
-                    "Updated the keyboard shortcuts to match the macOS app.",
-                    "Hide 'Open in Vero Scripts' button in list for non-picked features."
+                    "Several bug fixes for the loaded post handling"
                 ]
             }
         ]
-    },
-    {
-        "version": "1.0.5",
-        "notes": [
-            {
-                "date": "Apr 17, 2024",
-                "notes": [
-                    "Added dirty state handling for the log to prevent closing the app without saving."
-                ]
-            }
-        ]
-    },
-    {
-        "version": "1.0.6",
-        "notes": [
-            {
-                "date": "Apr 24, 2024",
-                "notes": [
-                    "Fixed bug where 'many' features was treated as zero.",
-                    "Added settings to pick culling tool (default Bridge 2024) and AI check tool (default internal tool).",
-                    "Added buttons in the settings pane to pick a culling and AI check tool."
-                ]
-            }
-        ]
-    },
-    {
-        "version": "1.0.7",
-        "notes": [
-            {
-                "date": "Apr 28, 2024",
-                "notes": [
-                    "When artist is moving level, open Vero Scripts with new level.",
-                    "Check for single-letter user alias (means user has no alias).",
-                    "Validate user name has no spaces or newlines in the string."
-                ]
-            }
-        ]
-    }
+   }
 ]

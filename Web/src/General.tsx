@@ -48,7 +48,7 @@ export default function General(props: GeneralProps) {
     }
 
     const currentVersion = version?.[platform]?.current;
-    if (!currentVersion) {
+    if (!currentVersion && !links[platform]?.useAppStore) {
         return (
             <div style={{ margin: "10px" }}>
                 There is currently no version available for {platformString[platform]}. Check back at a later date for more information.
@@ -58,28 +58,28 @@ export default function General(props: GeneralProps) {
 
     let index = 0;
 
+    const header = !links[platform]?.useAppStore
+        ? (<><Subtitle1>{applicationName} v{currentVersion} for {platformString[platform]} is available for installation now.</Subtitle1><br /><br /></>)
+        : (<><Subtitle1>{applicationName} for {platformString[platform]} is available for installation now.</Subtitle1><br /><br /></>);
+
     return (
         <div style={{ margin: "10px" }}>
-            <Subtitle1>{applicationName} v{currentVersion} for {platformString[platform]} is available for installation now.</Subtitle1><br /><br />
+            {header}
             {links[platform]?.actions.map(flavor => {
-                const flavorVersion = (version?.[platform] as (Record<string, string> | undefined))?.[flavor.versionKey || "current"];
-                if (!flavorVersion) {
+                const flavorVersion = (version?.[platform] as (Record<string, string> | undefined))?.["current"];
+                if (!flavorVersion && currentVersion) {
                     return undefined;
                 }
-                const location = "https://vero.andydragon.com/app/" + links[platform]?.location(flavorVersion, flavor.suffix);
+                const location = links[platform]?.useAppStore
+                    ? links[platform]?.location(flavorVersion ?? "", flavor.suffix)
+                    : "https://vero.andydragon.com/app/" + links[platform]?.location(flavorVersion ?? "", flavor.suffix);
                 return (
                     <>
-                        <Subtitle2 key={"link-" + (index++)} style={{ marginLeft: "40px" }}>You can {flavor.action} the <Link target={flavor.target} href={location}>{flavor.name} version here</Link></Subtitle2>
+                        <Subtitle2 key={"link-" + (index++)} style={{ marginLeft: "40px" }}>You can {flavor.action} <Link target={flavor.target} href={location}>HERE</Link></Subtitle2>
                         <br /><br />
                     </>
                 );
             })}
-            {(platform === "macOS" && version?.["macOS_v2"]?.current) &&
-                <Subtitle1 style={{ display: "block", marginTop: "60px" }}><span style={{ color: "red" }}>NEW!</span> There is a new V2 version available for {platformString[platform]}. You can download it <RouterLink className={styles.cleanLink} to="/macInstall_v2">from here</RouterLink></Subtitle1>
-            }
-            {(platform === "windows" && version?.["windows_v2"]?.current) &&
-                <Subtitle1 style={{ display: "block", marginTop: "60px" }}><span style={{ color: "red" }}>NEW!</span> There is a new V2 version available for {platformString[platform]}. You can download it <RouterLink className={styles.cleanLink} to="/windowsInstall_v2">from here</RouterLink></Subtitle1>
-            }
         </div>
     );
 }

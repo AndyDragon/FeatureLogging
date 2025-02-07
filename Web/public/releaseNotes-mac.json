@@ -1,53 +1,64 @@
 [
     {
-        "version": "1.0.1",
+        "version": "2.0.22",
         "notes": [
             {
-                "date": "Mar 29, 2024",
+                "date": "July 4, 2024",
                 "notes": [
-                    "Initial release, internal release only"
+                    "Initial release from V1 internal release only"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.2",
+        "version": "2.0.23",
         "notes": [
             {
-                "date": "Mar 30, 2024",
+                "date": "July 4, 2024",
                 "notes": [
-                    "Added label coloring for missing data and a close button to close the editor"
+                    "Fixed catalog loading and added state indicators"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.3",
+        "version": "2.0.24",
         "notes": [
             {
-                "date": "Mar 31, 2024",
+                "date": "July 6, 2024",
                 "notes": [
-                    "Added sorting in the list of features"
+                    "Fit and finish (description added to script editor, fixed toasts and disabled tabs)"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.4",
+        "version": "2.0.25",
         "notes": [
             {
-                "date": "Mar 31, 2024",
+                "date": "July 14, 2024",
                 "notes": [
-                    "Added shared storage when launching Vero Scripts to populate from feature"
+                    "Added statistics view from Log Inspector app and fix dirty handling for commands"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.5",
+        "version": "2.0.26",
         "notes": [
             {
-                "date": "Apr 1, 2024",
+                "date": "July 14, 2024",
+                "notes": [
+                    "Fixed is dirty handling when creating new log (reset is dirty flag)"
+                ]
+            }
+        ]
+    },
+    {
+        "version": "2.0.27",
+        "notes": [
+            {
+                "date": "July 15, 2024",
                 "notes": [
                     "Added save and load for the log file"
                 ]
@@ -55,173 +66,131 @@
         ]
     },
     {
-        "version": "1.0.6",
+        "version": "2.0.28",
         "notes": [
             {
-                "date": "Apr 2, 2024",
+                "date": "July 16, 2024",
                 "notes": [
-                    "Added tags for page / community / hub, added setting for 'include hash in tags'"
+                    "Fixed placeholder losing values",
+                    "Add next/previous feature in script editor",
+                    "For non-English locales change close button keyboard shortcut",
+                    "Cleaned up toolbar button layout"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.7",
+        "version": "2.0.29",
         "notes": [
             {
-                "date": "Apr 3, 2024",
+                "date": "July 17, 2024",
                 "notes": [
-                    "Code and type cleanup."
+                    "Fit and finish",
+                    "Fixed bug in save from menu",
+                    "Added user and description to title bar"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.8",
+        "version": "2.0.30",
         "notes": [
             {
-                "date": "Apr 4, 2024",
+                "date": "July 17, 2024",
                 "notes": [
-                    "Minor bug fixes."
+                    "Fixed version handling to use new entry.",
+                    "First public beta"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.9",
+        "version": "2.0.31",
         "notes": [
             {
-                "date": "Apr 4, 2024",
+                "date": "Sept 20, 2024",
                 "notes": [
-                    "Fixed bug in new level calculation when sending to Vero Scripts."
+                    "Moved the staff level picker to the feature logging screen which is used in the script editor"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.10",
+        "version": "2.0.32",
         "notes": [
             {
-                "date": "Apr 5, 2024",
+                "date": "Sept 27, 2024",
                 "notes": [
-                    "Added support for photo featured on hub, fixed the log format to use sorted keys."
+                    "Disallow list split up by hub to allow hubs to have different lists"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.11",
+        "version": "2.0.33",
         "notes": [
             {
-                "date": "Apr 5, 2024",
+                "date": "Sept 30, 2024",
                 "notes": [
-                    "Minor fit and finish work."
+                    "Allow feature / original post comments for new membership levels for snap"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.12",
+        "version": "2.0.34",
         "notes": [
             {
-                "date": "Apr 6, 2024",
+                "date": "Oct 4, 2024",
                 "notes": [
-                    "Added support for editing and copying the personal messages right in the app.",
-                    "Added personal messages to picked features and added to LOG .json file.",
-                    "Added ability to save the report as a .features file."
+                    "Add retry to the page load failure in case of network issues"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.13",
+        "version": "2.0.35",
         "notes": [
             {
-                "date": "Apr 10, 2024",
+                "date": "Oct 6, 2024",
                 "notes": [
-                    "Minor tweak to subtle theme to make the accent color more visible."
+                    "Store staff level per page to avoid mistakes once corrected the first time"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.14",
+        "version": "2.1.61",
         "notes": [
             {
-                "date": "Apr 10, 2024",
+                "date": "January 3, 2025",
                 "notes": [
-                    "Fixed bug where saving the report would incorrectly assign the report name to the log file and saving the log file after would overwrite the report.",
-                    "Minor tweaks of the feature list (hover color) and fixed some theming issues."
+                    "Many changes to the data model, improvements to performance",
+                    "Added parsing of the post on Vero's website to get information automatically",
+                    "Added integration with Hive AI check and TinEye inside the app",
+                    "Added guest moderator for snap pages"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.15",
+        "version": "2.1.64",
         "notes": [
             {
-                "date": "Apr 12, 2024",
+                "date": "January 10, 2025",
                 "notes": [
-                    "[URB] Added a warning toast and prevent adding feature for a post link which already exists."
+                    "Several bug fixes for the loaded post handling"
                 ]
             }
         ]
     },
     {
-        "version": "1.0.16",
+        "version": "2.1.65",
         "notes": [
             {
-                "date": "Apr 12, 2024",
+                "date": "January 11, 2025",
                 "notes": [
-                    "Fixed bug where feature editor was not populating feature count on RAW page properly."
-                ]
-            }
-        ]
-    },
-    {
-        "version": "1.0.17",
-        "notes": [
-            {
-                "date": "Apr 15, 2024",
-                "notes": [
-                    "Added dirty state handling for the log to prevent closing the app without saving."
-                ]
-            }
-        ]
-    },
-    {
-        "version": "1.0.18",
-        "notes": [
-            {
-                "date": "Apr 21, 2024",
-                "notes": [
-                    "Fixed bug where 'many' features was treated as zero.",
-                    "When opening Vero Scripts or editing personal message, select feature row.",
-                    "Added settings to pick culling tool (default Bridge 2024) and AI check tool (default internal tool)."
-                ]
-            }
-        ]
-    },
-    {
-        "version": "1.0.19",
-        "notes": [
-            {
-                "date": "Apr 22, 2024",
-                "notes": [
-                    "Added buttons in the settings pane to pick a culling and AI check tool."
-                ]
-            }
-        ]
-    },
-    {
-        "version": "1.0.20",
-        "notes": [
-            {
-                "date": "Apr 27, 2024",
-                "notes": [
-                    "When artist is moving level, open Vero Scripts with new level.",
-                    "Check for single-letter user alias (means user has no alias).",
-                    "Validate user name has no spaces or newlines in the string."
+                    "Updated the toasting (notification) system"
                 ]
             }
         ]

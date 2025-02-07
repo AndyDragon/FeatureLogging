@@ -18,15 +18,16 @@ import {
     applicationName,
     deploymentWebLocation,
     hasTutorial,
+    versionLocation,
     showMacInfo,
     macReleaseNotesLocation,
-    showMacV2Info,
-    macV2ReleaseNotesLocation,
-    versionLocation,
     showWindowsInfo,
     windowsReleaseNotesLocation,
-    showWindowsV2Info,
-    windowsV2ReleaseNotesLocation,
+    showIosInfo,
+    iosReleaseNotesLocation,
+    PlatformLocation,
+    showAndroidInfo,
+    androidReleaseNotesLocation,
 } from "./config";
 import About from "./About";
 import General from "./General";
@@ -87,7 +88,7 @@ function App() {
                                     Support
                                 </Link>
                             </div>
-                            {showMacInfo && (
+                            {(showMacInfo !== PlatformLocation.DoNotShow) && (
                             <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
                                 <Title3>macOS</Title3>
                                 <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
@@ -100,20 +101,20 @@ function App() {
                                 </div>
                             </div>
                             )}
-                            {showMacV2Info && (
+                            {(showIosInfo !== PlatformLocation.DoNotShow) && (
                             <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
-                                <Title3>macOS v2</Title3>
+                                <Title3>iPhone / iPad</Title3>
                                 <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
-                                    <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 8px 0" }} to="/macInstall_v2">
+                                    <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 8px 0" }} to="/iosInstall">
                                         Install
                                     </Link>
-                                    <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 0 0" }} to="/macReleaseNotes_v2">
+                                    <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 0 0" }} to="/iosReleaseNotes">
                                         Release notes
                                     </Link>
                                 </div>
                             </div>
                             )}
-                            {showWindowsInfo && (
+                            {(showWindowsInfo !== PlatformLocation.DoNotShow) && (
                             <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
                                 <Title3>Windows</Title3>
                                 <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
@@ -126,14 +127,14 @@ function App() {
                                 </div>
                             </div>
                             )}
-                            {showWindowsV2Info && (
+                            {(showAndroidInfo !== PlatformLocation.DoNotShow) && (
                             <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
-                                <Title3>Windows V2</Title3>
+                                <Title3>Android phone / tablet</Title3>
                                 <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
-                                    <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 8px 0" }} to="/windowsInstall_v2">
+                                    <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 8px 0" }} to="/androidInstall">
                                         Install
                                     </Link>
-                                    <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 0 0" }} to="/windowsReleaseNotes_v2">
+                                    <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 0 0" }} to="/androidReleaseNotes">
                                         Release notes
                                     </Link>
                                 </div>
@@ -207,17 +208,17 @@ function App() {
                                     versionLocation={versionLocation}
                                 />
                             )} />
-                            <Route path="/macInstall_v2" element={(
+                            <Route path="/iosInstall" element={(
                                 <General
                                     applicationName={applicationName}
-                                    platform="macOS_v2"
+                                    platform="iOS"
                                     versionLocation={versionLocation} />
                             )} />
-                            <Route path="/macReleaseNotes_v2" element={(
+                            <Route path="/iosReleaseNotes" element={(
                                 <ReleaseNotes
                                     applicationName={applicationName}
-                                    platform="macOS_v2"
-                                    location={macV2ReleaseNotesLocation}
+                                    platform="iOS"
+                                    location={iosReleaseNotesLocation}
                                     versionLocation={versionLocation}
                                 />
                             )} />
@@ -235,17 +236,17 @@ function App() {
                                     versionLocation={versionLocation}
                                 />
                             )} />
-                            <Route path="/windowsInstall_v2" element={(
+                            <Route path="/androidInstall" element={(
                                 <General
                                     applicationName={applicationName}
-                                    platform="windows_v2"
+                                    platform="android"
                                     versionLocation={versionLocation} />
                             )} />
-                            <Route path="/windowsReleaseNotes_v2" element={(
+                            <Route path="/androidReleaseNotes" element={(
                                 <ReleaseNotes
                                     applicationName={applicationName}
-                                    platform="windows_v2"
-                                    location={windowsV2ReleaseNotesLocation}
+                                    platform="android"
+                                    location={androidReleaseNotesLocation}
                                     versionLocation={versionLocation}
                                 />
                             )} />
