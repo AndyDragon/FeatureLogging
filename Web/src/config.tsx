@@ -6,8 +6,10 @@ export const applicationDetails = (
         VERO scripts app.
     </>
 );
+export const showMacScreenshot = true
 export const macScreenshotWidth = 1416;
 export const macScreenshotHeight = 874;
+export const showWindowsScreenshot = true
 export const windowsScreenshotWidth = 1200;
 export const windowsScreenshotHeight = 800;
 
@@ -36,8 +38,6 @@ export const windowsReleaseNotesLocation = "releaseNotes-windows.json";
 export const showAndroidInfo: PlatformLocation = PlatformLocation.DoNotShow;
 export const androidInstallerLocation = "TODO";
 export const androidReleaseNotesLocation = "releaseNotes-android.json";
-
-export const supportEmail = "andydragon@live.com";
 
 export const supportEmail = "andydragon@live.com";
 
