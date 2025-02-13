@@ -262,7 +262,11 @@ struct ContentView: View {
             showReportFileExporter.toggle()
         }
         .onChange(of: commandModel.showStatistics) {
-            viewModel.visibleView = .StatisticsView
+            if commandModel.showStatistics {
+                viewModel.visibleView = .StatisticsView
+            } else {
+                viewModel.visibleView = .FeatureView
+            }
         }
         .onChange(of: commandModel.reloadPageCatalog) {
             if !viewModel.features.isEmpty {
