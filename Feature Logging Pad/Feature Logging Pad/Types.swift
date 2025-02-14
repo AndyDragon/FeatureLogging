@@ -339,7 +339,8 @@ struct LoadedCatalogs {
     var waitingForTemplates = true
     var templatesCatalog = TemplateCatalog(pages: [], specialTemplates: [])
     var waitingForDisallowList = true
-    var disallowList = [String: [String]]()
+    var disallowLists = [String: [String]]()
+    var cautionLists = [String: [String]]()
 }
 
 struct ServerResponse: Decodable {

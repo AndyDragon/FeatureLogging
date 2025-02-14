@@ -270,7 +270,7 @@ struct PostDownloaderView: View {
 
             // Post URL
             HStack(alignment: .center) {
-                ValidationLabel("Post URL: ", labelWidth: mainLabelWidth, validation: !selectedFeature.feature.postLink.isEmpty, validColor: .green)
+                ValidationLabel("Post URL: ", labelWidth: mainLabelWidth, validation: selectedFeature.feature.validatePostLink(), validColor: .green)
                     .font(.system(size: 14))
                 ValidationLabel(selectedFeature.feature.postLink, validation: true, validColor: .accentColor)
 
@@ -386,10 +386,7 @@ struct PostDownloaderView: View {
                 Spacer()
                     .frame(width: 12)
 
-                ValidationLabel(
-                    validation: !(selectedFeature.feature.userAlias.isEmpty || selectedFeature.feature.userAlias.starts(with: "@")
-                        || selectedFeature.feature.userAlias.count <= 1) && !selectedFeature.feature.userAlias.contains(where: \.isNewline)
-                )
+                ValidationLabel(validation: selectedFeature.feature.validateUserAlias(viewModel))
                 HStack(alignment: .center) {
                     TextField(
                         "enter the user alias",
@@ -434,9 +431,7 @@ struct PostDownloaderView: View {
                 Spacer()
                     .frame(width: 12)
 
-                ValidationLabel(
-                    validation: !selectedFeature.feature.userName.isEmpty && !selectedFeature.feature.userName.contains(where: \.isNewline)
-                )
+                ValidationLabel(validation: selectedFeature.feature.validateUserName())
                 HStack(alignment: .center) {
                     TextField(
                         "enter the user name",
@@ -494,7 +489,7 @@ struct PostDownloaderView: View {
 
             // User level actions
             HStack(alignment: .center) {
-                ValidationLabel("User level:", labelWidth: mainLabelWidth, validation: selectedFeature.feature.userLevel != MembershipCase.none)
+                ValidationLabel("User level:", labelWidth: mainLabelWidth, validation: selectedFeature.feature.validateUserLevel())
                     .font(.system(size: 14))
                 Picker(
                     "",
@@ -575,10 +570,7 @@ struct PostDownloaderView: View {
 
             // Description actions
             HStack(alignment: .center) {
-                ValidationLabel(
-                    validation: !selectedFeature.feature.featureDescription.isEmpty,
-                    isWarning: true
-                )
+                ValidationLabel(validation: selectedFeature.feature.validateDescription())
                 TextField(
                     "enter the description",
                     text: $selectedFeature.feature.featureDescription.onChange { _ in
@@ -694,10 +686,7 @@ struct PostDownloaderView: View {
                         Text("|")
                             .padding([.leading, .trailing], 8)
 
-                        ValidationLabel(
-                            validation: !(selectedFeature.feature.photoLastFeaturedOnHub.isEmpty || selectedFeature.feature.photoLastFeaturedPage.isEmpty),
-                            isWarning: true
-                        )
+                        ValidationLabel(validation: selectedFeature.feature.validatePhotoFeaturedOnHub())
                         TextField(
                             "last date featured",
                             text: $selectedFeature.feature.photoLastFeaturedOnHub.onChange { _ in

@@ -19,16 +19,17 @@ struct ScriptContentView: View {
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var navigateToNextFeature: (_ forward: Bool) -> Void
 
-    @State private var membershipValidation: (valid: Bool, reason: String?) = (true, nil)
-    @State private var userNameValidation: (valid: Bool, reason: String?) = (true, nil)
-    @State private var yourNameValidation: (valid: Bool, reason: String?) = (true, nil)
-    @State private var yourFirstNameValidation: (valid: Bool, reason: String?) = (true, nil)
-    @State private var pageValidation: (valid: Bool, reason: String?) = (true, nil)
+    @State private var membershipValidation: ValidationResult = .valid
+    @State private var userAliasValidation: ValidationResult = .valid
+    @State private var userNameValidation: ValidationResult = .valid
+    @State private var yourNameValidation: ValidationResult = .valid
+    @State private var yourFirstNameValidation: ValidationResult = .valid
+    @State private var pageValidation: ValidationResult = .valid
     @State private var featureScript = ""
     @State private var commentScript = ""
     @State private var originalPostScript = ""
     @State private var newMembership = NewMembershipCase.none
-    @State private var newMembershipValidation: (valid: Bool, reason: String?) = (true, nil)
+    @State private var newMembershipValidation: ValidationResult = .valid
     @State private var newMembershipScript = ""
     @State private var placeholderSheetCase = PlaceholderSheetCase.featureScript
     @State private var showingPlaceholderSheet = false
@@ -39,17 +40,17 @@ struct ScriptContentView: View {
     private let logger = SwiftyBeaver.self
 
     private var canCopyScripts: Bool {
-        return membershipValidation.valid
-            && userNameValidation.valid
-            && yourNameValidation.valid
-            && yourFirstNameValidation.valid
-            && pageValidation.valid
+        return !membershipValidation.isError
+            && !userAliasValidation.isError
+            && !yourNameValidation.isError
+            && !yourFirstNameValidation.isError
+            && !pageValidation.isError
     }
 
     private var canCopyNewMembershipScript: Bool {
         return newMembership != NewMembershipCase.none
-            && newMembershipValidation.valid
-            && userNameValidation.valid
+            && !newMembershipValidation.isError
+            && !userAliasValidation.isError
     }
 
     private var accordionHeightRatio = 3.5
@@ -214,22 +215,49 @@ struct ScriptContentView: View {
         Group {
             // User / Options
             HStack {
-                // User name
-                if !userNameValidation.valid {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Color.accentColor, Color.red)
-                        .help(userNameValidation.reason ?? "unknown error")
-                        .imageScale(.small)
+                // User alias
+                if userAliasValidation != .valid {
+                    userAliasValidation.getImage()
+                        .padding([.leading], 8)
                 }
                 Text("User: ")
                     .foregroundStyle(
-                        userNameValidation.valid ? Color.label : Color.red,
+                        userAliasValidation.getColor(),
                         Color.secondaryLabel
                     )
-                    .frame(width: !userNameValidation.valid ? 42 : 60, alignment: .leading)
+                    .frame(width: userAliasValidation != .valid ? 42 : 60, alignment: .leading)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .padding([.leading], !userNameValidation.valid ? 8 : 0)
+                    .padding([.leading], userAliasValidation != .valid ? 8 : 0)
+                ZStack {
+                    Text(selectedFeature.feature.userAlias)
+                        .tint(Color.accentColor)
+                        .accentColor(Color.accentColor)
+                        .foregroundStyle(Color.accentColor, Color.label)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding([.leading, .trailing], 4)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .overlay(VStack {
+                    Rectangle()
+                        .frame(height: 0.5)
+                        .foregroundStyle(Color.gray.opacity(0.25))
+                }, alignment: .bottom)
+
+                Text(" / ")
+                    .foregroundStyle(
+                        Color.label,
+                        Color.secondaryLabel
+                    )
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+
+                // User name
+                if userNameValidation != .valid {
+                    userNameValidation.getImage()
+                        .padding([.leading], 8)
+                }
                 ZStack {
                     Text(selectedFeature.feature.userName)
                         .tint(Color.accentColor)
@@ -247,19 +275,16 @@ struct ScriptContentView: View {
                 }, alignment: .bottom)
 
                 // User level
-                if !membershipValidation.valid {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Color.accentColor, Color.red)
-                        .help(membershipValidation.reason ?? "unknown error")
-                        .imageScale(.small)
+                if membershipValidation != .valid {
+                    membershipValidation.getImage()
                         .padding([.leading], 8)
                 }
                 Text("Level: ")
                     .foregroundStyle(
-                        membershipValidation.valid ? Color.label : Color.red,
+                        membershipValidation.getColor(),
                         Color.secondaryLabel
                     )
-                    .frame(width: !membershipValidation.valid ? 42 : 60, alignment: .leading)
+                    .frame(width: membershipValidation != .valid ? 42 : 60, alignment: .leading)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .padding([.leading], 8)
@@ -465,7 +490,7 @@ struct ScriptContentView: View {
                     newMembershipValidation = validateNewMembership(value: newMembership)
                     newMembershipChanged(to: newValue)
                 },
-                valid: newMembershipValidation.valid && userNameValidation.valid,
+                valid: !newMembershipValidation.isError && !userAliasValidation.isError,
                 canCopy: canCopyNewMembershipScript,
                 copy: {
                     copyToClipboard(newMembershipScript)
@@ -489,6 +514,7 @@ extension ScriptContentView {
         pageValidation = validatePage()
         yourNameValidation = validateYourName()
         yourFirstNameValidation = validateYourFirstName()
+        userAliasValidation = validateUserAlias()
         userNameValidation = validateUserName()
         membershipValidation = validateMembership()
         newMembership = viewModel.selectedFeature!.newLevel
@@ -511,73 +537,94 @@ extension ScriptContentView {
         originalPostScriptPlaceholders.longPlaceholderDict.removeAll()
     }
 
-    private func validatePage() -> (valid: Bool, reason: String?) {
+    private func validatePage() -> ValidationResult {
         if viewModel.selectedPage == nil {
-            return (false, "Page is required")
+            return .error("Page is required")
         }
-        return (true, nil)
+        return .valid
     }
 
-    private func validateYourName() -> (valid: Bool, reason: String?) {
+    private func validateYourName() -> ValidationResult {
         if viewModel.yourName.count == 0 {
-            return (false, "Required value")
+            return .error("Required value")
         } else if viewModel.yourName.first == "@" {
-            return (false, "Don't include the '@' in user names")
+            return .error("Don't include the '@' in user names")
         }
-        return (true, nil)
+        return .valid
     }
 
-    private func validateYourFirstName() -> (valid: Bool, reason: String?) {
+    private func validateYourFirstName() -> ValidationResult {
         if viewModel.yourFirstName.count == 0 {
-            return (false, "Required value")
+            return .error("Required value")
         }
-        return (true, nil)
+        return .valid
     }
 
-    private func validateMembership() -> (valid: Bool, reason: String?) {
+    private func validateMembership() -> ValidationResult {
         if let page = viewModel.selectedPage {
             if let value = viewModel.selectedFeature?.userLevel {
                 if value == MembershipCase.none {
-                    return (false, "Required value")
+                    return .error("Required value")
                 }
                 if !MembershipCase.caseValidFor(hub: page.hub, value) {
-                    return (false, "Not a valid value")
+                    return .error("Not a valid value")
                 }
-                return (true, nil)
+                return .valid
             }
-            return (false, "No feature user level")
+            return .error("No feature user level")
         }
-        return (false, "No page")
+        return .error("No page")
     }
 
-    private func validateUserName() -> (valid: Bool, reason: String?) {
+    private func validateUserAlias() -> ValidationResult {
         if let page = viewModel.selectedPage {
+            if let value = viewModel.selectedFeature?.feature.userAlias {
+                if value.count == 0 {
+                    return .error("Required value")
+                } else if value.first! == "@" {
+                    return .error("Don't include the '@' in user names")
+                } else if value.count <= 1 {
+                    return .error("Must be longer than one character")
+                } else if value.contains(where: \.isNewline) {
+                    return .error("Cannot contain newline characters")
+                } else if value.contains(where: \.isWhitespace) {
+                    return .error("Cannot contain whitespace characters")
+                } else if viewModel.loadedCatalogs.disallowLists[page.hub]?.first(where: { disallow in disallow == value }) != nil {
+                    return .error("User is on the disallow list")
+                } else if viewModel.loadedCatalogs.cautionLists[page.hub]?.first(where: { caution in caution == value }) != nil {
+                    return .warning("User is on the caution list")
+                }
+                return .valid
+            }
+            return .error("No feature user alias")
+        }
+        return .error("No page")
+    }
+
+    private func validateUserName() -> ValidationResult {
+        if viewModel.selectedPage != nil {
             if let value = viewModel.selectedFeature?.feature.userName {
                 if value.count == 0 {
-                    return (false, "Required value")
-                } else if value.first! == "@" {
-                    return (false, "Don't include the '@' in user names")
-                } else if let disallowList = viewModel.loadedCatalogs.disallowList[page.hub] {
-                    if disallowList.first(where: { disallow in disallow == value }) != nil {
-                        return (false, "User is on the disallow list")
-                    }
+                    return .error("Required value")
+                } else if value.contains(where: \.isNewline) {
+                    return .error("Cannot contain newline characters")
                 }
-                return (true, nil)
+                return .valid
             }
-            return (false, "No feature user name")
+            return .error("No feature user name")
         }
-        return (false, "No page")
+        return .error("No page")
     }
 
     private func newMembershipChanged(to value: NewMembershipCase) {
         updateNewMembershipScripts()
     }
 
-    private func validateNewMembership(value: NewMembershipCase) -> (valid: Bool, reason: String?) {
+    private func validateNewMembership(value: NewMembershipCase) -> ValidationResult {
         if !NewMembershipCase.caseValidFor(hub: viewModel.selectedPage?.hub, value) {
-            return (false, "Not a valid value")
+            return .error("Not a valid value")
         }
-        return (true, nil)
+        return .valid
     }
 
     // MARK: - script handlers
@@ -712,20 +759,23 @@ extension ScriptContentView {
         let currentHubName = viewModel.selectedPage?.hub
         if !canCopyScripts {
             var validationErrors = ""
-            if !userNameValidation.valid {
-                validationErrors += "User: " + userNameValidation.reason! + "\n"
+            if userAliasValidation != .valid {
+                validationErrors += "User alias: " + userAliasValidation.unwrappedMessage + "\n"
             }
-            if !membershipValidation.valid {
-                validationErrors += "Level: " + membershipValidation.reason! + "\n"
+            if userNameValidation != .valid {
+                validationErrors += "User: " + userNameValidation.unwrappedMessage + "\n"
             }
-            if !yourNameValidation.valid {
-                validationErrors += "You: " + yourNameValidation.reason! + "\n"
+            if membershipValidation != .valid {
+                validationErrors += "Level: " + membershipValidation.unwrappedMessage + "\n"
             }
-            if !yourFirstNameValidation.valid {
-                validationErrors += "Your first name: " + yourFirstNameValidation.reason! + "\n"
+            if yourNameValidation != .valid {
+                validationErrors += "You: " + yourNameValidation.unwrappedMessage + "\n"
             }
-            if !pageValidation.valid {
-                validationErrors += "Page: " + pageValidation.reason! + "\n"
+            if yourFirstNameValidation != .valid {
+                validationErrors += "Your first name: " + yourFirstNameValidation.unwrappedMessage + "\n"
+            }
+            if pageValidation != .valid {
+                validationErrors += "Page: " + pageValidation.unwrappedMessage + "\n"
             }
             featureScript = validationErrors
             originalPostScript = ""
@@ -903,11 +953,14 @@ extension ScriptContentView {
         if !canCopyNewMembershipScript {
             var validationErrors = ""
             if newMembership != NewMembershipCase.none {
-                if !userNameValidation.valid {
-                    validationErrors += "User: " + userNameValidation.reason! + "\n"
+                if userAliasValidation != .valid {
+                    validationErrors += "User alias: " + userAliasValidation.unwrappedMessage + "\n"
                 }
-                if !newMembershipValidation.valid {
-                    validationErrors += "New level: " + newMembershipValidation.reason! + "\n"
+                if userNameValidation != .valid {
+                    validationErrors += "User: " + userNameValidation.unwrappedMessage + "\n"
+                }
+                if newMembershipValidation != .valid {
+                    validationErrors += "New level: " + newMembershipValidation.unwrappedMessage + "\n"
                 }
             }
             newMembershipScript = validationErrors

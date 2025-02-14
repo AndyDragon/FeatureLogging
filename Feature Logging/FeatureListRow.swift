@@ -143,13 +143,13 @@ struct FeatureListRow: View {
                         .padding(.top, 3)
                         .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
 
-                    let validationResult = feature.validationResult
-                    if validationResult != .Success {
+                    let validationResult = feature.validationResult(viewModel)
+                    if validationResult != .valid {
                         Spacer()
                             .frame(width: 2)
                         validationResult.getImage(small: true)
                             .padding(.top, 3)
-                            .help(validationResult == .Warning ? "Feature has some warnings" : "Feature has some errors")
+                            .help(!validationResult.isError ? "Feature has some warnings" : "Feature has some errors")
                     }
 
                     Spacer()
@@ -242,10 +242,25 @@ struct FeatureListRow: View {
                         Color.backgroundColor.edgesIgnoringSafeArea(.all)
 
                         VStack(alignment: .leading) {
-                            Text("Personal message for feature: \(feature.userName) - \(feature.featureDescription)")
+                            Text("Personal message for feature:")
+                            if !feature.userName.isEmpty {
+                                Text("\(feature.userName) (\(feature.userAlias))")
+                                    .padding(.leading, 12)
+                            } else {
+                                Text("\(feature.userAlias)")
+                                    .padding(.leading, 12)
+                            }
+                            if !feature.featureDescription.isEmpty {
+                                Text("\(feature.featureDescription)")
+                                    .padding(.leading, 12)
+                            } else {
+                                Text("- no description -")
+                                    .padding(.leading, 12)
+                                    .italic()
+                            }
 
                             Spacer()
-                                .frame(height: 8)
+                                .frame(height: 16)
 
                             HStack(alignment: .center) {
                                 Text("Personal message (from your account): ")

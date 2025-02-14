@@ -44,32 +44,40 @@ class ObservableFeature: Identifiable, Hashable {
 
     init() {}
 
-    var validationResult: ValidationResult {
-        if postLink.isEmpty || postLink.contains(where: \.isNewline) {
-            return .Failure
+    func validationResult(_ viewModel: ContentView.ViewModel) -> ValidationResult {
+        let postValidation = validatePostLink()
+        if postValidation != .valid {
+            return postValidation
         }
-        if userAlias.isEmpty || userAlias.starts(with: "@") || userAlias.count <= 1 || userAlias.contains(where: \.isNewline) {
-            return .Failure
+        let userAliasValidation = validateUserAlias(viewModel)
+        if userAliasValidation != .valid {
+            return userAliasValidation
         }
-        if userName.isEmpty || userName.contains(where: \.isNewline) {
-            return .Failure
+        let userNameValidation = validateUserName()
+        if userNameValidation != .valid {
+            return userNameValidation
         }
-        if userLevel == MembershipCase.none {
-            return .Failure
+        let userLevelValidation = validateUserLevel()
+        if userLevelValidation != .valid {
+            return userLevelValidation
         }
-        if photoFeaturedOnHub && (photoLastFeaturedOnHub.isEmpty || photoLastFeaturedPage.isEmpty) {
-            return .Warning
+        let photoFeaturedOnHubValidation = validatePhotoFeaturedOnHub()
+        if photoFeaturedOnHubValidation != .valid {
+            return photoFeaturedOnHubValidation
         }
-        if featureDescription.isEmpty {
-            return .Warning
+        let featureDescriptionValidation = validateDescription()
+        if featureDescriptionValidation != .valid {
+            return featureDescriptionValidation
         }
-        if userHasFeaturesOnPage && lastFeaturedOnPage.isEmpty {
-            return .Warning
+        let userFeaturedOnPageValidation = validateUserFeaturedOnPage()
+        if userFeaturedOnPageValidation != .valid {
+            return userFeaturedOnPageValidation
         }
-        if userHasFeaturesOnHub && (lastFeaturedOnHub.isEmpty || lastFeaturedPage.isEmpty) {
-            return .Warning
+        let userFeaturedOnHubValidation = validateUserFeaturedOnHub()
+        if userFeaturedOnHubValidation != .valid {
+            return userFeaturedOnHubValidation
         }
-        return .Success
+        return .valid
     }
 
     static func == (lhs: ObservableFeature, rhs: ObservableFeature) -> Bool {
@@ -78,6 +86,86 @@ class ObservableFeature: Identifiable, Hashable {
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+    }
+
+    func validatePostLink() -> ValidationResult {
+        if postLink.isEmpty {
+            return .error("Required value")
+        }
+        if postLink.contains(where: \.isNewline) {
+            return .error("Cannot contain newline characters")
+        }
+        return .valid
+    }
+
+    func validateUserAlias(_ viewModel: ContentView.ViewModel) -> ValidationResult {
+        if userAlias.isEmpty {
+            return .error("Required value")
+        }
+        if userAlias.starts(with: "@") {
+            return .error("Cannot start with '@'")
+        }
+        if userAlias.count <= 1 {
+            return .error("Must be longer than 1 character")
+        }
+        if userAlias.contains(where: \.isNewline) {
+            return .error("Cannot contain newline characters")
+        }
+        if userAlias.contains(where: \.isWhitespace) {
+            return .error("Cannot contain whitepace characters")
+        }
+        if viewModel.loadedCatalogs.disallowLists[viewModel.selectedPage?.hub ?? ""]?.contains(where: { $0 == userAlias }) ?? false {
+            return .error("User is on disallowed list")
+        }
+        if viewModel.loadedCatalogs.cautionLists[viewModel.selectedPage?.hub ?? ""]?.contains(where: { $0 == userAlias }) ?? false {
+            return .warning("User is on caution list")
+        }
+        return .valid
+    }
+
+    func validateUserName() -> ValidationResult {
+        if userName.isEmpty {
+            return .error("Required value")
+        }
+        if userName.contains(where: \.isNewline) {
+            return .error("Cannot contain newline characters")
+        }
+        return .valid
+    }
+
+    func validateUserLevel() -> ValidationResult {
+        if userLevel == MembershipCase.none {
+            return .error("Required value")
+        }
+        return .valid
+    }
+
+    func validateDescription() -> ValidationResult {
+        if featureDescription.isEmpty {
+            return .warning("Should specify a description")
+        }
+        return .valid
+    }
+
+    func validatePhotoFeaturedOnHub() -> ValidationResult {
+        if photoFeaturedOnHub && (photoLastFeaturedOnHub.isEmpty || photoLastFeaturedPage.isEmpty) {
+            return .warning("Should specify when photo last featured on hub")
+        }
+        return .valid
+    }
+
+    func validateUserFeaturedOnPage() -> ValidationResult {
+        if userHasFeaturesOnPage && lastFeaturedOnPage.isEmpty {
+            return .warning("Should specify when user last featured on page")
+        }
+        return .valid
+    }
+
+    func validateUserFeaturedOnHub() -> ValidationResult {
+        if userHasFeaturesOnHub && (lastFeaturedOnHub.isEmpty || lastFeaturedPage.isEmpty) {
+            return .warning("Should specify when user last featured on hub")
+        }
+        return .valid
     }
 }
 

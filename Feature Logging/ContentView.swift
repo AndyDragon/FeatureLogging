@@ -419,18 +419,32 @@ extension ContentView {
                 // Delay the start of the disallowed list download so the window can be ready faster
                 try await Task.sleep(nanoseconds: 1000000000)
 
-                logger.verbose("Loading disallow list from server", context: "System")
+                logger.verbose("Loading disallow lists from server", context: "System")
 
                 let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json")!
-                viewModel.loadedCatalogs.disallowList = try await URLSession.shared.decode([String: [String]].self, from: disallowListUrl)
-                viewModel.loadedCatalogs.waitingForDisallowList = false
+                viewModel.loadedCatalogs.disallowLists = try await URLSession.shared.decode([String: [String]].self, from: disallowListUrl)
 
-                logger.verbose("Loaded disallow list from server with \(viewModel.loadedCatalogs.disallowList.count) entries", context: "System")
+                logger.verbose("Loaded disallow lists from server with \(viewModel.loadedCatalogs.disallowLists.count) entries", context: "System")
             } catch {
                 // do nothing, the disallow list is not critical
-                logger.error("Failed to load disallow list from server: \(error.localizedDescription)", context: "System")
+                logger.error("Failed to load disallow lists from server: \(error.localizedDescription)", context: "System")
                 debugPrint(error.localizedDescription)
             }
+
+            do {
+                logger.verbose("Loading caution lists from server", context: "System")
+
+                let cautionListsUrl = URL(string: "https://vero.andydragon.com/static/data/cautionlists.json")!
+                viewModel.loadedCatalogs.cautionLists = try await URLSession.shared.decode([String: [String]].self, from: cautionListsUrl)
+
+                logger.verbose("Loaded caution lists from server with \(viewModel.loadedCatalogs.cautionLists.count) entries", context: "System")
+            } catch {
+                // do nothing, the caution lists is not critical
+                logger.error("Failed to load caution lists from server: \(error.localizedDescription)", context: "System")
+                debugPrint(error.localizedDescription)
+            }
+
+            viewModel.loadedCatalogs.waitingForDisallowList = false
 
 #if STANDALONE
             do {

@@ -36,8 +36,8 @@ struct MainContentView: View {
     @State private var documentDirtyAfterSaveAction: Binding<() -> Void>
     @State private var documentDirtyAfterDismissAction: Binding<() -> Void>
     @State private var shouldScrollFeatureListToSelection: Binding<Bool>
-    @State private var yourNameValidation: (valid: Bool, reason: String?) = (true, nil)
-    @State private var yourFirstNameValidation: (valid: Bool, reason: String?) = (true, nil)
+    @State private var yourNameValidation: ValidationResult = .valid
+    @State private var yourFirstNameValidation: ValidationResult = .valid
     private var updateStaffLevelForPage: () -> Void
     private var storeStaffLevelForPage: () -> Void
     private var saveLog: (_ file: URL) -> Void
@@ -386,19 +386,20 @@ struct MainContentView: View {
     private func ModeratorView() -> some View {
         HStack(alignment: .center) {
             // Your name editor
-            ValidationLabel(
-                "You:",
-                labelWidth: labelWidth,
-                validation: yourNameValidation.valid)
+            ValidationLabel("You:", labelWidth: labelWidth, validation: yourNameValidation)
             TextField(
                 "Enter your user name without '@'",
                 text: $viewModel.yourName.onChange { value in
-                    if value.count == 0 {
-                        yourNameValidation = (false, "Required value")
+                    if value.count <= 1 {
+                        yourNameValidation = .error("Required value")
                     } else if value.first! == "@" {
-                        yourNameValidation = (false, "Don't include the '@' in user names")
+                        yourNameValidation = .error("Don't include the '@' in user names")
+                    } else if value.contains(where: \.isNewline) {
+                        yourNameValidation = .error("Should not contain newline characters")
+                    } else if value.contains(where: \.isWhitespace) {
+                        yourNameValidation = .error("Should not contain whitespace characters")
                     } else {
-                        yourNameValidation = (true, nil)
+                        yourNameValidation = .valid
                     }
                     UserDefaults.standard.set(viewModel.yourName, forKey: "YourName")
                 }
@@ -413,18 +414,15 @@ struct MainContentView: View {
             .cornerRadius(4)
 
             // Your first name editor
-            ValidationLabel(
-                "Your first name:",
-                validation: yourFirstNameValidation.valid
-            )
+            ValidationLabel("Your first name:", validation: yourFirstNameValidation)
             .padding([.leading])
             TextField(
                 "Enter your first name (capitalized)",
                 text: $viewModel.yourFirstName.onChange { value in
                     if value.count == 0 {
-                        yourFirstNameValidation = (false, "Required value")
+                        yourFirstNameValidation = .error("Required value")
                     } else {
-                        yourFirstNameValidation = (true, nil)
+                        yourFirstNameValidation = .valid
                     }
                     UserDefaults.standard.set(viewModel.yourFirstName, forKey: "YourFirstName")
                 }

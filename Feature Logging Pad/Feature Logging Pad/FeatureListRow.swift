@@ -149,13 +149,13 @@ struct FeatureListRow: View {
                         .padding(.top, 3)
                         .help(feature.userIsTeammate ? "User is teammate" : "User is not a teammate")
 
-                    let validationResult = feature.validationResult
-                    if validationResult != .Success {
+                    let validationResult = feature.validationResult(viewModel)
+                    if validationResult != .valid {
                         Spacer()
                             .frame(width: 2)
                         validationResult.getImage(small: true)
                             .padding(.top, 3)
-                            .help(validationResult == .Warning ? "Feature has some warnings" : "Feature has some errors")
+                            .help(validationResult.isError ? "Feature has some errors" : "Feature has some warnings")
                     }
 
                     Spacer()
@@ -265,8 +265,13 @@ struct FeatureListRow: View {
                     showingMessageEditor.toggle()
                 }) {
                     HStack(alignment: .center) {
-                        Image(systemName: "bubble.and.pencil")
-                            .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
+                        if #available(iOS 18, *) {
+                            Image(systemName: "bubble.and.pencil")
+                                .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
+                        } else {
+                            Image(systemName: "bubble.left")
+                                .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
+                        }
                     }
                 }
                 .buttonStyle(.plain)
@@ -279,27 +284,41 @@ struct FeatureListRow: View {
                     Color.backgroundColor.edgesIgnoringSafeArea(.all)
 
                     VStack(alignment: .leading) {
-                        Text("Personal message for feature: \(feature.userName) - \(feature.featureDescription)")
+                        Text("Personal message for feature:")
+                        if !feature.userName.isEmpty {
+                            Text("\(feature.userName) (\(feature.userAlias))")
+                                .padding(.leading, 12)
+                        } else {
+                            Text("\(feature.userAlias)")
+                                .padding(.leading, 12)
+                        }
+                        if !feature.featureDescription.isEmpty {
+                            Text("\(feature.featureDescription)")
+                                .padding(.leading, 12)
+                        } else {
+                            Text("- no description -")
+                                .padding(.leading, 12)
+                                .italic()
+                        }
 
                         Spacer()
-                            .frame(height: 8)
+                            .frame(height: 16)
 
-                        HStack(alignment: .center) {
-                            Text("Personal message (from your account): ")
-                            TextField(
-                                "",
-                                text: $feature.personalMessage.onChange { _ in
-                                    viewModel.markDocumentDirty()
-                                }
-                            )
-                            .autocorrectionDisabled(false)
-                            .disableAutocorrection(false)
-                            .textFieldStyle(.plain)
-                            .padding(4)
-                            .background(Color.backgroundColor.opacity(0.5))
-                            .border(Color.gray.opacity(0.25))
-                            .cornerRadius(4)
-                        }
+                        Text("Personal message (from your account): ")
+                        
+                        TextField(
+                            "",
+                            text: $feature.personalMessage.onChange { _ in
+                                viewModel.markDocumentDirty()
+                            }
+                        )
+                        .autocorrectionDisabled(false)
+                        .disableAutocorrection(false)
+                        .textFieldStyle(.plain)
+                        .padding(4)
+                        .background(Color.backgroundColor.opacity(0.5))
+                        .border(Color.gray.opacity(0.25))
+                        .cornerRadius(4)
 
                         Spacer()
 
@@ -333,10 +352,10 @@ struct FeatureListRow: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding()
                 }
-                .frame(width: 800, height: 160)
+                .safeFrame(width: 800, height: 160)
             })
     }
-
+    
     private func copyPersonalMessage() {
         let personalMessage = feature.personalMessage.isEmpty ? "[PERSONAL MESSAGE]" : feature.personalMessage
         let personalMessageTemplate = feature.userHasFeaturesOnPage ? personalMessageFormat : personalMessageFirstFormat

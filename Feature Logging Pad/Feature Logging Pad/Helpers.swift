@@ -445,11 +445,18 @@ extension View {
         }
         return self
     }
-
+    
     @inlinable public nonisolated func safeMinWidthFrame(minWidth: CGFloat, maxWidth: CGFloat) -> some View {
         if #available(iOS 18.0, *) {
             return self.frame(minWidth: minWidth, maxWidth: maxWidth)
         }
         return frame(maxWidth: maxWidth)
+    }
+    
+    @inlinable public nonisolated func safeFrame(width: CGFloat? = nil, height: CGFloat? = nil) -> some View {
+        if #available(iOS 18.0, *) {
+            return self.frame(width: width, height: height)
+        }
+        return self
     }
 }
