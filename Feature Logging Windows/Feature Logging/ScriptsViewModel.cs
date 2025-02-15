@@ -22,47 +22,64 @@ namespace FeatureLogging
         public static ValidationResult ValidateUser(string hubName, string userName)
         {
             var userNameValidationResult = ValidateUserName(userName);
-            if (!userNameValidationResult.Valid)
+            if (!userNameValidationResult.IsValid)
             {
                 return userNameValidationResult;
             }
-            if (Validation.DisallowList.TryGetValue(hubName, out List<string>? value) && 
-                value.FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
+            if (Validation.DisallowLists.TryGetValue(hubName, out List<string>? disallowList) &&
+                disallowList.FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
             {
-                return new ValidationResult(false, "User is on the disallow list");
+                return new ValidationResult(ValidationResultType.Error, "User is on the disallow list");
             }
-            return new ValidationResult(true);
+            if (Validation.CautionLists.TryGetValue(hubName, out List<string>? cautionList) &&
+                cautionList.FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
+            {
+                return new ValidationResult(ValidationResultType.Warning, "User is on the disallow list");
+            }
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
         public static ValidationResult ValidateValueNotEmpty(string value)
         {
             if (string.IsNullOrEmpty(value))
             {
-                return new ValidationResult(false, "Required value");
+                return new ValidationResult(ValidationResultType.Error, "Required value");
             }
-            return new ValidationResult(true);
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
         public static ValidationResult ValidateValueNotDefault(string value, string defaultValue)
         {
             if (string.IsNullOrEmpty(value) || string.Equals(value, defaultValue, StringComparison.OrdinalIgnoreCase))
             {
-                return new ValidationResult(false, "Required value");
+                return new ValidationResult(ValidationResultType.Error, "Required value");
             }
-            return new ValidationResult(true);
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
         public static ValidationResult ValidateUserName(string userName)
         {
             if (string.IsNullOrEmpty(userName))
             {
-                return new ValidationResult(false, "Required value");
+                return new ValidationResult(ValidationResultType.Error, "Required value");
             }
             if (userName.StartsWith('@'))
             {
-                return new ValidationResult(false, "Don't include the '@' in user names");
+                return new ValidationResult(ValidationResultType.Error, "Don't include the '@' in user names");
             }
-            return new ValidationResult(true);
+            if (userName.Contains('\n') || userName.Contains('\r'))
+            {
+                return new ValidationResult(ValidationResultType.Error, "Value cannot contain newline");
+            }
+            if (userName.Contains(' '))
+            {
+                return new ValidationResult(ValidationResultType.Error, "Value cannot contain space");
+            }
+            if (userName.Length <= 1)
+            {
+                return new ValidationResult(ValidationResultType.Error, "User name should be more than 1 character long");
+            }
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
         #endregion
@@ -883,15 +900,15 @@ namespace FeatureLogging
         #region Script management
 
         public bool CanCopyScripts =>
-            UserNameValidation.Valid &&
-            MembershipValidation.Valid &&
-            YourNameValidation.Valid &&
-            YourFirstNameValidation.Valid &&
-            PageValidation.Valid;
+            !UserNameValidation.IsError &&
+            !MembershipValidation.IsError &&
+            !YourNameValidation.IsError &&
+            !YourFirstNameValidation.IsError &&
+            !PageValidation.IsError;
 
         public bool CanCopyNewMembershipScript =>
             NewMembership != "None" &&
-            UserNameValidation.Valid;
+            !UserNameValidation.IsError;
 
         private void UpdateScripts()
         {
@@ -932,7 +949,7 @@ namespace FeatureLogging
                 var validationErrors = "";
                 void CheckValidation(string prefix, ValidationResult result)
                 {
-                    if (!result.Valid)
+                    if (!result.IsValid)
                     {
                         validationErrors += prefix + ": " + (result.Error ?? "unknown") + "\n";
                     }
@@ -1079,7 +1096,7 @@ namespace FeatureLogging
                 var validationErrors = "";
                 void CheckValidation(string prefix, ValidationResult result)
                 {
-                    if (!result.Valid)
+                    if (!result.IsValid)
                     {
                         validationErrors += prefix + ": " + (result.Error ?? "unknown") + "\n";
                     }

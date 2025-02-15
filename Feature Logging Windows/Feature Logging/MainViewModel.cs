@@ -26,12 +26,18 @@ namespace FeatureLogging
 {
     public static class Validation
     {
-        private static Dictionary<string, List<string>> disallowList = [];
-
-        public static Dictionary<string, List<string>> DisallowList
+        private static Dictionary<string, List<string>> disallowLists = [];
+        public static Dictionary<string, List<string>> DisallowLists
         {
-            get => disallowList;
-            set => disallowList = value;
+            get => disallowLists;
+            set => disallowLists = value;
+        }
+
+        private static Dictionary<string, List<string>> cautionLists = [];
+        public static Dictionary<string, List<string>> CautionLists
+        {
+            get => cautionLists;
+            set => cautionLists = value;
         }
 
         #region Field validation
@@ -39,68 +45,81 @@ namespace FeatureLogging
         public static ValidationResult ValidateUser(string hubName, string userName)
         {
             var userNameValidationResult = ValidateUserName(userName);
-            if (!userNameValidationResult.Valid)
+            if (!userNameValidationResult.IsValid)
             {
                 return userNameValidationResult;
             }
-            if (DisallowList.TryGetValue(hubName, out List<string>? value) &&
-                value.FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
+            if (DisallowLists.TryGetValue(hubName, out List<string>? disallowList) &&
+                disallowList.FirstOrDefault(disallow => string.Equals(disallow, userName, StringComparison.OrdinalIgnoreCase)) != null)
             {
-                return new ValidationResult(false, "User is on the disallow list");
+                return new ValidationResult(ValidationResultType.Error, "User is on the disallow list");
             }
-            return new ValidationResult(true);
+            if (CautionLists.TryGetValue(hubName, out List<string>? cautionList) &&
+                cautionList.FirstOrDefault(caution => string.Equals(caution, userName, StringComparison.OrdinalIgnoreCase)) != null)
+            {
+                return new ValidationResult(ValidationResultType.Warning, "User is on the caution list");
+            }
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
-        public static ValidationResult ValidateValueNotEmpty(string value)
+        public static ValidationResult ValidateValueNotEmpty(string value, bool isWarning = false)
         {
             if (string.IsNullOrEmpty(value))
             {
-                return new ValidationResult(false, "Required value");
+                if (isWarning)
+                {
+                    return new ValidationResult(ValidationResultType.Warning, "Value should have a value");
+                }
+                return new ValidationResult(ValidationResultType.Error, "Required value");
             }
-            return new ValidationResult(true);
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
         public static ValidationResult ValidateValueNotDefault(string value, string defaultValue)
         {
             if (string.IsNullOrEmpty(value) || string.Equals(value, defaultValue, StringComparison.OrdinalIgnoreCase))
             {
-                return new ValidationResult(false, "Required value");
+                return new ValidationResult(ValidationResultType.Error, "Required value");
             }
-            return new ValidationResult(true);
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
         public static ValidationResult ValidateUserName(string userName)
         {
             if (string.IsNullOrEmpty(userName))
             {
-                return new ValidationResult(false, "Required value");
+                return new ValidationResult(ValidationResultType.Error, "Required value");
             }
             if (userName.StartsWith('@'))
             {
-                return new ValidationResult(false, "Don't include the '@' in user names");
+                return new ValidationResult(ValidationResultType.Error, "Don't include the '@' in user names");
+            }
+            if (userName.Contains('\n') || userName.Contains('\r'))
+            {
+                return new ValidationResult(ValidationResultType.Error, "Value cannot contain newline");
+            }
+            if (userName.Contains(' '))
+            {
+                return new ValidationResult(ValidationResultType.Error, "Value cannot contain space");
             }
             if (userName.Length <= 1)
             {
-                return new ValidationResult(false, "User name should be more than 1 character long");
+                return new ValidationResult(ValidationResultType.Error, "User name should be more than 1 character long");
             }
-            return new ValidationResult(true);
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
         internal static ValidationResult ValidateValueNotEmptyAndContainsNoNewlines(string value)
         {
             if (string.IsNullOrEmpty(value))
             {
-                return new ValidationResult(false, "Required value");
+                return new ValidationResult(ValidationResultType.Error, "Required value");
             }
-            if (value.Contains('\n'))
+            if (value.Contains('\n') || value.Contains('\r'))
             {
-                return new ValidationResult(false, "Value cannot contain newline");
+                return new ValidationResult(ValidationResultType.Error, "Value cannot contain newline");
             }
-            if (value.Contains('\r'))
-            {
-                return new ValidationResult(false, "Value cannot contain newline");
-            }
-            return new ValidationResult(true);
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
         #endregion
@@ -181,7 +200,7 @@ namespace FeatureLogging
                                 Features.Clear();
                                 foreach (var feature in file["features"])
                                 {
-                                    var loadedFeature = new Feature
+                                    var loadedFeature = new Feature(SelectedPage!.HubName)
                                     {
                                         IsPicked = (bool)feature["isPicked"],
                                         PostLink = (string)feature["postLink"],
@@ -426,7 +445,7 @@ namespace FeatureLogging
                     SelectedFeature = duplicateFeature;
                     return;
                 }
-                var feature = new Feature();
+                var feature = new Feature(SelectedPage!.HubName);
                 if (clipboardText.StartsWith("https://vero.co/"))
                 {
                     feature.PostLink = clipboardText;
@@ -444,7 +463,7 @@ namespace FeatureLogging
                 SaveFeaturesCommand?.OnCanExecuteChanged();
                 GenerateReportCommand?.OnCanExecuteChanged();
                 SaveReportCommand?.OnCanExecuteChanged();
-            }, () => !WaitingForPages);
+            }, () => !WaitingForPages && SelectedPage != null);
 
             RemoveFeatureCommand = new Command(() =>
             {
@@ -597,23 +616,13 @@ namespace FeatureLogging
 
             CloseCurrentViewCommand = new Command(() =>
             {
-                switch (View)
+                View = View switch
                 {
-                    case ViewMode.ScriptView:
-                    case ViewMode.StatisticsView:
-                    case ViewMode.PostDownloaderView:
-                        View = ViewMode.LogView;
-                        break;
-                    case ViewMode.ImageView:
-                        View = ViewMode.PostDownloaderView;
-                        break;
-                    case ViewMode.ImageValidationView:
-                        View = ViewMode.PostDownloaderView;
-                        break;
-                    default:
-                        View = ViewMode.LogView;
-                        break;
-                }
+                    ViewMode.ScriptView or ViewMode.StatisticsView or ViewMode.PostDownloaderView => ViewMode.LogView,
+                    ViewMode.ImageView => ViewMode.PostDownloaderView,
+                    ViewMode.ImageValidationView => ViewMode.PostDownloaderView,
+                    _ => ViewMode.LogView,
+                };
             });
 
             RemoveDownloadedPostFeatureCommand = new Command(() =>
@@ -888,11 +897,18 @@ namespace FeatureLogging
                 {
                     NoCache = true
                 };
-                var templatesUri = new Uri("https://vero.andydragon.com/static/data/disallowlists.json");
-                var content = await httpClient.GetStringAsync(templatesUri);
-                if (!string.IsNullOrEmpty(content))
+                var disallowListsUri = new Uri("https://vero.andydragon.com/static/data/disallowlists.json");
+                var disallowListsContent = await httpClient.GetStringAsync(disallowListsUri);
+                if (!string.IsNullOrEmpty(disallowListsContent))
                 {
-                    Validation.DisallowList = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(content) ?? [];
+                    Validation.DisallowLists = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(disallowListsContent) ?? [];
+
+                    var cautionListsUri = new Uri("https://vero.andydragon.com/static/data/cautionlists.json");
+                    var cautionListsContent = await httpClient.GetStringAsync(cautionListsUri);
+                    if (!string.IsNullOrEmpty(cautionListsContent))
+                    {
+                        Validation.CautionLists = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(cautionListsContent) ?? [];
+                    }
                 }
             }
             catch (Exception ex)
@@ -1176,6 +1192,10 @@ namespace FeatureLogging
                     if (!StaffLevels.Contains(StaffLevel))
                     {
                         StaffLevel = StaffLevels[0];
+                    }
+                    if (SelectedPage != null && SelectedFeature != null)
+                    {
+                        SelectedFeature.ValidateUserAlias();
                     }
                 }
             }
@@ -2445,7 +2465,7 @@ namespace FeatureLogging
 
     public class Feature : NotifyPropertyChanged
     {
-        public Feature()
+        public Feature(string hubName)
         {
             EditPersonalMessageCommand = new CommandWithParameter((parameter) =>
             {
@@ -2602,7 +2622,10 @@ namespace FeatureLogging
                     }
                 }
             });
+            this.hubName = hubName;
         }
+
+        private readonly string hubName;
 
         [JsonIgnore]
         public readonly string Id = Guid.NewGuid().ToString();
@@ -2670,7 +2693,7 @@ namespace FeatureLogging
             set => SetWithDirtyCallback(ref userAlias, value, () => IsDirty = true, [nameof(UserAliasValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
-        public ValidationResult UserAliasValidation => Validation.ValidateUserName(userAlias);
+        public ValidationResult UserAliasValidation => Validation.ValidateUser(hubName, userAlias);
 
         private string userLevel = "None";
         [JsonProperty(PropertyName = "userLevel")]
@@ -2722,7 +2745,7 @@ namespace FeatureLogging
             set => SetWithDirtyCallback(ref photoLastFeaturedOnHub, value, () => IsDirty = true, [nameof(PhotoLastFeaturedOnHubValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
-        public ValidationResult PhotoLastFeaturedOnHubValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedOnHub);
+        public ValidationResult PhotoLastFeaturedOnHubValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedOnHub, true);
 
         private string photoLastFeaturedPage = "";
         [JsonProperty(PropertyName = "photoLastFeaturedPage")]
@@ -2732,15 +2755,17 @@ namespace FeatureLogging
             set => SetWithDirtyCallback(ref photoLastFeaturedPage, value, () => IsDirty = true, [nameof(PhotoLastFeaturedPageValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
-        public ValidationResult PhotoLastFeaturedPageValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedPage);
+        public ValidationResult PhotoLastFeaturedPageValidation => Validation.ValidateValueNotEmpty(photoLastFeaturedPage, true);
 
         private string featureDescription = "";
         [JsonProperty(PropertyName = "featureDescription")]
         public string FeatureDescription
         {
             get => featureDescription;
-            set => SetWithDirtyCallback(ref featureDescription, value, () => IsDirty = true);
+            set => SetWithDirtyCallback(ref featureDescription, value, () => IsDirty = true, [nameof(FeatureDescriptionValidation)]);
         }
+        [JsonIgnore]
+        public ValidationResult FeatureDescriptionValidation => Validation.ValidateValueNotEmpty(featureDescription, true);
 
         private bool userHasFeaturesOnPage = false;
         [JsonProperty(PropertyName = "userHasFeaturesOnPage")]
@@ -2758,7 +2783,7 @@ namespace FeatureLogging
             set => SetWithDirtyCallback(ref lastFeaturedOnPage, value, () => IsDirty = true, [nameof(LastFeaturedOnPageValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
-        public ValidationResult LastFeaturedOnPageValidation => Validation.ValidateValueNotEmpty(lastFeaturedOnPage);
+        public ValidationResult LastFeaturedOnPageValidation => Validation.ValidateValueNotEmpty(lastFeaturedOnPage, true);
 
         private string featureCountOnPage = "many";
         [JsonProperty(PropertyName = "featureCountOnPage")]
@@ -2784,7 +2809,7 @@ namespace FeatureLogging
             set => SetWithDirtyCallback(ref lastFeaturedOnHub, value, () => IsDirty = true, [nameof(LastFeaturedOnHubValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
-        public ValidationResult LastFeaturedOnHubValidation => Validation.ValidateValueNotEmpty(lastFeaturedOnHub);
+        public ValidationResult LastFeaturedOnHubValidation => Validation.ValidateValueNotEmpty(lastFeaturedOnHub, true);
 
         private string lastFeaturedPage = "";
         [JsonProperty(PropertyName = "lastFeaturedPage")]
@@ -2794,7 +2819,9 @@ namespace FeatureLogging
             set => SetWithDirtyCallback(ref lastFeaturedPage, value, () => IsDirty = true, [nameof(LastFeaturedPageValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
         }
         [JsonIgnore]
-        public ValidationResult LastFeaturedPageValidation => TooSoonToFeatureUser ? new ValidationResult(true) : Validation.ValidateValueNotEmpty(lastFeaturedPage);
+        public ValidationResult LastFeaturedPageValidation => TooSoonToFeatureUser 
+            ? new ValidationResult(ValidationResultType.Valid) 
+            : Validation.ValidateValueNotEmpty(lastFeaturedPage, true);
 
         private string featureCountOnHub = "many";
         [JsonProperty(PropertyName = "featureCountOnHub")]
@@ -2924,22 +2951,34 @@ namespace FeatureLogging
         }
 
         [JsonIgnore]
-
         public bool HasValidationErrors
         {
             get =>
-                !PostLinkValidation.Valid ||
-                !UserNameValidation.Valid ||
-                !UserAliasValidation.Valid ||
-                !UserLevelValidation.Valid ||
-                (PhotoFeaturedOnPage && !PhotoLastFeaturedPageValidation.Valid) ||
-                (PhotoFeaturedOnHub && !PhotoLastFeaturedOnHubValidation.Valid) ||
-                (UserHasFeaturesOnPage && !LastFeaturedOnPageValidation.Valid) ||
-                (UserHasFeaturesOnHub && (!LastFeaturedOnHubValidation.Valid || !LastFeaturedPageValidation.Valid));
+                PostLinkValidation.IsError ||
+                UserNameValidation.IsError ||
+                UserAliasValidation.IsError ||
+                UserLevelValidation.IsError ||
+                (PhotoFeaturedOnPage && PhotoLastFeaturedPageValidation.IsError) ||
+                (PhotoFeaturedOnHub && PhotoLastFeaturedOnHubValidation.IsError) ||
+                (UserHasFeaturesOnPage && LastFeaturedOnPageValidation.IsError) ||
+                (UserHasFeaturesOnHub && (LastFeaturedOnHubValidation.IsError || LastFeaturedPageValidation.IsError));
         }
 
         [JsonIgnore]
+        public bool HasValidationWarnings
+        {
+            get =>
+                PostLinkValidation.IsWarning ||
+                UserNameValidation.IsWarning ||
+                UserAliasValidation.IsWarning ||
+                UserLevelValidation.IsWarning ||
+                (PhotoFeaturedOnPage && PhotoLastFeaturedPageValidation.IsWarning) ||
+                (PhotoFeaturedOnHub && PhotoLastFeaturedOnHubValidation.IsWarning) ||
+                (UserHasFeaturesOnPage && LastFeaturedOnPageValidation.IsWarning) ||
+                (UserHasFeaturesOnHub && (LastFeaturedOnHubValidation.IsWarning || LastFeaturedPageValidation.IsWarning));
+        }
 
+        [JsonIgnore]
         public string ValidationErrorSummary
         {
             get
@@ -2949,6 +2988,7 @@ namespace FeatureLogging
                 AddValidationError(validationErrors, UserNameValidation, "User name");
                 AddValidationError(validationErrors, UserAliasValidation, "User alias");
                 AddValidationError(validationErrors, UserLevelValidation, "User level");
+                AddValidationError(validationErrors, FeatureDescriptionValidation, "Description");
                 if (PhotoFeaturedOnPage)
                 {
                     AddValidationError(validationErrors, PhotoLastFeaturedPageValidation, "Photo last featured on page");
@@ -2970,9 +3010,48 @@ namespace FeatureLogging
             }
         }
 
+        [JsonIgnore]
+        public string ValidationWarningSummary
+        {
+            get
+            {
+                List<string> validationErrors = [];
+                AddValidationWarning(validationErrors, PostLinkValidation, "Post link");
+                AddValidationWarning(validationErrors, UserNameValidation, "User name");
+                AddValidationWarning(validationErrors, UserAliasValidation, "User alias");
+                AddValidationWarning(validationErrors, UserLevelValidation, "User level");
+                AddValidationWarning(validationErrors, FeatureDescriptionValidation, "Description");
+                if (PhotoFeaturedOnPage)
+                {
+                    AddValidationWarning(validationErrors, PhotoLastFeaturedPageValidation, "Photo last featured on page");
+                }
+                if (PhotoFeaturedOnHub)
+                {
+                    AddValidationWarning(validationErrors, PhotoLastFeaturedOnHubValidation, "Photo last featured on hub");
+                }
+                if (UserHasFeaturesOnPage)
+                {
+                    AddValidationWarning(validationErrors, LastFeaturedOnPageValidation, "User last featured on page");
+                }
+                if (UserHasFeaturesOnHub)
+                {
+                    AddValidationWarning(validationErrors, LastFeaturedOnHubValidation, "User last featured on hub");
+                    AddValidationWarning(validationErrors, LastFeaturedPageValidation, "User last featured page");
+                }
+                return string.Join(",", validationErrors);
+            }
+        }
+
         private static void AddValidationError(List<string> validationErrors, ValidationResult result, string validation)
         {
-            if (!result.Valid)
+            if (result.IsError)
+            {
+                validationErrors.Add(validation + ": " + (result.Message ?? result.Error ?? "unknown validation error"));
+            }
+        }
+        private static void AddValidationWarning(List<string> validationErrors, ValidationResult result, string validation)
+        {
+            if (result.IsWarning)
             {
                 validationErrors.Add(validation + ": " + (result.Message ?? result.Error ?? "unknown validation error"));
             }
@@ -3006,6 +3085,11 @@ namespace FeatureLogging
         internal void OnSortKeyChange()
         {
             OnPropertyChanged(nameof(SortKey));
+        }
+
+        internal void ValidateUserAlias()
+        {
+            OnPropertyChanged(nameof(UserAliasValidation));
         }
     }
 

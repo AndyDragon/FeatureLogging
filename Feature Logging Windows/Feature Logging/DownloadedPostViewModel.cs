@@ -182,12 +182,12 @@ namespace FeatureLogging
                                                 }) != null;
                                             }) != null)
                                             {
-                                                PageHashtagCheck = new ValidationResult(true, message: $"Contains page hashtag {pageTagFound}");
+                                                PageHashtagCheck = new ValidationResult(ValidationResultType.Valid, message: $"Contains page hashtag {pageTagFound}");
                                                 LogEntries.Add(new LogEntry(PageHashtagCheck.Message!, defaultLogColor));
                                             }
                                             else
                                             {
-                                                PageHashtagCheck = new ValidationResult(false, "MISSING page hashtag");
+                                                PageHashtagCheck = new ValidationResult(ValidationResultType.Error, "MISSING page hashtag");
                                                 LogEntries.Add(new LogEntry(PageHashtagCheck.Error!, Colors.Red));
                                             }
                                             UpdateExcludedTags();
@@ -225,7 +225,7 @@ namespace FeatureLogging
                                                             comment?.Timestamp,
                                                             commentSegments,
                                                             (page, timestamp) => { vm.SelectedFeature!.PhotoFeaturedOnPage = true; }));
-                                                        PageCommentsValidation = new ValidationResult(false, "Found page comments - possibly already featured on page");
+                                                        PageCommentsValidation = new ValidationResult(ValidationResultType.Error, "Found page comments - possibly already featured on page");
                                                         ShowComments = true;
                                                         LogEntries.Add(new LogEntry($"Found page comment: {commentUserName} - {comment?.Timestamp?.FormatTimestamp()} - {commentSegments}", Colors.Red));
                                                     }
@@ -242,7 +242,7 @@ namespace FeatureLogging
                                                                 vm.SelectedFeature!.PhotoLastFeaturedPage = page[(selectedPage.HubName.Length + 1)..];
                                                                 vm.SelectedFeature!.PhotoLastFeaturedOnHub = timestamp;
                                                             }));
-                                                        HubCommentsValidation = new ValidationResult(false, "Found hub comments - possibly already featured on another page");
+                                                        HubCommentsValidation = new ValidationResult(ValidationResultType.Error, "Found hub comments - possibly already featured on another page");
                                                         ShowComments = true;
                                                         LogEntries.Add(new LogEntry($"Found hub comment: {commentUserName} - {comment?.Timestamp?.FormatTimestamp()} - {commentSegments}", Colors.Orange));
                                                     }
@@ -379,9 +379,9 @@ namespace FeatureLogging
         {
             if (string.IsNullOrEmpty(userAlias))
             {
-                return new ValidationResult(false, "Missing the user alias");
+                return new ValidationResult(ValidationResultType.Error, "Missing the user alias");
             }
-            return new ValidationResult(true);
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
         #endregion
@@ -412,9 +412,9 @@ namespace FeatureLogging
         {
             if (string.IsNullOrEmpty(userName))
             {
-                return new ValidationResult(false, "Missing the user name");
+                return new ValidationResult(ValidationResultType.Error, "Missing the user name");
             }
-            return new ValidationResult(true);
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
         #endregion
@@ -446,13 +446,13 @@ namespace FeatureLogging
         {
             if (string.IsNullOrEmpty(userProfileUrl))
             {
-                return new ValidationResult(false, "Missing the user profile URL");
+                return new ValidationResult(ValidationResultType.Error, "Missing the user profile URL");
             }
             if (!userProfileUrl.StartsWith("https://vero.co/"))
             {
-                return new ValidationResult(false, "User profile URL does not point to VERO");
+                return new ValidationResult(ValidationResultType.Error, "User profile URL does not point to VERO");
             }
-            return new ValidationResult(true);
+            return new ValidationResult(ValidationResultType.Valid);
         }
 
         #endregion
@@ -488,14 +488,14 @@ namespace FeatureLogging
 
         #region Tag Checks
 
-        private ValidationResult pageHashtagCheck = new(true);
+        private ValidationResult pageHashtagCheck = new(ValidationResultType.Valid);
         public ValidationResult PageHashtagCheck
         {
             get => pageHashtagCheck;
             set => Set(ref pageHashtagCheck, value);
         }
 
-        private ValidationResult excludedHashtagCheck = new(true);
+        private ValidationResult excludedHashtagCheck = new(ValidationResultType.Valid);
         public ValidationResult ExcludedHashtagCheck
         {
             get => excludedHashtagCheck;
@@ -520,7 +520,7 @@ namespace FeatureLogging
             private set => Set(ref pageComments, value);
         }
 
-        private ValidationResult pageCommentsValidation = new(true);
+        private ValidationResult pageCommentsValidation = new(ValidationResultType.Valid);
         public ValidationResult PageCommentsValidation
         {
             get => pageCommentsValidation;
@@ -534,7 +534,7 @@ namespace FeatureLogging
             private set => Set(ref hubComments, value);
         }
 
-        private ValidationResult hubCommentsValidation = new(true);
+        private ValidationResult hubCommentsValidation = new(ValidationResultType.Valid);
         public ValidationResult HubCommentsValidation
         {
             get => hubCommentsValidation;
@@ -665,24 +665,24 @@ namespace FeatureLogging
             var excludedHashtags = vm.ExcludedTags.Split(",", StringSplitOptions.RemoveEmptyEntries);
             if (excludedHashtags.Length != 0)
             {
-                ExcludedHashtagCheck = new ValidationResult(true, message: "Post does not contain any excluded hashtags");
+                ExcludedHashtagCheck = new ValidationResult(ValidationResultType.Valid, message: "Post does not contain any excluded hashtags");
                 foreach (var excludedHashtag in excludedHashtags)
                 {
                     if (pageHashTags.IndexOf(excludedHashtag) != -1)
                     {
-                        ExcludedHashtagCheck = new ValidationResult(false, error: $"Post contains excluded hashtag {excludedHashtag}");
+                        ExcludedHashtagCheck = new ValidationResult(ValidationResultType.Error, error: $"Post contains excluded hashtag {excludedHashtag}");
                         LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Error!, Colors.Red));
                         break;
                     }
                 }
-                if (ExcludedHashtagCheck.Valid)
+                if (ExcludedHashtagCheck.IsValid)
                 {
                     LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Message!, defaultLogColor));
                 }
             }
             else
             {
-                ExcludedHashtagCheck = new ValidationResult(true, message: "There are no excluded hashtags");
+                ExcludedHashtagCheck = new ValidationResult(ValidationResultType.Valid, message: "There are no excluded hashtags");
                 LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Error!, defaultLogColor));
             }
         }

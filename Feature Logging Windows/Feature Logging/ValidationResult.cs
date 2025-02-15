@@ -1,8 +1,21 @@
 ﻿namespace FeatureLogging
 {
-    public struct ValidationResult(bool valid, string? error = null, string? message = null)
+    public enum ValidationResultType
     {
-        public bool Valid { get; private set; } = valid;
+        Valid,
+        Warning,
+        Error
+    }
+
+    public struct ValidationResult(ValidationResultType type, string? error = null, string? message = null)
+    {
+        public ValidationResultType Type { get; private set; } = type;
+
+        public readonly bool IsValid => Type == ValidationResultType.Valid;
+
+        public readonly bool IsWarning => Type == ValidationResultType.Warning;
+
+        public readonly bool IsError => Type == ValidationResultType.Error;
 
         public string? Error { get; private set; } = error;
 
@@ -10,17 +23,7 @@
 
         public static bool operator ==(ValidationResult x, ValidationResult y)
         {
-            var xPrime = x;
-            var yPrime = y;
-            if (xPrime.Valid && yPrime.Valid)
-            {
-                return xPrime.Message == yPrime.Message;
-            }
-            if (xPrime.Valid || yPrime.Valid)
-            {
-                return false;
-            }
-            return xPrime.Error == yPrime.Error && xPrime.Message == yPrime.Message;
+            return x.Type == y.Type && x.Error == y.Error && x.Message == y.Message;
         }
 
         public static bool operator !=(ValidationResult x, ValidationResult y)
@@ -40,7 +43,7 @@
 
         public override readonly int GetHashCode()
         {
-            return Valid.GetHashCode() + (Error ?? "").GetHashCode() + (Message ?? "").GetHashCode();
+            return Type.GetHashCode() + (Error ?? "").GetHashCode() + (Message ?? "").GetHashCode();
         }
     }
 }

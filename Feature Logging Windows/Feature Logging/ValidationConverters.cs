@@ -9,24 +9,25 @@ namespace FeatureLogging
     class ValidationResultColorConverter : IValueConverter
     {
         public Brush? ValidBrush { get; set; }
+        public Brush? WarningBrush { get; set; }
         public Brush? InvalidBrush { get; set; }
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var validationResult = value as ValidationResult?;
             var brushName = "MahApps.Brushes.Text";
             var defaultBrush = SystemColors.ControlTextBrush;
-            if (validationResult == null || !(validationResult?.Valid ?? false))
+            if (value is ValidationResult validationResult)
             {
-                if (InvalidBrush != null)
+                switch (validationResult.Type)
                 {
-                    brushName = "- force -";
-                    defaultBrush = (SolidColorBrush)InvalidBrush;
-                }
-                else
-                {
-                    brushName = "MahApps.Brushes.Control.Validation";
-                    defaultBrush = new SolidColorBrush(Colors.Red);
+                    case ValidationResultType.Error:
+                        brushName = (InvalidBrush != null) ? "- force -" : "MahApps.Brushes.Control.Validation";
+                        defaultBrush = (InvalidBrush != null) ? (SolidColorBrush)InvalidBrush : new SolidColorBrush(Colors.Red);
+                        break;
+                    case ValidationResultType.Warning:
+                        brushName = (WarningBrush != null) ? "- force -" : "MahApps.Brushes.Control.Warning";
+                        defaultBrush = (WarningBrush != null) ? (SolidColorBrush)WarningBrush : new SolidColorBrush(Colors.Orange);
+                        break;
                 }
             } 
             else if (ValidBrush != null)
@@ -53,7 +54,7 @@ namespace FeatureLogging
                 inverted = isInverted;
             }
             var validationResult = value as ValidationResult?;
-            if (validationResult == null || !(validationResult?.Valid ?? false))
+            if (validationResult == null || !(validationResult?.IsValid ?? false))
             {
                 return inverted ? Visibility.Collapsed : Visibility.Visible;
             }
