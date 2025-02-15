@@ -13,7 +13,7 @@ using Browser = Microsoft.Maui.ApplicationModel.Browser;
 
 namespace FeatureLogging.ViewModels;
 
-public class LoadedPostViewModel(MainViewModel vm) : NotifyPropertyChanged
+public class LoadedPostViewModel(MainViewModel vm, string hubName) : NotifyPropertyChanged
 {
     private readonly HttpClient httpClient = new();
 
@@ -254,13 +254,13 @@ public class LoadedPostViewModel(MainViewModel vm) : NotifyPropertyChanged
         {
             if (Set(ref userAlias, value))
             {
-                UserAliasValidation = Validation.ValidateUserName(userAlias ?? "");
+                UserAliasValidation = Validation.ValidateUser(hubName, userAlias ?? "");
                 OnPropertyChanged(nameof(TransferUserAliasCommand));
             }
         }
     }
 
-    private ValidationResult userAliasValidation = Validation.ValidateUserName("");
+    private ValidationResult userAliasValidation = Validation.ValidateUser("", "");
 
     public ValidationResult UserAliasValidation
     {
@@ -281,13 +281,13 @@ public class LoadedPostViewModel(MainViewModel vm) : NotifyPropertyChanged
         {
             if (Set(ref userName, value))
             {
-                UserNameValidation = Validation.ValidateUserName(userName ?? "");
+                UserNameValidation = Validation.ValidateValueNotEmptyAndContainsNoNewlines(userName ?? "");
                 OnPropertyChanged(nameof(TransferUserNameCommand));
             }
         }
     }
 
-    private ValidationResult userNameValidation = Validation.ValidateUserName("");
+    private ValidationResult userNameValidation = Validation.ValidateValueNotEmptyAndContainsNoNewlines("");
 
     public ValidationResult UserNameValidation
     {

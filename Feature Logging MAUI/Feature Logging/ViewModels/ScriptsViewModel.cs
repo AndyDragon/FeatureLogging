@@ -14,8 +14,21 @@ public enum Script
     OriginalPost,
 }
 
-public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPropertyChanged
+public partial class ScriptsViewModel : NotifyPropertyChanged
 {
+    public ScriptsViewModel(MainViewModel mainViewModel)
+    {
+        this.mainViewModel = mainViewModel;
+        UserSettings.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(SettingsViewModel.IncludeSpaces))
+            {
+                UpdateScripts();
+                UpdateNewMembershipScripts();
+            }
+        };
+    }
+
     private readonly Dictionary<Script, string> scriptNames = new()
     {
         { Script.Feature, "feature" },
@@ -241,6 +254,8 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
     }
 
     private string newMembershipScript = "";
+    private readonly MainViewModel mainViewModel;
+
     public string NewMembershipScript
     {
         get => newMembershipScript;
@@ -470,7 +485,8 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
                     .Replace("%%USERNAME%%", Feature!.UserAlias)
                     .Replace("%%YOURNAME%%", mainViewModel.YourAlias)
                     .Replace("%%YOURFIRSTNAME%%", mainViewModel.YourFirstName)
-                    .Replace("%%STAFFLEVEL%%", mainViewModel.StaffLevel);
+                    .Replace("%%STAFFLEVEL%%", mainViewModel.StaffLevel)
+                    .InsertSpacesInUserTags(mainViewModel.SettingsViewModel.IncludeSpaces);
             }
 
             FeatureScript = PrepareTemplate(GetTemplate("feature", pageId));
@@ -621,7 +637,8 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
                     .Replace("%%USERNAME%%", Feature!.UserAlias)
                     .Replace("%%YOURNAME%%", mainViewModel.YourAlias)
                     .Replace("%%YOURFIRSTNAME%%", mainViewModel.YourFirstName)
-                    .Replace("%%STAFFLEVEL%%", mainViewModel.StaffLevel);
+                    .Replace("%%STAFFLEVEL%%", mainViewModel.StaffLevel)
+                    .InsertSpacesInUserTags(mainViewModel.SettingsViewModel.IncludeSpaces);
             }
 
             if (!string.IsNullOrEmpty(hubName))
@@ -695,4 +712,12 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
 
     [GeneratedRegex("\\[\\{([^\\}]*)\\}\\]")]
     private static partial Regex LongPlaceholderRegex();
+}
+
+public static class StringExtensions
+{
+    public static string InsertSpacesInUserTags(this string input, bool doReplacements = false)
+    {
+        return !doReplacements ? input : Regex.Replace(input, @"(^|\s|\()@([\w]+)(\s|$|,|\.|\:|\))", "$1@ $2$3");
+    }
 }

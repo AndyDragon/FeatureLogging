@@ -22,10 +22,20 @@
                 </Border.StrokeShape>
                 <VerticalStackLayout Margin="8,4,8,8">
                     <Label FontAttributes="Bold" TextColor="{DynamicResource Primary}">Options:</Label>
-                    <HorizontalStackLayout>
-                        <Label Text="Include '#'" VerticalOptions="Center" />
-                        <CheckBox IsChecked="{Binding IncludeHash, Mode=TwoWay}" Margin="8,0,0,0" VerticalOptions="Center" />
-                    </HorizontalStackLayout>
+                    <VerticalStackLayout Margin="0,4,0,4">
+                        <HorizontalStackLayout>
+                            <Label Text="Include '#'" VerticalOptions="Center" />
+                            <CheckBox IsChecked="{Binding IncludeHash, Mode=TwoWay}" Margin="8,0,0,0" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <Label Text="When checked, copying the tracking tags will include the '#' prefix." VerticalOptions="Center" FontSize="13" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Margin="0,4,0,4">
+                        <HorizontalStackLayout>
+                            <Label Text="Insert a space after '@' in tags" VerticalOptions="Center" />
+                            <CheckBox IsChecked="{Binding IncludeSpaces, Mode=TwoWay}" Margin="8,0,0,0" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <Label Text="For example, for the user/page tags like '@alphabeta', the script will be '@ alphabeta'." VerticalOptions="Center" FontSize="13" />
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>
             

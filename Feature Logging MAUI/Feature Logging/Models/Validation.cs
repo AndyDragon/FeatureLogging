@@ -55,7 +55,7 @@ public static class Validation
                         : ValidateValueNotEmptyAndContainsNoNewlines(userName, failLevel);
     }
 
-    private static ValidationResult ValidateValueNotEmptyAndContainsNoNewlines(string value, ValidationLevel failLevel = ValidationLevel.Error)
+    public static ValidationResult ValidateValueNotEmptyAndContainsNoNewlines(string value, ValidationLevel failLevel = ValidationLevel.Error)
     {
         return string.IsNullOrEmpty(value)
             ? new ValidationResult(failLevel, "Required value")

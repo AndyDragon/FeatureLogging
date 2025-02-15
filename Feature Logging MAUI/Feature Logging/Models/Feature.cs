@@ -50,7 +50,7 @@ public class Feature(string hubName) : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref userName, value, () => IsDirty = true, [nameof(UserNameValidation), nameof(SortKey), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
     }
     [JsonIgnore]
-    public ValidationResult UserNameValidation => Validation.ValidateUserName(userName);
+    public ValidationResult UserNameValidation => Validation.ValidateValueNotEmptyAndContainsNoNewlines(userName);
 
     private string userAlias = "";
     [JsonProperty(PropertyName = "userAlias")]

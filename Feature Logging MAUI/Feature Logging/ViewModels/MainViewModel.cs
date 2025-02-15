@@ -438,7 +438,7 @@ public class MainViewModel : NotifyPropertyChanged
         {
             if (feature.PostLink.StartsWith("https://vero.co/"))
             {
-                LoadedPost = new LoadedPostViewModel(this);
+                LoadedPost = new LoadedPostViewModel(this, SelectedPage!.HubName);
                 MainWindow?.Navigation.PushAsync(new LoadedPost
                 {
                     BindingContext = LoadedPost
@@ -446,7 +446,7 @@ public class MainViewModel : NotifyPropertyChanged
             }
         }
     },
-    () => SelectedFeature != null && SelectedFeature.PostLink.StartsWith("https://vero.co/"));
+    () => SelectedPage != null && SelectedFeature != null && SelectedFeature.PostLink.StartsWith("https://vero.co/"));
 
     public SimpleCommand CopyPageFeatureTagCommand => new(() =>
     {
@@ -1449,7 +1449,7 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Settings view model
 
-    private SettingsViewModel SettingsViewModel { get; }
+    public SettingsViewModel SettingsViewModel { get; }
 
     #endregion
 

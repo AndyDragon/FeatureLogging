@@ -15,6 +15,23 @@ public class SettingsViewModel : NotifyPropertyChanged
             if (Set(ref includeHash, value))
             {
                 Preferences.Default.Set(nameof(IncludeHash), includeHash);
+                UserSettings.OnPropertyChanged();
+            }
+        }
+    }
+    
+    private bool includeSpaces = Preferences.Default.Get(
+        nameof(IncludeSpaces), 
+        false);
+    public bool IncludeSpaces
+    {
+        get => includeSpaces;
+        set
+        {
+            if (Set(ref includeSpaces, value))
+            {
+                Preferences.Default.Set(nameof(IncludeSpaces), includeSpaces);
+                UserSettings.OnPropertyChanged();
             }
         }
     }
