@@ -35,8 +35,8 @@ export const showWindowsInfo: PlatformLocation = PlatformLocation.AppPortal;
 export const windowsInstallerLocation = "featurelogging/windows";
 export const windowsReleaseNotesLocation = "releaseNotes-windows.json";
 
-export const showAndroidInfo: PlatformLocation = PlatformLocation.DoNotShow;
-export const androidInstallerLocation = "TODO";
+export const showAndroidInfo: PlatformLocation = PlatformLocation.AppStore;
+export const androidInstallerLocation = "https://play.google.com/store/apps/details?id=com.andydragon.feature_logging";
 export const androidReleaseNotesLocation = "releaseNotes-android.json";
 
 export const supportEmail = "andydragon@live.com";
@@ -48,7 +48,7 @@ export type Platform = "macOS" | "windows" | "iOS" | "android";
 export const platformString: Record<Platform, string> = {
     macOS: "macOS",
     windows: "Windows",
-    iOS: "iPhone / iPad",
+    iOS: "iPad",
     android: "Android tablet",
 }
 
@@ -69,7 +69,7 @@ export const links: Record<Platform, Links | undefined> = {
         actions: [
             {
                 action: "install from app store",
-                target: "",
+                target: "_blank",
                 suffix: "",
             }
         ]
@@ -80,7 +80,7 @@ export const links: Record<Platform, Links | undefined> = {
         actions: [
             {
                 action: "install from app store",
-                target: "",
+                target: "_blank",
                 suffix: "",
             }
         ]
@@ -106,7 +106,7 @@ export const links: Record<Platform, Links | undefined> = {
         actions: [
             {
                 action: "install from app store",
-                target: "",
+                target: "_blank",
                 suffix: "",
             }
         ]

@@ -2,7 +2,6 @@ import React from "react";
 import { Version, readVersion } from "./version";
 import { Link, Spinner, Subtitle1, Subtitle2, makeStyles, shorthands } from "@fluentui/react-components";
 import { Platform, links, platformString } from "./config";
-import { Link as RouterLink } from "react-router-dom";
 
 export interface GeneralProps {
     readonly applicationName: string;

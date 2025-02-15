@@ -28,6 +28,7 @@ import {
     PlatformLocation,
     showAndroidInfo,
     androidReleaseNotesLocation,
+    platformString,
 } from "./config";
 import About from "./About";
 import General from "./General";
@@ -90,7 +91,7 @@ function App() {
                             </div>
                             {(showMacInfo !== PlatformLocation.DoNotShow) && (
                             <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
-                                <Title3>macOS</Title3>
+                                <Title3>{platformString["macOS"]}</Title3>
                                 <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
                                     <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 8px 0" }} to="/macInstall">
                                         Install
@@ -103,7 +104,7 @@ function App() {
                             )}
                             {(showIosInfo !== PlatformLocation.DoNotShow) && (
                             <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
-                                <Title3>iPhone / iPad</Title3>
+                                <Title3>{platformString["iOS"]}</Title3>
                                 <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
                                     <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 8px 0" }} to="/iosInstall">
                                         Install
@@ -116,7 +117,7 @@ function App() {
                             )}
                             {(showWindowsInfo !== PlatformLocation.DoNotShow) && (
                             <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
-                                <Title3>Windows</Title3>
+                                <Title3>{platformString["windows"]}</Title3>
                                 <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
                                     <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 8px 0" }} to="/windowsInstall">
                                         Install
@@ -129,7 +130,7 @@ function App() {
                             )}
                             {(showAndroidInfo !== PlatformLocation.DoNotShow) && (
                             <div style={{ display: "flex", flexDirection: "column", marginTop: "32px" }}>
-                                <Title3>Android phone / tablet</Title3>
+                                <Title3>{platformString["android"]}</Title3>
                                 <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column" }}>
                                     <Link className={styles.cleanLink} style={{ fontSize: "15pt", margin: "8px 0 8px 0" }} to="/androidInstall">
                                         Install
