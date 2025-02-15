@@ -16,7 +16,7 @@
     <Copyright>Copyright (c) 2024-2025 AndyDragon Software, all rights reserved</Copyright>
     <Company>AndyDragon Software</Company>
     <Authors>Andrew Forget</Authors>
-    <Version>2.1.28</Version>
+    <Version>2.1.29</Version>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 

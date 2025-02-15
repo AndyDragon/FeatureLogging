@@ -701,6 +701,10 @@ namespace FeatureLogging
                     {
                         LoadPostCommand.OnCanExecuteChanged();
                     }
+                    else if (e.PropertyName == nameof(feature.SortKey))
+                    {
+                        MainWindow?.ResortList();
+                    }
                 }
             }
 
@@ -1367,7 +1371,6 @@ namespace FeatureLogging
             get => selectedFeature;
             set
             {
-                var oldSelectedFeature = selectedFeature;
                 if (Set(ref selectedFeature, value))
                 {
                     Feature = SelectedFeature?.Id ?? string.Empty;
@@ -1376,25 +1379,7 @@ namespace FeatureLogging
                     OnPropertyChanged(nameof(Title));
                     RemoveFeatureCommand.OnCanExecuteChanged();
                     LoadPostCommand.OnCanExecuteChanged();
-                    if (oldSelectedFeature != null)
-                    {
-                        oldSelectedFeature.PropertyChanged -= OnSelectedFeaturePropertyChanged;
-                    }
-                    if (selectedFeature != null)
-                    {
-                        selectedFeature.PropertyChanged += OnSelectedFeaturePropertyChanged;
-                    }
                 }
-            }
-        }
-
-        private void OnSelectedFeaturePropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            switch (e.PropertyName)
-            {
-                case "SortKey":
-                    MainWindow?.ResortList();
-                    break;
             }
         }
 
@@ -2452,6 +2437,8 @@ namespace FeatureLogging
             // Handle picked
             key += (feature.IsPicked ? "A|" : "Z|");
 
+            Debugger.Log(2, "FeatureComparer", $"Key: {key}{feature.UserName}\n");
+
             return key + feature.UserName;
         }
     }
@@ -2662,7 +2649,7 @@ namespace FeatureLogging
         public bool IsPicked
         {
             get => isPicked;
-            set => SetWithDirtyCallback(ref isPicked, value, () => IsDirty = true, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(IsAllowed), nameof(SortKey)]);
+            set => SetWithDirtyCallback(ref isPicked, value, () => { IsDirty = true; Debugger.Log(1, "IsPicked", $"IsPicked changed for {UserName}"); }, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(IsAllowed), nameof(SortKey)]);
         }
 
         private string postLink = "";
