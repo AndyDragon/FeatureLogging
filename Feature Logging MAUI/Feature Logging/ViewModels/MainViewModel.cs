@@ -65,7 +65,7 @@ public class MainViewModel : NotifyPropertyChanged
             Debugger.Log(100, "Info", "No longer waiting for pages...");
             
             await LoadTemplates();
-            await LoadDisallowList();
+            await LoadDisallowAndCautionLists();
 
             IsDirty = false;
         }
@@ -101,7 +101,7 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }
 
-    private async Task LoadDisallowList()
+    private async Task LoadDisallowAndCautionLists()
     {
         try
         {
@@ -110,11 +110,17 @@ public class MainViewModel : NotifyPropertyChanged
             {
                 NoCache = true
             };
-            var templatesUri = new Uri("https://vero.andydragon.com/static/data/disallowlists.json");
-            var content = await httpClient.GetStringAsync(templatesUri);
-            if (!string.IsNullOrEmpty(content))
+            var disallowListsUri = new Uri("https://vero.andydragon.com/static/data/disallowlists.json");
+            var disallowListsContent = await httpClient.GetStringAsync(disallowListsUri);
+            if (!string.IsNullOrEmpty(disallowListsContent))
             {
-                Validation.DisallowList = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(content) ?? [];
+                Validation.DisallowLists = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(disallowListsContent) ?? [];
+            }
+            var cautionListsUri = new Uri("https://vero.andydragon.com/static/data/cautionlists.json");
+            var cautionListsContent = await httpClient.GetStringAsync(cautionListsUri);
+            if (!string.IsNullOrEmpty(cautionListsContent))
+            {
+                Validation.CautionLists = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(cautionListsContent) ?? [];
             }
         }
         catch (Exception ex)

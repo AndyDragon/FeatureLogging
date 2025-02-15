@@ -183,6 +183,7 @@
                     Grid.Row="5"
                     Text="{Binding ScriptViewModel.FeatureScript, Mode=TwoWay}"
                     Margin="0,0,0,8"
+                    MinimumHeightRequest="64"
                     TextColor="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource ValidationBooleanColorConverter}}" />
                         
                 <!-- Comment script header -->
@@ -224,6 +225,7 @@
                     Grid.Row="7"
                     Text="{Binding ScriptViewModel.CommentScript, Mode=TwoWay}"
                     Margin="0,0,0,8"
+                    MinimumHeightRequest="40"
                     TextColor="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource ValidationBooleanColorConverter}}" />
                         
                 <!-- Original post script header -->
@@ -265,6 +267,7 @@
                     Grid.Row="9"
                     Text="{Binding ScriptViewModel.OriginalPostScript, Mode=TwoWay}"
                     Margin="0,0,0,8"
+                    MinimumHeightRequest="32"
                     TextColor="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource ValidationBooleanColorConverter}}" />
 
                 <!-- New membership script header -->
@@ -305,6 +308,7 @@
                     Grid.Row="11"
                     Text="{Binding ScriptViewModel.NewMembershipScript, Mode=TwoWay}"
                     Margin="0,0,0,8"
+                    MinimumHeightRequest="48"
                     TextColor="{Binding ScriptViewModel.CanCopyNewMembershipScript, Converter={StaticResource ValidationBooleanColorConverter}}" />
             </Grid>
         </VerticalStackLayout>

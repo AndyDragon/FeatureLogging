@@ -10,7 +10,7 @@
     <Grid RowDefinitions="Auto, Auto, *, Auto">
         <Label Grid.Row="0" Margin="10,10,10,2" HorizontalOptions="Center">There are manual placeholders that need to be filled out:</Label>
         <Label Grid.Row="1" Margin="10,2,10,10" HorizontalOptions="Center">(leave field blank to remove the placeholder)</Label>
-        <Border Grid.Row="2" BackgroundColor="{DynamicResource Gray500}" Margin="10,10,20,10" StrokeShape="RoundRectangle 10" Padding="4,0,6,0">
+        <Border Grid.Row="2" Margin="10,10,20,10" StrokeShape="RoundRectangle 4" Padding="4,0,6,0">
             <VerticalStackLayout>
 
                 <!-- Placeholders -->

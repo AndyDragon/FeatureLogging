@@ -9,7 +9,9 @@ public enum ValidationLevel
 
 public readonly struct ValidationResult(ValidationLevel level = ValidationLevel.Valid, string? message = null) : IEquatable<ValidationResult>
 {
-    public bool Valid => Level == ValidationLevel.Valid;
+    public bool IsValid => Level == ValidationLevel.Valid;
+    public bool IsWarning => Level == ValidationLevel.Warning;
+    public bool IsError => Level == ValidationLevel.Error;
 
     public ValidationLevel Level { get; } = level;
 

@@ -37,8 +37,8 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<Configurations>Release;Debug</Configurations>
-		<ReleaseVersion>1.0.4</ReleaseVersion>
-		<AssemblyVersion>1.0.4</AssemblyVersion>
+		<ReleaseVersion>1.0.5</ReleaseVersion>
+		<AssemblyVersion>1.0.5</AssemblyVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">

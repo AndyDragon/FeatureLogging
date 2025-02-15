@@ -56,7 +56,7 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
                     {
                         case true:
                         {
-                            var featureCount = GetHubFeatureCount("snap", Feature);
+                            var featureCount = GetHubFeatureCount(Feature);
                             NewMembership = (featureCount + 1) switch
                             {
                                 5 => "Snap Member (feature comment)",
@@ -76,7 +76,7 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
                     {
                         case true:
                         {
-                            var featureCount = GetHubFeatureCount("click", Feature);
+                            var featureCount = GetHubFeatureCount(Feature);
                             NewMembership = (featureCount + 1) switch
                             {
                                 5 => "Click Member",
@@ -101,7 +101,7 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
         }
     }
 
-    private static int GetHubFeatureCount(string hubName, Feature feature)
+    private static int GetHubFeatureCount(Feature feature)
     {
         if (feature is { UserHasFeaturesOnHub: true, FeatureCountOnHub: "many" })
         {
@@ -396,17 +396,17 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
     #region Script management
 
     public bool CanCopyScripts =>
-        Feature is { UserAliasValidation.Valid: true, UserLevelValidation.Valid: true } &&
-        mainViewModel.YourAliasValidation.Valid &&
-        mainViewModel.YourFirstNameValidation.Valid &&
-        mainViewModel.PageValidation.Valid;
+        Feature is { UserAliasValidation.IsError: false, UserLevelValidation.IsError: false } &&
+        !mainViewModel.YourAliasValidation.IsError &&
+        !mainViewModel.YourFirstNameValidation.IsError &&
+        !mainViewModel.PageValidation.IsError;
 
     public bool CanCopyNewMembershipScript =>
         NewMembership != "None" &&
-        Feature is { UserAliasValidation.Valid: true, UserLevelValidation.Valid: true } &&
-        mainViewModel.YourAliasValidation.Valid &&
-        mainViewModel.YourFirstNameValidation.Valid &&
-        mainViewModel.PageValidation.Valid;
+        Feature is { UserAliasValidation.IsError: false, UserLevelValidation.IsError: false } &&
+        !mainViewModel.YourAliasValidation.IsError &&
+        !mainViewModel.YourFirstNameValidation.IsError &&
+        !mainViewModel.PageValidation.IsError;
 
     private void UpdateScripts()
     {
@@ -441,7 +441,7 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
             var validationErrors = "";
             void CheckValidation(string prefix, ValidationResult result)
             {
-                if (!result.Valid)
+                if (!result.IsValid)
                 {
                     validationErrors += prefix + ": " + (result.Message ?? "unknown") + "\n";
                 }
@@ -569,7 +569,7 @@ public partial class ScriptsViewModel(MainViewModel mainViewModel) : NotifyPrope
             var validationErrors = "";
             void CheckValidation(string prefix, ValidationResult result)
             {
-                if (!result.Valid)
+                if (!result.IsValid)
                 {
                     validationErrors += prefix + ": " + (result.Message ?? "unknown") + "\n";
                 }

@@ -561,7 +561,7 @@ public class LoadedPostViewModel(MainViewModel vm) : NotifyPropertyChanged
                 }
             }
 
-            if (ExcludedHashtagCheck.Valid)
+            if (ExcludedHashtagCheck.IsValid)
             {
                 LogEntries.Add(new LogEntry(ExcludedHashtagCheck.Message!));
             }

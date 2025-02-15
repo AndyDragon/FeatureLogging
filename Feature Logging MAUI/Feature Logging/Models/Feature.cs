@@ -50,7 +50,7 @@ public class Feature(string hubName) : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref userName, value, () => IsDirty = true, [nameof(UserNameValidation), nameof(SortKey), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
     }
     [JsonIgnore]
-    public ValidationResult UserNameValidation => Validation.ValidateUser(hubName, userName);
+    public ValidationResult UserNameValidation => Validation.ValidateUserName(userName);
 
     private string userAlias = "";
     [JsonProperty(PropertyName = "userAlias")]
@@ -60,7 +60,7 @@ public class Feature(string hubName) : NotifyPropertyChanged
         set => SetWithDirtyCallback(ref userAlias, value, () => IsDirty = true, [nameof(UserAliasValidation), nameof(HasValidationErrors), nameof(ValidationErrorSummary)]);
     }
     [JsonIgnore]
-    public ValidationResult UserAliasValidation => Validation.ValidateUserName(userAlias);
+    public ValidationResult UserAliasValidation => Validation.ValidateUser(hubName, userAlias);
 
     private string userLevel = "None";
     [JsonProperty(PropertyName = "userLevel")]
@@ -280,13 +280,13 @@ public class Feature(string hubName) : NotifyPropertyChanged
 
     [JsonIgnore]
     public bool HasValidationErrors =>
-        !PostLinkValidation.Valid ||
-        !UserNameValidation.Valid ||
-        !UserAliasValidation.Valid ||
-        !UserLevelValidation.Valid ||
-        (PhotoFeaturedOnHub && !PhotoLastFeaturedOnHubValidation.Valid) ||
-        (UserHasFeaturesOnPage && !LastFeaturedOnPageValidation.Valid) ||
-        (UserHasFeaturesOnHub && (!LastFeaturedOnHubValidation.Valid));
+        !PostLinkValidation.IsValid ||
+        !UserNameValidation.IsValid ||
+        !UserAliasValidation.IsValid ||
+        !UserLevelValidation.IsValid ||
+        (PhotoFeaturedOnHub && !PhotoLastFeaturedOnHubValidation.IsValid) ||
+        (UserHasFeaturesOnPage && !LastFeaturedOnPageValidation.IsValid) ||
+        (UserHasFeaturesOnHub && (!LastFeaturedOnHubValidation.IsValid));
 
     [JsonIgnore]
     public string ValidationErrorSummary
@@ -322,7 +322,7 @@ public class Feature(string hubName) : NotifyPropertyChanged
     
     private static void AddValidationError(List<string> validationErrors, ValidationResult result, string validation)
     {
-        if (!result.Valid)
+        if (!result.IsValid)
         {
             validationErrors.Add(validation + ": " + (result.Message ?? "unknown validation error"));
         }
