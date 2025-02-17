@@ -13,14 +13,13 @@ using System.Windows.Media;
 using System.Windows;
 
 using ControlzEx.Theming;
-using LiveCharts.Defaults;
-using LiveCharts.Wpf;
-using LiveCharts;
 using MahApps.Metro.IconPacks;
 using Microsoft.Win32;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using Notification.Wpf;
+using OxyPlot;
+using OxyPlot.Series;
 
 namespace FeatureLogging
 {
@@ -1075,6 +1074,10 @@ namespace FeatureLogging
                         OnPropertyChanged(nameof(StatusBarBrush));
                         OnPropertyChanged(nameof(Themes));
                         SelectedFeature?.TriggerThemeChanged();
+                        if (View == ViewMode.StatisticsView)
+                        {
+                            UpdateStatisticsCharts();
+                        }
                     }
                 }
             }
@@ -1943,91 +1946,120 @@ namespace FeatureLogging
             {
                 if (Set(ref selectedStatisticsPage, value))
                 {
-                    if (selectedStatisticsPage != null)
-                    {
-                        var selectedLogs = loggingFiles.Where(loggingFile =>
-                        {
-                            if (selectedStatisticsPage.Id == "all")
-                            {
-                                return true;
-                            }
-                            if (!selectedStatisticsPage.Id.Contains(':'))
-                            {
-                                return loggingFile.Page.StartsWith(selectedStatisticsPage.Id + ":");
-                            }
-                            return loggingFile.Page.Equals(selectedStatisticsPage.Id);
-                        });
-
-                        PickedFeatureChart = new ChartData("Picked", "Total picks", CalculatePickedFeatureData(selectedLogs));
-                        FirstFeatureChart = new ChartData("First feature", "First time user is featured", CalculateFirstFeatureData(selectedLogs));
-                        UserLevelChart = new ChartData("User level", "Membership of user before feature", CalculateUserLevelData(selectedLogs));
-                        PhotoFeaturedChart = new ChartData("Photo featured", "Photo feature on different page on hub", CalculatePhotoFeaturedData(selectedLogs));
-                        PageFeatureCountChart = new ChartData("Previous page features", "Number of features the user has on page", CalculatePageFeatureCountData(selectedLogs));
-                        HubFeatureCountChart = new ChartData("Previous hub features", "Number of features the user has on entire hub", CalculateHubFeatureCountData(selectedLogs));
-                        ChartVisibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        ChartVisibility = Visibility.Collapsed;
-                        PickedFeatureChart = null;
-                        FirstFeatureChart = null;
-                        UserLevelChart = null;
-                        PhotoFeaturedChart = null;
-                        PageFeatureCountChart = null;
-                        HubFeatureCountChart = null;
-                    }
+                    UpdateStatisticsCharts();
                 }
             }
         }
 
-        private static SeriesCollection CalculatePickedFeatureData(IEnumerable<LoggingFile> loggingFiles)
+        private void UpdateStatisticsCharts()
         {
-            var collection = new SeriesCollection();
-            var value = loggingFiles.Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed).Count());
-            collection.Add(new PieSeries
+            if (selectedStatisticsPage != null)
             {
-                Title = "Picked",
-                Values = new ChartValues<ObservableValue> { new(value) },
-                DataLabels = true
-            });
-            return collection;
+                var selectedLogs = loggingFiles.Where(loggingFile =>
+                {
+                    if (selectedStatisticsPage.Id == "all")
+                    {
+                        return true;
+                    }
+                    if (!selectedStatisticsPage.Id.Contains(':'))
+                    {
+                        return loggingFile.Page.StartsWith(selectedStatisticsPage.Id + ":");
+                    }
+                    return loggingFile.Page.Equals(selectedStatisticsPage.Id);
+                });
+
+                PickedFeatureChart = new ChartData("Picked", "Total picks", CalculatePickedFeatureData(selectedLogs));
+                FirstFeatureChart = new ChartData("First feature", "First time user is featured", CalculateFirstFeatureData(selectedLogs));
+                UserLevelChart = new ChartData("User level", "Membership of user before feature", CalculateUserLevelData(selectedLogs));
+                PhotoFeaturedChart = new ChartData("Photo featured", "Photo feature on different page on hub", CalculatePhotoFeaturedData(selectedLogs));
+                PageFeatureCountChart = new ChartData("Previous page features", "Number of features the user has on page", CalculatePageFeatureCountData(selectedLogs));
+                HubFeatureCountChart = new ChartData("Previous hub features", "Number of features the user has on entire hub", CalculateHubFeatureCountData(selectedLogs));
+                ChartVisibility = Visibility.Visible;
+            }
+            else
+            {
+                ChartVisibility = Visibility.Collapsed;
+                PickedFeatureChart = null;
+                FirstFeatureChart = null;
+                UserLevelChart = null;
+                PhotoFeaturedChart = null;
+                PageFeatureCountChart = null;
+                HubFeatureCountChart = null;
+            }
         }
 
-        private static SeriesCollection CalculateFirstFeatureData(IEnumerable<LoggingFile> loggingFiles)
+        private static PieSeries CreatePieSeries(string title)
         {
-            var collection = new SeriesCollection();
+            return new PieSeries()
+            {
+                InnerDiameter = 0.3,
+                StrokeThickness = 0,
+                AngleSpan = 360,
+                AngleIncrement = 10,
+                StartAngle = -90,
+                Title = title,
+                ExplodedDistance = 0.1,
+                AreInsideLabelsAngled = true,
+                OutsideLabelFormat = null,
+                InsideLabelFormat = null,
+                TrackerFormatString = "{0}\n{1}: {2}",
+            };
+        }
+
+        private static OxyColor DeterminePlotTextColor()
+        {
+            return ThemeManager.Current.DetectTheme(Application.Current)?.BaseColorScheme == "Light"
+                ? OxyColor.FromRgb(0, 0, 0)
+                : OxyColor.FromRgb(255, 255, 255);
+        }
+
+        private static PlotModel CalculatePickedFeatureData(IEnumerable<LoggingFile> loggingFiles)
+        {
+            var textColor = DeterminePlotTextColor();
+            var collection = CreatePieSeries("Picked");
+            var value = loggingFiles.Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed).Count());
+            collection.Slices.Add(new PieSlice("Picked", value) { IsExploded = true });
+            var plotModel = new PlotModel
+            {
+                PlotMargins = new OxyThickness(4)
+            };
+            plotModel.Series.Add(collection);
+            return plotModel;
+        }
+
+        private static PlotModel CalculateFirstFeatureData(IEnumerable<LoggingFile> loggingFiles)
+        {
+            var textColor = DeterminePlotTextColor();
+            var collection = CreatePieSeries("First feature");
             var firstFeatureValue = loggingFiles.Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && !feature.UserHasFeaturesOnPage).Count());
             var notFirstFeatureValue = loggingFiles.Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && feature.UserHasFeaturesOnPage).Count());
-            collection.Add(new PieSeries
+            if (firstFeatureValue != 0)
             {
-                Title = "First on page",
-                Values = new ChartValues<ObservableValue> { new(firstFeatureValue) },
-                DataLabels = true
-            });
-            collection.Add(new PieSeries
+                collection.Slices.Add(new PieSlice("First on page", firstFeatureValue) { IsExploded = true });
+            }
+            if (notFirstFeatureValue != 0)
             {
-                Title = "Not first",
-                Values = new ChartValues<ObservableValue> { new(notFirstFeatureValue) },
-                DataLabels = true
-            });
-            return collection;
+                collection.Slices.Add(new PieSlice("Not first", notFirstFeatureValue) { IsExploded = true });
+            }
+            var plotModel = new PlotModel
+            {
+                PlotMargins = new OxyThickness(4)
+            };
+            plotModel.Series.Add(collection);
+            return plotModel;
         }
 
-        private static SeriesCollection CalculateUserLevelData(IEnumerable<LoggingFile> loggingFiles)
+        private static PlotModel CalculateUserLevelData(IEnumerable<LoggingFile> loggingFiles)
         {
-            var collection = new SeriesCollection();
+            var textColor = DeterminePlotTextColor();
+            var collection = CreatePieSeries("User level");
             foreach (var level in SnapMemberships)
             {
                 var levelCountValue = loggingFiles.Where(loggingFile => loggingFile.Page.StartsWith("snap:"))
                                                   .Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && feature.UserLevel == level).Count());
                 if (levelCountValue != 0)
                 {
-                    collection.Add(new PieSeries
-                    {
-                        Title = "Snap " + level,
-                        Values = new ChartValues<ObservableValue> { new(levelCountValue) },
-                        DataLabels = true
-                    });
+                    collection.Slices.Add(new PieSlice("Snap " + level, levelCountValue) {  IsExploded = true });
                 }
             }
             foreach (var level in ClickMemberships)
@@ -2036,12 +2068,7 @@ namespace FeatureLogging
                                                   .Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && feature.UserLevel == level).Count());
                 if (levelCountValue != 0)
                 {
-                    collection.Add(new PieSeries
-                    {
-                        Title = "Click " + level,
-                        Values = new ChartValues<ObservableValue> { new(levelCountValue) },
-                        DataLabels = true
-                    });
+                    collection.Slices.Add(new PieSlice("Click " + level,  levelCountValue) { IsExploded = true });
                 }
             }
             foreach (var level in OtherMemberships)
@@ -2050,35 +2077,37 @@ namespace FeatureLogging
                                                   .Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && feature.UserLevel == level).Count());
                 if (levelCountValue != 0)
                 {
-                    collection.Add(new PieSeries
-                    {
-                        Title = "Other " + level,
-                        Values = new ChartValues<ObservableValue> { new(levelCountValue) },
-                        DataLabels = true
-                    });
+                    collection.Slices.Add(new PieSlice("Other " + level, levelCountValue) { IsExploded = true });
                 }
             }
-            return collection;
+            var plotModel = new PlotModel
+            {
+                PlotMargins = new OxyThickness(4)
+            };
+            plotModel.Series.Add(collection);
+            return plotModel;
         }
 
-        private static SeriesCollection CalculatePhotoFeaturedData(IEnumerable<LoggingFile> loggingFiles)
+        private static PlotModel CalculatePhotoFeaturedData(IEnumerable<LoggingFile> loggingFiles)
         {
-            var collection = new SeriesCollection();
-            var photoFeaturedOnHubValue = loggingFiles.Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && !feature.PhotoFeaturedOnHub).Count());
-            var photoNotFeaturedOnHubValue = loggingFiles.Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && feature.PhotoFeaturedOnHub).Count());
-            collection.Add(new PieSeries
+            var textColor = DeterminePlotTextColor();
+            var collection = CreatePieSeries("Photo featured");
+            var photoFeaturedOnHubValue = loggingFiles.Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && feature.PhotoFeaturedOnHub).Count());
+            var photoNotFeaturedOnHubValue = loggingFiles.Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && !feature.PhotoFeaturedOnHub).Count());
+            if (photoFeaturedOnHubValue != 0)
             {
-                Title = "Featured on hub",
-                Values = new ChartValues<ObservableValue> { new(photoFeaturedOnHubValue) },
-                DataLabels = true
-            });
-            collection.Add(new PieSeries
+                collection.Slices.Add(new PieSlice("Featured on hub", photoFeaturedOnHubValue) { IsExploded = true });
+            }
+            if (photoNotFeaturedOnHubValue != 0)
             {
-                Title = "Not featured",
-                Values = new ChartValues<ObservableValue> { new(photoNotFeaturedOnHubValue) },
-                DataLabels = true
-            });
-            return collection;
+                collection.Slices.Add(new PieSlice("Not featured on hub", photoNotFeaturedOnHubValue) { IsExploded = true });
+            }
+            var plotModel = new PlotModel
+            {
+                PlotMargins = new OxyThickness(4)
+            };
+            plotModel.Series.Add(collection);
+            return plotModel;
         }
 
         private static int GetPageFeatureCount(Feature feature)
@@ -2108,7 +2137,7 @@ namespace FeatureLogging
             return ((featureCount - 1) / binSize) * binSize + 1;
         }
 
-        private static SeriesCollection CalculatePageFeatureCountData(IEnumerable<LoggingFile> loggingFiles)
+        private static PlotModel CalculatePageFeatureCountData(IEnumerable<LoggingFile> loggingFiles)
         {
             var buckets = new Dictionary<int, int>();
             foreach (var loggingFile in loggingFiles)
@@ -2126,22 +2155,23 @@ namespace FeatureLogging
                     }
                 }
             }
-
-            var seriesCollection = new SeriesCollection();
+            var textColor = DeterminePlotTextColor();
+            var collection = CreatePieSeries("Previous page features");
             foreach (var key in buckets.Keys.Order())
             {
-                seriesCollection.Add(new PieSeries
-                {
-                    Title = (key == int.MaxValue) ? "many features" : (key == 0) ? "no features" : $"{key}-{key + 4} features",
-                    Values = new ChartValues<ObservableValue> { new(buckets[key]) },
-                    DataLabels = true
-                });
+                collection.Slices.Add(new PieSlice(
+                    (key == int.MaxValue) ? "many features" : (key == 0) ? "no features" : $"{key}-{key + 4} features", 
+                    buckets[key]) { IsExploded = true });
             }
-
-            return seriesCollection;
+            var plotModel = new PlotModel
+            {
+                PlotMargins = new OxyThickness(4)
+            };
+            plotModel.Series.Add(collection);
+            return plotModel;
         }
 
-        private static SeriesCollection CalculateHubFeatureCountData(IEnumerable<LoggingFile> loggingFiles)
+        private static PlotModel CalculateHubFeatureCountData(IEnumerable<LoggingFile> loggingFiles)
         {
             var buckets = new Dictionary<int, int>();
             foreach (var loggingFile in loggingFiles)
@@ -2159,19 +2189,20 @@ namespace FeatureLogging
                     }
                 }
             }
-
-            var seriesCollection = new SeriesCollection();
+            var textColor = DeterminePlotTextColor();
+            var collection = CreatePieSeries("Previous hub features");
             foreach (var key in buckets.Keys.Order())
             {
-                seriesCollection.Add(new PieSeries
-                {
-                    Title = (key == int.MaxValue) ? "many features" : (key == 0) ? "no features" : $"{key}-{key + 4} features",
-                    Values = new ChartValues<ObservableValue> { new(buckets[key]) },
-                    DataLabels = true
-                });
+                collection.Slices.Add(new PieSlice(
+                    (key == int.MaxValue) ? "many features" : (key == 0) ? "no features" : $"{key}-{key + 4} features", 
+                    buckets[key]) { IsExploded = true });
             }
-
-            return seriesCollection;
+            var plotModel = new PlotModel
+            {
+                PlotMargins = new OxyThickness(4)
+            };
+            plotModel.Series.Add(collection);
+            return plotModel;
         }
 
         private readonly List<LoggingFile> loggingFiles = [];
@@ -2437,8 +2468,6 @@ namespace FeatureLogging
             // Handle picked
             key += (feature.IsPicked ? "A|" : "Z|");
 
-            Debugger.Log(2, "FeatureComparer", $"Key: {key}{feature.UserName}\n");
-
             return key + feature.UserName;
         }
     }
@@ -2649,7 +2678,7 @@ namespace FeatureLogging
         public bool IsPicked
         {
             get => isPicked;
-            set => SetWithDirtyCallback(ref isPicked, value, () => { IsDirty = true; Debugger.Log(1, "IsPicked", $"IsPicked changed for {UserName}"); }, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(IsAllowed), nameof(SortKey)]);
+            set => SetWithDirtyCallback(ref isPicked, value, () => { IsDirty = true; }, [nameof(Icon), nameof(IconColor), nameof(IsPickedAndAllowed), nameof(IsAllowed), nameof(SortKey)]);
         }
 
         private string postLink = "";

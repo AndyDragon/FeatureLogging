@@ -12,7 +12,8 @@
     xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf"
     xmlns:system="clr-namespace:System;assembly=netstandard"
     xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
-    xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+    xmlns:oxy="http://oxyplot.org/wpf"
+    xmlns:oxyshared="clr-namespace:OxyPlot.Wpf;assembly=OxyPlot.Wpf.Shared"
     mc:Ignorable="d"
     Title="{Binding Title}"
     Icon="pack://application:,,,/Feature Logging;component/App.ico"
@@ -30,26 +31,25 @@
     </Window.DataContext>
 
     <Window.Resources>
-        <local:ValidationResultColorConverter x:Key="validationResultColorConverter"></local:ValidationResultColorConverter>
-        <local:ValidationResultColorConverter x:Key="greenValidationResultColorConverter" ValidBrush="Lime"></local:ValidationResultColorConverter>
-        <local:ValidationResultColorConverter x:Key="redValidationResultColorConverter" InvalidBrush="Red"></local:ValidationResultColorConverter>
-        <local:ValidationResultColorConverter x:Key="orangeValidationResultColorConverter" InvalidBrush="Orange"></local:ValidationResultColorConverter>
-        <local:BooleanToIndicatorColorConverter x:Key="booleanToIndicatorColorConverter" ZeroBrush="White" ValueBrush="Lime"></local:BooleanToIndicatorColorConverter>
-        <local:BooleanToIndicatorOpacityConverter x:Key="booleanToIndicatorOpacityConverter" ZeroOpacity="0.2" ValueOpacity="1.0"></local:BooleanToIndicatorOpacityConverter>
-        <local:BooleanToIndicatorColorConverter x:Key="booleanToErrorIndicatorColorConverter" ZeroBrush="White" ValueBrush="Red"></local:BooleanToIndicatorColorConverter>
-        <local:BooleanToIndicatorColorConverter x:Key="booleanToWarningIndicatorColorConverter" ZeroBrush="White" ValueBrush="Orange"></local:BooleanToIndicatorColorConverter>
-        <local:ValidationBooleanColorConverter x:Key="validationBooleanColorConverter"></local:ValidationBooleanColorConverter>
-        <local:ValidationResultVisibilityConverter x:Key="validationResultVisibilityConverter"></local:ValidationResultVisibilityConverter>
-        <local:ValidationBooleanVisibilityConverter x:Key="validationBooleanVisibilityConverter"></local:ValidationBooleanVisibilityConverter>
-        <local:ValueVisibilityConverter x:Key="valueVisibilityConverter"></local:ValueVisibilityConverter>
-        <local:StringJoinConverter x:Key="stringJoinConverter"></local:StringJoinConverter>
-        <local:NullableColorToBrushConverter x:Key="nullableColorToBrushConverter"></local:NullableColorToBrushConverter>
-        <local:BooleanToFontWeightConverter x:Key="booleanToFontWeightConverter"></local:BooleanToFontWeightConverter>
-        <local:BooleanToAccentColorConverter x:Key="booleanToAccentColorConverter"></local:BooleanToAccentColorConverter>
-        <local:BooleanToBorderColorConverter x:Key="booleanToBorderColorConverter"></local:BooleanToBorderColorConverter>
-        <local:CountToVisibilityConverter x:Key="countToVisibilityConverter"></local:CountToVisibilityConverter>
-        <local:MinHeightToLegendLocationConverter x:Key="minHeightToLegendLocationConverter"></local:MinHeightToLegendLocationConverter>
-        <local:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"></local:BooleanToVisibilityConverter>
+        <local:ValidationResultColorConverter x:Key="validationResultColorConverter" />
+        <local:ValidationResultColorConverter x:Key="greenValidationResultColorConverter" ValidBrush="Lime" />
+        <local:ValidationResultColorConverter x:Key="redValidationResultColorConverter" InvalidBrush="Red" />
+        <local:ValidationResultColorConverter x:Key="orangeValidationResultColorConverter" InvalidBrush="Orange" />
+        <local:BooleanToIndicatorColorConverter x:Key="booleanToIndicatorColorConverter" ZeroBrush="White" ValueBrush="Lime" />
+        <local:BooleanToIndicatorOpacityConverter x:Key="booleanToIndicatorOpacityConverter" ZeroOpacity="0.2" ValueOpacity="1.0" />
+        <local:BooleanToIndicatorColorConverter x:Key="booleanToErrorIndicatorColorConverter" ZeroBrush="White" ValueBrush="Red" />
+        <local:BooleanToIndicatorColorConverter x:Key="booleanToWarningIndicatorColorConverter" ZeroBrush="White" ValueBrush="Orange" />
+        <local:ValidationBooleanColorConverter x:Key="validationBooleanColorConverter" />
+        <local:ValidationResultVisibilityConverter x:Key="validationResultVisibilityConverter" />
+        <local:ValidationBooleanVisibilityConverter x:Key="validationBooleanVisibilityConverter" />
+        <local:ValueVisibilityConverter x:Key="valueVisibilityConverter" />
+        <local:StringJoinConverter x:Key="stringJoinConverter" />
+        <local:NullableColorToBrushConverter x:Key="nullableColorToBrushConverter" />
+        <local:BooleanToFontWeightConverter x:Key="booleanToFontWeightConverter" />
+        <local:BooleanToAccentColorConverter x:Key="booleanToAccentColorConverter" />
+        <local:BooleanToBorderColorConverter x:Key="booleanToBorderColorConverter" />
+        <local:CountToVisibilityConverter x:Key="countToVisibilityConverter" />
+        <local:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter" />
 
         <ObjectDataProvider x:Key="SyncModePreferenceEnumValues"
                                 MethodName="GetValues"
@@ -58,6 +58,21 @@
                 <x:Type TypeName="controlzEx:ThemeSyncMode" />
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+
+        <ControlTemplate x:Key="CustomTrackerTemplate">
+            <oxyshared:TrackerControl Position="{Binding Position}" LineExtents="{Binding PlotModel.PlotArea}" Opacity="1">
+                <oxyshared:TrackerControl.Background>
+                    <LinearGradientBrush EndPoint="0,1">
+                        <GradientStop Offset="0" Color="Wheat" />
+                        <GradientStop Offset="0.5" Color="White" />
+                        <GradientStop Offset="1" Color="Wheat" />
+                    </LinearGradientBrush>
+                </oxyshared:TrackerControl.Background>
+                <oxyshared:TrackerControl.Content>
+                    <TextBlock Text="{Binding}" Margin="7" Foreground="Black" />
+                </oxyshared:TrackerControl.Content>
+            </oxyshared:TrackerControl>
+        </ControlTemplate>
 
     </Window.Resources>
 
@@ -1677,365 +1692,347 @@
         </Grid>
 
         <!-- STATISTICS VIEW -->
-        <Grid
-            Visibility="{Binding StatisticsViewVisibility}"
+        <ScrollViewer
             Grid.Row="1"
-            Margin="16,8,16,8">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Border
-                Grid.Row="0"
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
-                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
-                Margin="10"
-                Padding="10"
-                CornerRadius="8">
-                <StackPanel Orientation="Vertical">
-                    <StackPanel Orientation="Horizontal">
-                        <Button
-                            HorizontalAlignment="Left"
-                            Height="22"
-                            Padding="4,0,4,0"
-                            Command="{Binding PickStatisticsFolderCommand}"
-                            MinHeight="22">
-                            <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
-                                <iconPacks:PackIconJamIcons
-                                    VerticalAlignment="Center"
-                                    Kind="FolderOpen"
-                                    Margin="0,0,6,0"
-                                    Height="13"
-                                    Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                                <TextBlock
-                                    Text="Open folder containing your log files..."
-                                    Margin="0,0,0,1"
-                                    FontSize="11"
-                                    FontWeight="Bold"
-                                    Padding="0"
-                                    VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
-                        <TextBlock
-                            Text="{Binding StatisticsFolder}"
-                            FontSize="11"
-                            FontWeight="Bold"
-                            Padding="0"
-                            Margin="20,0"
-                            VerticalAlignment="Center" />
-                    </StackPanel>
-                    <StackPanel
-                        Orientation="Horizontal"
-                        Margin="0,8"
-                        Visibility="{Binding StatisticsPages.Count, Converter={StaticResource countToVisibilityConverter}}">
-                        <Label
-                            VerticalAlignment="Center"
-                            FontSize="11"
-                            Margin="0,0,4,0">
+            Visibility="{Binding StatisticsViewVisibility}"
+            CanContentScroll="True"
+            HorizontalScrollBarVisibility="Auto"
+            VerticalScrollBarVisibility="Auto">
+            <Grid
+                MinHeight="1024"
+                Margin="16,8,16,8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                    Margin="10"
+                    Padding="10"
+                    CornerRadius="8">
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <Button
+                                HorizontalAlignment="Left"
+                                Height="22"
+                                Padding="4,0,4,0"
+                                Command="{Binding PickStatisticsFolderCommand}"
+                                MinHeight="22">
+                                <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
+                                    <iconPacks:PackIconJamIcons
+                                        VerticalAlignment="Center"
+                                        Kind="FolderOpen"
+                                        Margin="0,0,6,0"
+                                        Height="13"
+                                        Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                    <TextBlock
+                                        Text="Open folder containing your log files..."
+                                        Margin="0,0,0,1"
+                                        FontSize="11"
+                                        FontWeight="Bold"
+                                        Padding="0"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
                             <TextBlock
-                                Text="Choose a page:"
+                                Text="{Binding StatisticsFolder}"
+                                FontSize="11"
                                 FontWeight="Bold"
+                                Padding="0"
+                                Margin="20,0"
                                 VerticalAlignment="Center" />
-                        </Label>
-                        <ComboBox
-                            Width="240"
-                            ItemsSource="{Binding StatisticsPages}"
-                            SelectedItem="{Binding SelectedStatisticsPage, Mode=TwoWay}">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate DataType="local:MainViewModel:StatisticsPage">
-                                    <StackPanel Orientation="Horizontal">
-                                        <iconPacks:PackIconModern
-                                            VerticalAlignment="Center"
-                                            Kind="Page"
-                                            Margin="0,0,6,0"
-                                            Height="13"
-                                            Foreground="{DynamicResource MahApps.Brushes.Accent}" />
-                                        <TextBlock Text="{Binding Display}" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                        </StackPanel>
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Margin="0,8"
+                            Visibility="{Binding StatisticsPages.Count, Converter={StaticResource countToVisibilityConverter}}">
+                            <Label
+                                VerticalAlignment="Center"
+                                FontSize="11"
+                                Margin="0,0,4,0">
+                                <TextBlock
+                                    Text="Choose a page:"
+                                    FontWeight="Bold"
+                                    VerticalAlignment="Center" />
+                            </Label>
+                            <ComboBox
+                                Width="240"
+                                ItemsSource="{Binding StatisticsPages}"
+                                SelectedItem="{Binding SelectedStatisticsPage, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate DataType="local:MainViewModel:StatisticsPage">
+                                        <StackPanel Orientation="Horizontal">
+                                            <iconPacks:PackIconModern
+                                                VerticalAlignment="Center"
+                                                Kind="Page"
+                                                Margin="0,0,6,0"
+                                                Height="13"
+                                                Foreground="{DynamicResource MahApps.Brushes.Accent}" />
+                                            <TextBlock Text="{Binding Display}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
-            </Border>
-            <Border
-                Grid.Row="1"
-                Grid.Column="0"
-                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
-                Margin="10"
-                Visibility="{Binding ChartVisibility}"
-                CornerRadius="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock
-                        Grid.Row="0"
-                        HorizontalAlignment="Center"
-                        FontSize="28"
-                        Text="{Binding PickedFeatureChart.Title}" />
-                    <TextBlock
-                        Grid.Row="1"
-                        HorizontalAlignment="Center"
-                        FontSize="14"
-                        Text="{Binding PickedFeatureChart.SubTitle}" />
-                    <lvc:PieChart
-                        Grid.Row="2"
-                        Series="{Binding PickedFeatureChart.Data}"
-                        StartingRotationAngle="0"
-                        LegendLocation="Right"
-                        Margin="12, 15">
-                        <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend
-                                BulletSize="12"
-                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
-                                FontSize="10" />
-                        </lvc:PieChart.ChartLegend>
-                        <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip
-                                BulletSize="12"
-                                Background="DarkGray"
-                                Foreground="White"
-                                FontSize="10" />
-                        </lvc:PieChart.DataTooltip>
-                    </lvc:PieChart>
-                </Grid>
-            </Border>
-            <Border
-                Grid.Row="1"
-                Grid.Column="1"
-                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
-                Margin="10"
-                Visibility="{Binding ChartVisibility}"
-                CornerRadius="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock
-                        Grid.Row="0"
-                        HorizontalAlignment="Center"
-                        FontSize="28"
-                        Text="{Binding FirstFeatureChart.Title}" />
-                    <TextBlock
-                        Grid.Row="1"
-                        HorizontalAlignment="Center"
-                        FontSize="14"
-                        Text="{Binding FirstFeatureChart.SubTitle}" />
-                    <lvc:PieChart
-                        Grid.Row="2"
-                        Series="{Binding FirstFeatureChart.Data}"
-                        StartingRotationAngle="0"
-                        LegendLocation="Right"
-                        Margin="12, 15">
-                        <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend
-                                BulletSize="12"
-                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
-                                FontSize="10" />
-                        </lvc:PieChart.ChartLegend>
-                        <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip
-                                BulletSize="12"
-                                Background="DarkGray"
-                                Foreground="White"
-                                FontSize="10" />
-                        </lvc:PieChart.DataTooltip>
-                    </lvc:PieChart>
-                </Grid>
-            </Border>
-            <Border
-                Grid.Row="1"
-                Grid.Column="2"
-                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
-                Margin="10"
-                Visibility="{Binding ChartVisibility}"
-                CornerRadius="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock
-                        Grid.Row="0"
-                        HorizontalAlignment="Center"
-                        FontSize="20"
-                        Text="{Binding UserLevelChart.Title}" />
-                    <TextBlock
-                        Grid.Row="1"
-                        HorizontalAlignment="Center"
-                        FontSize="11"
-                        Text="{Binding UserLevelChart.SubTitle}" />
-                    <lvc:PieChart
-                        Grid.Row="2"
-                        Series="{Binding UserLevelChart.Data}"
-                        StartingRotationAngle="0"
-                        LegendLocation="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}, Converter={StaticResource minHeightToLegendLocationConverter}}"
-                        Margin="12, 15">
-                        <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend
-                                BulletSize="12"
-                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
-                                FontSize="10" />
-                        </lvc:PieChart.ChartLegend>
-                        <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip
-                                BulletSize="12"
-                                Background="DarkGray"
-                                Foreground="White"
-                                FontSize="10" />
-                        </lvc:PieChart.DataTooltip>
-                    </lvc:PieChart>
-                </Grid>
-            </Border>
-            <Border
-                Grid.Row="2"
-                Grid.Column="0"
-                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
-                Margin="10"
-                Visibility="{Binding ChartVisibility}"
-                CornerRadius="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock
-                        Grid.Row="0"
-                        HorizontalAlignment="Center"
-                        FontSize="28"
-                        Text="{Binding PhotoFeaturedChart.Title}" />
-                    <TextBlock
-                        Grid.Row="1"
-                        HorizontalAlignment="Center"
-                        FontSize="14"
-                        Text="{Binding PhotoFeaturedChart.SubTitle}" />
-                    <lvc:PieChart
-                        Grid.Row="2"
-                        Series="{Binding PhotoFeaturedChart.Data}"
-                        StartingRotationAngle="0"
-                        LegendLocation="Right"
-                        Margin="12, 15">
-                        <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend
-                                BulletSize="12"
-                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
-                                FontSize="10" />
-                        </lvc:PieChart.ChartLegend>
-                        <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip
-                                BulletSize="12"
-                                Background="DarkGray"
-                                Foreground="White"
-                                FontSize="10" />
-                        </lvc:PieChart.DataTooltip>
-                    </lvc:PieChart>
-                </Grid>
-            </Border>
-            <Border
-                Grid.Row="2"
-                Grid.Column="1"
-                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
-                Margin="10"
-                Visibility="{Binding ChartVisibility}"
-                CornerRadius="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock
-                        Grid.Row="0"
-                        HorizontalAlignment="Center"
-                        FontSize="28"
-                        Text="{Binding PageFeatureCountChart.Title}" />
-                    <TextBlock
-                        Grid.Row="1"
-                        HorizontalAlignment="Center"
-                        FontSize="14"
-                        Text="{Binding PageFeatureCountChart.SubTitle}" />
-                    <lvc:PieChart
-                        Grid.Row="2"
-                        Series="{Binding PageFeatureCountChart.Data}"
-                        StartingRotationAngle="0"
-                        LegendLocation="Right"
-                        Margin="12, 15">
-                        <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend
-                                BulletSize="12"
-                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
-                                FontSize="10" />
-                        </lvc:PieChart.ChartLegend>
-                        <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip
-                                BulletSize="12"
-                                Background="DarkGray"
-                                Foreground="White"
-                                FontSize="10" />
-                        </lvc:PieChart.DataTooltip>
-                    </lvc:PieChart>
-                </Grid>
-            </Border>
-            <Border
-                Grid.Row="2"
-                Grid.Column="2"
-                Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
-                Margin="10"
-                Visibility="{Binding ChartVisibility}"
-                CornerRadius="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock
-                        Grid.Row="0"
-                        HorizontalAlignment="Center"
-                        FontSize="28"
-                        Text="{Binding HubFeatureCountChart.Title}" />
-                    <TextBlock
-                        Grid.Row="1"
-                        HorizontalAlignment="Center"
-                        FontSize="14"
-                        Text="{Binding HubFeatureCountChart.SubTitle}" />
-                    <lvc:PieChart
-                        Grid.Row="2"
-                        Series="{Binding HubFeatureCountChart.Data}"
-                        StartingRotationAngle="0"
-                        LegendLocation="Right"
-                        Margin="12, 15">
-                        <lvc:PieChart.ChartLegend>
-                            <lvc:DefaultLegend
-                                BulletSize="12"
-                                Foreground="{DynamicResource MahApps.Brushes.SystemControlForegroundBaseHigh}"
-                                FontSize="10" />
-                        </lvc:PieChart.ChartLegend>
-                        <lvc:PieChart.DataTooltip>
-                            <lvc:DefaultTooltip
-                                BulletSize="12"
-                                Background="DarkGray"
-                                Foreground="White"
-                                FontSize="10" />
-                        </lvc:PieChart.DataTooltip>
-                    </lvc:PieChart>
-                </Grid>
-            </Border>
-        </Grid>
+                </Border>
+                <Border
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                    Margin="10"
+                    Visibility="{Binding ChartVisibility}"
+                    CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="260" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="28"
+                            Text="{Binding PickedFeatureChart.Title}" />
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="14"
+                            Text="{Binding PickedFeatureChart.SubTitle}" />
+                        <oxy:PlotView
+                            Grid.Row="2"
+                            Model="{Binding PickedFeatureChart.Model}"
+                            Background="Transparent"
+                            DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
+                            Margin="12, 12" />
+                        <local:PlotLegend 
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            DataContext="{Binding PickedFeatureChart}" />
+                    </Grid>
+                </Border>
+                <Border
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                    Margin="10"
+                    Visibility="{Binding ChartVisibility}"
+                    CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="260" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="28"
+                            Text="{Binding FirstFeatureChart.Title}" />
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="14"
+                            Text="{Binding FirstFeatureChart.SubTitle}" />
+                        <oxy:PlotView
+                            Grid.Row="2"
+                            Model="{Binding FirstFeatureChart.Model}"
+                            DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
+                            Background="Transparent"
+                            Margin="12, 12" />
+                        <local:PlotLegend 
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            DataContext="{Binding FirstFeatureChart}" />
+                    </Grid>
+                </Border>
+                <Border
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                    Margin="10"
+                    Visibility="{Binding ChartVisibility}"
+                    CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="260" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="20"
+                            Text="{Binding UserLevelChart.Title}" />
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="11"
+                            Text="{Binding UserLevelChart.SubTitle}" />
+                        <oxy:PlotView
+                            Grid.Row="2"
+                            Model="{Binding UserLevelChart.Model}"
+                            DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
+                            Background="Transparent"
+                            Margin="12, 12" />
+                        <local:PlotLegend 
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            DataContext="{Binding UserLevelChart}" />
+                    </Grid>
+                </Border>
+                <Border
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                    Margin="10"
+                    Visibility="{Binding ChartVisibility}"
+                    CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="260" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="28"
+                            Text="{Binding PhotoFeaturedChart.Title}" />
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="14"
+                            Text="{Binding PhotoFeaturedChart.SubTitle}" />
+                        <oxy:PlotView
+                            Grid.Row="2"
+                            Model="{Binding PhotoFeaturedChart.Model}"
+                            DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
+                            Background="Transparent"
+                            Margin="12, 12" />
+                        <local:PlotLegend 
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            DataContext="{Binding PhotoFeaturedChart}" />
+                    </Grid>
+                </Border>
+                <Border
+                    Grid.Row="3"
+                    Grid.Column="0"
+                    Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                    Margin="10"
+                    Visibility="{Binding ChartVisibility}"
+                    CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="260" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="28"
+                            Text="{Binding PageFeatureCountChart.Title}" />
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="14"
+                            Text="{Binding PageFeatureCountChart.SubTitle}" />
+                        <oxy:PlotView
+                            Grid.Row="2"
+                            Model="{Binding PageFeatureCountChart.Model}"
+                            DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
+                            Background="Transparent"
+                            Margin="12, 12" />
+                        <local:PlotLegend 
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            DataContext="{Binding PageFeatureCountChart}" />
+                    </Grid>
+                </Border>
+                <Border
+                    Grid.Row="3"
+                    Grid.Column="1"
+                    Background="{DynamicResource MahApps.Brushes.SystemControlBackgroundBaseLow}"
+                    Margin="10"
+                    Visibility="{Binding ChartVisibility}"
+                    CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="260" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="28"
+                            Text="{Binding HubFeatureCountChart.Title}" />
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="14"
+                            Text="{Binding HubFeatureCountChart.SubTitle}" />
+                        <oxy:PlotView
+                            Grid.Row="2"
+                            Model="{Binding HubFeatureCountChart.Model}"
+                            DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
+                            Background="Transparent"
+                            Margin="12, 12" />
+                        <local:PlotLegend 
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            DataContext="{Binding HubFeatureCountChart}" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </ScrollViewer>
 
         <!-- POST DOWNLOADER VIEW -->
         <ScrollViewer

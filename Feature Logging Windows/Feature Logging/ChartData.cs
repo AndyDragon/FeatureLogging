@@ -1,8 +1,10 @@
-﻿using LiveCharts;
+﻿using OxyPlot;
+using OxyPlot.Series;
+using System.Collections.ObjectModel;
 
 namespace FeatureLogging
 {
-    public class ChartData(string title, string subTitle, SeriesCollection data) : NotifyPropertyChanged
+    public class ChartData(string title, string subTitle, PlotModel model) : NotifyPropertyChanged
     {
         private string title = title;
         public string Title 
@@ -18,11 +20,18 @@ namespace FeatureLogging
             set => Set(ref subTitle, value);
         }
         
-        private SeriesCollection data = data;
-        public SeriesCollection Data
+        private PlotModel model = model;
+        public PlotModel Model
         {
-            get => data;
-            set => Set(ref data, value);
+            get => model;
+            set => Set(ref model, value);
+        }
+
+        private ObservableCollection<PieSlice> slices = [.. (model.Series[0] as PieSeries)!.Slices];
+        public ObservableCollection<PieSlice> Slices
+        {
+            get => slices;
+            set => Set(ref slices, value);
         }
     }
 }

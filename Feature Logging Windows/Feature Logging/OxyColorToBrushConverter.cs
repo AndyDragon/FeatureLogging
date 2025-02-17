@@ -1,19 +1,19 @@
 ﻿using System.Globalization;
 using System.Windows.Data;
-using LiveCharts;
+using OxyPlot;
+using OxyPlot.Wpf;
 
 namespace FeatureLogging
 {
-    public class MinHeightToLegendLocationConverter : IValueConverter
+    class OxyColorToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var minHeight = parameter is int ? (int)parameter : 300;
-            if (value is double height)
+            if (value is OxyColor color)
             {
-                return (height >= minHeight) ? LegendLocation.Right : LegendLocation.None;
+                return color.ToBrush();
             }
-            return LegendLocation.None;
+            return value;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
