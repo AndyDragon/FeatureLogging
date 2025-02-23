@@ -1,13 +1,37 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using FeatureLogging.Base;
 using FeatureLogging.Models;
 
 namespace FeatureLogging.ViewModels;
 
-public class PlaceholdersViewModel(ScriptsViewModel scriptViewModel, Script script)
+public sealed class PlaceholdersViewModel : NotifyPropertyChanged
 {
-    public ScriptsViewModel ScriptsViewModel { get; private set; } = scriptViewModel;
+    public PlaceholdersViewModel(ScriptsViewModel scriptViewModel, Script script)
+    {
+        ScriptsViewModel = scriptViewModel;
+        this.script = script;
+        Placeholders = scriptViewModel.PlaceholdersMap[script];
+        LongPlaceholders = scriptViewModel.LongPlaceholdersMap[script];
+        foreach (var placeholder in Placeholders)
+        {
+            placeholder.PropertyChanged += PlaceholderOnPropertyChanged;
+        }
+        OnPropertyChanged(nameof(ScriptLength));
+    }
 
-    public ObservableCollection<Placeholder> Placeholders { get; private set; } = scriptViewModel.PlaceholdersMap[script];
+    private readonly Script script;
+
+    private void PlaceholderOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(ScriptLength));
+    }
+
+    public ScriptsViewModel ScriptsViewModel { get; }
     
-    public ObservableCollection<Placeholder> LongPlaceholders { get; private set; } = scriptViewModel.LongPlaceholdersMap[script];
+    public int ScriptLength => ScriptsViewModel.ProcessPlaceholders(script).Length;
+
+    public ObservableCollection<Placeholder> Placeholders { get; }
+    
+    public ObservableCollection<Placeholder> LongPlaceholders { get; }
 }

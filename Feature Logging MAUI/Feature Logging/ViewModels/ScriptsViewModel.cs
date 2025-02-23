@@ -162,11 +162,14 @@ public partial class ScriptsViewModel : NotifyPropertyChanged
             {
                 Scripts[Script.Feature] = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(FeatureScriptLength));
                 OnPropertyChanged(nameof(FeatureScriptPlaceholderVisibility));
             }
         }
     }
 
+    public int FeatureScriptLength => Scripts[Script.Feature].Length;
+    
     public bool FeatureScriptPlaceholderVisibility => ScriptHasPlaceholder(Script.Feature);
 
     #endregion
@@ -182,10 +185,13 @@ public partial class ScriptsViewModel : NotifyPropertyChanged
             {
                 Scripts[Script.Comment] = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(CommentScriptLength));
                 OnPropertyChanged(nameof(CommentScriptPlaceholderVisibility));
             }
         }
     }
+    
+    public int CommentScriptLength => Scripts[Script.Comment].Length;
 
     public bool CommentScriptPlaceholderVisibility => ScriptHasPlaceholder(Script.Comment);
 
@@ -202,10 +208,13 @@ public partial class ScriptsViewModel : NotifyPropertyChanged
             {
                 Scripts[Script.OriginalPost] = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(OriginalPostScriptLength));
                 OnPropertyChanged(nameof(OriginalPostScriptPlaceholderVisibility));
             }
         }
     }
+    
+    public int OriginalPostScriptLength => Scripts[Script.OriginalPost].Length;
 
     public bool OriginalPostScriptPlaceholderVisibility => ScriptHasPlaceholder(Script.OriginalPost);
 
@@ -399,7 +408,7 @@ public partial class ScriptsViewModel : NotifyPropertyChanged
         }
     }
 
-    private string ProcessPlaceholders(Script script)
+    public string ProcessPlaceholders(Script script)
     {
         var result = Scripts[script];
         result = PlaceholdersMap[script].Aggregate(result, (current, placeholder) => current.Replace("[[" + placeholder.Name + "]]", placeholder.Value.Trim()));

@@ -25,6 +25,8 @@
     <ContentPage.Resources>
         <localConverters:ValidationResultColorConverter x:Key="ValidationResultColorConverter" />
         <localConverters:ValidationBooleanColorConverter x:Key="ValidationBooleanColorConverter" />
+        <localConverters:ScriptLengthToVisible x:Key="ScriptLengthToVisible" />
+        <localConverters:ScriptLengthToColor x:Key="ScriptLengthToColor" />
     </ContentPage.Resources>
 
     <ScrollView Orientation="Both">
@@ -153,6 +155,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Label Text="Feature script:" Grid.Column="0" VerticalOptions="Center" FontAttributes="Bold" FontSize="11" />
                     <Button
@@ -176,6 +179,30 @@
                         HeightRequest="32"
                         MaximumHeightRequest="32"
                         Command="{Binding ScriptViewModel.CopyFeatureScriptWithPlaceholdersCommand}" />
+                    <HorizontalStackLayout
+                        Grid.Column="4"
+                        HorizontalOptions="End"
+                        IsVisible="{Binding ScriptViewModel.CanCopyScripts}">
+                        <Label
+                            Text="Length: "
+                            IsVisible="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                            TextColor="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        <Label
+                            Text="{Binding ScriptViewModel.FeatureScriptLength}"
+                            IsVisible="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                            TextColor="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        <Label
+                            Text=" of 1000"
+                            IsVisible="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                            TextColor="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        <HorizontalStackLayout
+                            IsVisible="{Binding ScriptViewModel.FeatureScriptPlaceholderVisibility}">
+                            <Label
+                                Text=" **"
+                                IsVisible="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                                TextColor="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        </HorizontalStackLayout>
+                    </HorizontalStackLayout>
                 </Grid>
                 
                 <!-- Feature script -->
@@ -195,6 +222,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Label Text="Comment script:" Grid.Column="0" VerticalOptions="Center" FontAttributes="Bold" FontSize="11" />
                     <Button
@@ -218,6 +246,30 @@
                         HeightRequest="32"
                         MaximumHeightRequest="32"
                         Command="{Binding ScriptViewModel.CopyCommentScriptWithPlaceholdersCommand}" />
+                    <HorizontalStackLayout
+                        Grid.Column="4"
+                        HorizontalOptions="End"
+                        IsVisible="{Binding ScriptViewModel.CanCopyScripts}">
+                        <Label
+                            Text="Length: "
+                            IsVisible="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                            TextColor="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        <Label
+                            Text="{Binding ScriptViewModel.CommentScriptLength}"
+                            IsVisible="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                            TextColor="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        <Label
+                            Text=" of 1000"
+                            IsVisible="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                            TextColor="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        <HorizontalStackLayout
+                            IsVisible="{Binding ScriptViewModel.CommentScriptPlaceholderVisibility}">
+                            <Label
+                                Text=" **"
+                                IsVisible="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                                TextColor="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        </HorizontalStackLayout>
+                    </HorizontalStackLayout>
                 </Grid>
                 
                 <!-- Comment script -->
@@ -237,6 +289,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Label Text="Original post script:" Grid.Column="0" VerticalOptions="Center" FontAttributes="Bold" FontSize="11" />
                     <Button
@@ -260,6 +313,30 @@
                         HeightRequest="32"
                         MaximumHeightRequest="32"
                         Command="{Binding ScriptViewModel.CopyOriginalPostScriptWithPlaceholdersCommand}" />
+                    <HorizontalStackLayout
+                        Grid.Column="4"
+                        HorizontalOptions="End"
+                        IsVisible="{Binding ScriptViewModel.CanCopyScripts}">
+                        <Label
+                            Text="Length: "
+                            IsVisible="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                            TextColor="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        <Label
+                            Text="{Binding ScriptViewModel.OriginalPostScriptLength}"
+                            IsVisible="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                            TextColor="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        <Label
+                            Text=" of 1000"
+                            IsVisible="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                            TextColor="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        <HorizontalStackLayout
+                            IsVisible="{Binding ScriptViewModel.OriginalPostScriptPlaceholderVisibility}">
+                            <Label
+                                Text=" **"
+                                IsVisible="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                                TextColor="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+                        </HorizontalStackLayout>
+                    </HorizontalStackLayout>
                 </Grid>
                 
                 <!-- Original post script -->

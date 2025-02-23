@@ -1,31 +1,53 @@
 <ContentPage 
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:localConverters="clr-namespace:FeatureLogging.Converters"
     xmlns:localModels="clr-namespace:FeatureLogging.Models"
     xmlns:localViewModels="clr-namespace:FeatureLogging.ViewModels"
     x:Class="FeatureLogging.Views.PlaceholderEditor"
     x:DataType="localViewModels:PlaceholdersViewModel"
     Title="Placeholders">
     
-    <Grid RowDefinitions="Auto, Auto, *, Auto">
+    <ContentPage.Resources>
+        <localConverters:ScriptLengthToVisible x:Key="ScriptLengthToVisible" />
+        <localConverters:ScriptLengthToColor x:Key="ScriptLengthToColor" />
+    </ContentPage.Resources>
+    <Grid 
+        RowDefinitions="Auto, Auto, Auto, *, Auto">
         <Label Grid.Row="0" Margin="10,10,10,2" HorizontalOptions="Center">There are manual placeholders that need to be filled out:</Label>
-        <Label Grid.Row="1" Margin="10,2,10,10" HorizontalOptions="Center">(leave field blank to remove the placeholder)</Label>
-        <Border Grid.Row="2" Margin="10,10,20,10" StrokeShape="RoundRectangle 4" Padding="4,0,6,0">
+        <Label Grid.Row="1" Margin="10,2,10,2" FontSize="12" HorizontalOptions="Center">(leave field blank to remove the placeholder)</Label>
+        <HorizontalStackLayout
+            Grid.Row="2"
+            Margin="10,2,10,10"
+            HorizontalOptions="Center">
+            <Label
+                Text="Length: "
+		FontSize="12" 
+                IsVisible="{Binding ScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                TextColor="{Binding ScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+            <Label
+                Text="{Binding ScriptLength}"
+		FontSize="12" 
+                IsVisible="{Binding ScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                TextColor="{Binding ScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+            <Label
+                Text=" of 1000"
+		FontSize="12" 
+                IsVisible="{Binding ScriptLength, Converter={StaticResource ScriptLengthToVisible}}"
+                TextColor="{Binding ScriptLength, Converter={StaticResource ScriptLengthToColor}}" />
+        </HorizontalStackLayout>
+        <Border Grid.Row="3" Margin="10,10,20,10" StrokeShape="RoundRectangle 4" Padding="4,0,6,0">
             <VerticalStackLayout>
-
                 <!-- Placeholders -->
                 <ListView 
                     HasUnevenRows="True"
+                    SelectionMode="None"
                     ItemsSource="{Binding Placeholders}">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="localModels:Placeholder">
                             <ViewCell>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="2*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Label Grid.Column="0" Text="{Binding Name, Mode=OneWay}" Margin="8,0,0,0" FontSize="16" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <Label Grid.Column="0" Text="{Binding Name, Mode=OneWay}" Margin="8,0,0,0" FontSize="16" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Center" HorizontalOptions="End" />
                                     <Editor Grid.Column="1" Text="{Binding Value, Mode=TwoWay}" Margin="8,0,0,0" FontSize="14" VerticalOptions="Center" />
                                 </Grid>
                             </ViewCell>
@@ -35,16 +57,14 @@
 
                 <!-- Long-form placeholders -->
                 <ListView 
+                    HasUnevenRows="True"
+                    SelectionMode="None"
                     ItemsSource="{Binding LongPlaceholders}">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="localModels:Placeholder">
                             <ViewCell>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="2*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Label Grid.Column="0" Text="{Binding Name, Mode=OneWay}" Margin="8,0,0,0" FontSize="16" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" />
+                                <Grid ColumnDefinitions="Auto, *">
+                                    <Label Grid.Column="0" Text="{Binding Name, Mode=OneWay}" Margin="8,0,0,0" FontSize="16" MaxLines="1" LineBreakMode="TailTruncation" VerticalOptions="Start" HorizontalOptions="End" />
                                     <Editor Grid.Column="1" Text="{Binding Value, Mode=TwoWay}" Margin="8,0,0,0" FontSize="14" Height="48" VerticalOptions="Start" />
                                 </Grid>
                             </ViewCell>
@@ -55,7 +75,7 @@
         </Border>
         
         <!-- Actions -->
-        <HorizontalStackLayout Grid.Row="3" Margin="0,0,10,10" HorizontalOptions="End">
+        <HorizontalStackLayout Grid.Row="4" Margin="0,0,10,10" HorizontalOptions="End">
             <Button Text="Copy" HorizontalOptions="Start" Margin="10" VerticalOptions="Start" Width="152" Height="29" Clicked="OnCopyClicked" />
             <Button Text="Copy with Placeholders" HorizontalOptions="Start" Margin="10" VerticalOptions="Start" Width="152" Height="29" Clicked="OnCopyUnchangedClicked" />
             <Button Text="Cancel" HorizontalOptions="Start" Margin="10" VerticalOptions="Start" Width="152" Height="29" Clicked="OnCancelClicked" />
