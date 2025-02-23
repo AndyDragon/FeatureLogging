@@ -20,6 +20,7 @@ struct PlaceholderView: View {
     let element: [String: PlaceholderValue].Element
     var editorName = ""
     var editorLongForm = false
+    var valueChanged: () -> Void = {}
     @State var editorValue: String
 
     var body: some View {
@@ -78,17 +79,19 @@ struct PlaceholderView: View {
         .listRowSeparator(.hidden)
     }
 
-    init(_ element: [String: PlaceholderValue].Element, isLongForm: Bool) {
+    init(_ element: [String: PlaceholderValue].Element, isLongForm: Bool, valueChanged: @escaping () -> Void) {
         self.element = element
         let start = element.key.index(element.key.startIndex, offsetBy: 2)
         let end = element.key.index(element.key.endIndex, offsetBy: -3)
         editorName = String(element.key[start ... end])
         editorValue = element.value.value
         editorLongForm = isLongForm
+        self.valueChanged = valueChanged
     }
 
     func editorValueChanged(to: String) {
         element.value.value = editorValue
+        valueChanged()
     }
 }
 
@@ -100,6 +103,33 @@ struct PlaceholderSheet: View {
     var transferPlaceholders: () -> Void
     var toastCopyToClipboard: (_ copySuffix: String) -> Void
 
+    @State private var scriptLength = 0
+
+    private func color() -> Color {
+        if scriptLength > 1000 {
+            return .red
+        }
+        if scriptLength >= 990 {
+            return .orange
+        }
+        return .green
+    }
+
+    private func updateCharacterCount() {
+        var scriptWithPlaceholders = scriptWithPlaceholdersInPlace
+        placeholders.placeholderDict.forEach({ placeholder in
+            scriptWithPlaceholders = scriptWithPlaceholders.replacingOccurrences(
+                of: placeholder.key,
+                with: placeholder.value.value)
+        })
+        placeholders.longPlaceholderDict.forEach({ placeholder in
+            scriptWithPlaceholders = scriptWithPlaceholders.replacingOccurrences(
+                of: placeholder.key,
+                with: placeholder.value.value)
+        })
+        scriptLength = scriptWithPlaceholders.count
+    }
+
     var body: some View {
         ZStack {
             Color.backgroundColor.edgesIgnoringSafeArea(.all)
@@ -107,6 +137,10 @@ struct PlaceholderSheet: View {
             VStack {
                 Text("There are manual placeholders that need to be filled out:")
                 Text("(leave any fields blank to remove placeholder)")
+                if scriptLength >= 975 {
+                    Text("Length: \(scriptLength) characters out of 1000")
+                        .foregroundStyle(color())
+                }
 
                 List {
                     ForEach(
@@ -114,14 +148,18 @@ struct PlaceholderSheet: View {
                             entry1.key < entry2.key
                         }), id: \.key
                     ) { entry in
-                        PlaceholderView(entry, isLongForm: false)
+                        PlaceholderView(entry, isLongForm: false) {
+                            updateCharacterCount()
+                        }
                     }
                     ForEach(
                         placeholders.longPlaceholderDict.sorted(by: { entry1, entry2 in
                             entry1.key < entry2.key
                         }), id: \.key
                     ) { entry in
-                        PlaceholderView(entry, isLongForm: true)
+                        PlaceholderView(entry, isLongForm: true) {
+                            updateCharacterCount()
+                        }
                     }
                 }
                 .listStyle(.plain)
@@ -168,6 +206,9 @@ struct PlaceholderSheet: View {
             .foregroundStyle(Color(UIColor.label), Color(UIColor.secondaryLabel))
             .frame(minWidth: 800, maxWidth: .infinity, minHeight: 600, maxHeight: .infinity)
             .padding()
+        }
+        .onAppear {
+            updateCharacterCount()
         }
     }
 }

@@ -19,6 +19,16 @@ struct ScriptEditor: View {
     var editorFocusField: FocusField
     var buttonFocusField: FocusField
 
+    private func color() -> Color {
+        if script.count > 1000 {
+            return .red
+        }
+        if script.count >= 990 {
+            return .orange
+        }
+        return .green
+    }
+
     var body: some View {
         // Header
         HStack {
@@ -62,6 +72,11 @@ struct ScriptEditor: View {
             }
 
             Spacer()
+
+            if canCopy && script.count >= 975 {
+                Text("Length: \(script.count) characters out of 1000\(hasPlaceholders ? " **" : "")")
+                    .foregroundStyle(color())
+            }
         }
         .frame(alignment: .leading)
         .padding([.top], 4)
