@@ -11,6 +11,10 @@
     Title="Placeholders" Height="400" Width="800"
     ResizeMode="NoResize" 
     WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <local:ScriptLengthToVisibility x:Key="scriptLengthToVisibility" />
+        <local:ScriptLengthToColor x:Key="scriptLengthToColor" />
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -19,11 +23,29 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Grid.Column="0" Margin="10,10,10,2" HorizontalAlignment="Center">There are manual placeholders that need to be filled out:</TextBlock>
-        <TextBlock Grid.Row="1" Grid.Column="0" Margin="10,2,10,10" HorizontalAlignment="Center">(leave field blank to remove the placeholder)</TextBlock>
-        <Border Grid.Row="2" Grid.Column="0" BorderBrush="{DynamicResource MahApps.Brushes.Control.Border}" Margin="10,10,20,10">
+        <TextBlock Grid.Row="0" Grid.Column="0" Margin="10,10,10,0" HorizontalAlignment="Center">There are manual placeholders that need to be filled out:</TextBlock>
+        <TextBlock Grid.Row="1" Grid.Column="0" Margin="10,0,10,0" HorizontalAlignment="Center">(leave field blank to remove the placeholder)</TextBlock>
+        <StackPanel 
+            Grid.Row="2" 
+            Grid.Column="0" 
+            Margin="10,0,10,10" 
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            Visibility="{Binding ScriptLength, Converter={StaticResource scriptLengthToVisibility}}">
+            <TextBlock 
+                Text="Length: "
+                Foreground="{Binding ScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+            <TextBlock 
+                Text="{Binding ScriptLength}"
+                Foreground="{Binding ScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+            <TextBlock 
+                Text=" of 1000"
+                Foreground="{Binding ScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+        </StackPanel>
+        <Border Grid.Row="3" Grid.Column="0" BorderBrush="{DynamicResource MahApps.Brushes.Control.Border}" Margin="10,10,20,10">
             <StackPanel Orientation="Vertical">
                 <ItemsControl ItemsSource="{Binding Placeholders}">
                     <ItemsControl.ItemTemplate>
@@ -34,7 +56,7 @@
                                     <ColumnDefinition Width="2*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="{Binding Name, Mode=OneWay}" Margin="8,0,0,0" FontSize="16" TextTrimming="WordEllipsis" VerticalAlignment="Center" />
-                                <TextBox Grid.Column="1" Text="{Binding Value, Mode=TwoWay}" Margin="8,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                                <TextBox Grid.Column="1" Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,0" FontSize="14" VerticalAlignment="Center" />
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -48,14 +70,14 @@
                                     <ColumnDefinition Width="2*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="{Binding Name, Mode=OneWay}" Margin="8,0,0,0" FontSize="16" TextTrimming="WordEllipsis" VerticalAlignment="Top" />
-                                <TextBox Grid.Column="1" Text="{Binding Value, Mode=TwoWay}" Margin="8,0,0,0" FontSize="14" TextWrapping="Wrap" Height="48" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" VerticalAlignment="Top" />
+                                <TextBox Grid.Column="1" Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,0" FontSize="14" TextWrapping="Wrap" Height="48" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" VerticalAlignment="Top" />
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
         </Border>
-        <StackPanel Grid.RowSpan="3" Grid.Column="1" Margin="0,10,10,10">
+        <StackPanel Grid.RowSpan="4" Grid.Column="1" Margin="0,10,10,10">
             <Button Content="Copy" IsDefault="True" HorizontalAlignment="Left" Margin="0,0,0,5" VerticalAlignment="Top" Width="152" Height="29" Click="OnCopyClick"/>
             <Button Content="Copy with Placeholders" HorizontalAlignment="Left" Margin="0,5,0,5" VerticalAlignment="Top" Width="152" Height="29" Click="OnCopyUnchangedClick"/>
             <Button Content="Cancel" IsCancel="True" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top" Width="152" Height="29"/>

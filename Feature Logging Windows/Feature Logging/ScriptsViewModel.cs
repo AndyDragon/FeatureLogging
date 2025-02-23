@@ -652,9 +652,12 @@ namespace FeatureLogging
                     Scripts[Script.Feature] = value;
                     OnPropertyChanged(nameof(FeatureScript));
                     OnPropertyChanged(nameof(FeatureScriptPlaceholderVisibility));
+                    OnPropertyChanged(nameof(FeatureScriptLength));
                 }
             }
         }
+
+        public int FeatureScriptLength => Scripts[Script.Feature].Length;
 
         public Visibility FeatureScriptPlaceholderVisibility => ScriptHasPlaceholder(Script.Feature) ? Visibility.Visible : Visibility.Collapsed;
 
@@ -672,9 +675,12 @@ namespace FeatureLogging
                     Scripts[Script.Comment] = value;
                     OnPropertyChanged(nameof(CommentScript));
                     OnPropertyChanged(nameof(CommentScriptPlaceholderVisibility));
+                    OnPropertyChanged(nameof(CommentScriptLength));
                 }
             }
         }
+
+        public int CommentScriptLength => Scripts[Script.Comment].Length;
 
         public Visibility CommentScriptPlaceholderVisibility => ScriptHasPlaceholder(Script.Comment) ? Visibility.Visible : Visibility.Collapsed;
 
@@ -692,9 +698,12 @@ namespace FeatureLogging
                     Scripts[Script.OriginalPost] = value;
                     OnPropertyChanged(nameof(OriginalPostScript));
                     OnPropertyChanged(nameof(OriginalPostScriptPlaceholderVisibility));
+                    OnPropertyChanged(nameof(OriginalPostScriptLength));
                 }
             }
         }
+
+        public int OriginalPostScriptLength => Scripts[Script.OriginalPost].Length;
 
         public Visibility OriginalPostScriptPlaceholderVisibility => ScriptHasPlaceholder(Script.OriginalPost) ? Visibility.Visible : Visibility.Collapsed;
 

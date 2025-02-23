@@ -50,6 +50,8 @@
         <local:BooleanToBorderColorConverter x:Key="booleanToBorderColorConverter" />
         <local:CountToVisibilityConverter x:Key="countToVisibilityConverter" />
         <local:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter" />
+        <local:ScriptLengthToVisibility x:Key="scriptLengthToVisibility" />
+        <local:ScriptLengthToColor x:Key="scriptLengthToColor" />
 
         <ObjectDataProvider x:Key="SyncModePreferenceEnumValues"
                                 MethodName="GetValues"
@@ -1541,6 +1543,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Label Content="Feature script:" Grid.Column="0" VerticalAlignment="Center" FontWeight="Bold" FontSize="11" />
                 <Button
@@ -1560,6 +1563,35 @@
                     Margin="8,0,0,0"
                     Padding="12,2"
                     Command="{Binding ScriptViewModel.CopyFeatureScriptWithPlaceholdersCommand}" />
+                <StackPanel
+                    Grid.Column="4"
+                    Orientation="Horizontal"
+                    Visibility="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock
+                        Text="Length: "
+                        VerticalAlignment="Center" 
+                        Visibility="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                        Foreground="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    <TextBlock
+                        Text="{Binding ScriptViewModel.FeatureScriptLength}"
+                        VerticalAlignment="Center" 
+                        Visibility="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                        Foreground="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    <TextBlock
+                        Text=" of 1000"
+                        VerticalAlignment="Center" 
+                        Visibility="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                        Foreground="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Visibility="{Binding ScriptViewModel.FeatureScriptPlaceholderVisibility}">
+                        <TextBlock
+                            Text=" **"
+                            VerticalAlignment="Center" 
+                            Visibility="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                            Foreground="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    </StackPanel>
+                </StackPanel>
             </Grid>
             <!-- Feature script -->
             <emoji:RichTextBox
@@ -1578,6 +1610,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Label
                     Grid.Column="0"
@@ -1602,6 +1635,34 @@
                     Margin="8,0,0,0"
                     Padding="12,2"
                     Command="{Binding ScriptViewModel.CopyCommentScriptWithPlaceholdersCommand}" />
+                <StackPanel
+                    Grid.Column="4"
+                    Visibility="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock
+                        Text="Length: "
+                        VerticalAlignment="Center" 
+                        Visibility="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                        Foreground="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    <TextBlock
+                        Text="{Binding ScriptViewModel.CommentScriptLength}"
+                        VerticalAlignment="Center" 
+                        Visibility="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                        Foreground="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    <TextBlock
+                        Text=" of 1000"
+                        VerticalAlignment="Center" 
+                        Visibility="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                        Foreground="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Visibility="{Binding ScriptViewModel.CommentScriptPlaceholderVisibility}">
+                        <TextBlock
+                            Text=" **"
+                            VerticalAlignment="Center" 
+                            Visibility="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                            Foreground="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    </StackPanel>
+                </StackPanel>
             </Grid>
             <!-- Comment script -->
             <emoji:RichTextBox
@@ -1620,6 +1681,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Label
                     Grid.Column="0"
@@ -1644,6 +1706,34 @@
                     Margin="8,0,0,0"
                     Padding="12,2"
                     Command="{Binding ScriptViewModel.CopyOriginalPostScriptWithPlaceholdersCommand}" />
+                <StackPanel
+                    Grid.Column="4"
+                    Visibility="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock
+                        Text="Length: "
+                        VerticalAlignment="Center" 
+                        Visibility="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                        Foreground="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    <TextBlock
+                        Text="{Binding ScriptViewModel.OriginalPostScriptLength}"
+                        VerticalAlignment="Center" 
+                        Visibility="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                        Foreground="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    <TextBlock
+                        Text=" of 1000"
+                        VerticalAlignment="Center" 
+                        Visibility="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                        Foreground="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Visibility="{Binding ScriptViewModel.OriginalPostScriptPlaceholderVisibility}">
+                        <TextBlock
+                            Text=" **"
+                            VerticalAlignment="Center" 
+                            Visibility="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
+                            Foreground="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToColor}}" />
+                    </StackPanel>
+                </StackPanel>
             </Grid>
             <!-- Original post script -->
             <emoji:RichTextBox
