@@ -186,7 +186,7 @@ class ObservableFeatureWrapper: Identifiable, Hashable {
             let totalFeatures = calculateFeatureCount(feature.featureCountOnHub)
             if totalFeatures + 1 == 5 {
                 newLevel = NewMembershipCase.clickMember
-                userLevel = MembershipCase.commonMember
+                userLevel = MembershipCase.clickMember
             } else if totalFeatures + 1 == 15 {
                 newLevel = NewMembershipCase.clickBronzeMember
                 userLevel = MembershipCase.clickBronzeMember
@@ -198,13 +198,13 @@ class ObservableFeatureWrapper: Identifiable, Hashable {
                 userLevel = MembershipCase.clickGoldMember
             } else if totalFeatures + 1 == 75 {
                 newLevel = NewMembershipCase.clickPlatinumMember
-                userLevel = MembershipCase.commonPlatinumMember
+                userLevel = MembershipCase.clickPlatinumMember
             }
         } else if page.hub == "snap" {
             let totalFeatures = calculateFeatureCount(feature.featureCountOnHub)
             if totalFeatures + 1 == 5 {
                 newLevel = NewMembershipCase.snapMemberFeature
-                userLevel = MembershipCase.commonMember
+                userLevel = MembershipCase.snapMember
             } else if totalFeatures + 1 == 15 {
                 newLevel = NewMembershipCase.snapVipMemberFeature
                 userLevel = MembershipCase.snapVipMember

@@ -203,7 +203,6 @@ struct ContentView: View {
 #else
         .navigationTitle("Feature Logging\(titleSuffix)")
 #endif
-        .frame(minWidth: 1024, minHeight: 720)
         .background(Color.backgroundColor)
         .onChange(of: commandModel.newLog) {
             if viewModel.isDirty {

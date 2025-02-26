@@ -483,6 +483,8 @@ public partial class ScriptsViewModel : NotifyPropertyChanged
         }
         else
         {
+            var membershipString =
+                mainViewModel.SelectedPage?.HubName == "snap" && Feature!.UserLevel.StartsWith("Snap ") ? Feature!.UserLevel[5..] : Feature!.UserLevel;
             string PrepareTemplate(string template)
             {
                 return template
@@ -490,7 +492,7 @@ public partial class ScriptsViewModel : NotifyPropertyChanged
                     .Replace("%%FULLPAGENAME%%", pageName)
                     .Replace("%%PAGETITLE%%", scriptPageTitle)
                     .Replace("%%PAGEHASH%%", scriptPageHash)
-                    .Replace("%%MEMBERLEVEL%%", Feature!.UserLevel)
+                    .Replace("%%MEMBERLEVEL%%", membershipString)
                     .Replace("%%USERNAME%%", Feature!.UserAlias)
                     .Replace("%%YOURNAME%%", mainViewModel.YourAlias)
                     .Replace("%%YOURFIRSTNAME%%", mainViewModel.YourFirstName)
@@ -635,6 +637,8 @@ public partial class ScriptsViewModel : NotifyPropertyChanged
                 }
             }
 
+            var membershipString =
+                mainViewModel.SelectedPage?.HubName == "snap" && Feature!.UserLevel.StartsWith("Snap ") ? Feature!.UserLevel[5..] : Feature!.UserLevel;
             void PrepareTemplate(TemplateEntry? templateEntry)
             {
                 NewMembershipScript = (templateEntry?.Template ?? "")
@@ -642,7 +646,7 @@ public partial class ScriptsViewModel : NotifyPropertyChanged
                     .Replace("%%FULLPAGENAME%%", pageName)
                     .Replace("%%PAGETITLE%%", scriptPageTitle)
                     .Replace("%%PAGEHASH%%", scriptPageHash)
-                    .Replace("%%MEMBERLEVEL%%", Feature!.UserLevel)
+                    .Replace("%%MEMBERLEVEL%%", membershipString)
                     .Replace("%%USERNAME%%", Feature!.UserAlias)
                     .Replace("%%YOURNAME%%", mainViewModel.YourAlias)
                     .Replace("%%YOURFIRSTNAME%%", mainViewModel.YourFirstName)

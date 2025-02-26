@@ -758,7 +758,10 @@ struct ScriptContentView: View {
                 communityTag = tagSource == .snapCommunityTag
                 hubTag = tagSource == .snapMembershipTag
             }
-            let membershipString = viewModel.selectedFeature?.feature.userLevel.scriptMembershipStringForHub(hub: viewModel.selectedPage?.hub)
+            let membership = viewModel.selectedFeature?.feature.userLevel.rawValue ?? MembershipCase.commonArtist.rawValue
+            let membershipString = (viewModel.selectedPage?.hub == "snap" && membership.hasPrefix("Snap "))
+                ? String(membership.dropFirst(5))
+                : membership
 
             featureScript = getTemplateFromCatalog(
                 "feature",
@@ -772,7 +775,7 @@ struct ScriptContentView: View {
             .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
             .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
             .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
-            .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString ?? MembershipCase.commonArtist.rawValue)
+            .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString)
             .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
             .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
             .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
@@ -791,7 +794,7 @@ struct ScriptContentView: View {
             .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
             .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
             .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
-            .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString ?? MembershipCase.commonArtist.rawValue)
+            .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString)
             .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
             .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
             .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
@@ -810,7 +813,7 @@ struct ScriptContentView: View {
             .replacingOccurrences(of: "%%FULLPAGENAME%%", with: currentPageDisplayName)
             .replacingOccurrences(of: "%%PAGETITLE%%", with: scriptPageTitle)
             .replacingOccurrences(of: "%%PAGEHASH%%", with: scriptPageHash)
-            .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString ?? MembershipCase.commonArtist.rawValue)
+            .replacingOccurrences(of: "%%MEMBERLEVEL%%", with: membershipString)
             .replacingOccurrences(of: "%%USERNAME%%", with: viewModel.selectedFeature?.feature.userAlias ?? "")
             .replacingOccurrences(of: "%%YOURNAME%%", with: viewModel.yourName)
             .replacingOccurrences(of: "%%YOURFIRSTNAME%%", with: viewModel.yourFirstName)
