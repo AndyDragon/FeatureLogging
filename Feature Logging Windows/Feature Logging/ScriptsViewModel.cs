@@ -979,12 +979,13 @@ namespace FeatureLogging
                 var featureScriptTemplate = GetTemplate("feature", pageId, FirstForPage, RawTag, CommunityTag);
                 var commentScriptTemplate = GetTemplate("comment", pageId, FirstForPage, RawTag, CommunityTag);
                 var originalPostScriptTemplate = GetTemplate("original post", pageId, FirstForPage, RawTag, CommunityTag);
+                var membershipString = (SelectedPage?.HubName == "snap" && Membership.StartsWith("Snap ")) ? Membership[5..] : Membership;
                 FeatureScript = featureScriptTemplate
                     .Replace("%%PAGENAME%%", scriptPageName)
                     .Replace("%%FULLPAGENAME%%", pageName)
                     .Replace("%%PAGETITLE%%", scriptPageTitle)
                     .Replace("%%PAGEHASH%%", scriptPageHash)
-                    .Replace("%%MEMBERLEVEL%%", Membership)
+                    .Replace("%%MEMBERLEVEL%%", membershipString)
                     .Replace("%%USERNAME%%", UserName)
                     .Replace("%%YOURNAME%%", YourName)
                     .Replace("%%YOURFIRSTNAME%%", YourFirstName)
@@ -994,7 +995,7 @@ namespace FeatureLogging
                     .Replace("%%FULLPAGENAME%%", pageName)
                     .Replace("%%PAGETITLE%%", scriptPageTitle)
                     .Replace("%%PAGEHASH%%", scriptPageHash)
-                    .Replace("%%MEMBERLEVEL%%", Membership)
+                    .Replace("%%MEMBERLEVEL%%", membershipString)
                     .Replace("%%USERNAME%%", UserName)
                     .Replace("%%YOURNAME%%", YourName)
                     .Replace("%%YOURFIRSTNAME%%", YourFirstName)
@@ -1004,7 +1005,7 @@ namespace FeatureLogging
                     .Replace("%%FULLPAGENAME%%", pageName)
                     .Replace("%%PAGETITLE%%", scriptPageTitle)
                     .Replace("%%PAGEHASH%%", scriptPageHash)
-                    .Replace("%%MEMBERLEVEL%%", Membership)
+                    .Replace("%%MEMBERLEVEL%%", membershipString)
                     .Replace("%%USERNAME%%", UserName)
                     .Replace("%%YOURNAME%%", YourName)
                     .Replace("%%YOURFIRSTNAME%%", YourFirstName)
