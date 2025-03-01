@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Net.Http.Headers;
+#if ANDROID
 using Android.Provider;
+#endif
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
 using FeatureLogging.Base;
@@ -672,6 +674,7 @@ public class ImageEntry : NotifyPropertyChanged, IDisposable
 
     private static Task SaveToPhotoLibraryAndroidAsync(byte[] imageData)
     {
+#if ANDROID
 #pragma warning disable CA1416
         var context = Android.App.Application.Context;
         var filename = $"IMG_{DateTime.Now:yyyyMMdd_HHmmss}.png";
@@ -699,7 +702,7 @@ public class ImageEntry : NotifyPropertyChanged, IDisposable
             }
         }
 #pragma warning restore CA1416
-
+#endif
         return Task.CompletedTask;
     }
 
