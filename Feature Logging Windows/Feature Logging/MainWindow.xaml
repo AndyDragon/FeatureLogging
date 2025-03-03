@@ -3319,6 +3319,7 @@
             </Grid>
         </ScrollViewer>
 
+        <!-- IMAGE VIEWER VIEW -->
         <Grid
             Grid.Row="1"
             Visibility="{Binding ImageViewVisibility}">
