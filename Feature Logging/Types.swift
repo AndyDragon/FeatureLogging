@@ -147,15 +147,17 @@ extension MembershipCase {
     init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
         let decodedValue = try container.decode(String.self)
-        if decodedValue.hasPrefix("Click ") {
-            let rawValueWithoutPrefix = String(decodedValue[decodedValue.index(decodedValue.startIndex, offsetBy: "Click ".count)...])
-            self = MembershipCase(rawValue: rawValueWithoutPrefix) ?? .none
-        } else if decodedValue.hasPrefix("Snap ") {
-            let rawValueWithoutPrefix = String(decodedValue[decodedValue.index(decodedValue.startIndex, offsetBy: "Snap ".count)...])
-            self = MembershipCase(rawValue: rawValueWithoutPrefix) ?? .none
-        } else {
-            self = MembershipCase(rawValue: decodedValue) ?? .none
+        self = MembershipCase(rawValue: decodedValue) ?? .none
+    }
+
+    static func mapFromString(_ page: String, _ membershipString: String) -> MembershipCase {
+        if page.hasPrefix("click:") {
+            return MembershipCase(rawValue: "Click " + membershipString) ?? .none
         }
+        if page.hasPrefix("snap:") {
+            return MembershipCase(rawValue: "Snap " + membershipString) ?? .none
+        }
+        return MembershipCase(rawValue: membershipString) ?? .none
     }
 }
 

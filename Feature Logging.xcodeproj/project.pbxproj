@@ -14,6 +14,7 @@
 		4930AB932BB7348F00C72CA9 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4930AB8F2BB7348F00C72CA9 /* Types.swift */; };
 		4930AB962BB7354E00C72CA9 /* SystemColors in Frameworks */ = {isa = PBXBuildFile; productRef = 4930AB952BB7354E00C72CA9 /* SystemColors */; };
 		4930AB9D2BB74F1500C72CA9 /* FeatureEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4930AB9C2BB74F1500C72CA9 /* FeatureEditor.swift */; };
+		493D51E72D775B5B007B0DF0 /* FlexCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 493D51E62D775B5B007B0DF0 /* FlexCollection.swift */; };
 		495A858A2C36E46F00C112C6 /* PlaceholderEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495A85852C36E46F00C112C6 /* PlaceholderEditor.swift */; };
 		495A858B2C36E46F00C112C6 /* ScriptEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495A85862C36E46F00C112C6 /* ScriptEditor.swift */; };
 		495A858D2C36E46F00C112C6 /* NewMembershipEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495A85882C36E46F00C112C6 /* NewMembershipEditor.swift */; };
@@ -56,6 +57,7 @@
 		4930AB8E2BB7348F00C72CA9 /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		4930AB8F2BB7348F00C72CA9 /* Types.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		4930AB9C2BB74F1500C72CA9 /* FeatureEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureEditor.swift; sourceTree = "<group>"; };
+		493D51E62D775B5B007B0DF0 /* FlexCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlexCollection.swift; sourceTree = "<group>"; };
 		493FA1372D40768B00F4F9D9 /* Standalone.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Standalone.xcconfig; sourceTree = "<group>"; };
 		495A85852C36E46F00C112C6 /* PlaceholderEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceholderEditor.swift; sourceTree = "<group>"; };
 		495A85862C36E46F00C112C6 /* ScriptEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptEditor.swift; sourceTree = "<group>"; };
@@ -154,6 +156,7 @@
 				4930AB8F2BB7348F00C72CA9 /* Types.swift */,
 				499B07022D12539000B90BE7 /* ObservableTypes.swift */,
 				499B07002D1252E600B90BE7 /* SerializeTypes.swift */,
+				493D51E62D775B5B007B0DF0 /* FlexCollection.swift */,
 				4930AB8C2BB7348F00C72CA9 /* VersionCheckAppState.swift */,
 				490DF5C72BC1E70B005E0F93 /* Feature-Logging-Info.plist */,
 				49D8280C2BB7327200153786 /* Assets.xcassets */,
@@ -308,6 +311,7 @@
 				49D3C0322CF2D2E800608566 /* FeatureListRow.swift in Sources */,
 				4930AB922BB7348F00C72CA9 /* Helpers.swift in Sources */,
 				49D828092BB7327000153786 /* FeatureLoggingApp.swift in Sources */,
+				493D51E72D775B5B007B0DF0 /* FlexCollection.swift in Sources */,
 				49EC9DC42CF579DC00A50B2D /* MainContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -382,7 +386,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 80;
+				CURRENT_PROJECT_VERSION = 81;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -398,7 +402,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.6;
+				MARKETING_VERSION = 2.7;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.andydragon.Feature-Logging";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -535,7 +539,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 80;
+				CURRENT_PROJECT_VERSION = 81;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -551,7 +555,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.6;
+				MARKETING_VERSION = 2.7;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.andydragon.Feature-Logging";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -568,7 +572,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Feature Logging/Feature_Logging.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 80;
+				CURRENT_PROJECT_VERSION = 81;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Feature Logging/Preview Content\"";
 				DEVELOPMENT_TEAM = 7U6K972H9Q;
@@ -584,7 +588,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.6;
+				MARKETING_VERSION = 2.7;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.andydragon.Feature-Logging";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

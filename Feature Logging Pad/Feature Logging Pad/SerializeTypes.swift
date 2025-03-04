@@ -32,6 +32,7 @@ struct LogFeature: Codable {
     var tinEyeResults: TinEyeResults
     var aiCheckResults: AiCheckResults
     var personalMessage: String
+    var userLevelString: String? = nil
 
     init(feature: ObservableFeature) {
         isPicked = feature.isPicked
@@ -128,6 +129,9 @@ struct LogFeature: Codable {
         userName = try container.decode(String.self, forKey: .userName)
         userAlias = try container.decode(String.self, forKey: .userAlias)
         userLevel = try container.decode(MembershipCase.self, forKey: .userLevel)
+        if userLevel == .none {
+            userLevelString = try container.decode(String.self, forKey: .userLevel)
+        }
         userIsTeammate = try container.decode(Bool.self, forKey: .userIsTeammate)
         tagSource = try container.decode(TagSourceCase.self, forKey: .tagSource)
         photoFeaturedOnPage = try container.decode(Bool.self, forKey: .photoFeaturedOnPage)
@@ -222,6 +226,9 @@ struct Log: Codable {
             feature.userName = logFeature.userName
             feature.userAlias = logFeature.userAlias
             feature.userLevel = logFeature.userLevel
+            if feature.userLevel == .none, let userLevelString = logFeature.userLevelString {
+                feature.userLevel = MembershipCase.mapFromString(page, userLevelString)
+            }
             feature.userIsTeammate = logFeature.userIsTeammate
             feature.tagSource = logFeature.tagSource
             feature.photoFeaturedOnPage = logFeature.photoFeaturedOnPage
