@@ -85,6 +85,7 @@
         <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding GenerateReportCommand}" />
         <KeyBinding Key="R" Modifiers="Ctrl" Command="{Binding SaveReportCommand}" />
         <KeyBinding Key="OemComma" Modifiers="Ctrl" Command="{Binding LaunchSettingsCommand}" />
+        <KeyBinding Key="F" Modifiers="Ctrl+Alt" Command="{Binding UpdateOutdatedLogsCommand}" />
         <KeyBinding Key="OemPlus" Modifiers="Ctrl" Command="{Binding AddFeatureCommand}" />
         <KeyBinding Key="OemMinus" Modifiers="Ctrl" Command="{Binding RemoveFeatureCommand}" />
         <KeyBinding Key="C" Modifiers="Ctrl+Alt" Command="{Binding LaunchCullingAppCommand}" />
@@ -406,6 +407,8 @@
             </MenuItem>
             <MenuItem Header="Edit">
                 <MenuItem Header="Settings..." Command="{Binding LaunchSettingsCommand}" InputGestureText="Ctrl+," />
+                <!--<Separator />
+                <MenuItem Header="Update logs..." Command="{Binding UpdateOutdatedLogsCommand}" InputGestureText="Ctrl+Alt+F" />-->
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Show statistics" Command="{Binding ShowStatisticsViewCommand}" InputGestureText="Ctrl+Shift+T" />
@@ -1814,6 +1817,7 @@
                     <StackPanel Orientation="Vertical">
                         <StackPanel Orientation="Horizontal">
                             <Button
+                                x:Name="PickStatisticFolderButton"
                                 HorizontalAlignment="Left"
                                 Height="22"
                                 Padding="4,0,4,0"
@@ -2466,6 +2470,7 @@
                                 </StackPanel>
                             </Label>
                             <TextBox
+                                x:Name="PostDownloaderUserAliasEditor"
                                 Text="{Binding SelectedFeature.UserAlias, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 VerticalAlignment="Center"
                                 FontSize="11"

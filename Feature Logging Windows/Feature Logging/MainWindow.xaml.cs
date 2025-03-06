@@ -107,5 +107,38 @@ namespace FeatureLogging
             };
             this.FeaturesListBox.Items.SortDescriptions.Add(sortDescription);
         }
+
+        internal void PrepareFocusForView(MainViewModel.ViewMode view, bool isPush = true)
+        {
+            switch (view)
+            {
+                case MainViewModel.ViewMode.LogView:
+                    // No focus needed
+                    break;
+                case MainViewModel.ViewMode.PostDownloaderView:
+                    if (isPush)
+                    {
+                        PostDownloaderUserAliasEditor.Focus();
+                        PostDownloaderUserAliasEditor.BringIntoView();
+                    }
+                    break;
+                case MainViewModel.ViewMode.ImageView:
+                    // No focus needed
+                    break;
+                case MainViewModel.ViewMode.ImageValidationView:
+                    // No focus needed
+                    break;
+                case MainViewModel.ViewMode.ScriptView:
+                    // No focus needed
+                    break;
+                case MainViewModel.ViewMode.StatisticsView:
+                    if (isPush)
+                    {
+                        PickStatisticFolderButton.Focus();
+                        PickStatisticFolderButton.BringIntoView();
+                    }
+                    break;
+            }
+        }
     }
 }

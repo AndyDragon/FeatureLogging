@@ -199,38 +199,7 @@ namespace FeatureLogging
                                 Features.Clear();
                                 foreach (var feature in file["features"])
                                 {
-                                    var loadedFeature = new Feature(SelectedPage!.HubName)
-                                    {
-                                        IsPicked = (bool)feature["isPicked"],
-                                        PostLink = (string)feature["postLink"],
-                                        UserName = (string)feature["userName"],
-                                        UserAlias = (string)feature["userAlias"],
-                                        UserLevel = MapMembershipLevelFromFile((string)feature["userLevel"]),
-                                        UserIsTeammate = (bool)feature["userIsTeammate"],
-                                        TagSource = new List<string>(TagSources).Contains((string)feature["tagSource"]) ? (string)feature["tagSource"] : TagSources[0],
-                                        PhotoFeaturedOnPage = (bool)feature["photoFeaturedOnPage"],
-                                        PhotoFeaturedOnHub = feature.ContainsKey("photoFeaturedOnHub") ? (bool)feature["photoFeaturedOnHub"] : false,
-                                        PhotoLastFeaturedOnHub = feature.ContainsKey("photoLastFeaturedOnHub") ? (string)feature["photoLastFeaturedOnHub"] : "",
-                                        PhotoLastFeaturedPage = feature.ContainsKey("photoLastFeaturedPage") ? (string)feature["photoLastFeaturedPage"] : "",
-                                        FeatureDescription = (string)feature["featureDescription"],
-                                        UserHasFeaturesOnPage = (bool)feature["userHasFeaturesOnPage"],
-                                        LastFeaturedOnPage = (string)feature["lastFeaturedOnPage"],
-                                        FeatureCountOnPage = CalculateFeatureCount(
-                                            SelectedPage!.HubName, 
-                                            (string)feature["featureCountOnPage"], 
-                                            feature.ContainsKey("featureCountOnRawPage") ? (string)feature["featureCountOnRawPage"] : "0"),
-                                        UserHasFeaturesOnHub = (bool)feature["userHasFeaturesOnHub"],
-                                        LastFeaturedOnHub = (string)feature["lastFeaturedOnHub"],
-                                        LastFeaturedPage = (string)feature["lastFeaturedPage"],
-                                        FeatureCountOnHub = CalculateFeatureCount(
-                                            SelectedPage!.HubName, 
-                                            (string)feature["featureCountOnHub"], 
-                                            feature.ContainsKey("featureCountOnRawHub") ? (string)feature["featureCountOnRawHub"] : "0"),
-                                        TooSoonToFeatureUser = (bool)feature["tooSoonToFeatureUser"],
-                                        TinEyeResults = new List<string>(TinEyeResults).Contains((string)feature["tinEyeResults"]) ? (string)feature["tinEyeResults"] : TinEyeResults[0],
-                                        AiCheckResults = new List<string>(AiCheckResults).Contains((string)feature["aiCheckResults"]) ? (string)feature["aiCheckResults"] : AiCheckResults[0],
-                                        PersonalMessage = feature.ContainsKey("personalMessage") ? (string)feature["personalMessage"] : "",
-                                    };
+                                    Feature loadedFeature = ParseLoadedFeature(pageId, feature);
                                     Features.Add(loadedFeature);
                                 }
                                 base.OnPropertyChanged(nameof(HasFeatures));
@@ -304,7 +273,11 @@ namespace FeatureLogging
                         {
                             ContractResolver = new OrderedContractResolver(),
                         };
-                        File.WriteAllText(fileName, JsonConvert.SerializeObject(file, Formatting.Indented, jsonSettings).Replace("\": ", "\" : "));
+                        File.WriteAllText(
+                            fileName, 
+                            JsonConvert.SerializeObject(file, Formatting.Indented, jsonSettings)
+                                .Replace("\": ", "\" : ")
+                                .Replace("\\/", "/"));
                         lastFilename = fileName;
                         IsDirty = false;
                         foreach (var feature in Features)
@@ -367,6 +340,55 @@ namespace FeatureLogging
                     File.WriteAllText(dialog.FileName, GenerateLogReport());
                 }
             }, () => !WaitingForPages && HasFeatures);
+
+            UpdateOutdatedLogsCommand = new Command(() =>
+            {
+                var dialog = new OpenFolderDialog()
+                {
+                    Title = "Choose the folder with your logs",
+                };
+                if (dialog.ShowDialog() == true)
+                {
+                    Mouse.OverrideCursor = Cursors.Wait;
+                    var logFiles = Directory.GetFiles(dialog.FolderName, "*.json");
+                    var updatedFiles = 0;
+                    foreach (var fileName in logFiles)
+                    {
+                        try
+                        {
+                            var loggingFile = LoadLogFile(fileName, LoadedPages);
+                            if (loggingFile != null && loggingFile.LoggingFile != null)
+                            {
+                                var jsonSettings = new JsonSerializerSettings
+                                {
+                                    ContractResolver = new OrderedContractResolver(),
+                                };
+                                var updatedLoggingFile = JsonConvert.SerializeObject(loggingFile.LoggingFile, Formatting.Indented, jsonSettings)
+                                    .Replace("\": ", "\" : ")
+                                    .Replace("\\/", "/");
+                                if (!string.Equals(loggingFile.Contents, updatedLoggingFile))
+                                {
+                                    File.WriteAllText(fileName, updatedLoggingFile);
+                                    ++updatedFiles;
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // Do nothing, invalid file...
+                        }
+                    }
+                    Mouse.OverrideCursor = null;
+                    if (updatedFiles == 0)
+                    {
+                        ShowToast("Update logs", "There were no logs that needed to be updated", NotificationType.Success, TimeSpan.FromSeconds(3));
+                    }
+                    else
+                    {
+                        ShowToast("Update logs", $"Updated the information in {updatedFiles} log files!", NotificationType.Success, TimeSpan.FromSeconds(5));
+                    }
+                }
+            });
 
             LaunchSettingsCommand = new Command(() =>
             {
@@ -729,6 +751,79 @@ namespace FeatureLogging
             #endregion
         }
 
+        private static LoggingFileWithContents? LoadLogFile(string fileName, IEnumerable<LoadedPage> loadedPages)
+        {
+            try
+            {
+                var fileContent = File.ReadAllText(fileName);
+                Dictionary<string, dynamic>? file = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(fileContent) ?? throw new Exception("Invalid file format");
+                var pageId = file["page"];
+                var foundPage = loadedPages.FirstOrDefault(page => page.Id == pageId) ?? throw new Exception("Page not found");
+                // Force the page to update.
+                var loadedFeatures = new List<Feature>();
+                foreach (var feature in file["features"])
+                {
+                    Feature loadedFeature = ParseLoadedFeature(pageId, feature);
+                    loadedFeatures.Add(loadedFeature);
+                }
+                return new LoggingFileWithContents(
+                    new()
+                    {
+                        Page = foundPage.Id,
+                        Features = [.. loadedFeatures],
+                    },
+                    fileContent);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static Feature ParseLoadedFeature(string pageId, dynamic feature)
+        {
+            if (feature == null)
+            {
+                throw new Exception("Feature was null");
+            }
+            var hubName = pageId.Contains(':') ? pageId.Split(':')[0] : "other";
+            var tagSources = GetTagSources(hubName);
+            return new Feature(hubName)
+            {
+                IsPicked = (bool)feature["isPicked"],
+                PostLink = (string)feature["postLink"],
+                UserName = (string)feature["userName"],
+                UserAlias = (string)feature["userAlias"],
+                UserLevel = MapMembershipLevelFromFile(pageId, (string)feature["userLevel"]),
+                UserIsTeammate = (bool)feature["userIsTeammate"],
+                TagSource = new List<string>(tagSources).Contains((string)feature["tagSource"]) ? (string)feature["tagSource"] : tagSources[0],
+                PhotoFeaturedOnPage = (bool)feature["photoFeaturedOnPage"],
+                PhotoFeaturedOnHub = feature.ContainsKey("photoFeaturedOnHub") ? (bool)feature["photoFeaturedOnHub"] : false,
+                PhotoLastFeaturedOnHub = feature.ContainsKey("photoLastFeaturedOnHub") ? (string)feature["photoLastFeaturedOnHub"] : "",
+                PhotoLastFeaturedPage = feature.ContainsKey("photoLastFeaturedPage") ? (string)feature["photoLastFeaturedPage"] : "",
+                FeatureDescription = (string)feature["featureDescription"],
+                UserHasFeaturesOnPage = (bool)feature["userHasFeaturesOnPage"],
+                LastFeaturedOnPage = (string)feature["lastFeaturedOnPage"],
+                FeatureCountOnPage = CalculateFeatureCount(
+                    hubName,
+                    (bool)feature["userHasFeaturesOnPage"],
+                    (string)feature["featureCountOnPage"],
+                    feature.ContainsKey("featureCountOnRawPage") ? (string)feature["featureCountOnRawPage"] : "0"),
+                UserHasFeaturesOnHub = (bool)feature["userHasFeaturesOnHub"],
+                LastFeaturedOnHub = (string)feature["lastFeaturedOnHub"],
+                LastFeaturedPage = (string)feature["lastFeaturedPage"],
+                FeatureCountOnHub = CalculateFeatureCount(
+                    hubName,
+                    (bool)feature["userHasFeaturesOnHub"],
+                    (string)feature["featureCountOnHub"],
+                    feature.ContainsKey("featureCountOnRawHub") ? (string)feature["featureCountOnRawHub"] : "0"),
+                TooSoonToFeatureUser = (bool)feature["tooSoonToFeatureUser"],
+                TinEyeResults = new List<string>(TinEyeResults).Contains((string)feature["tinEyeResults"]) ? (string)feature["tinEyeResults"] : TinEyeResults[0],
+                AiCheckResults = new List<string>(AiCheckResults).Contains((string)feature["aiCheckResults"]) ? (string)feature["aiCheckResults"] : AiCheckResults[0],
+                PersonalMessage = feature.ContainsKey("personalMessage") ? (string)feature["personalMessage"] : "",
+            };
+        }
+
         public void RemoveFeature(Feature feature)
         {
             if (feature == SelectedFeature)
@@ -744,11 +839,13 @@ namespace FeatureLogging
             SaveReportCommand?.OnCanExecuteChanged();
         }
 
-        private string CalculateFeatureCount(string hub, string featureCount, string rawFeatureCount)
+        private static string CalculateFeatureCount(string hub, bool hasFeatures, string featureCount, string rawFeatureCount)
         {
-            featureCount = new List<string>(FeaturedCounts).Contains(featureCount) ? featureCount : FeaturedCounts[0];
-            rawFeatureCount = new List<string>(FeaturedCounts).Contains(rawFeatureCount) ? rawFeatureCount : FeaturedCounts[0];
-            if (featureCount == "many" || rawFeatureCount == "many")
+            if (!hasFeatures)
+            {
+                return "many";
+            }
+            if (featureCount == "many" || (hub == "snap" && rawFeatureCount == "many"))
             {
                 return "many";
             }
@@ -768,17 +865,37 @@ namespace FeatureLogging
             };
         }
 
-        private string MapMembershipLevelFromFile(string userLevelFromFile)
+        private static string MapMembershipLevelFromFile(string pageId, string userLevelFromFile)
         {
-            if (Memberships.Contains(userLevelFromFile))
+            if (pageId.StartsWith("snap:"))
             {
+                if (SnapMemberships.Contains(userLevelFromFile))
+                {
+                    return userLevelFromFile;
+                }
+                var mappedFeatureMembership = "Snap " + userLevelFromFile;
+                if (SnapMemberships.Contains(mappedFeatureMembership))
+                {
+                    return mappedFeatureMembership;
+                }
+                Debug.WriteLine($"Unknown membership level {userLevelFromFile} for feature\n");
                 return userLevelFromFile;
             }
-            if (OldMembershipMap.TryGetValue(userLevelFromFile, out string? value))
+            if (pageId.StartsWith("click:"))
             {
-                return value;
+                if (ClickMemberships.Contains(userLevelFromFile))
+                {
+                    return userLevelFromFile;
+                }
+                var mappedFeatureMembership = "Click " + userLevelFromFile;
+                if (ClickMemberships.Contains(mappedFeatureMembership))
+                {
+                    return mappedFeatureMembership;
+                }
+                Debug.WriteLine($"Unknown membership level {userLevelFromFile} for feature\n");
+                return userLevelFromFile;
             }
-            return Memberships[0];
+            return userLevelFromFile;
         }
 
         #region User settings
@@ -936,6 +1053,8 @@ namespace FeatureLogging
         public Command SaveReportCommand { get; }
 
         public ICommand LaunchSettingsCommand { get; }
+
+        public Command UpdateOutdatedLogsCommand { get; }
 
         public ICommand LaunchAboutCommand { get; }
 
@@ -1116,6 +1235,7 @@ namespace FeatureLogging
             get => view;
             set
             {
+                var oldView = view;
                 if (Set(ref view, value))
                 {
                     OnPropertyChanged(nameof(LogViewVisibility));
@@ -1135,6 +1255,18 @@ namespace FeatureLogging
                         StatisticsFolder = "";
                     }
                     RemoveDownloadedPostFeatureCommand.OnCanExecuteChanged();
+                    switch (view)
+                    {
+                        default:
+                            MainWindow!.PrepareFocusForView(view);
+                            break;
+                        case ViewMode.PostDownloaderView:
+                            MainWindow!.PrepareFocusForView(view, oldView == ViewMode.ScriptView);
+                            break;
+                        case ViewMode.StatisticsView:
+                            MainWindow!.PrepareFocusForView(view, true);
+                            break;
+                    }
                 }
             }
         }
@@ -1409,6 +1541,11 @@ namespace FeatureLogging
 
         #region Membership levels
 
+        private static string[] CommonMemberships => [
+            "None",
+            "Artist",
+        ];
+
         private static string[] SnapMemberships => [
             "None",
             "Artist",
@@ -1487,6 +1624,11 @@ namespace FeatureLogging
         public string[] TagSources =>
             SelectedPage?.HubName == "click" ? ClickTagSources :
             SelectedPage?.HubName == "snap" ? SnapTagSources :
+            OtherTagSources;
+
+        public static string[] GetTagSources(string hubName) =>
+            hubName == "click" ? ClickTagSources :
+            hubName == "snap" ? SnapTagSources :
             OtherTagSources;
 
         #endregion
@@ -2053,10 +2195,26 @@ namespace FeatureLogging
         {
             var textColor = DeterminePlotTextColor();
             var collection = CreatePieSeries("User level");
+            foreach (var level in CommonMemberships)
+            {
+                var levelCountValue = loggingFiles.Sum(loggingFile => loggingFile.Features.Where(feature => 
+                                                    feature.IsPickedAndAllowed && MapMembershipLevelFromFile(loggingFile.Page, feature.UserLevel) == level)
+                                                  .Count());
+                if (levelCountValue != 0)
+                {
+                    collection.Slices.Add(new PieSlice(level, levelCountValue) { IsExploded = true });
+                }
+            }
             foreach (var level in SnapMemberships)
             {
+                if (CommonMemberships.Contains(level))
+                {
+                    continue;
+                }
                 var levelCountValue = loggingFiles.Where(loggingFile => loggingFile.Page.StartsWith("snap:"))
-                                                  .Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && feature.UserLevel == level).Count());
+                                                  .Sum(loggingFile => loggingFile.Features.Where(feature => 
+                                                    feature.IsPickedAndAllowed && MapMembershipLevelFromFile(loggingFile.Page, feature.UserLevel) == level)
+                                                  .Count());
                 if (levelCountValue != 0)
                 {
                     collection.Slices.Add(new PieSlice("Snap " + level, levelCountValue) {  IsExploded = true });
@@ -2064,8 +2222,14 @@ namespace FeatureLogging
             }
             foreach (var level in ClickMemberships)
             {
+                if (CommonMemberships.Contains(level))
+                {
+                    continue;
+                }
                 var levelCountValue = loggingFiles.Where(loggingFile => loggingFile.Page.StartsWith("click:"))
-                                                  .Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && feature.UserLevel == level).Count());
+                                                  .Sum(loggingFile => loggingFile.Features.Where(feature => 
+                                                    feature.IsPickedAndAllowed && MapMembershipLevelFromFile(loggingFile.Page, feature.UserLevel) == level)
+                                                  .Count());
                 if (levelCountValue != 0)
                 {
                     collection.Slices.Add(new PieSlice("Click " + level,  levelCountValue) { IsExploded = true });
@@ -2073,8 +2237,14 @@ namespace FeatureLogging
             }
             foreach (var level in OtherMemberships)
             {
+                if (CommonMemberships.Contains(level))
+                {
+                    continue;
+                }
                 var levelCountValue = loggingFiles.Where(loggingFile => loggingFile.Page.StartsWith("other:"))
-                                                  .Sum(loggingFile => loggingFile.Features.Where(feature => feature.IsPickedAndAllowed && feature.UserLevel == level).Count());
+                                                  .Sum(loggingFile => loggingFile.Features.Where(feature => 
+                                                    feature.IsPickedAndAllowed && MapMembershipLevelFromFile(loggingFile.Page, feature.UserLevel) == level)
+                                                  .Count());
                 if (levelCountValue != 0)
                 {
                     collection.Slices.Add(new PieSlice("Other " + level, levelCountValue) { IsExploded = true });
@@ -2155,7 +2325,6 @@ namespace FeatureLogging
                     }
                 }
             }
-            var textColor = DeterminePlotTextColor();
             var collection = CreatePieSeries("Previous page features");
             foreach (var key in buckets.Keys.Order())
             {
@@ -2189,7 +2358,6 @@ namespace FeatureLogging
                     }
                 }
             }
-            var textColor = DeterminePlotTextColor();
             var collection = CreatePieSeries("Previous hub features");
             foreach (var key in buckets.Keys.Order())
             {
@@ -2212,75 +2380,66 @@ namespace FeatureLogging
             get => statisticsFolder;
             set
             {
-                if (Set(ref statisticsFolder, value))
+                Set(ref statisticsFolder, value);
+                if (Directory.Exists(statisticsFolder))
                 {
-                    if (Directory.Exists(statisticsFolder))
-                    {
-                        ChartVisibility = Visibility.Collapsed;
-                        PickedFeatureChart = null;
-                        FirstFeatureChart = null;
-                        UserLevelChart = null;
-                        PhotoFeaturedChart = null;
-                        PageFeatureCountChart = null;
-                        HubFeatureCountChart = null;
+                    ChartVisibility = Visibility.Collapsed;
+                    PickedFeatureChart = null;
+                    FirstFeatureChart = null;
+                    UserLevelChart = null;
+                    PhotoFeaturedChart = null;
+                    PageFeatureCountChart = null;
+                    HubFeatureCountChart = null;
 
-                        var pages = new Dictionary<string, bool>();
-                        var preSortedPages = new List<StatisticsPage>
+                    var pages = new Dictionary<string, bool>();
+                    var preSortedPages = new List<StatisticsPage>
                         {
                             new("all", "all pages")
                         };
-                        pages["all"] = true;
-                        Mouse.OverrideCursor = Cursors.Wait;
-                        loggingFiles.Clear();
-                        var logFiles = Directory.GetFiles(statisticsFolder, "*.json");
-                        foreach (var fileName in logFiles)
-                        {
-                            try
-                            {
-                                var file = LoggingFile.FromJson(File.ReadAllText(fileName));
-                                if (file != null)
-                                {
-                                    loggingFiles.Add(file);
-                                    var page = file.Page.ToLower().Trim();
-                                    var hub = page.Split(":").First() ?? "";
-                                    if (!pages.ContainsKey(hub))
-                                    {
-                                        preSortedPages.Add(new StatisticsPage(hub, $"{hub} hub"));
-                                        pages[hub] = true;
-                                    }
-                                    if (!pages.ContainsKey(page))
-                                    {
-                                        preSortedPages.Add(new StatisticsPage(page, page.Replace(":", " hub, page ")));
-                                        pages[page] = true;
-                                    }
-                                }
-                            }
-                            catch
-                            {
-                                // Do nothing, invalid file...
-                            }
-                        }
-                        SelectedStatisticsPage = null;
-                        StatisticsPages.Clear();
-                        preSortedPages.Sort(StatisticsPageComparer.Default);
-                        foreach (var page in preSortedPages)
-                        {
-                            StatisticsPages.Add(page);
-                        }
-                        SelectedStatisticsPage = StatisticsPages.FirstOrDefault();
-                        Mouse.OverrideCursor = null;
-                    }
-                    else
+                    pages["all"] = true;
+                    Mouse.OverrideCursor = Cursors.Wait;
+                    loggingFiles.Clear();
+                    var logFiles = Directory.GetFiles(statisticsFolder, "*.json");
+                    foreach (var fileName in logFiles)
                     {
-                        StatisticsPages.Clear();
-                        ChartVisibility = Visibility.Collapsed;
-                        PickedFeatureChart = null;
-                        FirstFeatureChart = null;
-                        UserLevelChart = null;
-                        PhotoFeaturedChart = null;
-                        PageFeatureCountChart = null;
-                        HubFeatureCountChart = null;
+                        var loggingFile = LoadLogFile(fileName, LoadedPages);
+                        if (loggingFile != null && loggingFile.LoggingFile != null)
+                        {
+                            loggingFiles.Add(loggingFile.LoggingFile);
+                            var page = loggingFile.LoggingFile.Page.ToLower().Trim();
+                            var hub = page.Split(":").First() ?? "";
+                            if (!pages.ContainsKey(hub))
+                            {
+                                preSortedPages.Add(new StatisticsPage(hub, $"{hub} hub"));
+                                pages[hub] = true;
+                            }
+                            if (!pages.ContainsKey(page))
+                            {
+                                preSortedPages.Add(new StatisticsPage(page, page.Replace(":", " hub, page ")));
+                                pages[page] = true;
+                            }
+                        }
                     }
+                    SelectedStatisticsPage = null;
+                    StatisticsPages.Clear();
+                    preSortedPages.Sort(StatisticsPageComparer.Default);
+                    foreach (var page in preSortedPages)
+                    {
+                        StatisticsPages.Add(page);
+                    }
+                    SelectedStatisticsPage = StatisticsPages.FirstOrDefault();
+                    Mouse.OverrideCursor = null;
+                }
+                else
+                {
+                    StatisticsPages.Clear();
+                    ChartVisibility = Visibility.Collapsed;
+                    PickedFeatureChart = null;
+                    FirstFeatureChart = null;
+                    UserLevelChart = null;
+                    PhotoFeaturedChart = null;
+                    PageFeatureCountChart = null;
+                    HubFeatureCountChart = null;
                 }
             }
         }
@@ -3242,5 +3401,12 @@ namespace FeatureLogging
     public partial class LoggingFile
     {
         public static LoggingFile? FromJson(string json) => JsonConvert.DeserializeObject<LoggingFile>(json);
+    }
+
+    public class LoggingFileWithContents(LoggingFile loggingFile, string contents)
+    {
+        public LoggingFile LoggingFile { get; set; } = loggingFile;
+     
+        public string Contents { get; set; } = contents;
     }
 }

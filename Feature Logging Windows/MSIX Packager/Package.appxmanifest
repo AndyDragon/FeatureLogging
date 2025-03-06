@@ -9,7 +9,7 @@
   <Identity
     Name="21445AndyDragonSoftware.FeatureLogging"
     Publisher="CN=0ECE0AF0-01C0-42E1-B15B-68D2DD6AA771"
-    Version="2.3.32.0" />
+    Version="2.4.33.0" />
 
   <Properties>
     <DisplayName>Feature Logging</DisplayName>
