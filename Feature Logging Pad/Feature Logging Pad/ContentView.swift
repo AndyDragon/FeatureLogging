@@ -195,7 +195,16 @@ struct ContentView: View {
                 isShowing: $viewModel.isShowingDocumentDirtyAlert,
                 confirmationText: $documentDirtyAlertConfirmation,
                 saveAction: {
-                    // TODO: andydragon commandModel.saveLog.toggle()
+                    logDocument = LogDocument(page: viewModel.selectedPage!, features: viewModel.features)
+                    if let file = logURL {
+                        saveLog(to: file)
+                        documentDirtyAfterSaveAction()
+                        documentDirtyAfterSaveAction = {}
+                        documentDirtyAfterDismissAction = {}
+                        viewModel.clearDocumentDirty()
+                    } else {
+                        showFileExporter.toggle()
+                    }
                 },
                 dismissAction: {
                     logger.warning("Ignored dirty document", context: "System")

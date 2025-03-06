@@ -33,6 +33,10 @@ struct LogFeature: Codable {
     var aiCheckResults: AiCheckResults
     var personalMessage: String
     var userLevelString: String? = nil
+    var pageFeatureCount: String? = nil
+    var rawPageFeatureCount: String? = nil
+    var hubFeatureCount: String? = nil
+    var rawHubFeatureCount: String? = nil
 
     init(feature: ObservableFeature) {
         isPicked = feature.isPicked
@@ -141,15 +145,23 @@ struct LogFeature: Codable {
         featureDescription = try container.decode(String.self, forKey: .featureDescription)
         userHasFeaturesOnPage = try container.decode(Bool.self, forKey: .userHasFeaturesOnPage)
         lastFeaturedOnPage = try container.decode(String.self, forKey: .lastFeaturedOnPage)
-        let pageFeatureCount = try container.decode(String.self, forKey: .featureCountOnPage)
-        let rawPageFeatureCount = try container.decodeIfPresent(String.self, forKey: .featureCountOnRawPage) ?? "0"
-        featureCountOnPage = Self.collateRawFeatureCount(pageFeatureCount, rawPageFeatureCount)
+        pageFeatureCount = try container.decode(String.self, forKey: .featureCountOnPage)
+        rawPageFeatureCount = try container.decodeIfPresent(String.self, forKey: .featureCountOnRawPage)
+        if rawPageFeatureCount == nil, let pageFeatureCount {
+            featureCountOnPage = Self.collateRawFeatureCount(pageFeatureCount, "0")
+        } else {
+            featureCountOnPage = "many"
+        }
         userHasFeaturesOnHub = try container.decode(Bool.self, forKey: .userHasFeaturesOnHub)
         lastFeaturedOnHub = try container.decode(String.self, forKey: .lastFeaturedOnHub)
         lastFeaturedPage = try container.decode(String.self, forKey: .lastFeaturedPage)
-        let hubFeatureCount = try container.decode(String.self, forKey: .featureCountOnHub)
-        let rawHubFeatureCount = try container.decodeIfPresent(String.self, forKey: .featureCountOnRawHub) ?? "0"
-        featureCountOnHub = Self.collateRawFeatureCount(hubFeatureCount, rawHubFeatureCount)
+        hubFeatureCount = try container.decode(String.self, forKey: .featureCountOnHub)
+        rawHubFeatureCount = try container.decodeIfPresent(String.self, forKey: .featureCountOnRawHub)
+        if rawHubFeatureCount == nil, let hubFeatureCount {
+            featureCountOnHub = Self.collateRawFeatureCount(hubFeatureCount, "0")
+        } else {
+            featureCountOnHub = "many"
+        }
         tooSoonToFeatureUser = try container.decode(Bool.self, forKey: .tooSoonToFeatureUser)
         tinEyeResults = try container.decode(TinEyeResults.self, forKey: .tinEyeResults)
         aiCheckResults = try container.decode(AiCheckResults.self, forKey: .aiCheckResults)
@@ -238,11 +250,19 @@ struct Log: Codable {
             feature.featureDescription = logFeature.featureDescription
             feature.userHasFeaturesOnPage = logFeature.userHasFeaturesOnPage
             feature.lastFeaturedOnPage = logFeature.lastFeaturedOnPage
-            feature.featureCountOnPage = LogFeature.clipFeatureCount(hub, logFeature.featureCountOnPage)
+            if let pageFeatureCount = logFeature.pageFeatureCount, let rawPageFeatureCount = logFeature.rawPageFeatureCount {
+                feature.featureCountOnPage = LogFeature.clipFeatureCount(hub, LogFeature.collateRawFeatureCount(pageFeatureCount, hub == "snap" ? rawPageFeatureCount : "0"))
+            } else {
+                feature.featureCountOnPage = LogFeature.clipFeatureCount(hub, logFeature.featureCountOnPage)
+            }
             feature.userHasFeaturesOnHub = logFeature.userHasFeaturesOnHub
             feature.lastFeaturedOnHub = logFeature.lastFeaturedOnHub
             feature.lastFeaturedPage = logFeature.lastFeaturedPage
-            feature.featureCountOnHub = LogFeature.clipFeatureCount(hub, logFeature.featureCountOnHub)
+            if let hubFeatureCount = logFeature.hubFeatureCount, let rawHubFeatureCount = logFeature.rawHubFeatureCount {
+                feature.featureCountOnHub = LogFeature.clipFeatureCount(hub, LogFeature.collateRawFeatureCount(hubFeatureCount, hub == "snap" ? rawHubFeatureCount : "0"))
+            } else {
+                feature.featureCountOnHub = LogFeature.clipFeatureCount(hub, logFeature.featureCountOnHub)
+            }
             feature.tooSoonToFeatureUser = logFeature.tooSoonToFeatureUser
             feature.tinEyeResults = logFeature.tinEyeResults
             feature.aiCheckResults = logFeature.aiCheckResults

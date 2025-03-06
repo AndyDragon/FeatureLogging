@@ -725,7 +725,7 @@ struct ScriptContentView: View {
         if !canCopyScripts {
             var validationErrors = ""
             if userAliasValidation != .valid {
-                validationErrors += "User: " + userAliasValidation.unwrappedMessage + "\n"
+                validationErrors += "User alias: " + userAliasValidation.unwrappedMessage + "\n"
             }
             if userNameValidation != .valid {
                 validationErrors += "User: " + userNameValidation.unwrappedMessage + "\n"
@@ -925,7 +925,7 @@ struct ScriptContentView: View {
             var validationErrors = ""
             if newMembership != NewMembershipCase.none {
                 if userAliasValidation != .valid {
-                    validationErrors += "User: " + userAliasValidation.unwrappedMessage + "\n"
+                    validationErrors += "User alias: " + userAliasValidation.unwrappedMessage + "\n"
                 }
                 if userNameValidation != .valid {
                     validationErrors += "User: " + userNameValidation.unwrappedMessage + "\n"

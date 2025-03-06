@@ -11,7 +11,17 @@ import SwiftyBeaver
 
 struct LogFile {
     var fileName: String
-    var log: Log
+    var page: String
+    var features: [ObservableFeature]
+
+    init(
+        _ fileName: String,
+        _ log: Log
+    ) {
+        self.fileName = fileName
+        self.page = log.page
+        self.features = log.getFeatures(log.page.components(separatedBy: [":"]).first ?? "other")
+    }
 }
 
 struct StatisticsContentView: View {
@@ -23,7 +33,7 @@ struct StatisticsContentView: View {
 
     @State private var showDirectoryPicker = false
     @State private var location = ""
-    @State private var logs = [LogFile]()
+    @State private var logFiles = [LogFile]()
     @State private var pages = [String]()
     @State private var selectedPage = ""
 
@@ -81,7 +91,7 @@ struct StatisticsContentView: View {
                                 photoFeaturedPieChart = nil
                                 pageFeatureCountPieChart = nil
                                 hubFeatureCountPieChart = nil
-                                logs = [LogFile]()
+                                logFiles = [LogFile]()
                                 location = folder.path().trimmingCharacters(in: ["/"])
                                 let fileManager = FileManager.default
                                 let gotAccess = folder.startAccessingSecurityScopedResource()
@@ -94,13 +104,13 @@ struct StatisticsContentView: View {
                                         do {
                                             let data = try Data(contentsOf: item)
                                             let log = try JSONDecoder().decode(Log.self, from: data)
-                                            logs.append(LogFile(fileName: item.path(), log: log))
+                                            logFiles.append(LogFile(item.path(), log))
                                         } catch {
                                             debugPrint(error.localizedDescription)
                                         }
                                     }
-                                    var pageSet = Set(logs.map { $0.log.page })
-                                    pageSet.formUnion(Set(logs.map { log in log.log.page.components(separatedBy: [":"]).first ?? "" }.filter { hub in hub != "" }))
+                                    var pageSet = Set(logFiles.map { $0.page })
+                                    pageSet.formUnion(Set(logFiles.map { log in log.page.components(separatedBy: [":"]).first ?? "" }.filter { hub in hub != "" }))
                                     pages = Array(pageSet).sorted()
                                     pages.insert("all", at: 0)
                                     selectedPage = pages.first!
@@ -116,16 +126,16 @@ struct StatisticsContentView: View {
                                 debugPrint(error)
                             }
                         })
-                    if logs.isEmpty {
+                    if logFiles.isEmpty {
                         Text("No logs loaded")
                     } else if selectedPage == "" {
-                        Text("\(logs.count) logs loaded from \(location), select a page to see statistics")
+                        Text("\(logFiles.count) logs loaded from \(location), select a page to see statistics")
                     } else {
-                        Text("\(logs.count) logs loaded from \(location), showing statistics for page \(selectedPage)")
+                        Text("\(logFiles.count) logs loaded from \(location), showing statistics for page \(selectedPage)")
                     }
                     Spacer()
                 }
-                if !logs.isEmpty {
+                if !logFiles.isEmpty {
                     HStack(alignment: .center) {
                         Text("Choose a page:")
                         Picker(
@@ -223,14 +233,14 @@ struct StatisticsContentView: View {
     }
 
     private func updateCharts() {
-        let pageLogs = logs.filter({ log in
+        let pageLogs = logFiles.filter({ log in
             if selectedPage == "all" {
                 return true
             }
             if !selectedPage.contains(":") {
-                return log.log.page.starts(with: selectedPage)
+                return log.page.starts(with: selectedPage)
             }
-            return log.log.page == selectedPage
+            return log.page == selectedPage
         })
 
         pickedFeaturePieChart = makePickedFeatureChartData(pageLogs)
@@ -274,7 +284,7 @@ struct StatisticsContentView: View {
 
     private func makePickedFeatureChartData(_ logs: [LogFile]) -> PieChartData {
         let levelColors = makeLevelColors(1)
-        let pickedCount = logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) }).count }
+        let pickedCount = logs.reduce(0) { $0 + $1.features.filter({ isFeaturePicked($0) }).count }
         let data = PieDataSet(
             dataPoints: [
                 PieChartDataPoint(
@@ -291,8 +301,8 @@ struct StatisticsContentView: View {
 
     private func makeFirstFeatureChartData(_ logs: [LogFile]) -> PieChartData {
         let levelColors = makeLevelColors(2)
-        let firstCount = logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && !$0.userHasFeaturesOnPage }).count }
-        let notFirstCount = logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && $0.userHasFeaturesOnPage }).count }
+        let firstCount = logs.reduce(0) { $0 + $1.features.filter({ isFeaturePicked($0) && !$0.userHasFeaturesOnPage }).count }
+        let notFirstCount = logs.reduce(0) { $0 + $1.features.filter({ isFeaturePicked($0) && $0.userHasFeaturesOnPage }).count }
         let data = PieDataSet(
             dataPoints: [
                 PieChartDataPoint(
@@ -312,8 +322,8 @@ struct StatisticsContentView: View {
 
     private func makePhotoFeaturedChartData(_ logs: [LogFile]) -> PieChartData {
         let levelColors = makeLevelColors(2)
-        let featuredCount = logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && $0.photoFeaturedOnHub }).count }
-        let notFeaturedCount = logs.reduce(0) { $0 + $1.log.features.filter({ isFeaturePicked($0) && !$0.photoFeaturedOnHub }).count }
+        let featuredCount = logs.reduce(0) { $0 + $1.features.filter({ isFeaturePicked($0) && $0.photoFeaturedOnHub }).count }
+        let notFeaturedCount = logs.reduce(0) { $0 + $1.features.filter({ isFeaturePicked($0) && !$0.photoFeaturedOnHub }).count }
         let data = PieDataSet(
             dataPoints: [
                 PieChartDataPoint(
@@ -331,17 +341,9 @@ struct StatisticsContentView: View {
             chartStyle: PieChartStyle(infoBoxPlacement: .header))
     }
 
-    private func getMembershipCase(_ logFile: LogFile, _ feature: LogFeature ) -> MembershipCase {
-        var userLevel = feature.userLevel
-        if userLevel == .none, let userLevelString = feature.userLevelString {
-            userLevel = MembershipCase.mapFromString(logFile.log.page, userLevelString)
-        }
-        return userLevel
-    }
-
     private func makeUserLevelChartData(_ logs: [LogFile]) -> PieChartData {
         let levels = logs.reduce([MembershipCase]()) { accumulator, logFile in
-            var newVal = Set(logFile.log.features.filter { isFeaturePicked($0) }.map { getMembershipCase(logFile, $0) })
+            var newVal = Set(logFile.features.filter { isFeaturePicked($0) }.map { $0.userLevel })
             newVal.formUnion(accumulator)
             return Array(newVal)
         }.sorted(by: { (MembershipCase.allCasesSorted().firstIndex(of: $0) ?? 0) < (MembershipCase.allCasesSorted().firstIndex(of: $1) ?? 0) })
@@ -350,7 +352,7 @@ struct StatisticsContentView: View {
         let data = PieDataSet(
             dataPoints: levels.map({ level in
                 let levelCount = logs.reduce(0) { accumulator, logFile in
-                    return accumulator + logFile.log.features.filter({ isFeaturePicked($0) && getMembershipCase(logFile, $0) == level }).count
+                    return accumulator + logFile.features.filter({ isFeaturePicked($0) && $0.userLevel == level }).count
                 }
                 let dataPoint = PieChartDataPoint(
                     value: Double(levelCount),
@@ -367,7 +369,7 @@ struct StatisticsContentView: View {
 
     private func makePageFeatureCountChartData(_ logs: [LogFile]) -> PieChartData {
         let buckets = logs.reduce([Int]()) { accumulation, log in
-            var newVal = Set(log.log.features.filter { isFeaturePicked($0) }.map { binFeatureCount(getPageFeatureCount(log.log, $0)) })
+            var newVal = Set(log.features.filter { isFeaturePicked($0) }.map { binFeatureCount(getPageFeatureCount($0)) })
             newVal.formUnion(accumulation)
             return Array(newVal)
         }.sorted()
@@ -376,7 +378,7 @@ struct StatisticsContentView: View {
         let data = PieDataSet(
             dataPoints: buckets.map({ bucket in
                 let bucketCount = logs.reduce(0) { accumulation, log in
-                    accumulation + log.log.features.filter({ isFeaturePicked($0) && binFeatureCount(getPageFeatureCount(log.log, $0)) == bucket }).count
+                    accumulation + log.features.filter({ isFeaturePicked($0) && binFeatureCount(getPageFeatureCount($0)) == bucket }).count
                 }
                 let dataPoint = PieChartDataPoint(
                     value: Double(bucketCount),
@@ -393,7 +395,7 @@ struct StatisticsContentView: View {
 
     private func makeHubFeatureCountChartData(_ logs: [LogFile]) -> PieChartData {
         let buckets = logs.reduce([Int]()) { accumulation, log in
-            var newVal = Set(log.log.features.filter { isFeaturePicked($0) }.map { binFeatureCount(getHubFeatureCount(log.log, $0)) })
+            var newVal = Set(log.features.filter { isFeaturePicked($0) }.map { binFeatureCount(getHubFeatureCount($0)) })
             newVal.formUnion(accumulation)
             return Array(newVal)
         }.sorted()
@@ -402,7 +404,7 @@ struct StatisticsContentView: View {
         let data = PieDataSet(
             dataPoints: buckets.map({ bucket in
                 let bucketCount = logs.reduce(0) { accumulation, log in
-                    accumulation + log.log.features.filter({ isFeaturePicked($0) && binFeatureCount(getHubFeatureCount(log.log, $0)) == bucket }).count
+                    accumulation + log.features.filter({ isFeaturePicked($0) && binFeatureCount(getHubFeatureCount($0)) == bucket }).count
                 }
                 let dataPoint = PieChartDataPoint(
                     value: Double(bucketCount),
@@ -419,7 +421,7 @@ struct StatisticsContentView: View {
 
     // MARK: - utilities
 
-    private func isFeaturePicked(_ feature: LogFeature) -> Bool {
+    private func isFeaturePicked(_ feature: ObservableFeature) -> Bool {
         return feature.isPicked && !feature.photoFeaturedOnPage && feature.tinEyeResults != .matchFound && feature.aiCheckResults != .ai && !feature.tooSoonToFeatureUser
     }
 
@@ -446,14 +448,14 @@ struct StatisticsContentView: View {
         return colors[0]
     }
 
-    private func getPageFeatureCount(_ log: Log, _ feature: LogFeature) -> Int {
+    private func getPageFeatureCount(_ feature: ObservableFeature) -> Int {
         if feature.userHasFeaturesOnPage && feature.featureCountOnPage == "many" {
             return Int.max
         }
         return feature.userHasFeaturesOnPage ? (Int(feature.featureCountOnPage) ?? 0) : 0
     }
 
-    private func getHubFeatureCount(_ log: Log, _ feature: LogFeature) -> Int {
+    private func getHubFeatureCount(_ feature: ObservableFeature) -> Int {
         if feature.userHasFeaturesOnHub && feature.featureCountOnHub == "many" {
             return Int.max
         }

@@ -33,17 +33,17 @@ class ObservableFeature: Identifiable, Hashable {
     var tinEyeResults = TinEyeResults.zeroMatches
     var aiCheckResults = AiCheckResults.human
     var personalMessage = ""
-
+    
     var isPickAllowed: Bool {
         !tooSoonToFeatureUser && !photoFeaturedOnPage && tinEyeResults != .matchFound && aiCheckResults != .ai
     }
-
+    
     var isPickedAndAllowed: Bool {
         isPicked && !tooSoonToFeatureUser && !photoFeaturedOnPage && tinEyeResults != .matchFound && aiCheckResults != .ai
     }
-
+    
     init() {}
-
+    
     func validationResult(_ viewModel: ContentView.ViewModel) -> ValidationResult {
         let postValidation = validatePostLink()
         if postValidation != .valid {
@@ -79,15 +79,15 @@ class ObservableFeature: Identifiable, Hashable {
         }
         return .valid
     }
-
+    
     static func == (lhs: ObservableFeature, rhs: ObservableFeature) -> Bool {
         return lhs.id == rhs.id
     }
-
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-
+    
     func validatePostLink() -> ValidationResult {
         if postLink.isEmpty {
             return .error("Required value")
@@ -97,7 +97,7 @@ class ObservableFeature: Identifiable, Hashable {
         }
         return .valid
     }
-
+    
     func validateUserAlias(_ viewModel: ContentView.ViewModel) -> ValidationResult {
         if userAlias.isEmpty {
             return .error("Required value")
@@ -122,7 +122,7 @@ class ObservableFeature: Identifiable, Hashable {
         }
         return .valid
     }
-
+    
     func validateUserName() -> ValidationResult {
         if userName.isEmpty {
             return .error("Required value")
@@ -132,21 +132,21 @@ class ObservableFeature: Identifiable, Hashable {
         }
         return .valid
     }
-
+    
     func validateUserLevel() -> ValidationResult {
         if userLevel == MembershipCase.none {
             return .error("Required value")
         }
         return .valid
     }
-
+    
     func validateDescription() -> ValidationResult {
         if featureDescription.isEmpty {
             return .warning("Should specify a description")
         }
         return .valid
     }
-
+    
     func validatePhotoFeaturedOnHub() -> ValidationResult {
         if photoFeaturedOnHub && (photoLastFeaturedOnHub.isEmpty || photoLastFeaturedPage.isEmpty) {
             return .warning("Should specify when photo last featured on hub")
@@ -160,7 +160,7 @@ class ObservableFeature: Identifiable, Hashable {
         }
         return .valid
     }
-
+    
     func validateUserFeaturedOnHub() -> ValidationResult {
         if userHasFeaturesOnHub && (lastFeaturedOnHub.isEmpty || lastFeaturedPage.isEmpty) {
             return .warning("Should specify when user last featured on hub")
@@ -176,7 +176,7 @@ class ObservableFeatureWrapper: Identifiable, Hashable {
     var userLevel: MembershipCase
     var firstFeature: Bool
     var newLevel: NewMembershipCase
-
+    
     init(using page: ObservablePage, from feature: ObservableFeature) {
         self.feature = feature
         userLevel = feature.userLevel
@@ -211,15 +211,15 @@ class ObservableFeatureWrapper: Identifiable, Hashable {
             }
         }
     }
-
+    
     static func == (lhs: ObservableFeatureWrapper, rhs: ObservableFeatureWrapper) -> Bool {
         return lhs.id == rhs.id
     }
-
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-
+    
     func calculateFeatureCount(_ count: String) -> Int {
         if count == "many" {
             return 99999
