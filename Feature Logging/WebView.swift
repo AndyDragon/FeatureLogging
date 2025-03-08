@@ -6,7 +6,8 @@
 //
 
 import SwiftUI
-import WebKit
+import SwiftyBeaver
+@preconcurrency import WebKit
 
 struct PlatformIndependentWebView {
     var url: URL
@@ -20,13 +21,16 @@ struct PlatformIndependentWebView {
     func makeWebView(context: Context) -> WKWebView {
         let webView = WKWebView()
         webView.navigationDelegate = context.coordinator
-        let request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
+        var request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
+        request.httpShouldHandleCookies = true
         webView.load(request)
         return webView
     }
 
     class Coordinator: NSObject, WKNavigationDelegate {
         var parent: PlatformIndependentWebView
+
+        private let logger = SwiftyBeaver.self
 
         init(_ uiWebView: PlatformIndependentWebView) {
             parent = uiWebView
@@ -44,9 +48,41 @@ struct PlatformIndependentWebView {
             parent.isLoading = false
         }
 
-        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            debugPrint(error.localizedDescription)
+            logger.error("There was a failure in webview navigation: \(error.localizedDescription)", context: "system")
             parent.isLoading = false
             parent.error = error
+            showAlert(for: error)
+        }
+
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            debugPrint(error.localizedDescription)
+            logger.error("There was a failure in webview provisional navigation: \(error.localizedDescription)", context: "system")
+            parent.isLoading = false
+            parent.error = error
+            showAlert(for: error)
+        }
+
+        func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+            guard let response = navigationResponse.response as? HTTPURLResponse, let url = navigationResponse.response.url else {
+                decisionHandler(.cancel)
+                return
+            }
+
+            if let headerFields = response.allHeaderFields as? [String: String] {
+                let cookies = HTTPCookie.cookies(withResponseHeaderFields: headerFields, for: url)
+                cookies.forEach { cookie in
+                    webView.configuration.websiteDataStore.httpCookieStore.setCookie(cookie)
+                }
+            }
+
+            decisionHandler(.allow)
+        }
+
+        private func showAlert(for error: Error) {
+            let alert = NSAlert(error: error)
+            alert.runModal()
         }
     }
 }
