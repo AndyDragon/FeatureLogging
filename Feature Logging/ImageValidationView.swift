@@ -226,8 +226,23 @@ struct ImageValidationView: View {
         VStack {
             if let realizedImageUrl = loadedImageUrl {
                 ZStack {
-                    PlatformIndependentWebView(url: realizedImageUrl, isLoading: $isLoading, error: $error)
-                        .cornerRadius(4)
+                    VStack(alignment: .leading) {
+                        Button(action: {
+                            openURL(realizedImageUrl)
+                        }) {
+                            HStack(alignment: .center) {
+                                Image(systemName: "arrow.up.right.bottomleft.rectangle")
+                                    .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                                    .font(.system(size: 28, weight: .semibold))
+                                Text("Open in browser")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .padding(4)
+                        }
+                        .padding(.vertical, 4)
+                        PlatformIndependentWebView(url: realizedImageUrl, isLoading: $isLoading, error: $error)
+                            .cornerRadius(4)
+                    }
                     if isLoading {
                         ProgressView()
                             .scaleEffect(2)
