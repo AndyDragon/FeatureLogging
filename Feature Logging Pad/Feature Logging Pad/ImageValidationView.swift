@@ -29,6 +29,7 @@ struct ImageValidationView: View {
     @State private var loadedImageUrl: URL?
     @State private var isLoading = false
     @State private var error: Error?
+    @State private var storedCookies: [HTTPCookie] = []
 
     private let languagePrefix = Locale.preferredLanguageCode
     private let logger = SwiftyBeaver.self
@@ -207,6 +208,7 @@ struct ImageValidationView: View {
                 ZStack {
                     VStack(alignment: .leading) {
                         Button(action: {
+                            logger.info("Tapped open TinEye in browser", context: "System")
                             openURL(realizedImageUrl)
                         }) {
                             HStack(alignment: .center) {
@@ -219,8 +221,13 @@ struct ImageValidationView: View {
                             .padding(4)
                         }
                         .padding(.vertical, 4)
-                        PlatformIndependentWebView(url: realizedImageUrl, isLoading: $isLoading, error: $error)
-                            .cornerRadius(4)
+                        PlatformIndependentWebView(
+                            url: realizedImageUrl,
+                            storedCookies: $storedCookies,
+                            isLoading: $isLoading,
+                            error: $error
+                        )
+                        .cornerRadius(4)
                     }
                     if isLoading {
                         ProgressView()

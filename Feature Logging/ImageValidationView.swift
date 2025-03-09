@@ -30,6 +30,7 @@ struct ImageValidationView: View {
     @State private var loadedImageUrl: URL?
     @State private var isLoading = false
     @State private var error: Error?
+    @State private var storedCookies: [HTTPCookie] = []
 
     private let languagePrefix = Locale.preferredLanguageCode
     private let logger = SwiftyBeaver.self
@@ -228,6 +229,7 @@ struct ImageValidationView: View {
                 ZStack {
                     VStack(alignment: .leading) {
                         Button(action: {
+                            logger.info("Tapped open TinEye in browser", context: "System")
                             openURL(realizedImageUrl)
                         }) {
                             HStack(alignment: .center) {
@@ -240,8 +242,13 @@ struct ImageValidationView: View {
                             .padding(4)
                         }
                         .padding(.vertical, 4)
-                        PlatformIndependentWebView(url: realizedImageUrl, isLoading: $isLoading, error: $error)
-                            .cornerRadius(4)
+                        PlatformIndependentWebView(
+                            url: realizedImageUrl,
+                            storedCookies: $storedCookies,
+                            isLoading: $isLoading,
+                            error: $error
+                        )
+                        .cornerRadius(4)
                     }
                     if isLoading {
                         ProgressView()
@@ -383,9 +390,8 @@ extension ImageValidationView {
 
     private func openTinEyeResults() {
         logger.verbose("Opening the TinEye browser URL", context: "System")
-        let imageUrlToEncode = viewModel.imageValidationImageUrl
-        if imageUrlToEncode != nil {
-            let finalUrl = imageUrlToEncode!.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+        if let imageUrlToEncode = viewModel.imageValidationImageUrl {
+            let finalUrl = imageUrlToEncode.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
             loadedImageUrl = URL(string: "https://www.tineye.com/search/?pluginver=chrome-2.0.4&sort=score&order=desc&url=\(finalUrl!)")
         }
     }
