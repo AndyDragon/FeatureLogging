@@ -97,9 +97,21 @@ struct ImageValidationView: View {
                             viewModel.visibleView = .PostDownloadView
                         }) {
                             HStack {
-                                Image(systemName: "xmark")
+                                Image(systemName: "xmark.circle")
                                     .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                                 Text("Close")
+                            }
+                            .padding(4)
+                        }
+                        .disabled(viewModel.hasModalToasts || uploadToServer != nil)
+
+                        Button(action: {
+                            viewModel.visibleView = .FeatureListView
+                        }) {
+                            HStack {
+                                Image(systemName: "house.circle")
+                                    .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
+                                Text("Home")
                             }
                             .padding(4)
                         }

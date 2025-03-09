@@ -210,7 +210,7 @@ struct StatisticsContentView: View {
                     hideStatisticsView()
                 }) {
                     HStack {
-                        Image(systemName: "xmark")
+                        Image(systemName: "xmark.circle")
                             .foregroundStyle(Color.accentColor, Color.secondaryLabel)
                         Text("Close")
                             .font(.system(.body, design: .rounded).bold())

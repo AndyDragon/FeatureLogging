@@ -111,7 +111,7 @@ struct FeatureEditorView: View {
                         viewModel.visibleView = .FeatureListView
                     }) {
                         HStack {
-                            Image(systemName: "xmark")
+                            Image(systemName: "xmark.circle")
                                 .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             Text("Close")
                         }

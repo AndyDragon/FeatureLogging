@@ -163,9 +163,21 @@ struct PostDownloaderView: View {
                         viewModel.visibleView = .FeatureEditorView
                     }) {
                         HStack {
-                            Image(systemName: "xmark")
+                            Image(systemName: "xmark.circle")
                                 .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
                             Text("Close")
+                        }
+                        .padding(4)
+                    }
+                    .disabled(viewModel.hasModalToasts)
+
+                    Button(action: {
+                        viewModel.visibleView = .FeatureListView
+                    }) {
+                        HStack {
+                            Image(systemName: "house.circle")
+                                .foregroundStyle(Color.accentColor, Color(UIColor.secondaryLabel))
+                            Text("Home")
                         }
                         .padding(4)
                     }
