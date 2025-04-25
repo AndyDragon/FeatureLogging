@@ -320,6 +320,7 @@ struct ContentView: View {
         .onAppear {
             DocumentManager.default.registerReceiver(receiver: self)
         }
+        .testBackground(true)
     }
 }
 

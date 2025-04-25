@@ -227,9 +227,10 @@ struct StatisticsContentView: View {
         }
         .frame(minWidth: 1024, minHeight: 600)
         .background(Color.backgroundColor)
-        .onAppear(perform: {
+        .onAppear {
             focusedField.wrappedValue = .openFolder
-        })
+        }
+        .testBackground()
     }
 
     private func updateCharts() {

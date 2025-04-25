@@ -109,7 +109,6 @@ struct FeatureListView: View {
                         viewModel
                     )
                     .frame(maxWidth: .infinity, minHeight: 400, maxHeight: .infinity)
-                    .presentationBackground(.clear)
                     .onChange(
                         of: shouldScrollFeatureListToSelection.wrappedValue,
                         {

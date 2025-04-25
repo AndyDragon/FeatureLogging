@@ -120,7 +120,6 @@ struct MainContentView: View {
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(4)
-                    .presentationBackground(.clear)
                     .onChange(
                         of: shouldScrollFeatureListToSelection.wrappedValue,
                         {

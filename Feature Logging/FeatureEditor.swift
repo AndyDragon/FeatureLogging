@@ -82,7 +82,6 @@ struct FeatureEditor: View {
             VerificationResultsView()
         }
         .padding()
-        .testBackground()
         .onAppear {
             focusedField.wrappedValue = .postLink
         }

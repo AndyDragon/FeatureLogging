@@ -229,6 +229,7 @@ struct PostDownloaderView: View {
                 await loadFeature()
             }
         }
+        .testBackground()
     }
 
     // MARK: - sub views

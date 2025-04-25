@@ -164,6 +164,7 @@ struct FeatureListRow: View {
                                 Text(feature.isPicked ? "Unpick" : "Pick")
                             }
                             .padding(.horizontal, 4)
+                            .padding(.vertical, 2)
                         }
                         .buttonStyle(.plain)
                     }
@@ -182,6 +183,7 @@ struct FeatureListRow: View {
                             Text("Remove")
                         }
                         .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
                     }
                     .buttonStyle(.plain)
 
@@ -200,6 +202,7 @@ struct FeatureListRow: View {
                                 Text("Edit scripts")
                             }
                             .padding(.horizontal, 4)
+                            .padding(.vertical, 2)
                         }
                         .buttonStyle(.plain)
 
@@ -217,6 +220,7 @@ struct FeatureListRow: View {
                                 Text("Edit message")
                             }
                             .padding(.horizontal, 4)
+                            .padding(.vertical, 2)
                         }
                         .buttonStyle(.plain)
                     }
@@ -323,7 +327,6 @@ struct FeatureListRow: View {
                     .frame(width: 800, height: 160)
                 })
         }
-        .testBackground()
     }
 }
 

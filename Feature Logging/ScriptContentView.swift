@@ -207,6 +207,7 @@ struct ScriptContentView: View {
         .onAppear {
             populateFromSharedFeature()
         }
+        .testBackground()
     }
 
     // MARK: - sub views

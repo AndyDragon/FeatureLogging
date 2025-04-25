@@ -446,11 +446,11 @@ struct RuntimeError: LocalizedError {
 }
 
 public extension Color {
-    static func random(opacity: Double = 0.4) -> Color {
+    static func random(opacity: Double = 0.4, _ dark: Bool = false) -> Color {
         Color(
-            red: .random(in: 0 ... 1),
-            green: .random(in: 0 ... 1),
-            blue: .random(in: 0 ... 1),
+            red: .random(in: (dark ? 0 : 0.5) ... (dark ? 0.5 : 1)),
+            green: .random(in: (dark ? 0 : 0.5) ... (dark ? 0.5 : 1)),
+            blue: .random(in: (dark ? 0 : 0.5) ... (dark ? 0.5 : 1)),
             opacity: opacity
         )
     }
@@ -465,9 +465,9 @@ extension View {
 #endif
     }
 
-    func testBackground() -> some View {
+    func testBackground(_ dark: Bool = false) -> some View {
 #if DEBUG_BACKGROUNDS
-        background(Color.random())
+        background(Color.random(dark))
 #else
         self
 #endif
