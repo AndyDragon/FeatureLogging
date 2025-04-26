@@ -12,6 +12,12 @@ namespace FeatureLogging
             InitializeComponent();
         }
 
+        protected override void OnActivated(EventArgs e)
+        {
+            base.OnActivated(e);
+            EditBox.Focus();
+        }
+
         private void CloseButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             DialogResult = true;

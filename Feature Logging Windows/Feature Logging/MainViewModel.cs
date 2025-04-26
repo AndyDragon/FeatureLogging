@@ -646,6 +646,11 @@ namespace FeatureLogging
                 };
             });
 
+            CloseAllCurrentViewsCommand = new Command(() =>
+            {
+                View = ViewMode.LogView;
+            });
+
             RemoveDownloadedPostFeatureCommand = new Command(() =>
             {
                 if (SelectedFeature is Feature feature)
@@ -1086,6 +1091,8 @@ namespace FeatureLogging
 
         public ICommand CloseCurrentViewCommand { get; }
 
+        public ICommand CloseAllCurrentViewsCommand { get; }
+
         public Command RemoveDownloadedPostFeatureCommand { get; }
 
         public ICommand NavigateToPreviousFeatureCommand { get; }
@@ -1261,7 +1268,7 @@ namespace FeatureLogging
                             MainWindow!.PrepareFocusForView(view);
                             break;
                         case ViewMode.PostDownloaderView:
-                            MainWindow!.PrepareFocusForView(view, oldView == ViewMode.ScriptView);
+                            MainWindow!.PrepareFocusForView(view, oldView == ViewMode.LogView);
                             break;
                         case ViewMode.StatisticsView:
                             MainWindow!.PrepareFocusForView(view, true);

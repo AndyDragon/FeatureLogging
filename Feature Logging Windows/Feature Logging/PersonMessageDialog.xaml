@@ -27,7 +27,7 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0,4">
                 <TextBlock Text="Personal message (from your account): " VerticalAlignment="Center" Margin="0,0,8,0" />
-                <TextBox Text="{Binding SelectedFeature.PersonalMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Width="700" Height="20" />
+                <TextBox x:Name="EditBox" Text="{Binding SelectedFeature.PersonalMessage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Width="700" Height="20" />
             </StackPanel>
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
