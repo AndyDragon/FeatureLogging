@@ -18,6 +18,15 @@ enum AiVerdict {
 struct ImageValidationView: View {
     @Environment(\.openURL) private var openURL
 
+    @AppStorage(
+        "preference_aiWarningLimit",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var warningLimit: Double = 0.75
+    @AppStorage(
+        "preference_aiTriggerLimit",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var triggerLimit: Double = 0.9
+
     private var viewModel: ContentView.ViewModel
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var updateList: () -> Void
@@ -449,8 +458,8 @@ extension ImageValidationView {
                     let results = try decoder.decode(HiveResponse.self, from: dataResult)
                     if results.status_code >= 200 && results.status_code <= 299 {
                         if let verdictClass = results.data.classes.first(where: { $0.class == "not_ai_generated" }) {
-                            aiVerdictString = "\(verdictClass.score > 0.8 ? "Not AI" : verdictClass.score < 0.5 ? "AI" : "Indeterminate") (\(String(format: "%.1f", verdictClass.score * 100)) % not AI)"
-                            aiVerdict = verdictClass.score > 0.8 ? .notAi : verdictClass.score < 0.5 ? .ai : .indeterminate
+                            aiVerdictString = "\(verdictClass.score > warningLimit ? "Not AI" : verdictClass.score < triggerLimit ? "AI" : "Indeterminate") (\(String(format: "%.1f", verdictClass.score * 100)) % not AI)"
+                            aiVerdict = verdictClass.score > warningLimit ? .notAi : verdictClass.score < triggerLimit ? .ai : .indeterminate
                         }
                     } else {
                         aiVerdictString = "unknown (non-success result)"

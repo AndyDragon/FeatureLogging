@@ -42,6 +42,14 @@ struct SettingsPane: View {
         "preference_aiCheckAppName",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var aiCheckAppName = "AI Check Tool"
+    @AppStorage(
+        "preference_aiWarningLimit",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var warningLimit: Double = 0.75
+    @AppStorage(
+        "preference_aiTriggerLimit",
+        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
+    ) var triggerLimit: Double = 0.9
 
     var body: some View {
         ZStack {
@@ -229,6 +237,47 @@ struct SettingsPane: View {
                 .frame(height: 98)
 
                 Spacer()
+                    .frame(height: 12)
+
+                ZStack {
+                    Color.controlBackground.cornerRadius(8).opacity(0.4)
+                    VStack(alignment: .leading) {
+                        Section {
+                            VStack {
+                                HStack {
+                                    Text("AI warning limit: \(warningLimit * 100, specifier: "%.0f") %")
+                                    Text("AI trigger limit: \(triggerLimit * 100, specifier: "%.0f") %")
+                                        .padding([.leading], 20)
+                                    Button("Reset to defaults") {
+                                        warningLimit = 0.75
+                                        triggerLimit = 0.9
+                                    }
+                                    .padding([.leading], 20)
+                                }
+                                Spacer().frame(height: 20)
+                                RangeSlider(lowerValue: $warningLimit, upperValue: $triggerLimit) { value in
+                                    round(value * 100) / 100
+                                }
+                                .frame(width: 400)
+                                .onChange(of: warningLimit) { _, newValue in
+                                    //print(newValue)
+                                }
+                                .onChange(of: triggerLimit) { _, newValue in
+                                    //print(newValue)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                        } header: {
+                            Text("Hive AI Levels:")
+                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding([.leading, .trailing], 16)
+                }
+                .frame(height: 90)
+
+                Spacer()
 
                 HStack {
                     Spacer()
@@ -246,7 +295,7 @@ struct SettingsPane: View {
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(height: 444)
+        .frame(height: 554)
         .frame(minWidth: 800)
     }
 }
