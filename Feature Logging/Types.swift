@@ -337,7 +337,16 @@ enum AiCheckResults: String, CaseIterable, Identifiable, Codable {
 }
 
 struct ScriptsCatalog: Codable {
+    var hubManifests: [String: HubManifest]
     var hubs: [String: [Page]]
+}
+
+struct HubManifest: Codable {
+    var id: String { self.hub }
+    let hub: String
+    let title: String?
+    let aiWarningLimit: Double
+    let aiTriggerLimit: Double
 }
 
 struct Page: Codable {
@@ -386,6 +395,7 @@ struct Template: Codable, Identifiable {
 
 struct LoadedCatalogs {
     var waitingForPages = true
+    var loadedHubManifests = [ObservableHubManifest]()
     var loadedPages = [ObservablePage]()
     var waitingForTemplates = true
     var templatesCatalog = TemplateCatalog(pages: [], specialTemplates: [])

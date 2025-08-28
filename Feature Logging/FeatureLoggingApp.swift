@@ -28,14 +28,6 @@ struct FeatureLoggingApp: App {
         "preference_cullingAppName",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var cullingAppName = "Adobe Bridge"
-    @AppStorage(
-        "preference_aiCheckApp",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var aiCheckApp = "com.andydragon.AI-Check-Tool"
-    @AppStorage(
-        "preference_aiCheckAppName",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var aiCheckAppName = "AI Check Tool"
 
     let logger = SwiftyBeaver.self
     let loggerConsole = ConsoleDestination()
@@ -190,23 +182,6 @@ struct FeatureLoggingApp: App {
                 )
                 .keyboardShortcut("c", modifiers: [.command, .shift])
                 .disabled(cullingApp.isEmpty)
-
-                Button(
-                    action: {
-                        if aiCheckApp.isEmpty {
-                            return
-                        }
-                        logger.verbose("Launch AI check app from menu", context: "User")
-                        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: aiCheckApp) else { return }
-                        let configuration = NSWorkspace.OpenConfiguration()
-                        NSWorkspace.shared.openApplication(at: url, configuration: configuration)
-                    },
-                    label: {
-                        Text("Launch \(!aiCheckAppName.isEmpty ? aiCheckAppName : "AI check tool")...")
-                    }
-                )
-                .keyboardShortcut("a", modifiers: [.command, .shift])
-                .disabled(aiCheckApp.isEmpty)
 
                 Divider()
 

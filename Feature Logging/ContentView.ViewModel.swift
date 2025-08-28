@@ -42,6 +42,7 @@ extension ContentView {
         // MARK: Catalog and Features
 
         var loadedCatalogs = LoadedCatalogs()
+        var selectedHubManifest: ObservableHubManifest?
         var selectedPage: ObservablePage?
         var selectedPageStaffLevel: StaffLevelCase = .mod
         var features = [ObservableFeature]()

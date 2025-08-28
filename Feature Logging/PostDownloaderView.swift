@@ -19,7 +19,6 @@ struct PostDownloaderView: View {
     @Environment(\.openURL) private var openURL
 
     private var viewModel: ContentView.ViewModel
-    private var selectedPage: ObservablePage
     @Bindable private var selectedFeature: ObservableFeatureWrapper
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var updateList: () -> Void
@@ -52,13 +51,11 @@ struct PostDownloaderView: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ selectedPage: ObservablePage,
         _ selectedFeature: ObservableFeatureWrapper,
         _ focusedField: FocusState<FocusField?>.Binding,
         _ updateList: @escaping () -> Void
     ) {
         self.viewModel = viewModel
-        self.selectedPage = selectedPage
         self.selectedFeature = selectedFeature
         self.focusedField = focusedField
         self.updateList = updateList
@@ -239,14 +236,14 @@ struct PostDownloaderView: View {
             VStack(alignment: .leading) {
                 HStack(alignment: .center) {
                     ValidationLabel("Page: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
-                    ValidationLabel(selectedPage.displayTitle, validation: true, validColor: .accentColor)
+                    ValidationLabel(viewModel.selectedPage!.displayTitle, validation: true, validColor: .accentColor)
                     Spacer()
                 }
                 .frame(height: 20)
 
                 HStack(alignment: .center) {
                     ValidationLabel("Page tags: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
-                    ValidationLabel(selectedPage.hashTags.joined(separator: ", "), validation: true, validColor: .accentColor)
+                    ValidationLabel(viewModel.selectedPage!.hashTags.joined(separator: ", "), validation: true, validColor: .accentColor)
                     Spacer()
                 }
                 .frame(height: 20)
@@ -488,7 +485,7 @@ struct PostDownloaderView: View {
                             navigateToUserLevel(.same)
                         }
                     ) {
-                        ForEach(MembershipCase.casesFor(hub: selectedPage.hub)) { level in
+                        ForEach(MembershipCase.casesFor(hub: viewModel.selectedPage!.hub)) { level in
                             Text(level.rawValue)
                                 .tag(level)
                                 .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
@@ -898,7 +895,7 @@ struct PostDownloaderView: View {
     /// - Parameters:
     ///   - direction: The `Direction` for the navigation.
     private func navigateToUserLevel(_ direction: Direction) {
-        let (change, newValue) = navigateGeneric(MembershipCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.userLevel, direction)
+        let (change, newValue) = navigateGeneric(MembershipCase.casesFor(hub: viewModel.selectedPage!.hub), selectedFeature.feature.userLevel, direction)
         if change {
             if direction != .same {
                 selectedFeature.feature.userLevel = newValue
@@ -925,7 +922,7 @@ struct PostDownloaderView: View {
     ///   - keyPress: The key press for the characters.
     /// - Returns: The key press result.
     private func navigateToUserLevelWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(MembershipCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.userLevel, keyPress.characters.lowercased())
+        let (change, newValue) = navigateGenericWithPrefix(MembershipCase.casesFor(hub: viewModel.selectedPage!.hub), selectedFeature.feature.userLevel, keyPress.characters.lowercased())
         if change {
             selectedFeature.feature.userLevel = newValue
             viewModel.markDocumentDirty()
@@ -1003,20 +1000,21 @@ extension PostDownloaderView {
                                                     }
                                                 }
 
-                                                if selectedPage.hub == "click" || selectedPage.hub == "snap" {
+                                                if viewModel.selectedPage!.hub == "click" || viewModel.selectedPage!.hub == "snap" {
                                                     commentCount = post.post?.comments ?? 0
                                                     likeCount = post.post?.likes ?? 0
+                                                    let pageHub = viewModel.selectedPage!.hub
                                                     if let comments = post.comments {
                                                         moreComments = comments.count < commentCount
                                                         for comment in comments {
                                                             if let userName = comment.author?.username {
-                                                                if userName.lowercased().hasPrefix("\(selectedPage.hub.lowercased())_") {
-                                                                    if userName.lowercased() == selectedPage.displayName.lowercased() {
+                                                                if userName.lowercased().hasPrefix("\(pageHub.lowercased())_") {
+                                                                    if userName.lowercased() == viewModel.selectedPage!.displayName.lowercased() {
                                                                         pageComments.append((
                                                                             comment.author?.name ?? userName,
                                                                             joinSegments(comment.content).removeExtraSpaces(),
                                                                             (comment.timestamp ?? "").timestamp(),
-                                                                            String(userName[userName.index(userName.startIndex, offsetBy: selectedPage.hub.count + 1) ..< userName.endIndex].lowercased())
+                                                                            String(userName[userName.index(userName.startIndex, offsetBy: pageHub.count + 1) ..< userName.endIndex].lowercased())
                                                                         ))
                                                                         logger.verbose("Found comment from page", context: "System")
                                                                         logging.append((.red, "Found comment from page - possibly already featured on page"))
@@ -1025,7 +1023,7 @@ extension PostDownloaderView {
                                                                             comment.author?.name ?? userName,
                                                                             joinSegments(comment.content).removeExtraSpaces(),
                                                                             (comment.timestamp ?? "").timestamp(),
-                                                                            String(userName[userName.index(userName.startIndex, offsetBy: selectedPage.hub.count + 1) ..< userName.endIndex].lowercased())
+                                                                            String(userName[userName.index(userName.startIndex, offsetBy: pageHub.count + 1) ..< userName.endIndex].lowercased())
                                                                         ))
                                                                         logger.verbose("Found comment from another hub page", context: "System")
                                                                         logging.append((.orange, "Found comment from another hub page - possibly already feature on another page"))
@@ -1135,19 +1133,19 @@ extension PostDownloaderView {
 
     /// Loads the excluded hashtags for the current page.
     private func loadExcludedTagsForPage() {
-        excludedHashtags = UserDefaults.standard.string(forKey: "ExcludedHashtags_" + selectedPage.id) ?? ""
+        excludedHashtags = UserDefaults.standard.string(forKey: "ExcludedHashtags_" + viewModel.selectedPage!.id) ?? ""
     }
 
     /// Stores the excluded hashtags for the current page.
     private func storeExcludedTagsForPage() {
-        UserDefaults.standard.set(excludedHashtags, forKey: "ExcludedHashtags_" + selectedPage.id)
+        UserDefaults.standard.set(excludedHashtags, forKey: "ExcludedHashtags_" + viewModel.selectedPage!.id)
         checkExcludedHashtags()
     }
 
     /// Checks for the page hashtag.
     private func checkPageHashtags() {
         var pageHashTagFound = ""
-        let pageHashTags = selectedPage.hashTags
+        let pageHashTags = viewModel.selectedPage!.hashTags
         if postHashtags.firstIndex(where: { postHashTag in
             pageHashTags.firstIndex(where: { pageHashTag in
                 if postHashTag.lowercased() == pageHashTag.lowercased() {

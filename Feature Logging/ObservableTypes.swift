@@ -229,6 +229,44 @@ class ObservableFeatureWrapper: Identifiable, Hashable {
 }
 
 @Observable
+class ObservableHubManifest: Identifiable, Hashable {
+    var id: String {
+        return hub
+    }
+    var hub: String
+    var title: String?
+    var aiWarningLimit: Double
+    var aiTriggerLimit: Double
+
+    var displayTitle: String {
+        return title ?? hub
+    }
+
+    init(hubManifest: HubManifest) {
+        self.hub = hubManifest.hub
+        self.title = hubManifest.title
+        self.aiWarningLimit = hubManifest.aiWarningLimit
+        self.aiTriggerLimit = hubManifest.aiTriggerLimit
+    }
+
+    private init()
+    {
+        hub = ""
+        title = nil
+        aiWarningLimit = 0.75
+        aiTriggerLimit = 0.9
+    }
+
+    static func == (lhs: ObservableHubManifest, rhs: ObservableHubManifest) -> Bool {
+        return lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+@Observable
 class ObservablePage: Identifiable, Hashable {
     var id: String {
         if hub.isEmpty {

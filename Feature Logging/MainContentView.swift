@@ -90,10 +90,9 @@ struct MainContentView: View {
 
                 // Feature editor
                 VStack {
-                    if let selectedPage = viewModel.selectedPage, let selectedFeature = viewModel.selectedFeature {
+                    if viewModel.selectedPage != nil, let selectedFeature = viewModel.selectedFeature {
                         FeatureEditor(
                             viewModel,
-                            selectedPage,
                             selectedFeature,
                             focusedField,
                             { viewModel.selectedFeature = nil },
@@ -511,6 +510,7 @@ struct MainContentView: View {
             viewModel.selectedFeature = nil
             viewModel.features = [ObservableFeature]()
             updateStaffLevelForPage()
+            viewModel.selectedHubManifest = viewModel.loadedCatalogs.loadedHubManifests.first(where: { $0.id == viewModel.selectedPage?.hub })
         }
     }
 
@@ -533,6 +533,7 @@ struct MainContentView: View {
                 viewModel.selectedFeature = nil
                 viewModel.features = [ObservableFeature]()
                 updateStaffLevelForPage()
+                viewModel.selectedHubManifest = viewModel.loadedCatalogs.loadedHubManifests.first(where: { $0.id == viewModel.selectedPage?.hub })
             }
             return .handled
         }

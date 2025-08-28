@@ -10,7 +10,6 @@ import SwiftyBeaver
 
 struct FeatureEditor: View {
     private var viewModel: ContentView.ViewModel
-    private var selectedPage: ObservablePage
     @Bindable private var selectedFeature: ObservableFeatureWrapper
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var close: () -> Void
@@ -27,7 +26,6 @@ struct FeatureEditor: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ selectedPage: ObservablePage,
         _ selectedFeature: ObservableFeatureWrapper,
         _ focusedField: FocusState<FocusField?>.Binding,
         _ close: @escaping () -> Void,
@@ -35,7 +33,6 @@ struct FeatureEditor: View {
         _ updateList: @escaping () -> Void
     ) {
         self.viewModel = viewModel
-        self.selectedPage = selectedPage
         self.selectedFeature = selectedFeature
         self.focusedField = focusedField
         self.close = close
@@ -70,9 +67,9 @@ struct FeatureEditor: View {
             FeatureDescriptionView()
 
             // User featured
-            if selectedPage.hub == "click" {
+            if viewModel.selectedPage!.hub == "click" {
                 ClickUserFeaturedView()
-            } else if selectedPage.hub == "snap" {
+            } else if viewModel.selectedPage!.hub == "snap" {
                 SnapUserFeaturedView()
             } else {
                 OtherUserFeaturedView()
@@ -275,7 +272,7 @@ struct FeatureEditor: View {
                     navigateToUserLevel(.same)
                 }
             ) {
-                ForEach(MembershipCase.casesFor(hub: selectedPage.hub)) { level in
+                ForEach(MembershipCase.casesFor(hub: viewModel.selectedPage!.hub)) { level in
                     Text(level.rawValue)
                         .tag(level)
                         .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
@@ -330,7 +327,7 @@ struct FeatureEditor: View {
                     navigateToTagSource(.same)
                 }
             ) {
-                ForEach(TagSourceCase.casesFor(hub: selectedPage.hub)) { source in
+                ForEach(TagSourceCase.casesFor(hub: viewModel.selectedPage!.hub)) { source in
                     Text(source.rawValue)
                         .tag(source)
                         .foregroundStyle(Color.secondaryLabel, Color.secondaryLabel)
@@ -533,7 +530,7 @@ struct FeatureEditor: View {
             Spacer()
 
             Button(action: {
-                copyToClipboard("\(includeHash ? "#" : "")click_\(selectedPage.name)_\(selectedFeature.feature.userAlias)")
+                copyToClipboard("\(includeHash ? "#" : "")click_\(viewModel.selectedPage!.name)_\(selectedFeature.feature.userAlias)")
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
             }) {
                 HStack(alignment: .center) {
@@ -544,7 +541,7 @@ struct FeatureEditor: View {
             }
             .focusable()
             .onKeyPress(.space) {
-                copyToClipboard("\(includeHash ? "#" : "")click_\(selectedPage.name)_\(selectedFeature.feature.userAlias)")
+                copyToClipboard("\(includeHash ? "#" : "")click_\(viewModel.selectedPage!.name)_\(selectedFeature.feature.userAlias)")
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
                 return .handled
             }
@@ -746,7 +743,7 @@ struct FeatureEditor: View {
 
             Button(action: {
                 copyToClipboard(
-                    "\(includeHash ? "#" : "")snap_\(selectedPage.pageName ?? selectedPage.name)_\(selectedFeature.feature.userAlias)"
+                    "\(includeHash ? "#" : "")snap_\(viewModel.selectedPage!.pageName ?? viewModel.selectedPage!.name)_\(selectedFeature.feature.userAlias)"
                 )
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard")
             }) {
@@ -759,7 +756,7 @@ struct FeatureEditor: View {
             .focusable()
             .onKeyPress(.space) {
                 copyToClipboard(
-                    "\(includeHash ? "#" : "")snap_\(selectedPage.pageName ?? selectedPage.name)_\(selectedFeature.feature.userAlias)"
+                    "\(includeHash ? "#" : "")snap_\(viewModel.selectedPage!.pageName ?? viewModel.selectedPage!.name)_\(selectedFeature.feature.userAlias)"
                 )
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the Snap page feature tag for the user to the clipboard")
                 return .handled
@@ -767,7 +764,7 @@ struct FeatureEditor: View {
 
             Button(action: {
                 copyToClipboard(
-                    "\(includeHash ? "#" : "")raw_\(selectedPage.pageName ?? selectedPage.name)_\(selectedFeature.feature.userAlias)"
+                    "\(includeHash ? "#" : "")raw_\(viewModel.selectedPage!.pageName ?? viewModel.selectedPage!.name)_\(selectedFeature.feature.userAlias)"
                 )
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard")
             }) {
@@ -780,7 +777,7 @@ struct FeatureEditor: View {
             .focusable()
             .onKeyPress(.space) {
                 copyToClipboard(
-                    "\(includeHash ? "#" : "")raw_\(selectedPage.pageName ?? selectedPage.name)_\(selectedFeature.feature.userAlias)"
+                    "\(includeHash ? "#" : "")raw_\(viewModel.selectedPage!.pageName ?? viewModel.selectedPage!.name)_\(selectedFeature.feature.userAlias)"
                 )
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the RAW page feature tag for the user to the clipboard")
                 return .handled
@@ -999,7 +996,7 @@ struct FeatureEditor: View {
             Spacer()
 
             Button(action: {
-                copyToClipboard("\(includeHash ? "#" : "")\(selectedPage.name)_\(selectedFeature.feature.userAlias)")
+                copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage!.name)_\(selectedFeature.feature.userAlias)")
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
             }) {
                 HStack(alignment: .center) {
@@ -1010,7 +1007,7 @@ struct FeatureEditor: View {
             }
             .focusable()
             .onKeyPress(.space) {
-                copyToClipboard("\(includeHash ? "#" : "")\(selectedPage.name)_\(selectedFeature.feature.userAlias)")
+                copyToClipboard("\(includeHash ? "#" : "")\(viewModel.selectedPage!.name)_\(selectedFeature.feature.userAlias)")
                 viewModel.showSuccessToast("Copied to clipboard", "Copied the page feature tag for the user to the clipboard")
                 return .handled
             }
@@ -1116,7 +1113,7 @@ struct FeatureEditor: View {
     // MARK: - user level navigation
 
     private func navigateToUserLevel(_ direction: Direction) {
-        let (change, newValue) = navigateGeneric(MembershipCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.userLevel, direction)
+        let (change, newValue) = navigateGeneric(MembershipCase.casesFor(hub: viewModel.selectedPage!.hub), selectedFeature.feature.userLevel, direction)
         if change {
             if direction != .same {
                 selectedFeature.feature.userLevel = newValue
@@ -1135,7 +1132,7 @@ struct FeatureEditor: View {
     }
 
     private func navigateToUserLevelWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(MembershipCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.userLevel, keyPress.characters.lowercased())
+        let (change, newValue) = navigateGenericWithPrefix(MembershipCase.casesFor(hub: viewModel.selectedPage!.hub), selectedFeature.feature.userLevel, keyPress.characters.lowercased())
         if change {
             selectedFeature.feature.userLevel = newValue
             markDocumentDirty()
@@ -1147,7 +1144,7 @@ struct FeatureEditor: View {
     // MARK: - tag source navigation
 
     private func navigateToTagSource(_ direction: Direction) {
-        let (change, newValue) = navigateGeneric(TagSourceCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.tagSource, direction, allowWrap: false)
+        let (change, newValue) = navigateGeneric(TagSourceCase.casesFor(hub: viewModel.selectedPage!.hub), selectedFeature.feature.tagSource, direction, allowWrap: false)
         if change {
             if direction != .same {
                 selectedFeature.feature.tagSource = newValue
@@ -1166,7 +1163,7 @@ struct FeatureEditor: View {
     }
 
     private func navigateToTagSourceWithPrefix(_ keyPress: KeyPress) -> KeyPress.Result {
-        let (change, newValue) = navigateGenericWithPrefix(TagSourceCase.casesFor(hub: selectedPage.hub), selectedFeature.feature.tagSource, keyPress.characters.lowercased())
+        let (change, newValue) = navigateGenericWithPrefix(TagSourceCase.casesFor(hub: viewModel.selectedPage!.hub), selectedFeature.feature.tagSource, keyPress.characters.lowercased())
         if change {
             selectedFeature.feature.tagSource = newValue
             markDocumentDirty()

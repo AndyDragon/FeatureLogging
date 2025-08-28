@@ -10,7 +10,6 @@ import SystemColors
 
 struct SettingsPane: View {
     @State private var showingCullingAppFileImporter = false
-    @State private var showingAiCheckAppFileImporter = false
 
     @Environment(\.dismiss) private var dismiss
 
@@ -34,22 +33,6 @@ struct SettingsPane: View {
         "preference_cullingAppName",
         store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
     ) var cullingAppName = "Adobe Bridge"
-    @AppStorage(
-        "preference_aiCheckApp",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var aiCheckApp = "com.andydragon.AI-Check-Tool"
-    @AppStorage(
-        "preference_aiCheckAppName",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var aiCheckAppName = "AI Check Tool"
-    @AppStorage(
-        "preference_aiWarningLimit",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var warningLimit: Double = 0.75
-    @AppStorage(
-        "preference_aiTriggerLimit",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var triggerLimit: Double = 0.9
 
     var body: some View {
         ZStack {
@@ -182,50 +165,6 @@ struct SettingsPane: View {
                                     }
                                 }
                             }
-
-                            Spacer()
-                                .frame(height: 8)
-
-                            HStack(alignment: .center) {
-                                Text("AI Check app: ")
-                                TextField("", text: $aiCheckAppName)
-                                    .autocorrectionDisabled(false)
-                                    .textFieldStyle(.plain)
-                                    .padding(4)
-                                    .background(Color.controlBackground.opacity(0.5))
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
-                                    .frame(maxWidth: .infinity)
-                                Text("Bundle ID for app: ")
-                                TextField("", text: $aiCheckApp)
-                                    .autocorrectionDisabled(false)
-                                    .textFieldStyle(.plain)
-                                    .padding(4)
-                                    .background(Color.controlBackground.opacity(0.5))
-                                    .border(Color.gray.opacity(0.25))
-                                    .cornerRadius(4)
-                                    .frame(maxWidth: .infinity)
-                                Button(
-                                    action: {
-                                        showingAiCheckAppFileImporter.toggle()
-                                    },
-                                    label: {
-                                        Text("Pick app...")
-                                            .padding([.leading, .trailing], 12)
-                                    }
-                                )
-                                .fileImporter(isPresented: $showingAiCheckAppFileImporter, allowedContentTypes: [.application]) { result in
-                                    switch result {
-                                    case let .success(file):
-                                        if let appBundle = getBundleIdentifier(from: file) {
-                                            aiCheckApp = (appBundle["id"] ?? "") ?? ""
-                                            aiCheckAppName = (appBundle["name"] ?? "") ?? ""
-                                        }
-                                    case let .failure(error):
-                                        debugPrint(error.localizedDescription)
-                                    }
-                                }
-                            }
                         } header: {
                             Text("External apps:")
                                 .foregroundStyle(Color.accentColor, Color.secondaryLabel)
@@ -234,48 +173,7 @@ struct SettingsPane: View {
                     .frame(maxWidth: .infinity)
                     .padding([.leading, .trailing], 16)
                 }
-                .frame(height: 98)
-
-                Spacer()
-                    .frame(height: 12)
-
-                ZStack {
-                    Color.controlBackground.cornerRadius(8).opacity(0.4)
-                    VStack(alignment: .leading) {
-                        Section {
-                            VStack {
-                                HStack {
-                                    Text("AI warning limit: \(warningLimit * 100, specifier: "%.0f") %")
-                                    Text("AI trigger limit: \(triggerLimit * 100, specifier: "%.0f") %")
-                                        .padding([.leading], 20)
-                                    Button("Reset to defaults") {
-                                        warningLimit = 0.75
-                                        triggerLimit = 0.9
-                                    }
-                                    .padding([.leading], 20)
-                                }
-                                Spacer().frame(height: 20)
-                                RangeSlider(lowerValue: $warningLimit, upperValue: $triggerLimit) { value in
-                                    round(value * 100) / 100
-                                }
-                                .frame(width: 400)
-                                .onChange(of: warningLimit) { _, newValue in
-                                    //print(newValue)
-                                }
-                                .onChange(of: triggerLimit) { _, newValue in
-                                    //print(newValue)
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                        } header: {
-                            Text("Hive AI Levels:")
-                                .foregroundStyle(Color.accentColor, Color.secondaryLabel)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding([.leading, .trailing], 16)
-                }
-                .frame(height: 90)
+                .frame(height: 64)
 
                 Spacer()
 
@@ -295,7 +193,7 @@ struct SettingsPane: View {
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(height: 554)
+        .frame(height: 410)
         .frame(minWidth: 800)
     }
 }

@@ -84,7 +84,6 @@ struct ContentView: View {
                 if viewModel.visibleView == .ScriptView {
                     ScriptContentView(
                         viewModel,
-                        viewModel.selectedPage!,
                         viewModel.selectedFeature!,
                         featureScriptPlaceholders,
                         commentScriptPlaceholders,
@@ -101,7 +100,6 @@ struct ContentView: View {
                 } else if viewModel.visibleView == .PostDownloadView {
                     PostDownloaderView(
                         viewModel,
-                        viewModel.selectedPage!,
                         viewModel.selectedFeature!,
                         $focusedField,
                         { shouldScrollFeatureListToSelection.toggle() }
@@ -374,6 +372,21 @@ extension ContentView {
         do {
             let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
             let pagesCatalog = try await URLSession.shared.decode(ScriptsCatalog.self, from: pagesUrl)
+            var hubManifests = [ObservableHubManifest]()
+            for hubPair in pagesCatalog.hubManifests {
+                hubManifests.append(ObservableHubManifest(hubManifest: hubPair.value))
+            }
+            viewModel.loadedCatalogs.loadedHubManifests.removeAll()
+            viewModel.loadedCatalogs.loadedHubManifests.append(
+                contentsOf: hubManifests.sorted(by: {
+                    if $0.hub == "other" {
+                        return false
+                    }
+                    if $1.hub == "other" {
+                        return true
+                    }
+                    return $0.hub < $1.hub
+                }))
             var pages = [ObservablePage]()
             for hubPair in pagesCatalog.hubs {
                 for hubPage in hubPair.value {
@@ -400,6 +413,7 @@ extension ContentView {
             if viewModel.selectedPage == nil {
                 viewModel.selectedPage = viewModel.loadedCatalogs.loadedPages.first ?? nil
             }
+            viewModel.selectedHubManifest = viewModel.loadedCatalogs.loadedHubManifests.first(where: { $0.id == viewModel.selectedPage?.hub })
             updateStaffLevelForPage()
 
             logger.verbose("Loaded page catalog from server with \(viewModel.loadedCatalogs.loadedPages.count) pages", context: "System")
@@ -505,6 +519,7 @@ extension ContentView {
                 if let loadedPage = viewModel.loadedCatalogs.loadedPages.first(where: { $0.id == loadedLog.page }) {
                     viewModel.selectedFeature = nil
                     viewModel.selectedPage = loadedPage
+                    viewModel.selectedHubManifest = viewModel.loadedCatalogs.loadedHubManifests.first(where: { $0.id == viewModel.selectedPage?.hub })
                     viewModel.features = loadedLog.getFeatures(loadedPage.hub)
                 }
                 logURL = file

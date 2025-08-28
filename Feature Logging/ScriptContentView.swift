@@ -11,7 +11,6 @@ import SwiftyBeaver
 
 struct ScriptContentView: View {
     private var viewModel: ContentView.ViewModel
-    private var selectedPage: ObservablePage
     private var selectedFeature: ObservableFeatureWrapper
     @ObservedObject private var featureScriptPlaceholders: PlaceholderList
     @ObservedObject private var commentScriptPlaceholders: PlaceholderList
@@ -57,7 +56,6 @@ struct ScriptContentView: View {
 
     init(
         _ viewModel: ContentView.ViewModel,
-        _ selectedPage: ObservablePage,
         _ selectedFeature: ObservableFeatureWrapper,
         _ featureScriptPlaceholders: PlaceholderList,
         _ commentScriptPlaceholders: PlaceholderList,
@@ -66,7 +64,6 @@ struct ScriptContentView: View {
         _ navigateToNextFeature: @escaping (_ forward: Bool) -> Void
     ) {
         self.viewModel = viewModel
-        self.selectedPage = selectedPage
         self.selectedFeature = selectedFeature
         self.featureScriptPlaceholders = featureScriptPlaceholders
         self.commentScriptPlaceholders = commentScriptPlaceholders
@@ -321,7 +318,7 @@ struct ScriptContentView: View {
                 .padding([.leading], 8)
 
                 let tagSource = selectedFeature.feature.tagSource
-                if selectedPage.hub == "click" {
+                if viewModel.selectedPage!.hub == "click" {
                     HStack {
                         Text(tagSource == TagSourceCase.clickCommunityTag ? "☑" : "☐")
                             .font(.system(size: 22, design: .monospaced))
@@ -349,7 +346,7 @@ struct ScriptContentView: View {
                             .frame(alignment: .leading)
                     }
                     .padding([.leading], 8)
-                } else if selectedPage.hub == "snap" {
+                } else if viewModel.selectedPage!.hub == "snap" {
                     HStack {
                         Text((tagSource == TagSourceCase.snapRawPageTag || tagSource == TagSourceCase.snapRawCommunityTag) ? "☑" : "☐")
                             .font(.system(size: 22, design: .monospaced))
@@ -484,7 +481,7 @@ struct ScriptContentView: View {
             NewMembershipEditor(
                 newMembership: $newMembership,
                 script: $newMembershipScript,
-                selectedPage: selectedPage,
+                selectedPage: viewModel.selectedPage!,
                 minHeight: 36,
                 maxHeight: 36 * accordionHeightRatio,
                 onChanged: { newValue in
@@ -622,7 +619,7 @@ extension ScriptContentView {
     }
 
     private func validateNewMembership(value: NewMembershipCase) -> ValidationResult {
-        if !NewMembershipCase.caseValidFor(hub: viewModel.selectedPage?.hub, value) {
+        if !NewMembershipCase.caseValidFor(hub: viewModel.selectedPage!.hub, value) {
             return .error("Not a valid value")
         }
         return .valid

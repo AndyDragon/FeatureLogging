@@ -18,15 +18,6 @@ enum AiVerdict {
 struct ImageValidationView: View {
     @Environment(\.openURL) private var openURL
 
-    @AppStorage(
-        "preference_aiWarningLimit",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var warningLimit: Double = 0.75
-    @AppStorage(
-        "preference_aiTriggerLimit",
-        store: UserDefaults(suiteName: "com.andydragon.com.Feature-Logging")
-    ) var triggerLimit: Double = 0.9
-
     private var viewModel: ContentView.ViewModel
     @State private var focusedField: FocusState<FocusField?>.Binding
     private var updateList: () -> Void
@@ -315,6 +306,14 @@ struct ImageValidationView: View {
                 ScrollView(.vertical) {
                     HStack {
                         VStack(alignment: .leading) {
+                            Text("Limits for hub \(viewModel.selectedHubManifest?.title ?? viewModel.selectedHubManifest?.hub ?? "snap"): ")
+                                .font(.system(size: 16))
+                                .bold()
+                                .padding([.top, .leading], 8)
+                            Spacer().frame(height: 0) // fix bug with text being truncated
+                            Text("Warning limit: \((viewModel.selectedHubManifest?.aiWarningLimit ?? 0.75) * 100.0, specifier: "%.1f")% | Trigger limit: \((viewModel.selectedHubManifest?.aiTriggerLimit ?? 0.9) * 100.0, specifier: "%.1f")%")
+                                .lineLimit(...2048)
+                                .padding(8)
                             Text("Result from server: ")
                                 .font(.system(size: 16))
                                 .bold()
@@ -457,6 +456,8 @@ extension ImageValidationView {
                     let decoder = JSONDecoder()
                     let results = try decoder.decode(HiveResponse.self, from: dataResult)
                     if results.status_code >= 200 && results.status_code <= 299 {
+                        let warningLimit = viewModel.selectedHubManifest?.aiWarningLimit ?? 0.75
+                        let triggerLimit = viewModel.selectedHubManifest?.aiTriggerLimit ?? 0.9
                         if let verdictClass = results.data.classes.first(where: { $0.class == "not_ai_generated" }) {
                             aiVerdictString = "\(verdictClass.score > warningLimit ? "Not AI" : verdictClass.score < triggerLimit ? "AI" : "Indeterminate") (\(String(format: "%.1f", verdictClass.score * 100)) % not AI)"
                             aiVerdict = verdictClass.score > warningLimit ? .notAi : verdictClass.score < triggerLimit ? .ai : .indeterminate
