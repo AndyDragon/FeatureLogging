@@ -70,6 +70,8 @@ namespace FeatureLogging
                         var response = HiveResponse.FromJson(content);
                         if (response != null)
                         {
+                            LogEntries.Add(new LogEntry($"Limits for hub {vm.SelectedPage?.HubName ?? "snap"}: Warning limit: {vm.AiWarningLimit * 100}% | Trigger limit: {vm.AiTriggerLimit * 100}%", defaultLogColor, skipBullet: true));
+                            LogEntries.Add(new LogEntry($"Results from server:", defaultLogColor, skipBullet: true));
                             LogEntries.Add(new LogEntry(JsonConvert.SerializeObject(response, Formatting.Indented), defaultLogColor, skipBullet: true));
                             if (response.StatusCode >= 200 && response.StatusCode <= 299)
                             {
@@ -81,9 +83,9 @@ namespace FeatureLogging
                                         .Where(verdictClass => !new List<string> { "not_ai_generated", "ai_generated", "none", "inconclusive", "inconclusive_video" }.Contains(verdictClass.Class))
                                         .MaxBy(verdictClass => verdictClass.Score);
                                     var highestClassString = highestClass != null ? $", highest possibility of AI: {highestClass.Class} @ {highestClass.Score:P2}" : "";
-                                    var resultString = verdictClass.Score > 0.8 ? "Not AI" : verdictClass.Score < 0.5 ? "AI" : "Indeterminate";
-                                    var resultColor = verdictClass.Score > 0.8 ? Colors.Lime : verdictClass.Score < 0.5 ? Colors.Red : Colors.Yellow;
-                                    var resultIcon = verdictClass.Score > 0.8 ? PackIconJamIconsKind.ShieldCheckF : verdictClass.Score < 0.5 ? PackIconJamIconsKind.ShieldCloseF : PackIconJamIconsKind.ShieldMinusF;
+                                    var resultString = verdictClass.Score > vm.AiTriggerLimit ? "Not AI" : verdictClass.Score > vm.AiWarningLimit ? "Indeterminate" : "AI";
+                                    var resultColor = verdictClass.Score > vm.AiTriggerLimit ? Colors.Lime : verdictClass.Score > vm.AiWarningLimit ? Colors.Yellow : Colors.Red;
+                                    var resultIcon = verdictClass.Score > vm.AiTriggerLimit ? PackIconJamIconsKind.ShieldCheckF : verdictClass.Score > vm.AiWarningLimit ? PackIconJamIconsKind.ShieldMinusF : PackIconJamIconsKind.ShieldCloseF;
                                     Verdict = new VerdictResult($"{resultString} ({verdictClass.Score:P2} not AI{highestClassString})", resultColor, resultIcon);
                                     VerdictVisibility = Visibility.Visible;
                                 }

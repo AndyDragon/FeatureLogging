@@ -945,11 +945,24 @@ namespace FeatureLogging
                 var content = await httpClient.GetStringAsync(pagesUri);
                 if (!string.IsNullOrEmpty(content))
                 {
-                    var loadedPages = new List<LoadedPage>();
-                    var pagesCatalog = JsonConvert.DeserializeObject<ScriptsCatalog>(content) ?? new ScriptsCatalog();
-                    if (pagesCatalog.Hubs != null)
+                    var scriptsCatalog = JsonConvert.DeserializeObject<ScriptsCatalog>(content) ?? new ScriptsCatalog();
+                    var loadedHubManifests = new Dictionary<string, HubManifestEntry>();
+                    if (scriptsCatalog.HubManifests != null)
                     {
-                        foreach (var hubPair in pagesCatalog.Hubs)
+                        foreach (var hubPair in scriptsCatalog.HubManifests)
+                        {
+                            loadedHubManifests.Add(hubPair.Key, hubPair.Value);
+                        }
+                    }
+                    LoadedHubManifests.Clear();
+                    foreach (var hubManifest in loadedHubManifests.OrderBy(hub => hub.Key))
+                    {
+                        LoadedHubManifests.Add(hubManifest.Value);
+                    }
+                    var loadedPages = new List<LoadedPage>();
+                    if (scriptsCatalog.Hubs != null)
+                    {
+                        foreach (var hubPair in scriptsCatalog.Hubs)
                         {
                             foreach (var hubPage in hubPair.Value)
                             {
@@ -1297,7 +1310,34 @@ namespace FeatureLogging
 
         #region Pages
 
+        public ObservableCollection<HubManifestEntry> LoadedHubManifests { get; } = [];
         public ObservableCollection<LoadedPage> LoadedPages { get; } = [];
+
+        private HubManifestEntry? selectedHubManifest = null;
+
+        public double AiWarningLimit
+        {
+            get
+            {
+                if (selectedHubManifest == null)
+                {
+                    return 0.75;
+                }
+                return selectedHubManifest.AiWarningLimit;
+            }
+        }
+
+        public double AiTriggerLimit
+        {
+            get
+            {
+                if (selectedHubManifest == null)
+                {
+                    return 0.9;
+                }
+                return selectedHubManifest.AiTriggerLimit;
+            }
+        }
 
         private LoadedPage? selectedPage = null;
 
@@ -1343,6 +1383,7 @@ namespace FeatureLogging
                     {
                         SelectedFeature.ValidateUserAlias();
                     }
+                    selectedHubManifest = LoadedHubManifests.FirstOrDefault(hub => hub.Hub == SelectedPage?.HubName);
                 }
             }
         }

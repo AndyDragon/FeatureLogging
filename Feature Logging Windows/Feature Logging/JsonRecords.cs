@@ -4,10 +4,24 @@
     {
         public ScriptsCatalog()
         {
+            HubManifests = new Dictionary<string, HubManifestEntry>();
             Hubs = new Dictionary<string, IList<PageEntry>>();
         }
 
+        public IDictionary<string, HubManifestEntry> HubManifests { get; set; }
         public IDictionary<string, IList<PageEntry>> Hubs { get; set; }
+    }
+
+    public class HubManifestEntry
+    {
+        public HubManifestEntry()
+        {
+            Hub = string.Empty;
+        }
+        public string Hub { get; set; }
+        public string? Title { get; set; }
+        public double AiWarningLimit { get; set; }
+        public double AiTriggerLimit { get; set; }
     }
 
     public class PageEntry
