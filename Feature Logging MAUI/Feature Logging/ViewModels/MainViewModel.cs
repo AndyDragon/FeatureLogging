@@ -390,7 +390,7 @@ public class MainViewModel : NotifyPropertyChanged
                 Features.Add(feature);
                 OnPropertyChanged(nameof(CanChangePage));
                 SelectedFeature = feature;
-                SemanticScreenReader.Announce($"Added feature for {feature.UserAlias}");
+                _ = Toast.Make($"Added feature for {feature.UserAlias}").Show();
             }
             else
             {
@@ -399,7 +399,7 @@ public class MainViewModel : NotifyPropertyChanged
                 Features.Add(feature);
                 OnPropertyChanged(nameof(CanChangePage));
                 SelectedFeature = feature;
-                SemanticScreenReader.Announce($"Added blank feature");
+                _ = Toast.Make($"Added blank feature").Show();
             }
         }
         else
@@ -409,7 +409,7 @@ public class MainViewModel : NotifyPropertyChanged
             Features.Add(feature);
             OnPropertyChanged(nameof(CanChangePage));
             SelectedFeature = feature;
-            SemanticScreenReader.Announce($"Added blank feature");
+            _ = Toast.Make($"Added blank feature").Show();
         }
         OnPropertyChanged(nameof(SaveFeaturesCommand));
         OnPropertyChanged(nameof(SaveReportCommand));
