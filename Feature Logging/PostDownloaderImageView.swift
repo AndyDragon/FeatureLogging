@@ -156,20 +156,34 @@ extension PostDownloaderImageView {
     // MARK: - utilities
 
     private func saveImage() {
-        let folderURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask)[0].appendingPathComponent("VERO")
+        let savePanel = NSSavePanel()
+        savePanel.allowedContentTypes = [.png]
+        savePanel.canCreateDirectories = true
+        savePanel.isExtensionHidden = false
+        savePanel.title = "Save image"
+        savePanel.nameFieldStringValue = "\(userName)\(fileExtension)"
         do {
+            let folderURL = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Pictures").appendingPathComponent("VERO")
             if !FileManager.default.fileExists(atPath: folderURL.path, isDirectory: nil) {
                 try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: false, attributes: nil)
             }
-            let fileURL = folderURL.appendingPathComponent("\(userName)\(fileExtension)")
-            try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
-            logger.verbose("Saved the image to file \(fileURL.path)", context: "System")
-            viewModel.showSuccessToast("Saved", "Saved the image to file \(fileURL.lastPathComponent) to your Pictures/VERO folder")
+            savePanel.directoryURL = folderURL
         } catch {
-            logger.error("Failed to save the image file: \(error.localizedDescription)", context: "System")
-            debugPrint("Failed to save file")
-            debugPrint(error.localizedDescription)
-            viewModel.showToast(.error, "Failed to save", "Failed to saved the image to your Pictures/VERO folder - \(error.localizedDescription)")
+            savePanel.directoryURL = FileManager.default.homeDirectoryForCurrentUser
+        }
+        savePanel.begin { result in
+            if result == .OK, let fileURL = savePanel.url {
+                do {
+                    try data!.write(to: fileURL, options: [.atomic, .completeFileProtection])
+                    logger.verbose("Saved the image to file \(fileURL.path)", context: "System")
+                    viewModel.showSuccessToast("Saved", "Saved the image to file \(fileURL.lastPathComponent) to the \(fileURL.deletingLastPathComponent().path) folder")
+                } catch {
+                    logger.error("Failed to save the image file: \(error.localizedDescription)", context: "System")
+                    debugPrint("Failed to save file")
+                    debugPrint(error.localizedDescription)
+                    viewModel.showToast(.error, "Failed to save", "Failed to saved the image - \(error.localizedDescription)")
+                }
+            }
         }
     }
 }

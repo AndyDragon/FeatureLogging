@@ -11,7 +11,11 @@ import SwiftUI
 // MARK: - PostData
 
 struct PostData: Codable {
-    let loaderData: LoaderData?
+  let loaderData: LoaderData?
+}
+
+struct PostData2: Codable {
+  let loaderData: LoaderData2?
 }
 
 // MARK: - LoaderData
@@ -36,11 +40,36 @@ struct LoaderData: Codable {
     }
 }
 
+struct LoaderData2: Codable {
+  let entry1: LoaderEntry2?
+  let entry2: LoaderEntry2?
+  let entry3: LoaderEntry2?
+  let entry4: LoaderEntry2?
+  let entry5: LoaderEntry2?
+
+  var entry: LoaderEntry2? {
+    entry1 ?? entry2 ?? entry3 ?? entry4 ?? entry5
+  }
+
+  enum CodingKeys: String, CodingKey {
+    case entry1 = "0-1"
+    case entry2 = "0-2"
+    case entry3 = "0-3"
+    case entry4 = "0-4"
+    case entry5 = "0-5"
+  }
+}
+
 // MARK: - LoaderEntry
 
 struct LoaderEntry: Codable {
-    let profile: LoaderEntryProfile?
-    let post: LoaderEntryPost?
+  let profile: LoaderEntryProfile?
+  let post: LoaderEntryPost?
+}
+
+struct LoaderEntry2: Codable {
+  let profile: Profile?
+  let post: LoaderEntryPost?
 }
 
 // MARK: - LoaderEntryProfile
