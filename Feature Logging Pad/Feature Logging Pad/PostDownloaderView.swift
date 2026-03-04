@@ -875,7 +875,8 @@ extension PostDownloaderView {
                                     if let stringValue = (jsonStringDecoded["value"] as? String) {
                                         if let jsonData = stringValue.data(using: .utf8) {
                                             let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
-                                            if let profile = postData.loaderData?.entry?.profile?.profile {
+                                            let postData2 = try JSONDecoder().decode(PostData2.self, from: jsonData)
+                                            if let profile = postData.loaderData?.entry?.profile?.profile ?? postData2.loaderData?.entry?.profile {
                                                 userAlias = profile.username ?? ""
                                                 if userAlias.isEmpty && profile.name != nil {
                                                     userAlias = profile.name!.replacingOccurrences(of: " ", with: "")
