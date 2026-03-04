@@ -141,6 +141,15 @@ namespace FeatureLogging
                                     if (postData != null)
                                     {
                                         var profile = postData.LoaderData?.Entry?.Profile?.Profile;
+                                        if (profile == null)
+                                        {
+                                            // Try using the newer format if the profile was not nested.
+                                            var postData2 = PostData2.FromJson(jsonString);
+                                            if (postData2 != null)
+                                            {
+                                                profile = postData2.LoaderData?.Entry?.Profile;
+                                            }
+                                        }
                                         if (profile != null)
                                         {
                                             UserAlias = profile.Username;
@@ -950,6 +959,17 @@ namespace FeatureLogging
         public LoaderData? LoaderData { get; set; }
     }
 
+    public partial class PostData2
+    {
+        public static PostData2? FromJson(string json) => JsonConvert.DeserializeObject<PostData2>(json);
+    }
+
+    public partial class PostData2
+    {
+        [JsonProperty("loaderData", NullValueHandling = NullValueHandling.Ignore)]
+        public LoaderData2? LoaderData { get; set; }
+    }
+
     public partial class LoaderData
     {
         [JsonProperty("0-1", NullValueHandling = NullValueHandling.Ignore)]
@@ -973,10 +993,42 @@ namespace FeatureLogging
         }
     }
 
+    public partial class LoaderData2
+    {
+        [JsonProperty("0-1", NullValueHandling = NullValueHandling.Ignore)]
+        public PostEntry2? Entry1 { get; set; }
+
+        [JsonProperty("0-2", NullValueHandling = NullValueHandling.Ignore)]
+        public PostEntry2? Entry2 { get; set; }
+
+        [JsonProperty("0-3", NullValueHandling = NullValueHandling.Ignore)]
+        public PostEntry2? Entry3 { get; set; }
+
+        [JsonProperty("0-4", NullValueHandling = NullValueHandling.Ignore)]
+        public PostEntry2? Entry4 { get; set; }
+
+        [JsonProperty("0-5", NullValueHandling = NullValueHandling.Ignore)]
+        public PostEntry2? Entry5 { get; set; }
+
+        public PostEntry2? Entry
+        {
+            get => Entry1 ?? Entry2 ?? Entry3 ?? Entry4 ?? Entry5;
+        }
+    }
+
     public partial class PostEntry
     {
         [JsonProperty("profile", NullValueHandling = NullValueHandling.Ignore)]
         public EntryProfile? Profile { get; set; }
+
+        [JsonProperty("post", NullValueHandling = NullValueHandling.Ignore)]
+        public EntryPost? Post { get; set; }
+    }
+
+    public partial class PostEntry2
+    {
+        [JsonProperty("profile", NullValueHandling = NullValueHandling.Ignore)]
+        public Profile? Profile { get; set; }
 
         [JsonProperty("post", NullValueHandling = NullValueHandling.Ignore)]
         public EntryPost? Post { get; set; }
