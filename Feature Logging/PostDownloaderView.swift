@@ -16,6 +16,25 @@ import SwiftyBeaver
 /// the user's profile is marked as private.
 ///
 struct PostDownloaderView: View {
+    enum PostDataLoadingMode: String, CaseIterable, Identifiable {
+        case auto
+        case legacy
+        case react
+
+        var id: String { rawValue }
+
+        var displayName: String {
+            switch self {
+            case .auto:
+                return "Auto"
+            case .legacy:
+                return "Legacy"
+            case .react:
+                return "New"
+            }
+        }
+    }
+
     @Environment(\.openURL) private var openURL
 
     private var viewModel: ContentView.ViewModel
@@ -43,6 +62,7 @@ struct PostDownloaderView: View {
     @State private var likeCount = 0
     @State private var userProfileLink = ""
     @State private var userBio = ""
+    @State private var detectedPostDataMode = "unknown"
 
     private let languagePrefix = Locale.preferredLanguageCode
     private let mainLabelWidth: CGFloat = -128
@@ -207,6 +227,7 @@ struct PostDownloaderView: View {
         .background(Color.backgroundColor)
         .onAppear {
             postLoaded = false
+            profileLoaded = false
             pageHashtagCheck = ""
             missingTag = false
             excludedHashtagCheck = ""
@@ -220,6 +241,7 @@ struct PostDownloaderView: View {
             moreComments = false
             commentCount = 0
             likeCount = 0
+            detectedPostDataMode = "unknown"
             viewModel.showToast(.progress, "Loading", "Loading the post data from the server...")
             loadExcludedTagsForPage()
             Task.detached {
@@ -266,6 +288,14 @@ struct PostDownloaderView: View {
                     .border(Color.gray.opacity(0.25))
                     .cornerRadius(4)
                     .frame(maxWidth: 480)
+                    Spacer()
+                }
+                .frame(height: 20)
+
+                HStack(alignment: .center) {
+                    ValidationLabel("Post data mode: ", labelWidth: -mainLabelWidth, validation: true, validColor: .green)
+                    ValidationLabel(detectedPostDataMode, validation: detectedPostDataMode != "unknown", validColor: .accentColor)
+
                     Spacer()
                 }
                 .frame(height: 20)
@@ -838,13 +868,13 @@ struct PostDownloaderView: View {
             HStack(alignment: .center) {
                 ValidationLabel("Image\(imageUrls.count == 1 ? "" : "s") found: ", validation: imageUrls.count > 0, validColor: .green)
                 ValidationLabel("\(imageUrls.count)", validation: imageUrls.count > 0, validColor: .accentColor)
-                
+
                 Spacer()
             }
             .frame(height: 20)
             .frame(maxWidth: 1280)
             .padding([.leading, .trailing])
-            
+
             CarouselView(viewModel: viewModel, images: imageUrls, userName: userName)
                 .frame(minWidth: 20, maxWidth: 1280)
         }
@@ -935,6 +965,42 @@ struct PostDownloaderView: View {
 extension PostDownloaderView {
     // MARK: - parsing helpers
 
+    private struct ParsedProfilePayload {
+        let alias: String
+        let name: String
+        let url: String
+        let bio: String
+    }
+
+    private struct ParsedCommentPayload {
+        let userName: String
+        let authorName: String
+        let text: String
+        let timestamp: Date?
+    }
+
+    private struct ParsedPostPayload {
+        let description: String
+        let hashtags: [String]
+        let imageSources: [String]
+        let comments: [ParsedCommentPayload]
+        let commentsAvailable: Bool
+        let commentCount: Int
+        let likeCount: Int
+    }
+
+    private struct ParsedPostLoadPayload {
+        let profile: ParsedProfilePayload?
+        let post: ParsedPostPayload?
+        let profileSource: String
+        let postSource: String
+    }
+
+    private enum DecodeMode {
+        case jsonDoubleQuotedString
+        case javaScriptSingleQuotedString
+    }
+
     /// Parses the contents of the loaded post.
     /// - Parameter contents: The contents of the loaded post from the server.
     @MainActor
@@ -942,133 +1008,84 @@ extension PostDownloaderView {
         do {
             logger.verbose("Loaded the post from the server", context: "System")
             logging.append((.blue, "Loaded the post from the server"))
-            let document = try SwiftSoup.parse(contents)
-            for item in try document.select("script") {
-                do {
-                    let scriptText = try item.html().trimmingCharacters(in: .whitespaces)
-                    if !scriptText.isEmpty {
-                        let scriptLines = scriptText.split(whereSeparator: \.isNewline)
-                        if scriptLines.first!.hasPrefix("window.__staticRouterHydrationData = JSON.parse(") {
-                            let prefixLength = "window.__staticRouterHydrationData = JSON.parse(".count
-                            let start = scriptText.index(scriptText.startIndex, offsetBy: prefixLength + 1)
-                            let end = scriptText.index(scriptText.endIndex, offsetBy: -3)
-                            let jsonString = String(scriptText[start ..< end])
-                            // The JSON string is a JSON-encoded string, so use a wrapped JSON fragment and the JSON serialization
-                            // utility to get the unencoded string which is then decoded using the JSON decoder utility.
-                            let wrappedJsonString = "{\"value\": \"\(jsonString)\"}"
-                            if let jsonEncodedData = wrappedJsonString.data(using: .utf8) {
-                                if let jsonStringDecoded = try JSONSerialization.jsonObject(with: jsonEncodedData, options: []) as? [String: Any] {
-                                    if let stringValue = (jsonStringDecoded["value"] as? String) {
-                                        if let jsonData = stringValue.data(using: .utf8) {
-                                            let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
-                                            let postData2 = try JSONDecoder().decode(PostData2.self, from: jsonData)
-                                            if let profile = postData.loaderData?.entry?.profile?.profile ?? postData2.loaderData?.entry?.profile {
-                                                userAlias = profile.username ?? ""
-                                                if userAlias.isEmpty && profile.name != nil {
-                                                    userAlias = profile.name!.replacingOccurrences(of: " ", with: "")
-                                                }
-                                                logger.verbose("Loaded the profile", context: "System")
-                                                logging.append((.blue, "User's alias: \(userAlias)"))
-                                                userName = profile.name ?? ""
-                                                logging.append((.blue, "User's name: \(userName)"))
-                                                userProfileLink = profile.url ?? ""
-                                                logging.append((.blue, "User's profile link: \(userProfileLink)"))
-                                                userBio = (profile.bio ?? "").removeExtraSpaces()
-                                                logging.append((.blue, "User's bio: \(userBio)"))
 
-                                                profileLoaded = true
-                                            } else {
-                                                logger.error("Failed to find the profile information", context: "System")
-                                                logging.append((.red, "Failed to find the profile information, the account is likely private"))
-                                                logging.append((.red, "Post must be handled manually in VERO app"))
-                                                // debugPrint(jsonString)
-                                            }
-                                            if let post = postData.loaderData?.entry?.post {
-                                                postHashtags = []
-                                                description = joinSegments(post.post?.caption, &postHashtags).removeExtraSpaces(includeNewlines: false)
+            imageUrls = []
+            pageComments = []
+            hubComments = []
+            postHashtags = []
+            description = ""
+            pageHashtagCheck = ""
+            excludedHashtagCheck = ""
+            missingTag = false
+            hasExcludedHashtag = false
+            postLoaded = false
+            profileLoaded = false
+            moreComments = false
+            commentCount = 0
+            likeCount = 0
 
-                                                logger.verbose("Loaded the post information", context: "System")
+            let parsedPayload = try parsePayload(contents)
+            detectedPostDataMode = derivedPostDataMode(parsedPayload)
 
-                                                checkPageHashtags()
-                                                checkExcludedHashtags()
+            if let profile = parsedPayload.profile {
+                userAlias = profile.alias
+                userName = profile.name
+                userProfileLink = profile.url
+                userBio = profile.bio
 
-                                                if let postImages = post.post?.images {
-                                                    logger.verbose("Found images in the post information", context: "System")
-                                                    let postImageUrls = postImages.filter({ $0.url != nil && $0.url!.hasPrefix("https://") }).map { $0.url! }
-                                                    for imageUrl in postImageUrls {
-                                                        logging.append((.blue, "Image source: \(imageUrl)"))
-                                                        imageUrls.append(URL(string: imageUrl)!)
-                                                    }
-                                                }
-
-                                                if viewModel.selectedPage!.hub == "click" || viewModel.selectedPage!.hub == "snap" {
-                                                    commentCount = post.post?.comments ?? 0
-                                                    likeCount = post.post?.likes ?? 0
-                                                    let pageHub = viewModel.selectedPage!.hub
-                                                    if let comments = post.comments {
-                                                        moreComments = comments.count < commentCount
-                                                        for comment in comments {
-                                                            if let userName = comment.author?.username {
-                                                                if userName.lowercased().hasPrefix("\(pageHub.lowercased())_") {
-                                                                    if userName.lowercased() == viewModel.selectedPage!.displayName.lowercased() {
-                                                                        pageComments.append((
-                                                                            comment.author?.name ?? userName,
-                                                                            joinSegments(comment.content).removeExtraSpaces(),
-                                                                            (comment.timestamp ?? "").timestamp(),
-                                                                            String(userName[userName.index(userName.startIndex, offsetBy: pageHub.count + 1) ..< userName.endIndex].lowercased())
-                                                                        ))
-                                                                        logger.verbose("Found comment from page", context: "System")
-                                                                        logging.append((.red, "Found comment from page - possibly already featured on page"))
-                                                                    } else {
-                                                                        hubComments.append((
-                                                                            comment.author?.name ?? userName,
-                                                                            joinSegments(comment.content).removeExtraSpaces(),
-                                                                            (comment.timestamp ?? "").timestamp(),
-                                                                            String(userName[userName.index(userName.startIndex, offsetBy: pageHub.count + 1) ..< userName.endIndex].lowercased())
-                                                                        ))
-                                                                        logger.verbose("Found comment from another hub page", context: "System")
-                                                                        logging.append((.orange, "Found comment from another hub page - possibly already feature on another page"))
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    } else {
-                                                        moreComments = commentCount != 0
-                                                        if moreComments {
-                                                            logger.verbose("Not all comments loaded", context: "System")
-                                                            logging.append((.orange, "Not all comments found in post, check VERO app to see all comments"))
-                                                        }
-                                                    }
-                                                }
-                                            } else {
-                                                logger.error("Failed to find the post information", context: "System")
-                                                logging.append((.red, "Failed to find the post information, the account is likely private"))
-                                                logging.append((.red, "Post must be handled manually in VERO app"))
-                                                // debugPrint(jsonString)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } catch {
-                    logger.error("Failed to parse the post information: \(error.localizedDescription)", context: "System")
-                    debugPrint(error.localizedDescription)
-                    viewModel.dismissAllNonBlockingToasts(includeProgress: true)
-                    viewModel.showToast(
-                        .alert,
-                        "Failed to parse the post data on the post",
-                        "Failed to parse the post information from the downloaded post - \(error.localizedDescription)"
-                    )
+                var populatedFeatureValues = false
+                if selectedFeature.feature.userAlias.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !userAlias.isEmpty {
+                    selectedFeature.feature.userAlias = userAlias
+                    populatedFeatureValues = true
                 }
+                if selectedFeature.feature.userName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !userName.isEmpty {
+                    selectedFeature.feature.userName = userName
+                    populatedFeatureValues = true
+                }
+
+                if populatedFeatureValues {
+                    updateList()
+                    viewModel.markDocumentDirty()
+                }
+
+                profileLoaded = true
+
+                logger.verbose("Loaded the profile", context: "System")
+                logging.append((.blue, "Profile source: \(parsedPayload.profileSource)"))
+                logging.append((.blue, "User's alias: \(userAlias)"))
+                logging.append((.blue, "User's name: \(userName)"))
+                logging.append((.blue, "User's profile link: \(userProfileLink)"))
+                logging.append((.blue, "User's bio: \(userBio)"))
+            } else {
+                userAlias = ""
+                userName = ""
+                userProfileLink = ""
+                userBio = ""
+                logging.append((.orange, "Profile data was not found in the selected data mode"))
             }
 
-            if imageUrls.isEmpty {
-                throw AccountError.PrivateAccount
+            if let post = parsedPayload.post {
+                description = post.description
+                postHashtags = post.hashtags
+                imageUrls = post.imageSources.compactMap { URL(string: $0) }
+                logging.append((.blue, "Post source: \(parsedPayload.postSource)"))
+                for imageSource in post.imageSources {
+                    logging.append((.blue, "Image source: \(imageSource)"))
+                }
+
+                checkPageHashtags()
+                checkExcludedHashtags()
+                applyComments(post)
+
+                postLoaded = true
+                logger.verbose("Loaded the post information", context: "System")
+            } else {
+                logging.append((.orange, "Post data was not found in the selected data mode"))
             }
 
-            postLoaded = true
+            if !profileLoaded && !postLoaded {
+                throw AccountError.NoDataFound
+            }
         } catch let error as AccountError {
             logger.error("Failed to download and parse the post information - \(error.errorDescription ?? "unknown")", context: "System")
             logging.append((.red, "Failed to download and parse the post information - \(error.errorDescription ?? "unknown")"))
@@ -1090,9 +1107,367 @@ extension PostDownloaderView {
         }
     }
 
+    private func parsePayload(_ contents: String) throws -> ParsedPostLoadPayload {
+        logging.append((.blue, "Using auto parser (new + legacy fallback)"))
+        let reactResult = Result { try parseReactPayload(contents) }
+        let legacyResult = Result { try parseLegacyPayload(contents) }
+
+        let reactPayload = try? reactResult.get()
+        let legacyPayload = try? legacyResult.get()
+
+        let merged = ParsedPostLoadPayload(
+            profile: reactPayload?.profile ?? legacyPayload?.profile,
+            post: reactPayload?.post ?? legacyPayload?.post,
+            profileSource: reactPayload?.profile != nil ? "new" : (legacyPayload?.profile != nil ? "legacy" : "unavailable"),
+            postSource: reactPayload?.post != nil ? "new" : (legacyPayload?.post != nil ? "legacy" : "unavailable")
+        )
+
+        if merged.profile == nil, case .failure(let error) = reactResult {
+            logging.append((.orange, "New parser did not return profile: \(error.localizedDescription)"))
+        }
+        if merged.post == nil, case .failure(let error) = reactResult {
+            logging.append((.orange, "New parser did not return post: \(error.localizedDescription)"))
+        }
+        if merged.profile == nil, case .failure(let error) = legacyResult {
+            logging.append((.orange, "Legacy parser did not return profile: \(error.localizedDescription)"))
+        }
+        if merged.post == nil, case .failure(let error) = legacyResult {
+            logging.append((.orange, "Legacy parser did not return post: \(error.localizedDescription)"))
+        }
+
+        return merged
+    }
+
+    private func derivedPostDataMode(_ payload: ParsedPostLoadPayload) -> String {
+        let sources = [payload.profileSource, payload.postSource]
+        if sources.contains("new") {
+            return "new"
+        }
+        if sources.contains("legacy") {
+            return "legacy"
+        }
+        return "unknown"
+    }
+
+    private func parseLegacyPayload(_ contents: String) throws -> ParsedPostLoadPayload {
+        let jsonData = try extractLegacyHydrationJSONData(from: contents)
+        let postData = try JSONDecoder().decode(PostData.self, from: jsonData)
+        let postData2 = try JSONDecoder().decode(PostData2.self, from: jsonData)
+
+        let profile = postData.loaderData?.entry?.profile?.profile ?? postData2.loaderData?.entry?.profile
+        let parsedProfile: ParsedProfilePayload? = profile.map {
+            let firstName = ($0.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let fallbackUserName = ($0.username ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let resolvedName = firstName.isEmpty ? fallbackUserName : firstName
+            let alias = fallbackUserName.isEmpty ? firstName.replacingOccurrences(of: " ", with: "") : fallbackUserName
+            return ParsedProfilePayload(
+                alias: alias,
+                name: resolvedName,
+                url: $0.url ?? "",
+                bio: ($0.bio ?? "").removeExtraSpaces()
+            )
+        }
+
+        let parsedPost: ParsedPostPayload? = postData.loaderData?.entry?.post.map { oldPost in
+            var hashTags: [String] = []
+            let description = joinSegments(oldPost.post?.caption, &hashTags).removeExtraSpaces(includeNewlines: false)
+            let postImages: [PostImage] = oldPost.post?.images ?? []
+            var imageSources: [String] = []
+            for image in postImages {
+                if let url = image.url, url.hasPrefix("https://") {
+                    imageSources.append(url)
+                }
+            }
+
+            let rawComments: [Comment] = oldPost.comments ?? []
+            var comments: [ParsedCommentPayload] = []
+            for comment in rawComments {
+                guard let userName = comment.author?.username else { continue }
+                let text = joinSegments(comment.content).removeExtraSpaces()
+                comments.append(
+                    ParsedCommentPayload(
+                        userName: userName,
+                        authorName: comment.author?.name ?? userName,
+                        text: text,
+                        timestamp: (comment.timestamp ?? "").timestamp()
+                    )
+                )
+            }
+
+            return ParsedPostPayload(
+                description: description,
+                hashtags: hashTags,
+                imageSources: imageSources,
+                comments: comments,
+                commentsAvailable: oldPost.comments != nil,
+                commentCount: oldPost.post?.comments ?? 0,
+                likeCount: oldPost.post?.likes ?? 0
+            )
+        }
+
+        return ParsedPostLoadPayload(profile: parsedProfile, post: parsedPost, profileSource: "legacy", postSource: "legacy")
+    }
+
+    private func parseReactPayload(_ contents: String) throws -> ParsedPostLoadPayload {
+        let reactArray = try extractReactDataArray(from: contents)
+        let reactData = ReactData(reactData: reactArray)
+
+        let userPost = reactData.loaderData?.userPost
+        let postOnly = reactData.loaderData?.postOnly
+
+        let profile = userPost?.profile ?? postOnly?.profile
+        let parsedProfile: ParsedProfilePayload? = profile.map {
+            let firstName = $0.firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+            let fallbackUserName = $0.userName.trimmingCharacters(in: .whitespacesAndNewlines)
+            let resolvedName = firstName.isEmpty ? fallbackUserName : firstName
+            let alias = fallbackUserName.isEmpty ? resolvedName.replacingOccurrences(of: " ", with: "") : fallbackUserName
+            return ParsedProfilePayload(
+                alias: alias,
+                name: resolvedName,
+                url: $0.url,
+                bio: $0.bio.removeExtraSpaces()
+            )
+        }
+
+        let reactPostContainer = userPost?.post ?? postOnly?.post
+        let parsedPost: ParsedPostPayload? = reactPostContainer?.post.map { reactPost in
+            var hashTags: [String] = []
+            let description = joinReactContent(reactPost.caption, &hashTags).removeExtraSpaces(includeNewlines: false)
+            let imageSources = reactPost.images
+                .map(\.url)
+                .filter { $0.hasPrefix("https://") }
+
+            let reactComments: [ReactComment] = reactPostContainer?.comments ?? []
+            let comments: [ParsedCommentPayload] = reactComments.compactMap { comment in
+                guard let author = comment.author, !author.userName.isEmpty else { return nil }
+                return ParsedCommentPayload(
+                    userName: author.userName,
+                    authorName: author.firstName.isEmpty ? author.userName : author.firstName,
+                    text: joinReactContent(comment.content).removeExtraSpaces(),
+                    timestamp: comment.timestamp == .distantPast ? nil : comment.timestamp
+                )
+            }
+
+            return ParsedPostPayload(
+                description: description,
+                hashtags: hashTags,
+                imageSources: imageSources,
+                comments: comments,
+                commentsAvailable: reactPostContainer?.hasProperty("comments") ?? false,
+                commentCount: Int(reactPost.comments),
+                likeCount: Int(reactPost.likes)
+            )
+        }
+
+        return ParsedPostLoadPayload(profile: parsedProfile, post: parsedPost, profileSource: "new", postSource: "new")
+    }
+
+    private func applyComments(_ post: ParsedPostPayload) {
+        pageComments = []
+        hubComments = []
+        moreComments = false
+        commentCount = 0
+        likeCount = 0
+
+        let pageHub = viewModel.selectedPage!.hub
+        guard pageHub == "click" || pageHub == "snap" else { return }
+
+        commentCount = post.commentCount
+        likeCount = post.likeCount
+
+        if post.commentsAvailable {
+            moreComments = post.comments.count < commentCount
+            for comment in post.comments {
+                let commentUserName = comment.userName.lowercased()
+                guard commentUserName.hasPrefix("\(pageHub.lowercased())_") else { continue }
+
+                let pageName = String(commentUserName.dropFirst(pageHub.count + 1))
+                if commentUserName == viewModel.selectedPage!.displayName.lowercased() {
+                    pageComments.append((comment.authorName, comment.text, comment.timestamp, pageName))
+                    logger.verbose("Found comment from page", context: "System")
+                    logging.append((.red, "Found comment from page - possibly already featured on page"))
+                } else {
+                    hubComments.append((comment.authorName, comment.text, comment.timestamp, pageName))
+                    logger.verbose("Found comment from another hub page", context: "System")
+                    logging.append((.orange, "Found comment from another hub page - possibly already feature on another page"))
+                }
+            }
+        } else {
+            moreComments = commentCount != 0
+            if moreComments {
+                logger.verbose("Not all comments loaded", context: "System")
+                logging.append((.orange, "Not all comments found in post, check VERO app to see all comments"))
+            }
+        }
+    }
+
+    private func joinReactContent(_ segments: [ReactContent], _ hashTags: inout [String]) -> String {
+        var result = ""
+        for segment in segments {
+            switch segment.type {
+            case "text":
+                result += segment.value
+            case "tag":
+                result += "#\(segment.value)"
+                hashTags.append("#\(segment.value)")
+            case "person":
+                if !segment.label.isEmpty {
+                    result += "@\(segment.label)"
+                } else {
+                    result += segment.value
+                }
+            case "url":
+                if !segment.label.isEmpty {
+                    result += segment.label
+                } else {
+                    result += segment.value
+                }
+            default:
+                logger.warning("Unhandled react content type: \(segment.type)", context: "System")
+            }
+        }
+        return result.replacingOccurrences(of: "\\n", with: "\n")
+    }
+
+    private func joinReactContent(_ segments: [ReactContent]) -> String {
+        var ignored: [String] = []
+        return joinReactContent(segments, &ignored)
+    }
+
+    private func extractLegacyHydrationJSONData(from html: String) throws -> Data {
+        let document = try SwiftSoup.parse(html)
+        for item in try document.select("script") {
+            let scriptText = try item.html().trimmingCharacters(in: .whitespaces)
+            guard !scriptText.isEmpty else { continue }
+            let scriptLines = scriptText.split(whereSeparator: \.isNewline)
+            guard let firstLine = scriptLines.first,
+                  firstLine.hasPrefix("window.__staticRouterHydrationData = JSON.parse(") else { continue }
+
+            let prefixLength = "window.__staticRouterHydrationData = JSON.parse(".count
+            let start = scriptText.index(scriptText.startIndex, offsetBy: prefixLength + 1)
+            let end = scriptText.index(scriptText.endIndex, offsetBy: -3)
+            let jsonString = String(scriptText[start ..< end])
+            let wrappedJsonString = "{\"value\": \"\(jsonString)\"}"
+
+            guard let jsonEncodedData = wrappedJsonString.data(using: .utf8),
+                  let jsonStringDecoded = try JSONSerialization.jsonObject(with: jsonEncodedData, options: []) as? [String: Any],
+                  let stringValue = jsonStringDecoded["value"] as? String,
+                  let jsonData = stringValue.data(using: .utf8) else {
+                continue
+            }
+
+            return jsonData
+        }
+
+        throw AccountError.NoDataFound
+    }
+
+    private func extractReactDataArray(from html: String) throws -> [Any] {
+        let htmlRange = NSRange(html.startIndex..<html.endIndex, in: html)
+        let strategies: [(pattern: String, decodeMode: DecodeMode)] = [
+            (#"window\.__reactRouterContext\.streamController\.enqueue\("((?:\\.|[^"\\])*)"\);"#, .jsonDoubleQuotedString),
+            (#"__reactRouterContext\.streamController\.enqueue\("((?:\\.|[^"\\])*)"\);"#, .jsonDoubleQuotedString),
+            (#"streamController\.enqueue\("((?:\\.|[^"\\])*)"\);"#, .jsonDoubleQuotedString),
+            (#"streamController\.enqueue\('((?:\\.|[^'\\])*)'\);"#, .javaScriptSingleQuotedString),
+            (#"streamController\.enqueue\(JSON\.parse\("((?:\\.|[^"\\])*)"\)\);"#, .jsonDoubleQuotedString),
+            (#"streamController\.enqueue\(JSON\.parse\('((?:\\.|[^'\\])*)'\)\);"#, .javaScriptSingleQuotedString)
+        ]
+
+        for strategy in strategies {
+            let regex = try NSRegularExpression(pattern: strategy.pattern, options: [.dotMatchesLineSeparators])
+            let matches = regex.matches(in: html, options: [], range: htmlRange)
+            for match in matches {
+                guard let captureRange = Range(match.range(at: 1), in: html) else { continue }
+                let payload = String(html[captureRange])
+                if let array = try parseReactArray(fromCapturedPayload: payload, mode: strategy.decodeMode) {
+                    return array
+                }
+            }
+        }
+
+        throw AccountError.NoDataFound
+    }
+
+    private func parseReactArray(fromCapturedPayload payload: String, mode: DecodeMode) throws -> [Any]? {
+        let decodedJSONString: String
+        switch mode {
+        case .jsonDoubleQuotedString:
+            decodedJSONString = try decodeJSONEncodedString(payload)
+        case .javaScriptSingleQuotedString:
+            decodedJSONString = decodeSingleQuotedJavaScriptString(payload)
+        }
+
+        guard let decodedData = decodedJSONString.data(using: .utf8) else {
+            return nil
+        }
+
+        let jsonObject = try JSONSerialization.jsonObject(with: decodedData)
+        guard let array = jsonObject as? [Any], array.count > 1 else {
+            return nil
+        }
+
+        return array
+    }
+
+    private func decodeJSONEncodedString(_ payload: String) throws -> String {
+        let quotedJSONString = "\"\(payload)\""
+        guard let data = quotedJSONString.data(using: .utf8) else {
+            throw AccountError.NoDataFound
+        }
+        return try JSONDecoder().decode(String.self, from: data)
+    }
+
+    private func decodeSingleQuotedJavaScriptString(_ payload: String) -> String {
+        var output = ""
+        var index = payload.startIndex
+
+        func advance() { index = payload.index(after: index) }
+
+        while index < payload.endIndex {
+            let char = payload[index]
+            if char != "\\" {
+                output.append(char)
+                advance()
+                continue
+            }
+
+            let next = payload.index(after: index)
+            guard next < payload.endIndex else { break }
+            let escape = payload[next]
+
+            switch escape {
+            case "n": output.append("\n")
+            case "r": output.append("\r")
+            case "t": output.append("\t")
+            case "b": output.append("\u{0008}")
+            case "f": output.append("\u{000C}")
+            case "\\": output.append("\\")
+            case "\"": output.append("\"")
+            case "'": output.append("'")
+            case "/": output.append("/")
+            case "u":
+                let hexStart = payload.index(after: next)
+                let hexEnd = payload.index(hexStart, offsetBy: 4, limitedBy: payload.endIndex) ?? payload.endIndex
+                if hexEnd <= payload.endIndex {
+                    let hex = String(payload[hexStart..<hexEnd])
+                    if let scalarValue = UInt32(hex, radix: 16), let scalar = UnicodeScalar(scalarValue) {
+                        output.append(Character(scalar))
+                        index = payload.index(before: hexEnd)
+                    }
+                }
+            default:
+                output.append(escape)
+            }
+
+            index = payload.index(after: next)
+        }
+
+        return output
+    }
+
     /// Account error enumeration for throwing account-specifc error codes.
     enum AccountError: String, LocalizedError {
-        case PrivateAccount = "Could not find any images, this account might be private"
+        case NoDataFound = "Could not find profile or post data for this URL"
         public var errorDescription: String? { rawValue }
     }
 

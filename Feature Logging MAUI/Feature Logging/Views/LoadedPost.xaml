@@ -16,18 +16,18 @@
             Priority="1"
             Order="Primary" />
     </Shell.ToolbarItems>
-    
+
     <ContentPage.Resources>
         <localConverters:ValidationResultColorConverter x:Key="ValidationResultColorConverter" />
         <localConverters:ValidationResultVisibilityConverter x:Key="ValidationResultVisibilityConverter" />
         <localConverters:StringJoinConverter x:Key="StringJoinConverter" />
     </ContentPage.Resources>
 
-    <ScrollView 
+    <ScrollView
         Orientation="Both">
         <VerticalStackLayout
             WidthRequest="{Binding MainViewModel.ScreenWidth}">
-            
+
             <!-- Page and post link -->
             <Border
                 Margin="20,0,20,10"
@@ -36,9 +36,9 @@
                 StrokeShape="RoundRectangle 10">
                 <Grid
                     HorizontalOptions="Fill"
-                    RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto"
+                    RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto"
                     ColumnDefinitions="Auto, *">
-                    
+
                     <!-- Page -->
                     <HorizontalStackLayout
                         Grid.Row="0"
@@ -61,7 +61,7 @@
                         Grid.Column="1"
                         TextColor="Blue"
                         Text="{Binding MainViewModel.SelectedPage.Title}" />
-                    
+
                     <!-- Page tags -->
                     <HorizontalStackLayout
                         Grid.Row="1"
@@ -95,10 +95,27 @@
                         Grid.Column="1"
                         Text="{Binding MainViewModel.ExcludedTags, Mode=TwoWay}"
                         Placeholder="page excluded tags without '#' separated by comma" />
-                    
-                    <!-- Post link -->
+
+                    <!-- Post data mode -->
                     <HorizontalStackLayout
                         Grid.Row="3"
+                        Grid.Column="0"
+                        HorizontalOptions="End">
+                        <Label
+                            VerticalOptions="Center"
+                            Margin="0,0,10,0"
+                            Text="Post data mode:"
+                            TextColor="Green" />
+                    </HorizontalStackLayout>
+                    <Label
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        TextColor="Blue"
+                        Text="{Binding PostDataMode}" />
+
+                    <!-- Post link -->
+                    <HorizontalStackLayout
+                        Grid.Row="4"
                         Grid.Column="0"
                         HorizontalOptions="End">
                         <mi:MauiIcon
@@ -114,14 +131,14 @@
                             TextColor="Green" />
                     </HorizontalStackLayout>
                     <Label
-                        Grid.Row="3"
+                        Grid.Row="4"
                         Grid.Column="1"
                         TextColor="Blue"
                         Text="{Binding MainViewModel.SelectedFeature.PostLink, Converter={StaticResource StringJoinConverter}}" />
-                    
+
                     <!-- Post link actions -->
                     <HorizontalStackLayout
-                        Grid.Row="4"
+                        Grid.Row="5"
                         Grid.Column="1">
                         <Button
                             VerticalOptions="Center"
@@ -140,10 +157,10 @@
                             Command="{Binding LaunchPostUrlCommand}"
                             Text="Launch" />
                     </HorizontalStackLayout>
-                    
+
                     <!-- User profile link -->
                     <HorizontalStackLayout
-                        Grid.Row="5"
+                        Grid.Row="6"
                         Grid.Column="0"
                         HorizontalOptions="End">
                         <mi:MauiIcon
@@ -159,14 +176,14 @@
                             TextColor="Green" />
                     </HorizontalStackLayout>
                     <Label
-                        Grid.Row="5"
+                        Grid.Row="6"
                         Grid.Column="1"
                         TextColor="Blue"
                         Text="{Binding UserProfileUrl, Converter={StaticResource StringJoinConverter}}" />
-                    
+
                     <!-- User profile link actions -->
                     <HorizontalStackLayout
-                        Grid.Row="6"
+                        Grid.Row="7"
                         Grid.Column="1">
                         <Button
                             VerticalOptions="Center"
@@ -187,17 +204,17 @@
                     </HorizontalStackLayout>
                 </Grid>
             </Border>
-            
+
             <!-- User -->
             <Border
                 Margin="20,0,20,10"
                 Padding="20, 10"
                 BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray700}}"
                 StrokeShape="RoundRectangle 10">
-                <Grid 
+                <Grid
                     RowDefinitions="Auto, Auto, Auto, Auto, Auto"
                     ColumnDefinitions="Auto, *, 1.5*, Auto">
-                    
+
                     <!-- User alias -->
                     <HorizontalStackLayout
                         Grid.Row="0"
@@ -252,7 +269,7 @@
                         MaximumHeightRequest="22"
                         Command="{Binding TransferUserAliasCommand}"
                         Text="Transfer" />
-                    
+
                     <!-- User name -->
                     <HorizontalStackLayout
                         Grid.Row="1"
@@ -316,7 +333,7 @@
                         Margin="0,0,10,0"
                         Text="User BIO:"
                         TextColor="Green" />
-                    <Label 
+                    <Label
                         Grid.Row="3"
                         Grid.ColumnSpan="4"
                         HorizontalOptions="Start"
@@ -324,7 +341,7 @@
                         MaximumWidthRequest="520"
                         FontFamily="TimesNewRoman"
                         FontSize="17" />
-                    
+
                     <!-- User level and team mate -->
                     <Grid
                         Grid.Row="4"
@@ -364,16 +381,16 @@
                     </Grid>
                 </Grid>
             </Border>
-            
+
             <!-- Description -->
             <Border
                 Margin="20,0,20,10"
                 Padding="20, 20"
                 BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray700}}"
                 StrokeShape="RoundRectangle 10">
-                <Grid 
+                <Grid
                     RowDefinitions="Auto, Auto, Auto, Auto">
-                    
+
                     <!-- Page tag check -->
                     <HorizontalStackLayout
                         Grid.Row="0"
@@ -390,7 +407,7 @@
                             Text="{Binding PageHashtagCheck.Message}"
                             TextColor="{Binding PageHashtagCheck, Converter={StaticResource ValidationResultColorConverter}}" />
                     </HorizontalStackLayout>
-                    
+
                     <!-- Page excluded tag check -->
                     <HorizontalStackLayout
                         Grid.Row="1"
@@ -407,7 +424,7 @@
                             Text="{Binding ExcludedHashtagCheck.Message}"
                             TextColor="{Binding ExcludedHashtagCheck, Converter={StaticResource ValidationResultColorConverter}}" />
                     </HorizontalStackLayout>
-                    
+
                     <!-- Description -->
                     <VerticalStackLayout
                         Grid.Row="2"
@@ -421,12 +438,12 @@
                         <ScrollView
                             Orientation="Vertical"
                             MaximumHeightRequest="80">
-                            <Label 
+                            <Label
                                 Text="{Binding Description}"
                                 FontSize="12" />
                         </ScrollView>
                     </VerticalStackLayout>
-                    
+
                     <!-- Feature description -->
                     <Grid
                         Grid.Row="3"
@@ -446,7 +463,7 @@
                     </Grid>
                 </Grid>
             </Border>
-            
+
             <!-- Page and hub comments -->
             <Border
                 Margin="20,0,20,10"
@@ -454,9 +471,9 @@
                 BackgroundColor="{AppThemeBinding Light={DynamicResource Gray100}, Dark={DynamicResource Gray700}}"
                 StrokeShape="RoundRectangle 10"
                 IsVisible="{Binding ShowComments}">
-                <Grid 
+                <Grid
                     RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto">
-                    
+
                     <!-- Page comment -->
                     <HorizontalStackLayout
                         Grid.Row="0"
@@ -488,7 +505,7 @@
                             VerticalOptions="Center"
                             IsChecked="{Binding MainViewModel.SelectedFeature.PhotoFeaturedOnPage, Mode=TwoWay}" />
                     </Grid>
-                    
+
                     <!-- Page comments -->
                     <ListView
                         Grid.Row="2"
@@ -500,16 +517,16 @@
                                 <ViewCell>
                                     <Grid ColumnDefinitions="Auto, *, Auto">
                                         <HorizontalStackLayout
-                                            Grid.Column="0" 
+                                            Grid.Column="0"
                                             VerticalOptions="Start">
                                             <Label Text="{Binding Page}" VerticalOptions="Start" FontSize="12" TextColor="Red" />
                                             <Label Text=" - " VerticalOptions="Start" FontSize="12" TextColor="Red" />
                                             <Label Text="{Binding Timestamp}" FontSize="12" TextColor="Red" />
                                             <Label Text=" - " VerticalOptions="Start" FontSize="12" TextColor="Red" />
                                         </HorizontalStackLayout>
-                                        <Label 
-                                            Grid.Column="1" 
-                                            Text="{Binding Comment}" 
+                                        <Label
+                                            Grid.Column="1"
+                                            Text="{Binding Comment}"
                                             VerticalOptions="Start"
                                             FontSize="12"
                                             TextColor="Red" />
@@ -527,7 +544,7 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                    
+
                     <!-- Hub comment -->
                     <HorizontalStackLayout
                         Grid.Row="3"
@@ -588,7 +605,7 @@
                             Text="{Binding MainViewModel.SelectedFeature.PhotoLastFeaturedPage, Mode=TwoWay}"
                             IsVisible="{Binding MainViewModel.SelectedFeature.PhotoFeaturedOnHub}" />
                     </Grid>
-                    
+
                     <!-- Hub comments -->
                     <ListView
                         Grid.Row="5"
@@ -600,16 +617,16 @@
                                 <ViewCell>
                                     <Grid ColumnDefinitions="Auto, *, Auto">
                                         <HorizontalStackLayout
-                                            Grid.Column="0" 
+                                            Grid.Column="0"
                                             VerticalOptions="Start">
                                             <Label Text="{Binding Page}" VerticalOptions="Start" FontSize="12" TextColor="Orange" />
                                             <Label Text=" - " VerticalOptions="Start" FontSize="12" TextColor="Orange" />
                                             <Label Text="{Binding Timestamp}" FontSize="12" TextColor="Orange" />
                                             <Label Text=" - " VerticalOptions="Start" FontSize="12" TextColor="Orange" />
                                         </HorizontalStackLayout>
-                                        <Label 
-                                            Grid.Column="1" 
-                                            Text="{Binding Comment}" 
+                                        <Label
+                                            Grid.Column="1"
+                                            Text="{Binding Comment}"
                                             VerticalOptions="Start"
                                             FontSize="12"
                                             TextColor="Orange" />
@@ -627,7 +644,7 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                    
+
                     <!-- More comments -->
                     <HorizontalStackLayout
                         Grid.Row="6"
@@ -665,7 +682,7 @@
                             TextColor="Green" />
                         <Label
                             VerticalOptions="Center"
-                            Text=" Image(s) in Post" 
+                            Text=" Image(s) in Post"
                             TextColor="Green" />
                     </HorizontalStackLayout>
                     <HorizontalStackLayout
@@ -736,7 +753,7 @@
                                                     Text="Launch" />
                                             </HorizontalStackLayout>
                                         </VerticalStackLayout>
-                                    </Border>                        
+                                    </Border>
                                 </DataTemplate>
                             </CarouselView.ItemTemplate>
                         </CarouselView>
@@ -749,7 +766,7 @@
                             </ImageButton.Source>
                         </ImageButton>
                     </HorizontalStackLayout>
-                    <IndicatorView 
+                    <IndicatorView
                         x:Name="IndicatorView"
                         IndicatorColor="LightGray"
                         SelectedIndicatorColor="DarkGray"
@@ -757,7 +774,7 @@
                         Margin="0,10,0,0" />
                 </VerticalStackLayout>
             </Border>
-            
+
             <!-- Logging -->
             <Border
                 Margin="20,0,20,30"
@@ -807,7 +824,7 @@
                         </ListView.ItemTemplate>
                     </ListView>
                 </VerticalStackLayout>
-            </Border>            
+            </Border>
         </VerticalStackLayout>
     </ScrollView>
 

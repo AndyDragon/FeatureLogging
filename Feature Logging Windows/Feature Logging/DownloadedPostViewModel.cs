@@ -93,6 +93,16 @@ namespace FeatureLogging
         private async Task LoadPost()
         {
             LogEntries.Clear();
+            ImageEntries.Clear();
+            PageComments = [];
+            HubComments = [];
+            ShowDescription = false;
+            ShowComments = false;
+            ShowImages = false;
+            MoreComments = false;
+            PageHashtagCheck = new ValidationResult(ValidationResultType.Valid);
+            ExcludedHashtagCheck = new ValidationResult(ValidationResultType.Valid);
+            PostDataMode = "unknown";
 
             var postUrl = vm.SelectedFeature!.PostLink!;
             var selectedPage = vm.SelectedPage!;
@@ -121,165 +131,98 @@ namespace FeatureLogging
                     try
                     {
                         progress.Report((30, "Loaded the post contents", null, null));
-                        var document = new HtmlDocument();
-                        document.LoadHtml(content);
-                        progress.Report((40, "Looking for script", null, null));
-                        var scripts = document.DocumentNode.Descendants("script").ToArray();
-                        foreach (var script in scripts)
+                        progress.Report((40, "Parsing post data", null, null));
+
+                        var parsedPayload = ParsePayload(content);
+                        PostDataMode = DerivePostDataMode(parsedPayload);
+
+                        if (parsedPayload.Profile != null)
                         {
-                            var scriptText = script.InnerText.Trim();
-                            if (!string.IsNullOrEmpty(scriptText))
+                            UserAlias = parsedPayload.Profile.Alias;
+                            UserName = parsedPayload.Profile.Name;
+                            UserProfileUrl = parsedPayload.Profile.Url;
+                            UserBio = parsedPayload.Profile.Bio;
+
+                            if (string.IsNullOrWhiteSpace(vm.SelectedFeature?.UserAlias) && !string.IsNullOrWhiteSpace(UserAlias))
                             {
-                                if (scriptText.StartsWith("window.__staticRouterHydrationData = JSON.parse(\"") && scriptText.EndsWith("\");"))
-                                {
-                                    var prefixLength = "window.__staticRouterHydrationData = JSON.parse(\"".Length;
-                                    var jsonString = string.Concat("\"", scriptText
-                                        .AsSpan(prefixLength, scriptText.Length - (prefixLength + 3)), "\"");
-                                    // Use JToken.Parse to convert from JSON encoded as a JSON string to the JSON.
-                                    jsonString = (string)JToken.Parse(jsonString)!;
-                                    var postData = PostData.FromJson(jsonString);
-                                    if (postData != null)
-                                    {
-                                        var profile = postData.LoaderData?.Entry?.Profile?.Profile;
-                                        if (profile == null)
-                                        {
-                                            // Try using the newer format if the profile was not nested.
-                                            var postData2 = PostData2.FromJson(jsonString);
-                                            if (postData2 != null)
-                                            {
-                                                profile = postData2.LoaderData?.Entry?.Profile;
-                                            }
-                                        }
-                                        if (profile != null)
-                                        {
-                                            UserAlias = profile.Username;
-                                            if (string.IsNullOrEmpty(UserAlias) && !string.IsNullOrEmpty(profile.Name))
-                                            {
-                                                UserAlias = profile.Name!.Replace(" ", "");
-                                            }
-                                            LogProgress(UserAlias, "User's alias");
-                                            UserName = profile.Name;
-                                            LogProgress(UserName, "User's name");
-                                            UserProfileUrl = profile.Url?.ToString();
-                                            LogProgress(UserProfileUrl, "User's profile URL");
-                                            UserBio = profile.Bio?.Replace("\\n", "\n").StripExtraSpaces(true);
-                                            LogProgress(UserBio, "User's BIO");
-                                        }
-                                        else
-                                        {
-                                            LogEntries.Add(new LogEntry("Failed to find the profile information, the account is likely private", Colors.Red));
-                                            LogEntries.Add(new LogEntry("Post must be handled manually in VERO app", Colors.Red));
-                                            // TODO andydragon : add post validation and mark it failed here...
-                                        }
-                                        var post = postData.LoaderData?.Entry?.Post?.Post;
-                                        if (post != null)
-                                        {
-                                            ShowDescription = true;
-                                            pageHashTags.Clear();
-                                            Description = post.Caption != null ? JoinSegments(post.Caption, pageHashTags).StripExtraSpaces() : "";
-                                            var pageTagFound = "";
-                                            if (pageHashTags.FirstOrDefault(hashTag =>
-                                            {
-                                                return selectedPage.PageTags.FirstOrDefault(pageHashTag =>
-                                                {
-                                                    if (string.Equals(hashTag, pageHashTag, StringComparison.OrdinalIgnoreCase))
-                                                    {
-                                                        pageTagFound = pageHashTag.ToLower();
-                                                        return true;
-                                                    }
-                                                    return false;
-                                                }) != null;
-                                            }) != null)
-                                            {
-                                                PageHashtagCheck = new ValidationResult(ValidationResultType.Valid, message: $"Contains page hashtag {pageTagFound}");
-                                                LogEntries.Add(new LogEntry(PageHashtagCheck.Message!, defaultLogColor));
-                                            }
-                                            else
-                                            {
-                                                PageHashtagCheck = new ValidationResult(ValidationResultType.Error, "MISSING page hashtag");
-                                                LogEntries.Add(new LogEntry(PageHashtagCheck.Error!, Colors.Red));
-                                            }
-                                            UpdateExcludedTags();
-
-                                            var imageUrls = post?.Images?.Select(image => image.Url).Where(url => url != null && url.ToString().StartsWith("https://"));
-                                            if (imageUrls?.Count() > 0)
-                                            {
-                                                foreach (var imageUrl in imageUrls)
-                                                {
-                                                    LogProgress(imageUrl!.ToString(), "Image source");
-                                                    ImageEntries.Add(new ImageEntry(imageUrl, userName ?? "unknown", this, notificationManager));
-                                                }
-                                                CurrentImageEntry = 0;
-                                                ShowImages = true;
-                                            }
-                                            else
-                                            {
-                                                LogEntries.Add(new LogEntry("No images found in post", Colors.Red));
-                                            }
-                                            OnPropertyChanged(nameof(MultipleImages));
-
-                                            if (selectedPage.HubName == "snap" || selectedPage.HubName == "click")
-                                            {
-                                                var comments = postData.LoaderData?.Entry?.Post?.Comments ?? [];
-                                                var localPageComments = new List<CommentEntry>();
-                                                var localHubComments = new List<CommentEntry>();
-                                                foreach (var comment in comments)
-                                                {
-                                                    var commentUserName = comment?.Author?.Username?.ToLower() ?? "";
-                                                    if (commentUserName.Equals(selectedPage.DisplayName, StringComparison.OrdinalIgnoreCase))
-                                                    {
-                                                        var commentSegments = JoinSegments(comment?.Content).StripExtraSpaces(true);
-                                                        localPageComments.Add(new CommentEntry(
-                                                            commentUserName,
-                                                            comment?.Timestamp,
-                                                            commentSegments,
-                                                            (page, timestamp) => { vm.SelectedFeature!.PhotoFeaturedOnPage = true; }));
-                                                        PageCommentsValidation = new ValidationResult(ValidationResultType.Error, "Found page comments - possibly already featured on page");
-                                                        ShowComments = true;
-                                                        LogEntries.Add(new LogEntry($"Found page comment: {commentUserName} - {comment?.Timestamp?.FormatTimestamp()} - {commentSegments}", Colors.Red));
-                                                    }
-                                                    else if (commentUserName.StartsWith($"{selectedPage.HubName.ToLower()}_"))
-                                                    {
-                                                        var commentSegments = JoinSegments(comment?.Content).StripExtraSpaces(true);
-                                                        localHubComments.Add(new CommentEntry(
-                                                            commentUserName,
-                                                            comment?.Timestamp,
-                                                            commentSegments,
-                                                            (page, timestamp) =>
-                                                            {
-                                                                vm.SelectedFeature!.PhotoFeaturedOnHub = true;
-                                                                vm.SelectedFeature!.PhotoLastFeaturedPage = page[(selectedPage.HubName.Length + 1)..];
-                                                                vm.SelectedFeature!.PhotoLastFeaturedOnHub = timestamp;
-                                                            }));
-                                                        HubCommentsValidation = new ValidationResult(ValidationResultType.Error, "Found hub comments - possibly already featured on another page");
-                                                        ShowComments = true;
-                                                        LogEntries.Add(new LogEntry($"Found hub comment: {commentUserName} - {comment?.Timestamp?.FormatTimestamp()} - {commentSegments}", Colors.Orange));
-                                                    }
-                                                }
-                                                MoreComments = comments.Length < (post?.Comments ?? 0);
-                                                if (MoreComments)
-                                                {
-                                                    LogEntries.Add(new LogEntry("More comments!", Colors.Orange));
-                                                    ShowComments = true;
-                                                }
-                                                PageComments = [.. localPageComments];
-                                                HubComments = [.. localHubComments];
-                                            }
-                                        }
-                                        else
-                                        {
-                                            LogEntries.Add(new LogEntry("Failed to find the post information, the account is likely private", Colors.Red));
-                                            LogEntries.Add(new LogEntry("Post must be handled manually in VERO app", Colors.Red));
-                                            // TODO andydragon : add post validation and mark it failed here...
-                                        }
-                                    }
-                                    else
-                                    {
-                                        LogEntries.Add(new LogEntry("Failed to parse the post JSON", Colors.Red));
-                                        // TODO andydragon : add post validation and mark it failed here...
-                                    }
-                                }
+                                vm.SelectedFeature!.UserAlias = UserAlias!;
                             }
+                            if (string.IsNullOrWhiteSpace(vm.SelectedFeature?.UserName) && !string.IsNullOrWhiteSpace(UserName))
+                            {
+                                vm.SelectedFeature!.UserName = UserName!;
+                            }
+
+                            LogEntries.Add(new LogEntry($"Profile source: {parsedPayload.ProfileSource}", defaultLogColor));
+                            LogProgress(UserAlias, "User's alias");
+                            LogProgress(UserName, "User's name");
+                            LogProgress(UserProfileUrl, "User's profile URL");
+                            LogProgress(UserBio, "User's BIO");
+                        }
+                        else
+                        {
+                            LogEntries.Add(new LogEntry("Profile data was not found in the selected data mode", Colors.Orange));
+                        }
+
+                        if (parsedPayload.Post != null)
+                        {
+                            ShowDescription = true;
+                            pageHashTags.Clear();
+                            pageHashTags.AddRange(parsedPayload.Post.HashTags);
+                            Description = parsedPayload.Post.Description;
+                            LogEntries.Add(new LogEntry($"Post source: {parsedPayload.PostSource}", defaultLogColor));
+
+                            var pageTagFound = "";
+                            if (pageHashTags.FirstOrDefault(hashTag =>
+                            {
+                                return selectedPage.PageTags.FirstOrDefault(pageHashTag =>
+                                {
+                                    if (string.Equals(hashTag, pageHashTag, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        pageTagFound = pageHashTag.ToLower();
+                                        return true;
+                                    }
+                                    return false;
+                                }) != null;
+                            }) != null)
+                            {
+                                PageHashtagCheck = new ValidationResult(ValidationResultType.Valid, message: $"Contains page hashtag {pageTagFound}");
+                                LogEntries.Add(new LogEntry(PageHashtagCheck.Message!, defaultLogColor));
+                            }
+                            else
+                            {
+                                PageHashtagCheck = new ValidationResult(ValidationResultType.Error, "MISSING page hashtag");
+                                LogEntries.Add(new LogEntry(PageHashtagCheck.Error!, Colors.Red));
+                            }
+
+                            UpdateExcludedTags();
+
+                            foreach (var imageUrl in parsedPayload.Post.ImageUrls)
+                            {
+                                LogProgress(imageUrl, "Image source");
+                                ImageEntries.Add(new ImageEntry(new Uri(imageUrl), userName ?? "unknown", this, notificationManager));
+                            }
+                            if (ImageEntries.Count > 0)
+                            {
+                                CurrentImageEntry = 0;
+                                ShowImages = true;
+                            }
+                            else
+                            {
+                                LogEntries.Add(new LogEntry("No images found in post", Colors.Red));
+                            }
+                            OnPropertyChanged(nameof(MultipleImages));
+
+                            ApplyComments(parsedPayload.Post, selectedPage);
+                        }
+                        else
+                        {
+                            LogEntries.Add(new LogEntry("Post data was not found in the selected data mode", Colors.Orange));
+                        }
+
+                        if (parsedPayload.Profile == null && parsedPayload.Post == null)
+                        {
+                            LogEntries.Add(new LogEntry("Failed to find the profile or post information", Colors.Red));
+                            LogEntries.Add(new LogEntry("Post must be handled manually in VERO app", Colors.Red));
                         }
                     }
                     catch (Exception ex)
@@ -296,16 +239,499 @@ namespace FeatureLogging
             progress.Report((100, null, null, null));
         }
 
+        private sealed class ParsedProfilePayload
+        {
+            public required string Alias { get; init; }
+            public required string Name { get; init; }
+            public required string Url { get; init; }
+            public required string Bio { get; init; }
+        }
+
+        private sealed class ParsedCommentPayload
+        {
+            public required string UserName { get; init; }
+            public required string AuthorName { get; init; }
+            public required string Text { get; init; }
+            public DateTime? Timestamp { get; init; }
+        }
+
+        private sealed class ParsedPostPayload
+        {
+            public required string Description { get; init; }
+            public required List<string> HashTags { get; init; }
+            public required List<string> ImageUrls { get; init; }
+            public required List<ParsedCommentPayload> Comments { get; init; }
+            public required bool CommentsAvailable { get; init; }
+            public required int CommentCount { get; init; }
+            public required int LikeCount { get; init; }
+        }
+
+        private sealed class ParsedPostLoadPayload
+        {
+            public ParsedProfilePayload? Profile { get; init; }
+            public ParsedPostPayload? Post { get; init; }
+            public required string ProfileSource { get; init; }
+            public required string PostSource { get; init; }
+        }
+
+        private enum DecodeMode
+        {
+            JsonDoubleQuotedString,
+            JavaScriptSingleQuotedString,
+        }
+
+        private ParsedPostLoadPayload ParsePayload(string content)
+        {
+            LogEntries.Add(new LogEntry("Using auto parser (new + legacy fallback)", defaultLogColor));
+
+            ParsedPostLoadPayload? reactPayload = null;
+            ParsedPostLoadPayload? legacyPayload = null;
+            Exception? reactException = null;
+            Exception? legacyException = null;
+
+            try
+            {
+                reactPayload = ParseReactPayload(content);
+            }
+            catch (Exception ex)
+            {
+                reactException = ex;
+            }
+
+            try
+            {
+                legacyPayload = ParseLegacyPayload(content);
+            }
+            catch (Exception ex)
+            {
+                legacyException = ex;
+            }
+
+            var merged = new ParsedPostLoadPayload
+            {
+                Profile = reactPayload?.Profile ?? legacyPayload?.Profile,
+                Post = reactPayload?.Post ?? legacyPayload?.Post,
+                ProfileSource = reactPayload?.Profile != null ? "new" : (legacyPayload?.Profile != null ? "legacy" : "unavailable"),
+                PostSource = reactPayload?.Post != null ? "new" : (legacyPayload?.Post != null ? "legacy" : "unavailable")
+            };
+
+            if (merged.Profile == null && reactException != null)
+            {
+                LogEntries.Add(new LogEntry($"New parser did not return profile: {reactException.Message}", Colors.Orange));
+            }
+            if (merged.Post == null && reactException != null)
+            {
+                LogEntries.Add(new LogEntry($"New parser did not return post: {reactException.Message}", Colors.Orange));
+            }
+            if (merged.Profile == null && legacyException != null)
+            {
+                LogEntries.Add(new LogEntry($"Legacy parser did not return profile: {legacyException.Message}", Colors.Orange));
+            }
+            if (merged.Post == null && legacyException != null)
+            {
+                LogEntries.Add(new LogEntry($"Legacy parser did not return post: {legacyException.Message}", Colors.Orange));
+            }
+
+            return merged;
+        }
+
+        private static string DerivePostDataMode(ParsedPostLoadPayload payload)
+        {
+            if (payload.ProfileSource == "new" || payload.PostSource == "new")
+            {
+                return "new";
+            }
+            if (payload.ProfileSource == "legacy" || payload.PostSource == "legacy")
+            {
+                return "legacy";
+            }
+            return "unknown";
+        }
+
+        private ParsedPostLoadPayload ParseLegacyPayload(string content)
+        {
+            var jsonString = ExtractLegacyHydrationJson(content);
+            var postData = PostData.FromJson(jsonString) ?? throw new InvalidOperationException("Failed to parse legacy post data");
+            var postData2 = PostData2.FromJson(jsonString);
+
+            var profile = postData.LoaderData?.Entry?.Profile?.Profile ?? postData2?.LoaderData?.Entry?.Profile;
+            ParsedProfilePayload? parsedProfile = null;
+            if (profile != null)
+            {
+                var firstName = (profile.Name ?? string.Empty).Trim();
+                var fallbackUserName = (profile.Username ?? string.Empty).Trim();
+                var resolvedName = string.IsNullOrEmpty(firstName) ? fallbackUserName : firstName;
+                var alias = string.IsNullOrEmpty(fallbackUserName) ? firstName.Replace(" ", string.Empty) : fallbackUserName;
+                parsedProfile = new ParsedProfilePayload
+                {
+                    Alias = alias,
+                    Name = resolvedName,
+                    Url = profile.Url?.ToString() ?? string.Empty,
+                    Bio = (profile.Bio ?? string.Empty).Replace("\\n", "\n").StripExtraSpaces(true)
+                };
+            }
+
+            ParsedPostPayload? parsedPost = null;
+            var entryPost = postData.LoaderData?.Entry?.Post;
+            var post = entryPost?.Post;
+            if (post != null)
+            {
+                var hashTags = new List<string>();
+                var description = JoinSegments(post.Caption, hashTags).StripExtraSpaces();
+                var imageUrls = (post.Images ?? [])
+                    .Select(image => image?.Url?.ToString() ?? string.Empty)
+                    .Where(url => url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                var comments = new List<ParsedCommentPayload>();
+                foreach (var comment in entryPost?.Comments ?? [])
+                {
+                    var commentUserName = comment?.Author?.Username;
+                    if (string.IsNullOrWhiteSpace(commentUserName))
+                    {
+                        continue;
+                    }
+                    comments.Add(new ParsedCommentPayload
+                    {
+                        UserName = commentUserName,
+                        AuthorName = string.IsNullOrWhiteSpace(comment.Author?.Name) ? commentUserName : comment.Author!.Name!,
+                        Text = JoinSegments(comment.Content).StripExtraSpaces(true),
+                        Timestamp = comment.Timestamp
+                    });
+                }
+
+                parsedPost = new ParsedPostPayload
+                {
+                    Description = description,
+                    HashTags = hashTags,
+                    ImageUrls = imageUrls,
+                    Comments = comments,
+                    CommentsAvailable = entryPost?.Comments != null,
+                    CommentCount = post.Comments ?? 0,
+                    LikeCount = post.Likes ?? 0
+                };
+            }
+
+            return new ParsedPostLoadPayload
+            {
+                Profile = parsedProfile,
+                Post = parsedPost,
+                ProfileSource = "legacy",
+                PostSource = "legacy"
+            };
+        }
+
+        private ParsedPostLoadPayload ParseReactPayload(string content)
+        {
+            var reactDataArray = ExtractReactDataArray(content);
+            var reactData = new ReactData(reactDataArray);
+
+            var userPost = reactData.LoaderData?.UserPost;
+            var postOnly = reactData.LoaderData?.PostOnly;
+
+            var profile = userPost?.Profile ?? postOnly?.Profile;
+            ParsedProfilePayload? parsedProfile = null;
+            if (profile != null)
+            {
+                var firstName = (profile.FirstName ?? string.Empty).Trim();
+                var fallbackUserName = (profile.UserName ?? string.Empty).Trim();
+                var resolvedName = string.IsNullOrEmpty(firstName) ? fallbackUserName : firstName;
+                var alias = string.IsNullOrEmpty(fallbackUserName) ? resolvedName.Replace(" ", string.Empty) : fallbackUserName;
+                parsedProfile = new ParsedProfilePayload
+                {
+                    Alias = alias,
+                    Name = resolvedName,
+                    Url = profile.Url ?? string.Empty,
+                    Bio = (profile.Bio ?? string.Empty).Replace("\\n", "\n").StripExtraSpaces(true)
+                };
+            }
+
+            ParsedPostPayload? parsedPost = null;
+            var reactPostContainer = userPost?.Post ?? postOnly?.Post;
+            var reactPost = reactPostContainer?.Post;
+            if (reactPost != null)
+            {
+                var hashTags = new List<string>();
+                var description = JoinReactContent(reactPost.Caption, hashTags).StripExtraSpaces();
+                var imageUrls = reactPost.Images
+                    .Select(image => image.Url)
+                    .Where(url => !string.IsNullOrWhiteSpace(url) && url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                    .ToList()!;
+
+                var comments = new List<ParsedCommentPayload>();
+                foreach (var comment in reactPostContainer?.Comments ?? [])
+                {
+                    var author = comment.Author;
+                    if (author == null || string.IsNullOrWhiteSpace(author.UserName))
+                    {
+                        continue;
+                    }
+                    comments.Add(new ParsedCommentPayload
+                    {
+                        UserName = author.UserName,
+                        AuthorName = string.IsNullOrWhiteSpace(author.FirstName) ? author.UserName : author.FirstName,
+                        Text = JoinReactContent(comment.Content).StripExtraSpaces(true),
+                        Timestamp = comment.Timestamp == DateTime.MinValue ? null : comment.Timestamp
+                    });
+                }
+
+                parsedPost = new ParsedPostPayload
+                {
+                    Description = description,
+                    HashTags = hashTags,
+                    ImageUrls = imageUrls,
+                    Comments = comments,
+                    CommentsAvailable = reactPostContainer?.Properties.ContainsKey("comments") == true,
+                    CommentCount = (int)reactPost.Comments,
+                    LikeCount = (int)reactPost.Likes
+                };
+            }
+
+            return new ParsedPostLoadPayload
+            {
+                Profile = parsedProfile,
+                Post = parsedPost,
+                ProfileSource = "new",
+                PostSource = "new"
+            };
+        }
+
+        private static string ExtractLegacyHydrationJson(string content)
+        {
+            var document = new HtmlDocument();
+            document.LoadHtml(content);
+            foreach (var script in document.DocumentNode.Descendants("script"))
+            {
+                var scriptText = script.InnerText.Trim();
+                if (string.IsNullOrWhiteSpace(scriptText))
+                {
+                    continue;
+                }
+                if (scriptText.StartsWith("window.__staticRouterHydrationData = JSON.parse(\"") && scriptText.EndsWith("\");"))
+                {
+                    var prefixLength = "window.__staticRouterHydrationData = JSON.parse(\"".Length;
+                    var encoded = string.Concat("\"", scriptText.AsSpan(prefixLength, scriptText.Length - (prefixLength + 3)), "\"");
+                    return (string)JToken.Parse(encoded)!;
+                }
+            }
+
+            throw new InvalidOperationException("Could not find hydration data script");
+        }
+
+        private static dynamic[] ExtractReactDataArray(string content)
+        {
+            var strategies = new (string Pattern, DecodeMode Mode)[]
+            {
+                ("window\\.__reactRouterContext\\.streamController\\.enqueue\\(\"((?:\\\\.|[^\"\\\\])*)\"\\);", DecodeMode.JsonDoubleQuotedString),
+                ("__reactRouterContext\\.streamController\\.enqueue\\(\"((?:\\\\.|[^\"\\\\])*)\"\\);", DecodeMode.JsonDoubleQuotedString),
+                ("streamController\\.enqueue\\(\"((?:\\\\.|[^\"\\\\])*)\"\\);", DecodeMode.JsonDoubleQuotedString),
+                ("streamController\\.enqueue\\('((?:\\\\.|[^'\\\\])*)'\\);", DecodeMode.JavaScriptSingleQuotedString),
+                ("streamController\\.enqueue\\(JSON\\.parse\\(\"((?:\\\\.|[^\"\\\\])*)\"\\)\\);", DecodeMode.JsonDoubleQuotedString),
+                ("streamController\\.enqueue\\(JSON\\.parse\\('((?:\\\\.|[^'\\\\])*)'\\)\\);", DecodeMode.JavaScriptSingleQuotedString),
+            };
+
+            foreach (var strategy in strategies)
+            {
+                var regex = new Regex(strategy.Pattern, RegexOptions.Singleline);
+                var matches = regex.Matches(content);
+                foreach (Match match in matches)
+                {
+                    if (match.Groups.Count < 2)
+                    {
+                        continue;
+                    }
+                    var payload = match.Groups[1].Value;
+                    var array = ParseReactArray(payload, strategy.Mode);
+                    if (array != null && array.Length > 1)
+                    {
+                        return array;
+                    }
+                }
+            }
+
+            throw new InvalidOperationException("Could not find react data script");
+        }
+
+        private static dynamic[]? ParseReactArray(string payload, DecodeMode mode)
+        {
+            string decoded;
+            switch (mode)
+            {
+                case DecodeMode.JsonDoubleQuotedString:
+                    decoded = DecodeJsonEncodedString(payload);
+                    break;
+                case DecodeMode.JavaScriptSingleQuotedString:
+                    decoded = DecodeSingleQuotedJavaScriptString(payload);
+                    break;
+                default:
+                    return null;
+            }
+
+            var token = JToken.Parse(decoded);
+            if (token is not JArray array)
+            {
+                return null;
+            }
+            return array.ToObject<dynamic[]>();
+        }
+
+        private static string DecodeJsonEncodedString(string payload)
+        {
+            return JsonConvert.DeserializeObject<string>($"\"{payload}\"") ?? string.Empty;
+        }
+
+        private static string DecodeSingleQuotedJavaScriptString(string payload)
+        {
+            var output = new StringBuilder();
+            for (var i = 0; i < payload.Length; i++)
+            {
+                var ch = payload[i];
+                if (ch != '\\')
+                {
+                    output.Append(ch);
+                    continue;
+                }
+
+                i++;
+                if (i >= payload.Length)
+                {
+                    break;
+                }
+
+                var escape = payload[i];
+                switch (escape)
+                {
+                    case 'n': output.Append('\n'); break;
+                    case 'r': output.Append('\r'); break;
+                    case 't': output.Append('\t'); break;
+                    case 'b': output.Append('\b'); break;
+                    case 'f': output.Append('\f'); break;
+                    case '\\': output.Append('\\'); break;
+                    case '"': output.Append('"'); break;
+                    case '\'': output.Append('\''); break;
+                    case '/': output.Append('/'); break;
+                    case 'u':
+                        if (i + 4 < payload.Length)
+                        {
+                            var hex = payload.Substring(i + 1, 4);
+                            if (int.TryParse(hex, System.Globalization.NumberStyles.HexNumber, null, out var scalar))
+                            {
+                                output.Append((char)scalar);
+                                i += 4;
+                            }
+                        }
+                        break;
+                    default:
+                        output.Append(escape);
+                        break;
+                }
+            }
+
+            return output.ToString();
+        }
+
+        private void ApplyComments(ParsedPostPayload post, LoadedPage selectedPage)
+        {
+            if (selectedPage.HubName != "snap" && selectedPage.HubName != "click")
+            {
+                PageComments = [];
+                HubComments = [];
+                ShowComments = false;
+                MoreComments = false;
+                return;
+            }
+
+            var localPageComments = new List<CommentEntry>();
+            var localHubComments = new List<CommentEntry>();
+            foreach (var comment in post.Comments)
+            {
+                var commentUserName = comment.UserName.ToLowerInvariant();
+                if (commentUserName.Equals(selectedPage.DisplayName, StringComparison.OrdinalIgnoreCase))
+                {
+                    localPageComments.Add(new CommentEntry(
+                        commentUserName,
+                        comment.Timestamp,
+                        comment.Text,
+                        (page, _) => { vm.SelectedFeature!.PhotoFeaturedOnPage = true; }));
+                    PageCommentsValidation = new ValidationResult(ValidationResultType.Error, "Found page comments - possibly already featured on page");
+                    ShowComments = true;
+                    LogEntries.Add(new LogEntry($"Found page comment: {commentUserName} - {comment.Timestamp?.FormatTimestamp()} - {comment.Text}", Colors.Red));
+                }
+                else if (commentUserName.StartsWith($"{selectedPage.HubName.ToLower()}_", StringComparison.Ordinal))
+                {
+                    localHubComments.Add(new CommentEntry(
+                        commentUserName,
+                        comment.Timestamp,
+                        comment.Text,
+                        (page, timestamp) =>
+                        {
+                            vm.SelectedFeature!.PhotoFeaturedOnHub = true;
+                            vm.SelectedFeature!.PhotoLastFeaturedPage = page[(selectedPage.HubName.Length + 1)..];
+                            vm.SelectedFeature!.PhotoLastFeaturedOnHub = timestamp;
+                        }));
+                    HubCommentsValidation = new ValidationResult(ValidationResultType.Error, "Found hub comments - possibly already featured on another page");
+                    ShowComments = true;
+                    LogEntries.Add(new LogEntry($"Found hub comment: {commentUserName} - {comment.Timestamp?.FormatTimestamp()} - {comment.Text}", Colors.Orange));
+                }
+            }
+
+            if (!post.CommentsAvailable)
+            {
+                MoreComments = post.CommentCount != 0;
+            }
+            else
+            {
+                MoreComments = post.Comments.Count < post.CommentCount;
+            }
+
+            if (MoreComments)
+            {
+                LogEntries.Add(new LogEntry("More comments!", Colors.Orange));
+                ShowComments = true;
+            }
+
+            PageComments = [.. localPageComments];
+            HubComments = [.. localHubComments];
+        }
+
         private void LogProgress(string? value, string label)
         {
-            if (string.IsNullOrEmpty(UserAlias))
+            if (string.IsNullOrEmpty(value))
             {
-                LogEntries.Add(new LogEntry($"{label.ToLower()} not find", Colors.Red));
+                LogEntries.Add(new LogEntry($"{label.ToLower()} not found", Colors.Red));
             }
             else
             {
                 LogEntries.Add(new LogEntry($"{label}: {value}", defaultLogColor));
             }
+        }
+
+        private static string JoinReactContent(IEnumerable<ReactContent>? segments, List<string>? hashTags = null)
+        {
+            var builder = new StringBuilder();
+            foreach (var segment in (segments ?? []))
+            {
+                switch (segment.Type)
+                {
+                    case "text":
+                        builder.Append(segment.Value);
+                        break;
+                    case "tag":
+                        builder.Append($"#{segment.Value}");
+                        if (!string.IsNullOrWhiteSpace(segment.Value))
+                        {
+                            hashTags?.Add($"#{segment.Value}");
+                        }
+                        break;
+                    case "person":
+                        builder.Append(!string.IsNullOrWhiteSpace(segment.Label) ? $"@{segment.Label}" : segment.Value);
+                        break;
+                    case "url":
+                        builder.Append(!string.IsNullOrWhiteSpace(segment.Label) ? segment.Label : segment.Value);
+                        break;
+                }
+            }
+            return builder.ToString().Replace("\\n", "\n");
         }
 
         private static string JoinSegments(Segment[]? segments, List<string>? hashTags = null)
@@ -473,6 +899,13 @@ namespace FeatureLogging
         {
             get => userBio;
             set => Set(ref userBio, value);
+        }
+
+        private string postDataMode = "unknown";
+        public string PostDataMode
+        {
+            get => postDataMode;
+            set => Set(ref postDataMode, value);
         }
 
         #endregion
@@ -945,230 +1378,4 @@ namespace FeatureLogging
         private readonly Command markFeatureCommand;
         public Command MarkFeatureCommand { get => markFeatureCommand; }
     }
-
-    #region Post JSON
-
-    public partial class PostData
-    {
-        public static PostData? FromJson(string json) => JsonConvert.DeserializeObject<PostData>(json);
-    }
-
-    public partial class PostData
-    {
-        [JsonProperty("loaderData", NullValueHandling = NullValueHandling.Ignore)]
-        public LoaderData? LoaderData { get; set; }
-    }
-
-    public partial class PostData2
-    {
-        public static PostData2? FromJson(string json) => JsonConvert.DeserializeObject<PostData2>(json);
-    }
-
-    public partial class PostData2
-    {
-        [JsonProperty("loaderData", NullValueHandling = NullValueHandling.Ignore)]
-        public LoaderData2? LoaderData { get; set; }
-    }
-
-    public partial class LoaderData
-    {
-        [JsonProperty("0-1", NullValueHandling = NullValueHandling.Ignore)]
-        public PostEntry? Entry1 { get; set; }
-
-        [JsonProperty("0-2", NullValueHandling = NullValueHandling.Ignore)]
-        public PostEntry? Entry2 { get; set; }
-
-        [JsonProperty("0-3", NullValueHandling = NullValueHandling.Ignore)]
-        public PostEntry? Entry3 { get; set; }
-
-        [JsonProperty("0-4", NullValueHandling = NullValueHandling.Ignore)]
-        public PostEntry? Entry4 { get; set; }
-
-        [JsonProperty("0-5", NullValueHandling = NullValueHandling.Ignore)]
-        public PostEntry? Entry5 { get; set; }
-
-        public PostEntry? Entry
-        {
-            get => Entry1 ?? Entry2 ?? Entry3 ?? Entry4 ?? Entry5;
-        }
-    }
-
-    public partial class LoaderData2
-    {
-        [JsonProperty("0-1", NullValueHandling = NullValueHandling.Ignore)]
-        public PostEntry2? Entry1 { get; set; }
-
-        [JsonProperty("0-2", NullValueHandling = NullValueHandling.Ignore)]
-        public PostEntry2? Entry2 { get; set; }
-
-        [JsonProperty("0-3", NullValueHandling = NullValueHandling.Ignore)]
-        public PostEntry2? Entry3 { get; set; }
-
-        [JsonProperty("0-4", NullValueHandling = NullValueHandling.Ignore)]
-        public PostEntry2? Entry4 { get; set; }
-
-        [JsonProperty("0-5", NullValueHandling = NullValueHandling.Ignore)]
-        public PostEntry2? Entry5 { get; set; }
-
-        public PostEntry2? Entry
-        {
-            get => Entry1 ?? Entry2 ?? Entry3 ?? Entry4 ?? Entry5;
-        }
-    }
-
-    public partial class PostEntry
-    {
-        [JsonProperty("profile", NullValueHandling = NullValueHandling.Ignore)]
-        public EntryProfile? Profile { get; set; }
-
-        [JsonProperty("post", NullValueHandling = NullValueHandling.Ignore)]
-        public EntryPost? Post { get; set; }
-    }
-
-    public partial class PostEntry2
-    {
-        [JsonProperty("profile", NullValueHandling = NullValueHandling.Ignore)]
-        public Profile? Profile { get; set; }
-
-        [JsonProperty("post", NullValueHandling = NullValueHandling.Ignore)]
-        public EntryPost? Post { get; set; }
-    }
-
-    public partial class EntryProfile
-    {
-        [JsonProperty("profile", NullValueHandling = NullValueHandling.Ignore)]
-        public Profile? Profile { get; set; }
-    }
-
-    public partial class Profile
-    {
-        [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Id { get; set; }
-
-        [JsonProperty("firstname", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Name { get; set; }
-
-        [JsonProperty("picture", NullValueHandling = NullValueHandling.Ignore)]
-        public Picture? Picture { get; set; }
-
-        [JsonProperty("username", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Username { get; set; }
-
-        [JsonProperty("bio", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Bio { get; set; }
-
-        [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-        public Uri? Url { get; set; }
-    }
-
-    public partial class Picture
-    {
-        [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-        public Uri? Url { get; set; }
-    }
-
-    public partial class EntryPost
-    {
-        [JsonProperty("post", NullValueHandling = NullValueHandling.Ignore)]
-        public Post? Post { get; set; }
-
-        [JsonProperty("comments", NullValueHandling = NullValueHandling.Ignore)]
-        public Comment[]? Comments { get; set; }
-    }
-
-    public partial class Post
-    {
-        [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Id { get; set; }
-
-        [JsonProperty("author", NullValueHandling = NullValueHandling.Ignore)]
-        public Author? Author { get; set; }
-
-        [JsonProperty("title", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Title { get; set; }
-
-        [JsonProperty("caption", NullValueHandling = NullValueHandling.Ignore)]
-        public Segment[]? Caption { get; set; }
-
-        [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-        public Uri? Url { get; set; }
-
-        [JsonProperty("images", NullValueHandling = NullValueHandling.Ignore)]
-        public PostImage[]? Images { get; set; }
-
-        [JsonProperty("likes", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Likes { get; set; }
-
-        [JsonProperty("comments", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Comments { get; set; }
-
-        [JsonProperty("views", NullValueHandling = NullValueHandling.Ignore)]
-        public int? Views { get; set; }
-
-        [JsonProperty("timestamp", NullValueHandling = NullValueHandling.Ignore)]
-        public DateTime? Timestamp { get; set; }
-    }
-
-    public partial class Comment
-    {
-        [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Id { get; set; }
-
-        [JsonProperty("text", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Text { get; set; }
-
-        [JsonProperty("timestamp", NullValueHandling = NullValueHandling.Ignore)]
-        public DateTime? Timestamp { get; set; }
-
-        [JsonProperty("author", NullValueHandling = NullValueHandling.Ignore)]
-        public Author? Author { get; set; }
-
-        [JsonProperty("content", NullValueHandling = NullValueHandling.Ignore)]
-        public Segment[]? Content { get; set; }
-    }
-
-    public partial class Author
-    {
-        [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Id { get; set; }
-
-        [JsonProperty("firstname", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Name { get; set; }
-
-        [JsonProperty("username", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Username { get; set; }
-
-        [JsonProperty("picture", NullValueHandling = NullValueHandling.Ignore)]
-        public Picture? Picture { get; set; }
-
-        [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-        public Uri? Url { get; set; }
-    }
-
-    public partial class Segment
-    {
-        // "text", "tag", "person", "url"
-        [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Type { get; set; }
-
-        [JsonProperty("value", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Value { get; set; }
-
-        [JsonProperty("label", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Label { get; set; }
-
-        [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-        public string? Id { get; set; }
-
-        [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-        public Uri? Url { get; set; }
-    }
-
-    public partial class PostImage
-    {
-        [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
-        public Uri? Url { get; set; }
-    }
-
-    #endregion
 }

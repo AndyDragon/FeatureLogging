@@ -1609,17 +1609,17 @@
                     Visibility="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock
                         Text="Length: "
-                        VerticalAlignment="Center" 
+                        VerticalAlignment="Center"
                         Visibility="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                         Foreground="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     <TextBlock
                         Text="{Binding ScriptViewModel.FeatureScriptLength}"
-                        VerticalAlignment="Center" 
+                        VerticalAlignment="Center"
                         Visibility="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                         Foreground="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     <TextBlock
                         Text=" of 1000"
-                        VerticalAlignment="Center" 
+                        VerticalAlignment="Center"
                         Visibility="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                         Foreground="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     <StackPanel
@@ -1627,7 +1627,7 @@
                         Visibility="{Binding ScriptViewModel.FeatureScriptPlaceholderVisibility}">
                         <TextBlock
                             Text=" **"
-                            VerticalAlignment="Center" 
+                            VerticalAlignment="Center"
                             Visibility="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                             Foreground="{Binding ScriptViewModel.FeatureScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     </StackPanel>
@@ -1681,17 +1681,17 @@
                     Visibility="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock
                         Text="Length: "
-                        VerticalAlignment="Center" 
+                        VerticalAlignment="Center"
                         Visibility="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                         Foreground="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     <TextBlock
                         Text="{Binding ScriptViewModel.CommentScriptLength}"
-                        VerticalAlignment="Center" 
+                        VerticalAlignment="Center"
                         Visibility="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                         Foreground="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     <TextBlock
                         Text=" of 1000"
-                        VerticalAlignment="Center" 
+                        VerticalAlignment="Center"
                         Visibility="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                         Foreground="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     <StackPanel
@@ -1699,7 +1699,7 @@
                         Visibility="{Binding ScriptViewModel.CommentScriptPlaceholderVisibility}">
                         <TextBlock
                             Text=" **"
-                            VerticalAlignment="Center" 
+                            VerticalAlignment="Center"
                             Visibility="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                             Foreground="{Binding ScriptViewModel.CommentScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     </StackPanel>
@@ -1753,17 +1753,17 @@
                     Visibility="{Binding ScriptViewModel.CanCopyScripts, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock
                         Text="Length: "
-                        VerticalAlignment="Center" 
+                        VerticalAlignment="Center"
                         Visibility="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                         Foreground="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     <TextBlock
                         Text="{Binding ScriptViewModel.OriginalPostScriptLength}"
-                        VerticalAlignment="Center" 
+                        VerticalAlignment="Center"
                         Visibility="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                         Foreground="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     <TextBlock
                         Text=" of 1000"
-                        VerticalAlignment="Center" 
+                        VerticalAlignment="Center"
                         Visibility="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                         Foreground="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     <StackPanel
@@ -1771,7 +1771,7 @@
                         Visibility="{Binding ScriptViewModel.OriginalPostScriptPlaceholderVisibility}">
                         <TextBlock
                             Text=" **"
-                            VerticalAlignment="Center" 
+                            VerticalAlignment="Center"
                             Visibility="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToVisibility}}"
                             Foreground="{Binding ScriptViewModel.OriginalPostScriptLength, Converter={StaticResource scriptLengthToColor}}" />
                     </StackPanel>
@@ -1953,7 +1953,7 @@
                             Background="Transparent"
                             DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
                             Margin="12, 12" />
-                        <local:PlotLegend 
+                        <local:PlotLegend
                             Grid.Row="2"
                             Grid.Column="1"
                             DataContext="{Binding PickedFeatureChart}" />
@@ -1994,7 +1994,7 @@
                             DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
                             Background="Transparent"
                             Margin="12, 12" />
-                        <local:PlotLegend 
+                        <local:PlotLegend
                             Grid.Row="2"
                             Grid.Column="1"
                             DataContext="{Binding FirstFeatureChart}" />
@@ -2035,7 +2035,7 @@
                             DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
                             Background="Transparent"
                             Margin="12, 12" />
-                        <local:PlotLegend 
+                        <local:PlotLegend
                             Grid.Row="2"
                             Grid.Column="1"
                             DataContext="{Binding UserLevelChart}" />
@@ -2076,7 +2076,7 @@
                             DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
                             Background="Transparent"
                             Margin="12, 12" />
-                        <local:PlotLegend 
+                        <local:PlotLegend
                             Grid.Row="2"
                             Grid.Column="1"
                             DataContext="{Binding PhotoFeaturedChart}" />
@@ -2117,7 +2117,7 @@
                             DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
                             Background="Transparent"
                             Margin="12, 12" />
-                        <local:PlotLegend 
+                        <local:PlotLegend
                             Grid.Row="2"
                             Grid.Column="1"
                             DataContext="{Binding PageFeatureCountChart}" />
@@ -2158,7 +2158,7 @@
                             DefaultTrackerTemplate="{StaticResource CustomTrackerTemplate}"
                             Background="Transparent"
                             Margin="12, 12" />
-                        <local:PlotLegend 
+                        <local:PlotLegend
                             Grid.Row="2"
                             Grid.Column="1"
                             DataContext="{Binding HubFeatureCountChart}" />
@@ -2194,6 +2194,7 @@
                             <RowDefinition Height="Auto" />         <!-- Page -->
                             <RowDefinition Height="Auto" />         <!-- Page tags -->
                             <RowDefinition Height="Auto" />         <!-- Excluded tags -->
+                            <RowDefinition Height="Auto" />         <!-- Post data mode -->
                             <RowDefinition Height="Auto" />         <!-- Post URL -->
                             <RowDefinition Height="Auto" />         <!-- User profile URL-->
                         </Grid.RowDefinitions>
@@ -2287,9 +2288,36 @@
                             FontSize="11"
                             FontWeight="Bold"
                             Width="480" />
-                        <!-- Post URL -->
+                        <!-- Post data mode -->
                         <Label
                             Grid.Row="3"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            HorizontalContentAlignment="Right"
+                            FontSize="11"
+                            Margin="0,0,4,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock
+                                    Text="Post data mode:"
+                                    FontWeight="Bold"
+                                    VerticalAlignment="Center"
+                                    Foreground="Lime" />
+                            </StackPanel>
+                        </Label>
+                        <Label
+                            Grid.Row="3"
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            FontSize="11"
+                            Margin="0,0,4,0">
+                            <TextBlock
+                                Text="{Binding LoadedPost.PostDataMode}"
+                                FontWeight="Bold"
+                                VerticalAlignment="Center" />
+                        </Label>
+                        <!-- Post URL -->
+                        <Label
+                            Grid.Row="4"
                             Grid.Column="0"
                             VerticalAlignment="Center"
                             HorizontalContentAlignment="Right"
@@ -2310,7 +2338,7 @@
                             </StackPanel>
                         </Label>
                         <Label
-                            Grid.Row="3"
+                            Grid.Row="4"
                             Grid.Column="1"
                             VerticalAlignment="Center"
                             FontSize="11"
@@ -2321,7 +2349,7 @@
                                 VerticalAlignment="Center" />
                         </Label>
                         <StackPanel
-                            Grid.Row="3"
+                            Grid.Row="4"
                             Grid.Column="2"
                             Orientation="Horizontal" HorizontalAlignment="Right"
                             Height="22"
@@ -2360,7 +2388,7 @@
                         </StackPanel>
                         <!-- User profile URL -->
                         <Label
-                            Grid.Row="4"
+                            Grid.Row="5"
                             Grid.Column="0"
                             VerticalAlignment="Center"
                             HorizontalContentAlignment="Right"
@@ -2381,7 +2409,7 @@
                             </StackPanel>
                         </Label>
                         <Label
-                            Grid.Row="4"
+                            Grid.Row="5"
                             Grid.Column="1"
                             VerticalAlignment="Center"
                             FontSize="11"
@@ -2392,7 +2420,7 @@
                                 VerticalAlignment="Center" />
                         </Label>
                         <StackPanel
-                            Grid.Row="4"
+                            Grid.Row="5"
                             Grid.Column="2"
                             Orientation="Horizontal" HorizontalAlignment="Right"
                             Height="22"
@@ -3157,7 +3185,7 @@
                                     Foreground="Lime" />
                             </StackPanel>
                         </Label>
-                        <mah:FlipView 
+                        <mah:FlipView
                             Grid.Row="1"
                             CircularNavigation="False"
                             IndexPlacement="Bottom"
@@ -3388,13 +3416,13 @@
                 <TextBlock Text="{Binding LoadedPost.Image.Height}" FontSize="18" VerticalAlignment="Center" />
                 <TextBlock Text="|" FontSize="16" Margin="16,2" VerticalAlignment="Center" />
                 <TextBlock Text="Scale:   " FontSize="18" VerticalAlignment="Center" />
-                <Slider 
+                <Slider
                     Margin="0,4,0,0"
-                    Orientation="Horizontal" 
+                    Orientation="Horizontal"
                     VerticalAlignment="Center"
-                    Minimum="10" 
-                    Maximum="200" 
-                    Value="{Binding LoadedPost.ImageScalePercent, Mode=TwoWay}" 
+                    Minimum="10"
+                    Maximum="200"
+                    Value="{Binding LoadedPost.ImageScalePercent, Mode=TwoWay}"
                     Width="500" />
                 <Button Height="24" MinWidth="24" Margin="8,4,8,0" Command="{Binding LoadedPost.ResetImageScaleCommand}" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
@@ -3414,17 +3442,17 @@
                 HorizontalScrollBarVisibility="Auto"
                 VerticalScrollBarVisibility="Auto">
                 <Viewbox
-                    Margin="20" 
-                    HorizontalAlignment="Left" 
+                    Margin="20"
+                    HorizontalAlignment="Left"
                     VerticalAlignment="Top">
                     <Viewbox.RenderTransform>
-                        <ScaleTransform 
+                        <ScaleTransform
                             ScaleX="{Binding LoadedPost.ImageScale}"
                             ScaleY="{Binding LoadedPost.ImageScale}" />
                     </Viewbox.RenderTransform>
                     <Image
                         Stretch="None"
-                        RenderOptions.BitmapScalingMode="HighQuality"                        
+                        RenderOptions.BitmapScalingMode="HighQuality"
                         Source="{Binding LoadedPost.Image.Source}" />
                 </Viewbox>
             </ScrollViewer>
@@ -3717,12 +3745,12 @@
                     </mah:DropDownButton.ItemContainerStyle>
                 </mah:DropDownButton>
             </StackPanel>
-            <TextBlock 
-                Grid.Column="2" 
-                Text="|" 
-                Margin="8,0,8,2" 
-                VerticalAlignment="Center" 
-                Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}" 
+            <TextBlock
+                Grid.Column="2"
+                Text="|"
+                Margin="8,0,8,2"
+                VerticalAlignment="Center"
+                Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
                 Opacity="0.5" />
             <StackPanel Grid.Column="3" Orientation="Horizontal">
                 <mah:WindowCommands>
@@ -3734,11 +3762,11 @@
                         <Button.ContentTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock 
-                                        Margin="0,0,8,0" 
-                                        VerticalAlignment="Center" 
+                                    <TextBlock
+                                        Margin="0,0,8,0"
+                                        VerticalAlignment="Center"
                                         Text="Version:" />
-                                    <TextBlock 
+                                    <TextBlock
                                         Margin="0,0,24,0"
                                         VerticalAlignment="Center"
                                         Text="{Binding}" />
