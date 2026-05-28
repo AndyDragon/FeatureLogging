@@ -780,7 +780,7 @@ namespace FeatureLogging
         {
             foreach (var property in _properties.Keys)
             {
-                if (property != "type" && properties.IndexOf(property) == -1)
+                if (property != "type" && Array.IndexOf(properties, property) == -1)
                 {
                     throw new Exception($"Found unhandled property for type {Type}");
                 }

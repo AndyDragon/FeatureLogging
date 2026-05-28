@@ -161,6 +161,7 @@ namespace FeatureLogging
                         else
                         {
                             LogEntries.Add(new LogEntry("Profile data was not found in the selected data mode", Colors.Orange));
+                            LogEntries.Add(new LogEntry("The user's profile might not be available (private), bio is not available", Colors.Red));
                         }
 
                         if (parsedPayload.Post != null)
@@ -217,6 +218,7 @@ namespace FeatureLogging
                         else
                         {
                             LogEntries.Add(new LogEntry("Post data was not found in the selected data mode", Colors.Orange));
+                            LogEntries.Add(new LogEntry("The user's posts might not be available (private), photos and comments are not available", Colors.Red));
                         }
 
                         if (parsedPayload.Profile == null && parsedPayload.Post == null)
@@ -1221,7 +1223,7 @@ namespace FeatureLogging
     {
         private readonly DownloadedPostViewModel postVm;
 
-        public ImageEntry(Uri source, string username, DownloadedPostViewModel postVm, NotificationManager notificationManager)
+        public ImageEntry(Uri source, string userName, DownloadedPostViewModel postVm, NotificationManager notificationManager)
         {
             this.postVm = postVm;
             this.source = source;
@@ -1267,7 +1269,7 @@ namespace FeatureLogging
                 }
                 try
                 {
-                    using var stream = File.Create(Path.Combine(veroSnapshotsFolder, $"{username}.png"));
+                    using var stream = File.Create(Path.Combine(veroSnapshotsFolder, $"{userName}.png"));
                     png.Save(stream);
                     notificationManager.Show(
                         "Saved image",
