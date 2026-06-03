@@ -31,6 +31,7 @@ struct PlatformIndependentWebView {
         if allowedHosts.contains(where: { host == $0 || host.hasSuffix(".\($0)") }) {
             return true
         }
+      
         let logger = SwiftyBeaver.self
         logger.error("Tried to navigate to a host which was not allowed: \(host)", context: "system")
         return false
