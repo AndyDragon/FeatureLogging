@@ -12,9 +12,29 @@ import SwiftyBeaver
 struct PlatformIndependentWebView {
     var url: URL
     var cookies: [HTTPCookie]?
+    var allowedHosts: Set<String>? = nil
     @Binding var storedCookies: [HTTPCookie]
     @Binding var isLoading: Bool
     @Binding var error: Error?
+
+    private func isNavigationAllowed(_ navigationUrl: URL) -> Bool {
+        guard navigationUrl.scheme?.lowercased() == "https",
+              let host = navigationUrl.host?.lowercased()
+        else {
+            return false
+        }
+
+        guard let allowedHosts else {
+            return true
+        }
+
+        if allowedHosts.contains(where: { host == $0 || host.hasSuffix(".\($0)") }) {
+            return true
+        }
+        let logger = SwiftyBeaver.self
+        logger.error("Tried to navigate to a host which was not allowed: \(host)", context: "system")
+        return false
+    }
 
     func makeCoordinator() -> PlatformIndependentWebView.Coordinator {
         Coordinator(self)
@@ -35,14 +55,14 @@ struct PlatformIndependentWebView {
         cookieStore.add(context.coordinator)
 
         // Sync with shared cookie storage (optional)
-        if let sharedCookies = HTTPCookieStorage.shared.cookies(for: url) {
+        if isNavigationAllowed(url), let sharedCookies = HTTPCookieStorage.shared.cookies(for: url) {
             for cookie in sharedCookies {
                 cookieStore.setCookie(cookie)
             }
         }
 
         // Load the URL
-        var request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
+        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData)
         request.httpShouldHandleCookies = true
         webView.load(request)
         return webView
@@ -51,6 +71,14 @@ struct PlatformIndependentWebView {
     func updateWebView(_ webView: WKWebView, context: Context) {
         // Update cookies when the view updates
         updateCookies(webView)
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        // Check if the webView is already loading or displaying this URL
+        if webView.url != url && !webView.isLoading {
+            let request = URLRequest(url: url)
+            webView.load(request)
+        }
     }
 
     // Helper to fetch and update stored cookies
@@ -114,14 +142,30 @@ struct PlatformIndependentWebView {
             showAlert(for: error)
         }
 
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            guard let navigationUrl = navigationAction.request.url, parent.isNavigationAllowed(navigationUrl) else {
+                decisionHandler(.cancel)
+                return
+            }
+            decisionHandler(.allow)
+        }
+
         func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
-            guard let response = navigationResponse.response as? HTTPURLResponse, let url = navigationResponse.response.url else {
+            guard let response = navigationResponse.response as? HTTPURLResponse,
+                  let responseUrl = navigationResponse.response.url,
+                  parent.isNavigationAllowed(responseUrl)
+            else {
+                decisionHandler(.cancel)
+                return
+            }
+
+            guard (200 ... 399).contains(response.statusCode) else {
                 decisionHandler(.cancel)
                 return
             }
 
             if let headerFields = response.allHeaderFields as? [String: String] {
-                let cookies = HTTPCookie.cookies(withResponseHeaderFields: headerFields, for: url)
+                let cookies = HTTPCookie.cookies(withResponseHeaderFields: headerFields, for: responseUrl)
                 cookies.forEach { cookie in
                     webView.configuration.websiteDataStore.httpCookieStore.setCookie(cookie)
                 }

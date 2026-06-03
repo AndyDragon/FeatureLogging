@@ -329,7 +329,7 @@ struct PostDownloaderView: View {
                         .frame(width: 10)
 
                     Button(action: {
-                        if let url = URL(string: selectedFeature.feature.postLink) {
+                        if let url = ObservableFeature.validatedPostLinkURL(from: selectedFeature.feature.postLink) {
                             logger.verbose("Tapped launch for post", context: "User")
                             openURL(url)
                         }
@@ -340,10 +340,10 @@ struct PostDownloaderView: View {
                             Text("Launch")
                         }
                     }
-                    .disabled(selectedFeature.feature.postLink.isEmpty)
-                    .focusable(!selectedFeature.feature.postLink.isEmpty)
+                    .disabled(ObservableFeature.validatedPostLinkURL(from: selectedFeature.feature.postLink) == nil)
+                    .focusable(ObservableFeature.validatedPostLinkURL(from: selectedFeature.feature.postLink) != nil)
                     .onKeyPress(.space) {
-                        if let url = URL(string: selectedFeature.feature.postLink) {
+                        if let url = ObservableFeature.validatedPostLinkURL(from: selectedFeature.feature.postLink) {
                             logger.verbose("Pressed space on launch for post", context: "User")
                             openURL(url)
                         }
@@ -1474,13 +1474,40 @@ extension PostDownloaderView {
     /// Loads the feature using the postUrl.
     private func loadFeature() async {
         logger.verbose("Loading feature post", context: "System")
-        if let url = URL(string: selectedFeature.feature.postLink) {
-            var request = URLRequest(url: url)
+        if let url = ObservableFeature.validatedPostLinkURL(from: selectedFeature.feature.postLink) {
+            var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 60.0)
             request.httpMethod = "GET"
             let session = URLSession(configuration: URLSessionConfiguration.default)
-            session.dataTask(with: request) { data, _, error in
+            session.dataTask(with: request) { data, response, error in
                 if let data = data {
-                    let contents = String(data: data, encoding: .utf8)!
+                    guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+                        Task { @MainActor in
+                            logger.error("Failed to download and parse the post information - invalid server response", context: "System")
+                            logging.append((.red, "Failed to download and parse the post information - invalid server response"))
+                            logging.append((.red, "Post must be handled manually in VERO app"))
+                            viewModel.dismissAllNonBlockingToasts(includeProgress: true)
+                            viewModel.showToast(
+                                .error,
+                                "Failed to load and parse post",
+                                "Failed to download and parse the post information - invalid server response")
+                        }
+                        return
+                    }
+
+                    guard let contents = String(data: data, encoding: .utf8) else {
+                        Task { @MainActor in
+                            logger.error("Failed to download and parse the post information - server returned non UTF-8 data", context: "System")
+                            logging.append((.red, "Failed to download and parse the post information - server returned non UTF-8 data"))
+                            logging.append((.red, "Post must be handled manually in VERO app"))
+                            viewModel.dismissAllNonBlockingToasts(includeProgress: true)
+                            viewModel.showToast(
+                                .error,
+                                "Failed to load and parse post",
+                                "Failed to download and parse the post information - server returned non UTF-8 data")
+                        }
+                        return
+                    }
+
                     Task { @MainActor in
                         parsePost(contents)
                         viewModel.dismissAllNonBlockingToasts(includeProgress: true)
@@ -1500,6 +1527,8 @@ extension PostDownloaderView {
             }.resume()
         } else {
             Task { @MainActor in
+                logger.error("Failed to download and parse the post information - invalid post URL", context: "System")
+                logging.append((.red, "Failed to download and parse the post information - invalid post URL"))
                 viewModel.dismissAllNonBlockingToasts(includeProgress: true)
             }
         }

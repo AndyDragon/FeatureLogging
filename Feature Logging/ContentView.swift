@@ -370,7 +370,9 @@ extension ContentView {
         logger.verbose("Loading page catalog from server", context: "System")
 
         do {
-            let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json")!
+            guard let pagesUrl = URL(string: "https://vero.andydragon.com/static/data/pages.json") else {
+                throw RuntimeError("Invalid pages catalog URL")
+            }
             let pagesCatalog = try await URLSession.shared.decode(ScriptsCatalog.self, from: pagesUrl)
             var hubManifests = [ObservableHubManifest]()
             for hubPair in pagesCatalog.hubManifests {
@@ -423,7 +425,9 @@ extension ContentView {
 
             logger.verbose("Loading template catalog from server", context: "System")
 
-            let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/templates.json")!
+            guard let templatesUrl = URL(string: "https://vero.andydragon.com/static/data/templates.json") else {
+                throw RuntimeError("Invalid templates catalog URL")
+            }
             viewModel.loadedCatalogs.templatesCatalog = try await URLSession.shared.decode(TemplateCatalog.self, from: templatesUrl)
             viewModel.loadedCatalogs.waitingForTemplates = false
 
@@ -435,7 +439,9 @@ extension ContentView {
 
                 logger.verbose("Loading disallow lists from server", context: "System")
 
-                let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json")!
+                guard let disallowListUrl = URL(string: "https://vero.andydragon.com/static/data/disallowlists.json") else {
+                    throw RuntimeError("Invalid disallow list URL")
+                }
                 viewModel.loadedCatalogs.disallowLists = try await URLSession.shared.decode([String: [String]].self, from: disallowListUrl)
 
                 logger.verbose("Loaded disallow lists from server with \(viewModel.loadedCatalogs.disallowLists.count) entries", context: "System")
@@ -448,7 +454,9 @@ extension ContentView {
             do {
                 logger.verbose("Loading caution lists from server", context: "System")
 
-                let cautionListsUrl = URL(string: "https://vero.andydragon.com/static/data/cautionlists.json")!
+                guard let cautionListsUrl = URL(string: "https://vero.andydragon.com/static/data/cautionlists.json") else {
+                    throw RuntimeError("Invalid caution list URL")
+                }
                 viewModel.loadedCatalogs.cautionLists = try await URLSession.shared.decode([String: [String]].self, from: cautionListsUrl)
 
                 logger.verbose("Loaded caution lists from server with \(viewModel.loadedCatalogs.cautionLists.count) entries", context: "System")
@@ -512,10 +520,9 @@ extension ContentView {
 
         let fileContents = FileManager.default.contents(atPath: file.path)
         if let json = fileContents {
-            let jsonString = String(String(decoding: json, as: UTF8.self))
             do {
                 let decoder = JSONDecoder()
-                let loadedLog = try decoder.decode(Log.self, from: jsonString.data(using: .utf8)!)
+                let loadedLog = try decoder.decode(Log.self, from: json)
                 if let loadedPage = viewModel.loadedCatalogs.loadedPages.first(where: { $0.id == loadedLog.page }) {
                     viewModel.selectedFeature = nil
                     viewModel.selectedPage = loadedPage

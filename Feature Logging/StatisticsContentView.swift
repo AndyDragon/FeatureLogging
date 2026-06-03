@@ -93,34 +93,29 @@ struct StatisticsContentView: View {
                                 hubFeatureCountPieChart = nil
                                 logFiles = [LogFile]()
                                 location = folder.path().trimmingCharacters(in: ["/"])
-                                let fileManager = FileManager.default
                                 let gotAccess = folder.startAccessingSecurityScopedResource()
                                 if !gotAccess { return }
-                                do {
-                                    let items = try fileManager.contentsOfDirectory(at: folder, includingPropertiesForKeys: [.isDirectoryKey]).filter({ item in
-                                        item.isFileURL && item.pathExtension == "json"
-                                    })
-                                    for item in items {
-                                        do {
-                                            let data = try Data(contentsOf: item)
-                                            let log = try JSONDecoder().decode(Log.self, from: data)
-                                            logFiles.append(LogFile(item.path(), log))
-                                        } catch {
-                                            debugPrint(error.localizedDescription)
-                                        }
+                                Task {
+                                    let parseResult = await Task.detached(priority: .userInitiated) {
+                                        defer { folder.stopAccessingSecurityScopedResource() }
+                                        return loadStatsFilesFromFolder(folder)
+                                    }.value
+
+                                    switch parseResult {
+                                    case let .success(loadedFiles):
+                                        logFiles = loadedFiles
+                                        var pageSet = Set(logFiles.map { $0.page })
+                                        pageSet.formUnion(Set(logFiles.map { log in log.page.components(separatedBy: [":"]).first ?? "" }.filter { hub in hub != "" }))
+                                        pages = Array(pageSet).sorted()
+                                        pages.insert("all", at: 0)
+                                        selectedPage = pages.first ?? ""
+                                        navigateToStatsPage(.same)
+                                        logger.verbose("Loaded \(pages.count) pages for stats", context: "System")
+                                    case let .failure(error):
+                                        logger.error("Failed to load pages for stats: \(error.localizedDescription)", context: "System")
+                                        debugPrint(error.localizedDescription)
                                     }
-                                    var pageSet = Set(logFiles.map { $0.page })
-                                    pageSet.formUnion(Set(logFiles.map { log in log.page.components(separatedBy: [":"]).first ?? "" }.filter { hub in hub != "" }))
-                                    pages = Array(pageSet).sorted()
-                                    pages.insert("all", at: 0)
-                                    selectedPage = pages.first!
-                                    navigateToStatsPage(.same)
-                                    logger.verbose("Loaded \(pages.count) pages for stats", context: "System")
-                                } catch {
-                                    logger.error("Failed to load pages for stats: \(error.localizedDescription)", context: "System")
-                                    debugPrint(error.localizedDescription)
                                 }
-                                folder.stopAccessingSecurityScopedResource()
                             case let .failure(error):
                                 logger.error("Failed to pick folder for stats: \(error.localizedDescription)", context: "System")
                                 debugPrint(error)
@@ -476,5 +471,29 @@ struct StatisticsContentView: View {
             : featureCount == 0
             ? "No existing \(bucket) features"
             : "\(featureCount)-\(featureCount + 4) existing \(bucket) features"
+    }
+}
+
+private func loadStatsFilesFromFolder(_ folder: URL) -> Result<[LogFile], Error> {
+    do {
+        let fileManager = FileManager.default
+        let items = try fileManager.contentsOfDirectory(at: folder, includingPropertiesForKeys: [.isDirectoryKey]).filter({ item in
+            item.isFileURL && item.pathExtension == "json"
+        })
+
+        var files = [LogFile]()
+        for item in items {
+            do {
+                let data = try Data(contentsOf: item)
+                let log = try JSONDecoder().decode(Log.self, from: data)
+                files.append(LogFile(item.path(), log))
+            } catch {
+                debugPrint(error.localizedDescription)
+            }
+        }
+
+        return .success(files)
+    } catch {
+        return .failure(error)
     }
 }

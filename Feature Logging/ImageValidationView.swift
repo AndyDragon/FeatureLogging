@@ -262,6 +262,7 @@ struct ImageValidationView: View {
                         .padding(.vertical, 4)
                         PlatformIndependentWebView(
                             url: realizedImageUrl,
+                            allowedHosts: ["tineye.com", "www.tineye.com"],
                             storedCookies: $storedCookies,
                             isLoading: $isLoading,
                             error: $error
@@ -417,8 +418,14 @@ extension ImageValidationView {
     private func openTinEyeResults() {
         logger.verbose("Opening the TinEye browser URL", context: "System")
         if let imageUrlToEncode = viewModel.imageValidationImageUrl {
-            let finalUrl = imageUrlToEncode.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
-            loadedImageUrl = URL(string: "https://www.tineye.com/search/?pluginver=chrome-2.0.4&sort=score&order=desc&url=\(finalUrl!)")
+            var components = URLComponents(string: "https://www.tineye.com/search/")
+            components?.queryItems = [
+                URLQueryItem(name: "pluginver", value: "chrome-2.0.4"),
+                URLQueryItem(name: "sort", value: "score"),
+                URLQueryItem(name: "order", value: "desc"),
+                URLQueryItem(name: "url", value: imageUrlToEncode.absoluteString)
+            ]
+            loadedImageUrl = components?.url
         }
     }
 
@@ -496,10 +503,16 @@ extension ImageValidationView {
         aiVerdict = .indeterminate
         aiVerdictString = ""
         errorFromServer = ""
-        let url = "https://plugin.hivemoderation.com/api/v1/image/ai_detection"
-        var request = MultipartFormDataRequest(url: URL(string: url)!)
+        guard let imageUrl = viewModel.imageValidationImageUrl,
+              let requestUrl = URL(string: "https://plugin.hivemoderation.com/api/v1/image/ai_detection")
+        else {
+            completionHandler(nil, nil, RuntimeError("Missing URL for HIVE request"))
+            return
+        }
+
+        var request = MultipartFormDataRequest(url: requestUrl)
         request.addHeader(header: "Accept", value: "application/json")
-        request.addDataField(fieldName: "url", fieldValue: viewModel.imageValidationImageUrl!.absoluteString)
+        request.addDataField(fieldName: "url", fieldValue: imageUrl.absoluteString)
         request.addDataField(fieldName: "request_id", fieldValue: UUID().uuidString)
         URLSession.shared.dataTask(with: request, completionHandler: completionHandler).resume()
     }

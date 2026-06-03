@@ -269,7 +269,8 @@ class ReactIndexObject {
 
         for (name, indexValue) in indexMap {
             guard name.hasPrefix("_") else {
-                fatalError("Dynamic property name index malformed")
+                debugPrint("Dynamic property name index malformed")
+                continue
             }
 
             let keyIndexString = String(name.dropFirst())
@@ -316,23 +317,23 @@ class ReactIndexObject {
         }
 
         if T.self == Int.self, let value = asInt(raw) {
-            return value as! T
+            return (value as Any) as? T ?? defaultValue
         }
 
         if T.self == Int64.self, let value = asInt64(raw) {
-            return value as! T
+            return (value as Any) as? T ?? defaultValue
         }
 
         if T.self == Double.self, let value = asDouble(raw) {
-            return value as! T
+            return (value as Any) as? T ?? defaultValue
         }
 
         if T.self == Bool.self, let value = asBool(raw) {
-            return value as! T
+            return (value as Any) as? T ?? defaultValue
         }
 
         if T.self == Date.self, let value = asDate(raw) {
-            return value as! T
+            return (value as Any) as? T ?? defaultValue
         }
 
         return defaultValue
@@ -688,7 +689,7 @@ final class ReactContent: ReactIndexObject {
         guard let allowed = allowedByType[type] else { return }
         for key in properties.keys {
             if key != "type" && !allowed.contains(key) {
-                fatalError("Found unhandled property for type \(type)")
+                debugPrint("Found unhandled property for type \(type)")
             }
         }
     }

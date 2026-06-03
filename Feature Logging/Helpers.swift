@@ -83,7 +83,19 @@ extension URLSession {
         dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate
     ) async throws -> T {
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 120.0)
-        let (data, _) = try await data(for: request)
+        let (data, response) = try await data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw RuntimeError("Invalid server response")
+        }
+
+        guard (200 ... 299).contains(httpResponse.statusCode) else {
+            throw RuntimeError("Server returned status code \(httpResponse.statusCode)")
+        }
+
+        if let mimeType = httpResponse.mimeType?.lowercased(), mimeType != "application/json", mimeType != "text/json" {
+            throw RuntimeError("Unexpected response type: \(mimeType)")
+        }
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = keyDecodingStrategy

@@ -73,7 +73,7 @@ struct VersionCheckAppState {
         versionCheckResult.wrappedValue = .checking
         isCheckingForUpdates.wrappedValue = true
         Task {
-            try? await checkForUpdatesAsync(manualCheck)
+            await checkForUpdatesAsync(manualCheck)
         }
     }
 
@@ -81,10 +81,12 @@ struct VersionCheckAppState {
         versionCheckResult.wrappedValue = .complete
     }
 
-    private func checkForUpdatesAsync(_ manualCheck: Bool = false) async throws {
+    private func checkForUpdatesAsync(_ manualCheck: Bool = false) async {
         do {
             // Check version from server manifest
-            let versionManifestUrl = URL(string: versionLocation)!
+            guard let versionManifestUrl = URL(string: versionLocation) else {
+                throw RuntimeError("Invalid version manifest URL")
+            }
             let versionManifest = try await URLSession.shared.decode(VersionManifest.self, from: versionManifestUrl)
             if Bundle.main.releaseVersionOlder(than: versionManifest.macOS_v2.current) {
                 DispatchQueue.main.async {
