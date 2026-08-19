@@ -321,9 +321,9 @@ public class LoadedPostViewModel(MainViewModel vm, string hubName) : NotifyPrope
                 comments.Add(new ParsedCommentPayload
                 {
                     UserName = commentUserName,
-                    AuthorName = string.IsNullOrWhiteSpace(comment.Author?.Name) ? commentUserName : comment.Author!.Name!,
-                    Text = PostDataHelper.JoinSegments(comment.Content).StripExtraSpaces(true),
-                    Timestamp = comment.Timestamp
+                    AuthorName = string.IsNullOrWhiteSpace(comment!.Author?.Name) ? commentUserName : comment.Author!.Name!,
+                    Text = PostDataHelper.JoinSegments(comment!.Content).StripExtraSpaces(true),
+                    Timestamp = comment!.Timestamp
                 });
             }
 
