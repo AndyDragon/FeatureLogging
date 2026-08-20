@@ -27,14 +27,13 @@ public class MainViewModel : NotifyPropertyChanged
         {
             OnPropertyChanged(nameof(ScreenWidth));
         };
-
-        _ = LoadPages();
     }
 
     #region Server access
 
-    private async Task LoadPages()
+    public async Task LoadPages(int tries = 0)
     {
+        await Task.Delay(100);
         try
         {
             // Disable client-side caching.
@@ -52,33 +51,53 @@ public class MainViewModel : NotifyPropertyChanged
                 {
                     loadedPages.AddRange(from hubPair in pagesCatalog.Hubs from hubPage in hubPair.Value select new LoadedPage(hubPair.Key, hubPage));
                 }
-                
+
                 LoadedPages.Clear();
                 foreach (var loadedPage in loadedPages.OrderBy(loadedPage => loadedPage, LoadedPageComparer.Default))
                 {
                     LoadedPages.Add(loadedPage);
                 }
-                _ = Toast.Make($"Loaded {LoadedPages.Count} pages from the server").Show();
             }
             SelectedPage = LoadedPages.FirstOrDefault(loadedPage => loadedPage.Id == Page);
-            WaitingForPages = false;
+            MainThread.BeginInvokeOnMainThread(() => { WaitingForPages = false; });
             Debugger.Log(100, "Info", "No longer waiting for pages...");
-            
-            await LoadTemplates();
-            await LoadDisallowAndCautionLists();
 
-            IsDirty = false;
+            var templatesTask = LoadTemplates();
+            var disallowListTask = LoadDisallowAndCautionLists();
+
+            await Task.WhenAll(templatesTask, disallowListTask);
+            MainThread.BeginInvokeOnMainThread(() => {
+                _ = Toast.Make($"Loaded {LoadedPages.Count} pages from the server").Show();
+                IsDirty = false;
+            });
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error occurred loading page catalog (will retry): {0}", ex.Message);
-            await Toast.Make($"Failed to load the page catalog: {ex.Message}", ToastDuration.Long).Show();
-            _ = LoadPages();
+#if ANDROID
+            Android.Util.Log.Debug("FeatureLogging", $"====================================");
+            Android.Util.Log.Debug("FeatureLogging", $"CRITICAL STARTUP ERROR in LoadPages: {ex}");
+            Android.Util.Log.Debug("FeatureLogging", $"====================================");
+#endif
+            if (tries < 2)
+            {
+                MainThread.BeginInvokeOnMainThread(() => {
+                    _ = Toast.Make($"Failed to load the page catalog: {ex.Message} -- retrying...", ToastDuration.Long).Show();
+                });
+                await LoadTemplates(tries + 1);
+            }
+            else
+            {
+                MainThread.BeginInvokeOnMainThread(() => {
+                    _ = Toast.Make($"Failed to load the page catalog: {ex.Message}", ToastDuration.Long).Show();
+                    Application.Current!.Quit();
+                });
+            }
         }
     }
 
-    private async Task LoadTemplates()
+    private async Task LoadTemplates(int tries = 0)
     {
+        await Task.Delay(100);
         try
         {
             // Disable client-side caching.
@@ -90,14 +109,31 @@ public class MainViewModel : NotifyPropertyChanged
             var content = await httpClient.GetStringAsync(templatesUri);
             if (!string.IsNullOrEmpty(content))
             {
-                ScriptViewModel.TemplatesCatalog = JsonConvert.DeserializeObject<TemplatesCatalog>(content) ?? new TemplatesCatalog();
+                ScriptViewModel.TemplatesCatalog =
+                    JsonConvert.DeserializeObject<TemplatesCatalog>(content) ?? new TemplatesCatalog();
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error occurred loading the template catalog (will retry): {0}", ex.Message);
-            await Toast.Make($"Failed to load the page templates: {ex.Message}", ToastDuration.Long).Show();
-            _ = LoadTemplates();
+#if ANDROID
+            Android.Util.Log.Debug("FeatureLogging", $"====================================");
+            Android.Util.Log.Debug("FeatureLogging", $"CRITICAL STARTUP ERROR in LoadTemplates: {ex}");
+            Android.Util.Log.Debug("FeatureLogging", $"====================================");
+#endif
+            if (tries < 2)
+            {
+                MainThread.BeginInvokeOnMainThread(() => {
+                    _ = Toast.Make($"Failed to load the page templates: {ex.Message} -- retrying...", ToastDuration.Long).Show();
+                });
+                await LoadTemplates(tries + 1);
+            }
+            else
+            {
+                MainThread.BeginInvokeOnMainThread(() => {
+                    _ = Toast.Make($"Failed to load the page templates: {ex.Message}", ToastDuration.Long).Show();
+                    Application.Current!.Quit();
+                });
+            }
         }
     }
 
@@ -127,6 +163,11 @@ public class MainViewModel : NotifyPropertyChanged
         {
             // Do nothing, not vital
             Console.WriteLine("Error occurred loading the disallow lists (ignoring): {0}", ex.Message);
+#if ANDROID
+            Android.Util.Log.Debug("FeatureLogging", $"====================================");
+            Android.Util.Log.Debug("FeatureLogging", $"NONCRITICAL STARTUP ERROR in LoadDisallowList: {ex}");
+            Android.Util.Log.Debug("FeatureLogging", $"====================================");
+#endif
         }
     }
 
@@ -138,7 +179,7 @@ public class MainViewModel : NotifyPropertyChanged
     {
         _ = NewFeaturesAsync();
     }, () => !WaitingForPages);
-        
+
     private async Task NewFeaturesAsync(bool ignoreDirty = false)
     {
         if (IsDirty && !ignoreDirty)
@@ -162,7 +203,7 @@ public class MainViewModel : NotifyPropertyChanged
     {
         _ = OpenFeaturesAsync();
     }, () => !WaitingForPages);
-        
+
     private async Task OpenFeaturesAsync(bool ignoreDirty = false)
     {
         if (IsDirty && !ignoreDirty)
@@ -227,15 +268,15 @@ public class MainViewModel : NotifyPropertyChanged
                                 UserHasFeaturesOnPage = (bool)fileFeature["userHasFeaturesOnPage"],
                                 LastFeaturedOnPage = (string)fileFeature["lastFeaturedOnPage"],
                                 FeatureCountOnPage = CalculateFeatureCount(
-                                    SelectedPage!.HubName, 
-                                    (string)fileFeature["featureCountOnPage"], 
+                                    SelectedPage!.HubName,
+                                    (string)fileFeature["featureCountOnPage"],
                                     fileFeature.ContainsKey("featureCountOnRawPage") ? (string)fileFeature["featureCountOnRawPage"] : "0"),
                                 UserHasFeaturesOnHub = (bool)fileFeature["userHasFeaturesOnHub"],
                                 LastFeaturedOnHub = (string)fileFeature["lastFeaturedOnHub"],
                                 LastFeaturedPage = (string)fileFeature["lastFeaturedPage"],
                                 FeatureCountOnHub = CalculateFeatureCount(
-                                    SelectedPage!.HubName, 
-                                    (string)fileFeature["featureCountOnHub"], 
+                                    SelectedPage!.HubName,
+                                    (string)fileFeature["featureCountOnHub"],
                                     fileFeature.ContainsKey("featureCountOnRawHub") ? (string)fileFeature["featureCountOnRawHub"] : "0"),
                                 TooSoonToFeatureUser = (bool)fileFeature["tooSoonToFeatureUser"],
                                 TinEyeResults = new List<string>(TinEyeResults).Contains((string)fileFeature["tinEyeResults"]) ? (string)fileFeature["tinEyeResults"] : TinEyeResults[0],
@@ -248,9 +289,9 @@ public class MainViewModel : NotifyPropertyChanged
                         base.OnPropertyChanged(nameof(HasFeatures));
                         base.OnPropertyChanged(nameof(FeatureNavigationAllowed));
                         base.OnPropertyChanged(nameof(CanChangePage));
-                        base.OnPropertyChanged(nameof(SaveFeaturesCommand));   
-                        base.OnPropertyChanged(nameof(GenerateReportCommand));   
-                        base.OnPropertyChanged(nameof(SaveReportCommand));   
+                        base.OnPropertyChanged(nameof(SaveFeaturesCommand));
+                        base.OnPropertyChanged(nameof(GenerateReportCommand));
+                        base.OnPropertyChanged(nameof(SaveReportCommand));
                         IsDirty = false;
                         foreach (var feature in Features)
                         {
@@ -281,7 +322,7 @@ public class MainViewModel : NotifyPropertyChanged
     {
         _ = SaveFeaturesAsync();
     }, () => !WaitingForPages && HasFeatures);
-        
+
     private async Task SaveFeaturesAsync()
     {
         if (SelectedPage != null)
@@ -326,7 +367,7 @@ public class MainViewModel : NotifyPropertyChanged
     {
         _ = SaveReportAsync();
     }, () => !WaitingForPages && HasFeatures);
-    
+
     private async Task SaveReportAsync()
     {
         if (SelectedPage == null)
@@ -362,7 +403,7 @@ public class MainViewModel : NotifyPropertyChanged
             BindingContext = new AboutViewModel()
         });
     });
-    
+
     public SimpleCommand AddFeatureCommand => new(() =>
     {
         if (Clipboard.HasText)
@@ -451,10 +492,10 @@ public class MainViewModel : NotifyPropertyChanged
     public SimpleCommand CopyPageFeatureTagCommand => new(() =>
     {
         var prefix = SettingsViewModel.IncludeHash ? "#" : "";
-        _ = CopyTextToClipboardAsync(SelectedPage!.HubName == "other" 
-            ? $"{prefix}{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature!.UserAlias}" 
-            : $"{prefix}{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature!.UserAlias}", 
-            "Page feature tag", 
+        _ = CopyTextToClipboardAsync(SelectedPage!.HubName == "other"
+            ? $"{prefix}{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature!.UserAlias}"
+            : $"{prefix}{SelectedPage.HubName}_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature!.UserAlias}",
+            "Page feature tag",
             "Copied the page feature tag to the clipboard");
     }, () => SelectedPage != null && SelectedFeature != null && !string.IsNullOrEmpty(SelectedFeature.UserAlias));
 
@@ -465,7 +506,7 @@ public class MainViewModel : NotifyPropertyChanged
         {
             _ = CopyTextToClipboardAsync(
                 $"{prefix}raw_{SelectedPage.PageName ?? SelectedPage.Name}_{SelectedFeature!.UserAlias}",
-                "RAW page feature tag", 
+                "RAW page feature tag",
                 "Copied the RAW page feature tag to the clipboard");
         }
     }, () => SelectedPage != null && SelectedFeature != null && !string.IsNullOrEmpty(SelectedFeature.UserAlias));
@@ -477,7 +518,7 @@ public class MainViewModel : NotifyPropertyChanged
         {
             _ = CopyTextToClipboardAsync(
                 $"{prefix}{SelectedPage.HubName}_featured_{SelectedFeature!.UserAlias}",
-                "Hub feature tag", 
+                "Hub feature tag",
                 "Copied the hub feature tag to the clipboard");
         }
     }, () => SelectedPage != null && SelectedFeature != null && !string.IsNullOrEmpty(SelectedFeature.UserAlias));
@@ -488,7 +529,7 @@ public class MainViewModel : NotifyPropertyChanged
         if (SelectedPage!.HubName == "snap")
         {
             _ = CopyTextToClipboardAsync(
-                $"{prefix}raw_featured_{SelectedFeature!.UserAlias}", 
+                $"{prefix}raw_featured_{SelectedFeature!.UserAlias}",
                 "RAW hub feature tag",
                 "Copied the RAW hub feature tag to the clipboard");
         }
@@ -565,7 +606,7 @@ public class MainViewModel : NotifyPropertyChanged
             _ = MainWindow!.Navigation.PushAsync(new PersonalMessage(new PersonalMessageViewModel(this, featureToShow)));
         }
     });
-    
+
     public SimpleCommandWithParameter CopyPersonalMessageCommand => new(feature =>
     {
         if (SelectedPage != null && feature is Feature featureToCopy)
@@ -594,7 +635,7 @@ public class MainViewModel : NotifyPropertyChanged
 
     private bool waitingForPages = true;
 
-    private bool WaitingForPages
+    public bool WaitingForPages
     {
         get => waitingForPages;
         set => Set(ref waitingForPages, value, [
@@ -664,12 +705,12 @@ public class MainViewModel : NotifyPropertyChanged
                 OnPropertyChanged(nameof(NoSelectedPage));
                 OnPropertyChanged(nameof(PageTags));
                 OnPropertyChanged(nameof(FeaturedCounts));
-                excludedTags = SelectedPage != null 
-                    ? Preferences.Default.Get(nameof(ExcludedTags) + ":" + SelectedPage.Id, "") 
+                excludedTags = SelectedPage != null
+                    ? Preferences.Default.Get(nameof(ExcludedTags) + ":" + SelectedPage.Id, "")
                     : "";
                 OnPropertyChanged(nameof(ExcludedTags));
-                StaffLevel = SelectedPage != null 
-                    ? Preferences.Default.Get(nameof(StaffLevel) + ":" + SelectedPage.Id, StaffLevels[0]) 
+                StaffLevel = SelectedPage != null
+                    ? Preferences.Default.Get(nameof(StaffLevel) + ":" + SelectedPage.Id, StaffLevels[0])
                     : Preferences.Default.Get(nameof(StaffLevel), StaffLevels[0]);
                 if (!StaffLevels.Contains(StaffLevel))
                 {
@@ -776,7 +817,7 @@ public class MainViewModel : NotifyPropertyChanged
             case "SortKey":
                 ResortList();
                 break;
-            
+
             case "PostLink":
                 if (sender is Feature postLinkFeature && postLinkFeature == SelectedFeature)
                 {
@@ -784,7 +825,7 @@ public class MainViewModel : NotifyPropertyChanged
                 }
 
                 break;
-            
+
             case "UserAlias":
                 if (sender is Feature userAliasFeature && userAliasFeature == SelectedFeature)
                 {
@@ -862,7 +903,7 @@ public class MainViewModel : NotifyPropertyChanged
     public bool CanChangeStaffLevel => !WaitingForPages;
 
     #endregion
-    
+
     #region Your alias
 
     private string yourAlias = Preferences.Default.Get(nameof(YourAlias), "");
@@ -1470,7 +1511,7 @@ public class MainViewModel : NotifyPropertyChanged
     #region Misc
 
     public FeatureList? MainWindow { get; internal set; }
-    
+
     public double ScreenWidth => Math.Max(800, DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density);
 
     internal void TriggerTinEyeSource()

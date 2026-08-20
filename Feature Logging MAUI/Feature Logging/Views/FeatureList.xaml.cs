@@ -13,6 +13,15 @@ public partial class FeatureList : IThemePage
         _ = new MauiIcon();
     }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        if (BindingContext is MainViewModel { WaitingForPages: true } vm) {
+            _ = vm.LoadPages();
+        }
+    }
+
     private void OnBindingContextChanged(object sender, EventArgs e)
     {
         if (BindingContext is MainViewModel vm)

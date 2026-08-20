@@ -26,7 +26,7 @@ public static class MauiProgram
             .UseMaterialRoundedMauiIcons();
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+        builder.Logging.AddDebug();
 #endif
 
         return builder.Build();
